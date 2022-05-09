@@ -1,0 +1,17 @@
+{
+    "id": "sshd",
+    "name": "SSH server",
+    "options": {
+        "version": {
+            "type": "string",
+            "enum": ["latest"],
+            "default": "latest",
+            "description": "Currently unused."
+        }
+    },
+    "entrypoint": "/usr/local/share/ssh-init.sh",
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}

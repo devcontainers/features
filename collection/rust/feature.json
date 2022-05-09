@@ -1,0 +1,43 @@
+{
+    "id": "rust",
+    "name": "Rust",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": ["latest", "1.55", "1.54", "1.53"],
+            "default": "latest",
+            "description": "Select or enter a version of Rust to install."
+        },
+        "profile": {
+            "type": "string",
+            "proposals": ["minimal", "default", "complete"],
+            "default": "minimal",
+            "description": "Select a rustup install profile."
+        }
+    },
+    "extensions": [
+        "vadimcn.vscode-lldb",
+        "mutantdino.resourcemonitor",
+        "matklad.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "serayuzgur.crates"
+    ],
+    "containerEnv": {
+        "CARGO_HOME": "/usr/local/cargo",
+        "RUSTUP_HOME": "/usr/local/rustup",
+        "PATH": "${CARGO_HOME}/bin:${PATH}"
+    },
+    "capAdd": [ "SYS_PTRACE" ],
+    "securityOpt": ["seccomp=unconfined"],
+    "settings": {
+        "lldb.executable": "/usr/bin/lldb",
+        "files.watcherExclude": {
+            "**/target/**": true
+        },
+        "rust-analyzer.checkOnSave.command": "clippy"
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}

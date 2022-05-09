@@ -1,0 +1,21 @@
+{
+    "id": "jupyterlab",
+    "name": "Jupyter Lab",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": ["latest", "3.6.2"],
+            "default": "latest",
+            "description": "Select or enter a jupyterlab version."
+        }
+    },
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter"
+    ],
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}

@@ -1,0 +1,41 @@
+{
+    "id": "docker-from-docker",
+    "name": "Docker (Moby) support, reuse host Docker Engine (Docker-from-Docker)",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": ["latest", "20.10"],
+            "default": "latest",
+            "description": "Select or enter a Docker/Moby CLI version. (Availability can vary by OS version.)"
+        },
+        "moby": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install OSS Moby build instead of Docker CE"
+        },
+        "dockerDashComposeVersion": {
+            "type": "string",
+            "enum": ["v1", "v2" ],
+            "default": "v1",
+            "description": "Compose version to use for docker-compose (v1 or v2)"
+        }
+    },
+    "entrypoint": "/usr/local/share/docker-init.sh",
+    "containerEnv": {
+        "DOCKER_BUILDKIT": "1"
+    },
+    "extensions": [
+        "ms-azuretools.vscode-docker"
+    ],
+    "mounts": [
+        {
+            "source":"/var/run/docker.sock", 
+             "target":"/var/run/docker-host.sock", 
+             "type":"bind"
+        }
+    ],
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}

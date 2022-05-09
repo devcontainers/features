@@ -1,0 +1,27 @@
+{
+    "id": "node",
+    "name": "Node.js (via nvm) and yarn",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [ "lts", "latest", "18", "16", "14" ],
+            "default": "lts",
+            "description": "Select or enter a Node.js version to install"
+        },
+        "nodeGypDependencies": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install dependencies to compile native node modules (node-gyp)?"
+        }
+    },
+    "extensions": ["dbaeumer.vscode-eslint"],
+    "containerEnv": {
+        "NVM_DIR":"/usr/local/share/nvm",
+        "NVM_SYMLINK_CURRENT": "true",
+        "PATH": "${NVM_DIR}/current/bin:${PATH}"
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}

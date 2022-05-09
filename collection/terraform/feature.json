@@ -1,0 +1,39 @@
+{
+    "id": "terraform",
+    "name": "Terraform, tflint, and TFGrunt",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": ["latest", "1.1", "1.0", "0.15"],
+            "default": "latest",
+            "description": "Terraform version"
+        },
+        "tflint": {
+            "type": "string",
+            "proposals": ["latest"],
+            "default": "latest",
+            "description": "Tflint version"
+        },
+        "terragrunt": {
+            "type": "string",
+            "proposals": ["latest"],
+            "default": "latest",
+            "description": "Terragrunt version"
+        }
+    },
+    "extensions": [
+        "HashiCorp.terraform",
+        "ms-azuretools.vscode-azureterraform"
+    ],
+    "settings": {
+        "terraform.languageServer": {
+            "enabled": true,
+            "args": []
+        },
+        "azureTerraform.terminal": "integrated",
+        "install": {
+            "app": "",
+            "file": "install.sh"
+        }
+    }
+}
