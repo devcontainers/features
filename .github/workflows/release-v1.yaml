@@ -1,0 +1,40 @@
+name: "Package dev container features (v1)"
+on:
+  # Will create a release ON THE CURRENT TAG
+  workflow_dispatch:
+
+jobs:
+  deploy: # make sure the action works on a clean machine without building
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Combine Feature Fragments
+        run: ./v1/combine-feature-fragments.py > ./collection/devcontainer-features.json
+
+      - name: Copy scripts to src folder
+        id: copy_scripts
+        run: cp -r ./v1/install.sh ./v1/feature-scripts.env    ./collection
+
+      - name: Debug Output
+        run: sudo apt install tree -y && tree
+
+      - name: Generate tgz
+        uses: microsoft/publish-dev-container-features-action@main # devcontainers/action
+        with:
+          publish-features: "true"
+          path-to-features: "./collection"
+          publish-definitions: "false"
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: devcontainer-features.tgz
+          path: devcontainer-features.tgz
+
+      # - name: Get or Create Release at current tag
+      #   uses: ncipollo/release-action@v1
+      #   with:
+      #     allowUpdates: true # Lets us upload our own artifact from previous step
+      #     artifactErrorsFailBuild: true
+      #     artifacts: "./devcontainer-*"
+      #     token: ${{ secrets.GITHUB_TOKEN }}
