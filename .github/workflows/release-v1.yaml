@@ -1,6 +1,8 @@
 name: "Package dev container features (v1)"
 on:
-  # Will create a release ON THE CURRENT TAG
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
