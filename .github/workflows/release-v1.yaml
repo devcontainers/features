@@ -31,10 +31,10 @@ jobs:
           name: devcontainer-features.tgz
           path: devcontainer-features.tgz
 
-      # - name: Get or Create Release at current tag
-      #   uses: ncipollo/release-action@v1
-      #   with:
-      #     allowUpdates: true # Lets us upload our own artifact from previous step
-      #     artifactErrorsFailBuild: true
-      #     artifacts: "./devcontainer-*"
-      #     token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get or Create Release at current tag
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true # Lets us upload our own artifact from previous step
+          artifactErrorsFailBuild: true
+          artifacts: "./devcontainer-*"
+          token: ${{ secrets.GITHUB_TOKEN }}
