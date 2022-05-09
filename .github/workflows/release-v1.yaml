@@ -10,11 +10,11 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Combine Feature Fragments
-        run: ./v1/combine-feature-fragments.py > ./collection/devcontainer-features.json
+        run: ./v1/combine-feature-fragments.py > ./devcontainer-features.json
 
       - name: Copy scripts to src folder
         id: copy_scripts
-        run: cp -r ./v1/install.sh ./v1/feature-scripts.env    ./collection
+        run: cp -r ./v1/install.sh ./v1/feature-scripts.env ./devcontainer-features.json   ./collection
 
       - name: Debug Output
         run: sudo apt install tree -y && tree
