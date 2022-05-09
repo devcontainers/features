@@ -1,59 +1,56 @@
 {
-    "id": "python",
-    "name": "Python (may require compilation)",
-    "description": "Python (may require compilation)",
-    "options": {
-        "version": {
-            "type": "string",
-            "enum": [ "latest", "os-provided", "3.10", "3.9", "3.8", "3.7", "3.6" ],
-            "default": "os-provided",
-            "description": "Select a Python version to install."
-        },
-        "installTools": {
-            "type": "boolean",
-            "default": true,
-            "description": "Install common Python tools like pylint"
-        },
-        "optimize": {
-            "type": "boolean",
-            "default": false,
-            "description": "Optimize Python for performance when compiled (slow)"
-        },
-        "install_path": {
-            "type": "string",
-            "default": "/usr/local/python",
-            "description": "The path where python will be installed."
-        },
-        "setup_links": {
-            "type": "boolean",
-            "default": "true",
-            "description": "If links and aliases should be created."
-        }
+  "id": "python",
+  "name": "Python (may require compilation)",
+  "description": "Python (may require compilation)",
+  "options": {
+    "version": {
+      "type": "string",
+      "enum": ["latest", "os-provided", "3.10", "3.9", "3.8", "3.7", "3.6"],
+      "default": "os-provided",
+      "description": "Select a Python version to install."
     },
-    "containerEnv": {
-        "PYTHON_PATH": "/usr/local/python",
-        "PIPX_HOME": "/usr/local/py-utils",
-        "PIPX_BIN_DIR": "/usr/local/py-utils/bin",
-        "PATH":"${PYTHON_PATH}/bin:${PATH}:${PIPX_BIN_DIR}"
+    "installTools": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install common Python tools like pylint"
     },
-    "extensions": [
-        "ms-python.python",
-        "ms-python.vscode-pylance"
-    ],
-    "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
-        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
-        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
-        "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
-        "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
-        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
-        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
+    "optimize": {
+      "type": "boolean",
+      "default": false,
+      "description": "Optimize Python for performance when compiled (slow)"
     },
-    "install": {
-        "app": "",
-        "file": "python-debian.sh"
+    "install_path": {
+      "type": "string",
+      "default": "/usr/local/python",
+      "description": "The path where python will be installed."
+    },
+    "setup_links": {
+      "type": "boolean",
+      "default": "true",
+      "description": "If links and aliases should be created."
     }
+  },
+  "containerEnv": {
+    "PYTHON_PATH": "/usr/local/python",
+    "PIPX_HOME": "/usr/local/py-utils",
+    "PIPX_BIN_DIR": "/usr/local/py-utils/bin",
+    "PATH": "${PYTHON_PATH}/bin:${PATH}:${PIPX_BIN_DIR}"
+  },
+  "extensions": ["ms-python.python", "ms-python.vscode-pylance"],
+  "settings": {
+    "python.defaultInterpreterPath": "/usr/local/bin/python",
+    "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
+    "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+    "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
+    "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+    "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+    "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
+    "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
+    "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
+    "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
+  },
+  "install": {
+    "app": "",
+    "file": "install.sh"
+  }
 }

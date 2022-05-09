@@ -1,0 +1,17 @@
+{
+  "id": "azure-cli",
+  "name": "Azure CLI",
+  "options": {
+    "version": {
+      "type": "string",
+      "proposals": ["latest"],
+      "default": "latest",
+      "description": "Select or enter an Azure CLI version. (Available versions may vary by Linux distribution.)"
+    }
+  },
+  "extensions": ["ms-vscode.azurecli"],
+  "install": {
+    "app": "",
+    "file": "install.sh"
+  }
+}
