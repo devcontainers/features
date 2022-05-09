@@ -13,5 +13,9 @@
         "ms-python.python",
         "ms-python.vscode-pylance",
         "ms-toolsai.jupyter"
-    ]
+    ],
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
 }

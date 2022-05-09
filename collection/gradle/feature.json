@@ -14,5 +14,9 @@
     "containerEnv": {
         "SDKMAN_DIR": "/usr/local/sdkman",
         "PATH": "${SDKMAN_DIR}/bin:${SDKMAN_DIR}/candidates/gradle/current/bin:${PATH}"
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
     }
 }

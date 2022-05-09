@@ -19,5 +19,9 @@
         "NVM_DIR":"/usr/local/share/nvm",
         "NVM_SYMLINK_CURRENT": "true",
         "PATH": "${NVM_DIR}/current/bin:${PATH}"
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
     }
 }

@@ -8,5 +8,9 @@
             "default": "latest",
             "description": "Currently unused."
         }
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
     }
 }

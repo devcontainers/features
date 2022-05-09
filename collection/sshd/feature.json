@@ -9,5 +9,9 @@
             "description": "Currently unused."
         }
     },
-    "entrypoint": "/usr/local/share/ssh-init.sh"
+    "entrypoint": "/usr/local/share/ssh-init.sh",
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
 }

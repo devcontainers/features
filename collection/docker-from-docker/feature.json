@@ -33,5 +33,9 @@
              "target":"/var/run/docker-host.sock", 
              "type":"bind"
         }
-    ]
+    ],
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
 }

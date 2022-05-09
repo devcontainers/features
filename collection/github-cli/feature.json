@@ -8,5 +8,9 @@
             "default": "latest",
             "description": "Select version of the GitHub CLI, if not latest."
         }
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
     }
 }

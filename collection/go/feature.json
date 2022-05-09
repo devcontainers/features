@@ -16,5 +16,9 @@
         "PATH": "${GOPATH}/bin:${GOROOT}/bin:${PATH}"
     },
     "capAdd": [ "SYS_PTRACE" ],
-    "securityOpt": [ "seccomp=unconfined" ]
+    "securityOpt": [ "seccomp=unconfined" ],
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
 }

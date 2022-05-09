@@ -36,4 +36,8 @@
         },
         "rust-analyzer.checkOnSave.command": "clippy"
     },
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
 }

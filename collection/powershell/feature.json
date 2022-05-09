@@ -8,5 +8,9 @@
             "default": "latest",
             "description": "Select or enter a version of PowerShell."
         }
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
     }
 }

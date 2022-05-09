@@ -30,6 +30,10 @@
             "enabled": true,
             "args": []
         },
-        "azureTerraform.terminal": "integrated"
+        "azureTerraform.terminal": "integrated",
+        "install": {
+            "app": "",
+            "file": "install.sh"
+        }
     }
 }

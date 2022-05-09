@@ -17,5 +17,9 @@
         "GEM_HOME": "/usr/local/rvm/gems/default",
         "MY_RUBY_HOME": "/usr/local/rvm/rubies/default",
         "PATH": "/usr/local/rvm/gems/default/bin:/usr/local/rvm/gems/default@global/bin:/usr/local/rvm/rubies/default/bin:${PATH}"
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
     }
 }
