@@ -1,0 +1,21 @@
+{
+    "id": "aws-cli",
+    "name": "AWS CLI",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest"
+            ],
+            "default": "latest",
+            "description": "Select or enter an AWS CLI version. (Available versions here: https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst)"
+        }
+    },
+    "extensions": [
+        "AmazonWebServices.aws-toolkit-vscode"
+    ],
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}

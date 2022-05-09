@@ -47,6 +47,6 @@
     ],
     "install": {
         "app": "",
-        "file": "common-debian.sh"
+        "file": "install.sh"
     }
 }

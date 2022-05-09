@@ -1,37 +1,21 @@
 {
-    "id": "python",
-    "name": "Python (may require compilation)",
-    "description": "Python (may require compilation)",
+    "id": "ruby",
+    "name": "Ruby (via rvm)",
     "options": {
         "version": {
             "type": "string",
-            "enum": [ "latest", "os-provided", "3.10", "3.9", "3.8", "3.7", "3.6" ],
-            "default": "os-provided",
-            "description": "Select a Python version to install."
-        },
-        "installTools": {
-            "type": "boolean",
-            "default": true,
-            "description": "Install common Python tools like pylint"
-        },
-        "optimize": {
-            "type": "boolean",
-            "default": false,
-            "description": "Optimize Python for performance when compiled (slow)"
+            "proposals": ["latest", "3.1", "3.0", "2.7"],
+            "default": "latest",
+            "description": "Select or enter a Ruby version to install"
         }
     },
-    "containerEnv": {
-        "PYTHON_PATH": "/usr/local/python",
-        "PIPX_HOME": "/usr/local/py-utils",
-        "PIPX_BIN_DIR": "/usr/local/py-utils/bin",
-        "PATH":"${PYTHON_PATH}/bin:${PATH}:${PIPX_BIN_DIR}"
-    },
     "extensions": [
-        "ms-python.python",
-        "ms-python.vscode-pylance"
+        "rebornix.Ruby"
     ],
-    "install": {
-        "app": "",
-        "file": "python-debian.sh"
+    "containerEnv": {
+        "GEM_PATH": "/usr/local/rvm/gems/default:/usr/local/rvm/gems/default@global",
+        "GEM_HOME": "/usr/local/rvm/gems/default",
+        "MY_RUBY_HOME": "/usr/local/rvm/rubies/default",
+        "PATH": "/usr/local/rvm/gems/default/bin:/usr/local/rvm/gems/default@global/bin:/usr/local/rvm/rubies/default/bin:${PATH}"
     }
 }

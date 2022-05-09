@@ -1,7 +1,6 @@
 {
-    "id": "golang",
+    "id": "go",
     "name": "Go",
-    "description": "Go lang support.",
     "options": {
         "version": {
             "type": "string",
@@ -10,7 +9,12 @@
             "description": "Select or enter a Go version to install"
         }
     },
-    "install": {
-        "file": "go-debian.sh"
-    }
+    "init": true,
+    "extensions": ["golang.Go"],
+    "containerEnv": {
+        "GOPATH": "/go",
+        "PATH": "${GOPATH}/bin:${GOROOT}/bin:${PATH}"
+    },
+    "capAdd": [ "SYS_PTRACE" ],
+    "securityOpt": [ "seccomp=unconfined" ]
 }

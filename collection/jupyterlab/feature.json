@@ -1,7 +1,6 @@
 {
     "id": "jupyterlab",
     "name": "Jupyter Lab",
-    "description": "Jupyter Lab",
     "options": {
         "version": {
             "type": "string",
@@ -10,8 +9,9 @@
             "description": "Select or enter a jupyterlab version."
         }
     },
-    "install": {
-        "app": "",
-        "file": "jupyterlab-debian.sh"
-    }
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter"
+    ]
 }

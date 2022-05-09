@@ -1,12 +1,12 @@
 {
-    "id": "docker-in-docker",
-    "name": "Docker (Moby) support (Docker-in-Docker)",
+    "id": "docker-from-docker",
+    "name": "Docker (Moby) support, reuse host Docker Engine (Docker-from-Docker)",
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "20.10" ],
+            "proposals": ["latest", "20.10"],
             "default": "latest",
-            "description": "Select or enter a Docker/Moby Engine version. (Availability can vary by OS version.)"
+            "description": "Select or enter a Docker/Moby CLI version. (Availability can vary by OS version.)"
         },
         "moby": {
             "type": "boolean",
@@ -17,11 +17,10 @@
             "type": "string",
             "enum": ["v1", "v2" ],
             "default": "v1",
-            "description": "Default version of Docker Compose (v1 or v2)"
+            "description": "Compose version to use for docker-compose (v1 or v2)"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",
-    "privileged": true,
     "containerEnv": {
         "DOCKER_BUILDKIT": "1"
     },
@@ -30,9 +29,9 @@
     ],
     "mounts": [
         {
-            "source":"dind-var-lib-docker", 
-             "target":"/var/lib/docker", 
-             "type":"volume"
+            "source":"/var/run/docker.sock", 
+             "target":"/var/run/docker-host.sock", 
+             "type":"bind"
         }
     ]
 }

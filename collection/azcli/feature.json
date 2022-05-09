@@ -32,6 +32,6 @@
     ],
     "install": {
         "app": "",
-        "file": "python-debian.sh"
+        "file": "install.sh"
     }
 }

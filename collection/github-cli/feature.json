@@ -1,0 +1,12 @@
+{
+    "id": "github-cli",
+    "name": "GitHub CLI",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": ["latest"],
+            "default": "latest",
+            "description": "Select version of the GitHub CLI, if not latest."
+        }
+    }
+}
