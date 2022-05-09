@@ -1,0 +1,19 @@
+{
+    "id": "apt",
+    "name": "Apt command feature.",
+    "description": "Apt command feature.",
+    "options": {
+        "command": {
+            "type": "string",
+            "description": "Select or enter a Go version to install"
+        }
+    },
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+    ],
+    "install": {
+        "app": "",
+        "file": "run.sh"
+    }
+}

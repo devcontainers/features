@@ -1,0 +1,37 @@
+{
+    "id": "python",
+    "name": "Python (may require compilation)",
+    "description": "Python (may require compilation)",
+    "options": {
+        "version": {
+            "type": "string",
+            "enum": [ "latest", "os-provided", "3.10", "3.9", "3.8", "3.7", "3.6" ],
+            "default": "os-provided",
+            "description": "Select a Python version to install."
+        },
+        "install_path": {
+            "type": "string",
+            "default": "/usr/local/python",
+            "description": "The path where python will be installed."
+        },
+        "setup_links": {
+            "type": "boolean",
+            "default": "true",
+            "description": "If links and aliases should be created."
+        }
+    },
+    "containerEnv": {
+        "PYTHON_PATH": "/usr/local/python",
+        "PIPX_HOME": "/usr/local/py-utils",
+        "PIPX_BIN_DIR": "/usr/local/py-utils/bin",
+        "PATH":"${PYTHON_PATH}/bin:${PATH}:${PIPX_BIN_DIR}"
+    },
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+    ],
+    "install": {
+        "app": "",
+        "file": "python-debian.sh"
+    }
+}

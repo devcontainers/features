@@ -1,0 +1,40 @@
+{
+    "id": "docker-in-docker",
+    "name": "Docker (Moby) support (Docker-in-Docker)",
+    "documentationURL": "https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker-in-docker.md",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": ["latest", "20.10" ],
+            "default": "latest",
+            "description": "Select or enter a Docker/Moby Engine version. (Availability can vary by OS version.)"
+        },
+        "moby": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install OSS Moby build instead of Docker CE"
+        },
+        "dockerDashComposeVersion": {
+            "type": "string",
+            "enum": ["v1", "v2" ],
+            "default": "v1",
+            "description": "Default version of Docker Compose (v1 or v2)"
+        }
+    },
+    "buildArg": "_VSC_INSTALL_DOCKER_IN_DOCKER",
+    "entrypoint": "/usr/local/share/docker-init.sh",
+    "privileged": true,
+    "containerEnv": {
+        "DOCKER_BUILDKIT": "1"
+    },
+    "extensions": [
+        "ms-azuretools.vscode-docker"
+    ],
+    "mounts": [
+        {
+            "source":"dind-var-lib-docker", 
+             "target":"/var/lib/docker", 
+             "type":"volume"
+        }
+    ]
+}

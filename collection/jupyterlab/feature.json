@@ -1,0 +1,17 @@
+{
+    "id": "jupyterlab",
+    "name": "Jupyter Lab",
+    "description": "Jupyter Lab",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": ["latest", "3.6.2"],
+            "default": "latest",
+            "description": "Select or enter a jupyterlab version."
+        }
+    },
+    "install": {
+        "app": "",
+        "file": "jupyterlab-debian.sh"
+    }
+}

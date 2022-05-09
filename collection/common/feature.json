@@ -1,0 +1,52 @@
+{
+    "id": "common",
+    "name": "common",
+    "description": "common",
+    "options": {
+        "installZsh": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install ZSH?"
+        },
+        "installOhMyZsh": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install Oh My Zsh!?"
+        },
+        "upgradePackages": {
+            "type":"boolean",
+            "default": true,
+            "description": "Upgrade OS packages?"
+        },
+        "username": {
+            "type":"string",
+            "proposals": ["vscode", "codespace", "none", "automatic"],
+            "default": "automatic",
+            "description": "Enter name of non-root user to configure or none to skip"
+        },
+        "uid": {
+            "type":"string",
+            "proposals": ["1000", "automatic"],
+            "default": "automatic",
+            "description": "Enter uid for non-root user"
+        },
+        "gid": {
+            "type": "string",
+            "proposals": ["1000", "automatic"],
+            "default": "automatic",
+            "description": "Enter gid for non-root user"
+        },
+        "nonFreePackages": {
+            "type":"boolean",
+            "default": true,
+            "description": "Add packages from non-free Debian repository?"
+        }
+    },
+    "extensions": [
+        "ms-dotnettools.csharp"
+    ],
+    "install": {
+        "app": "",
+        "file": "common-debian.sh"
+    }
+}

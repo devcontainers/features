@@ -1,0 +1,16 @@
+{
+    "id": "golang",
+    "name": "Go",
+    "description": "Go lang support.",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": ["latest", "1.18", "1.17"],
+            "default": "latest",
+            "description": "Select or enter a Go version to install"
+        }
+    },
+    "install": {
+        "file": "go-debian.sh"
+    }
+}
