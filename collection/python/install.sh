@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
+#-------------------------------------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
+#-------------------------------------------------------------------------------------------------------------
+#
+# Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/python.md
+# Maintainer: The VS Code and Codespaces Teams
+#
+# Syntax: ./python-debian.sh [Python Version] [Python intall path] [PIPX_HOME] [non-root user] [Update rc files flag] [install tools flag] [Use Oryx if available flag] [Optimize when building from source flag]
 
-PYTHON_VERSION=($PYTHON_VERSION) # 'system' checks the base image first, else installs 'latest'
-PYTHON_INSTALL_PATH=($PYTHON_INSTALL_PATH)
-PYTHON_SETUP_LINKS=($PYTHON_SETUP_LINKS)
-
-#PYTHON_VERSION=${1:-"latest"} # 'system' checks the base image first, else installs 'latest'
-#PYTHON_INSTALL_PATH=${2:-"/usr/local/python"}
+PYTHON_VERSION=${1:-"latest"} # 'system' checks the base image first, else installs 'latest'
+PYTHON_INSTALL_PATH=${2:-"/usr/local/python"}
 export PIPX_HOME=${3:-"/usr/local/py-utils"}
 USERNAME=${4:-"automatic"}
 UPDATE_RC=${5:-"true"}
@@ -341,36 +346,9 @@ for util in ${DEFAULT_UTILS[@]}; do
 done
 rm -rf /tmp/pip-tmp
 
-echo "(*) Updating RC files."
-
 updaterc "$(cat << EOF
 export PIPX_HOME="${PIPX_HOME}"
 export PIPX_BIN_DIR="${PIPX_BIN_DIR}"
 if [[ "\${PATH}" != *"\${PIPX_BIN_DIR}"* ]]; then export PATH="\${PATH}:\${PIPX_BIN_DIR}"; fi
 EOF
 )"
-
-echo "(*) About to do final Python setup."
-
-INSTALLED_PYTHON_VERSION=$(${PYTHON_INSTALL_PATH}/bin/python --version 2>&1 | grep -Po '(?<=Python )(.+)')
-if [[ ! -z "$INSTALLED_PYTHON_VERSION" ]] ; then
-    echo "(*) Installed Python version is ${INSTALLED_PYTHON_VERSION}"
-    PYTHON_MAJOR_VERSION=$(echo ${INSTALLED_PYTHON_VERSION} | cut -f1 -d'.')
-    PYTHON_MINOR_VERSION=$(echo ${INSTALLED_PYTHON_VERSION} | cut -f2 -d'.')
-
-    if [ "${PYTHON_SETUP_LINKS}" = "true" ]; then
-        mkdir -p /opt/python
-        ln -s /usr/share/python /opt/python/${INSTALLED_PYTHON_VERSION}
-        ln -s /opt/python/${INSTALLED_PYTHON_VERSION} /opt/python/${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}
-        ln -s /opt/python/${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION} /opt/python/${PYTHON_MAJOR_VERSION}
-        ln -s /opt/python/${INSTALLED_PYTHON_VERSION} /opt/python/latest
-        ln -s /opt/python/${INSTALLED_PYTHON_VERSION} /opt/python/stable
-
-        mkdir -p /home/${USERNAME}/.python
-        ln -s /opt/python/${INSTALLED_PYTHON_VERSION} /home/${USERNAME}/.python/current
-    fi
-else
-    echo "(*) Failed to get installed Python version."
-fi
-
-echo "(*) Done with Python feature."
