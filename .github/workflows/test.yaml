@@ -1,0 +1,16 @@
+name: "Test Features"
+on: 
+  push:
+    branches:
+    - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  deploy: # make sure the action works on a clean machine without building
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Combine Feature Fragments
+        run: npx --yes ./dev-containers-cli-0.1.0.tgz features-test -c /workspaces/features/collection -f go
