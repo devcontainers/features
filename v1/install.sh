@@ -48,7 +48,8 @@ while IFS= read -r feature_line; do
             echo "(*) Skipping. Script already run with same arguments."
         else
             # Execute script and create a marker with the script args
-            chmod +x ${script_command}
+            script_name="$(echo $script_command | cut -d' ' -f1)"
+            chmod +x ${script_name}
             ./${script_command}
             echo "${script_command}" > "${feature_marker}"
         fi
