@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy: # make sure the action works on a clean machine without building
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: Combine Feature Fragments
+      - name: Invoke devcontainer-cli features-test 
         run: npx --yes ./dev-containers-cli-0.1.0.tgz features-test -c `pwd`/collection -f go
