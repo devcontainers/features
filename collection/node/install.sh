@@ -98,6 +98,8 @@ if [ "${NODE_VERSION}" = "none" ]; then
     export NODE_VERSION=
 elif [ "${NODE_VERSION}" = "lts" ]; then
     export NODE_VERSION="lts/*"
+elif [ "${NODE_VERSION}" = "latest" ]; then
+    export NODE_VERSION="node"
 fi
 
 # Create a symlink to the installed version for use in Dockerfile PATH statements
