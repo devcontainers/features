@@ -9,8 +9,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+          matrix:
+            features: [ "go", "dotnet", "go,dotnet" ]
+            baseImage: [ "mcr.microsoft.com/vscode/devcontainers/base:focal" ]
     steps:
       - uses: actions/checkout@v2
 
-      - name: Invoke devcontainer-cli features-test 
-        run: npx --yes ./dev-containers-cli-0.1.0.tgz features-test -c `pwd`/collection -f go
+      - name: Invoke CLI testing ${{ matrix.features }} against ${{ matrix.baseImage }}
+        run: npx --yes ./dev-containers-cli-0.1.0.tgz features-test -c `pwd`/collection -f ${{ matrix.features }}
