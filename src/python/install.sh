@@ -322,7 +322,7 @@ chown :pipx ${PIPX_HOME} ${PIPX_BIN_DIR}
 chmod g+s ${PIPX_HOME} ${PIPX_BIN_DIR}
 
 # Update pip if not using os provided python
-if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ]; then
+if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ] && [ ${PYTHON_VERSION} != "none" ]; then
     echo "Updating pip..."
     ${PYTHON_INSTALL_PATH}/bin/python3 -m pip install --no-cache-dir --upgrade pip
 fi
