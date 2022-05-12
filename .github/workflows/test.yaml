@@ -16,5 +16,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Invoke CLI testing ${{ matrix.features }} against ${{ matrix.baseImage }}
-        run: npx --yes ./dev-containers-cli-0.1.0.tgz features-test -c `pwd`/collection -f ${{ matrix.features }}
+      - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+        run: npx --yes ./dev-containers-cli-0.1.0.tgz features-tests -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -d `pwd` 
