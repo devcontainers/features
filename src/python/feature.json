@@ -19,7 +19,7 @@
       "default": false,
       "description": "Optimize Python for performance when compiled (slow)"
     },
-    "install_path": {
+    "installPath": {
       "type": "string",
       "default": "/usr/local/python",
       "description": "The path where python will be installed."
