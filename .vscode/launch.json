@@ -9,9 +9,7 @@
                 "dev-containers-cli-0.1.0.tgz",
                 "features-test",
                 "-d",
-                "/workspaces/features",
-                "-f",
-                "${input:selectedFeatures}"
+                "/workspaces/features"
             ],
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
