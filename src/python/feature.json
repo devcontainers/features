@@ -5,7 +5,15 @@
   "options": {
     "version": {
       "type": "string",
-      "enum": ["latest", "os-provided", "3.10", "3.9", "3.8", "3.7", "3.6"],
+      "enum": [
+        "latest",
+        "os-provided",
+        "3.10",
+        "3.9",
+        "3.8",
+        "3.7",
+        "3.6"
+      ],
       "default": "os-provided",
       "description": "Select a Python version to install."
     },
@@ -36,7 +44,10 @@
     "PIPX_BIN_DIR": "/usr/local/py-utils/bin",
     "PATH": "${PYTHON_PATH}/bin:${PATH}:${PIPX_BIN_DIR}"
   },
-  "extensions": ["ms-python.python", "ms-python.vscode-pylance"],
+  "extensions": [
+    "ms-python.python",
+    "ms-python.vscode-pylance"
+  ],
   "settings": {
     "python.defaultInterpreterPath": "/usr/local/bin/python",
     "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",

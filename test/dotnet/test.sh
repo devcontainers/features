@@ -2,8 +2,8 @@
 
 set -e
 
-# Import test library
-source featuresTest.library.sh root
+# Optional: Import test library
+source dev-container-features-test-lib
 
 # Definition specific tests
 check "dotnet" dotnet --info
