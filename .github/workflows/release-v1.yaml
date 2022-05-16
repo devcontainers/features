@@ -16,7 +16,7 @@ jobs:
 
       - name: Copy scripts to src folder
         id: copy_scripts
-        run: cp -r ./v1/install.sh ./v1/feature-scripts.env ./devcontainer-features.json   ./collection
+        run: cp -r ./v1/install.sh ./v1/feature-scripts.env ./devcontainer-features.json   ./src
 
       - name: Debug Output
         run: sudo apt install tree -y && tree
@@ -25,7 +25,7 @@ jobs:
         uses: microsoft/publish-dev-container-features-action@main # devcontainers/action
         with:
           publish-features: "true"
-          path-to-features: "./collection"
+          path-to-features: "./src"
           publish-definitions: "false"
 
       - uses: actions/upload-artifact@v3
