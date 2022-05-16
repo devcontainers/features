@@ -207,7 +207,7 @@ fi
 
 # Add add sudo support for non-root user
 if [ "${USERNAME}" != "root" ] && [ "${EXISTING_NON_ROOT_USER}" != "${USERNAME}" ]; then
-    echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME
+    echo $USERNAME ALL=\(root\) NOPASSWD:ALL >> /etc/sudoers.d/$USERNAME
     chmod 0440 /etc/sudoers.d/$USERNAME
     EXISTING_NON_ROOT_USER="${USERNAME}"
 fi
