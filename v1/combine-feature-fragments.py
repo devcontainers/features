@@ -4,7 +4,7 @@
 
 import os
 
-featureDirs = os.listdir('./collection')
+featureDirs = os.listdir('./src')
 
 beginning = """
 {
@@ -22,7 +22,7 @@ count = len(featureDirs)
 
 for fDir in featureDirs:
     count -= 1
-    config = f'./collection/{fDir}/feature.json'
+    config = f'./src/{fDir}/feature.json'
     data = open(config, "r").read()
     middle += f'{data}'
     if count != 0:
