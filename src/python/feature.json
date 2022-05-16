@@ -8,6 +8,7 @@
       "enum": [
         "latest",
         "os-provided",
+        "none",
         "3.10",
         "3.9",
         "3.8",

@@ -5,7 +5,7 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "7", "6", "5"],
+            "proposals": ["latest", "none", "7", "6", "5"],
             "default": "latest",
             "description": "Select or enter a Gradle version to install"
         }

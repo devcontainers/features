@@ -4,7 +4,7 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "1.18", "1.17"],
+            "proposals": ["latest", "none", "1.18", "1.17"],
             "default": "latest",
             "description": "Select or enter a Go version to install"
         }
