@@ -1,0 +1,21 @@
+name: "Test Features (manual)"
+on: 
+  workflow_dispatch:
+    inputs:
+      features:
+        description: 'Comma-separated list of features to execute tests against'     
+        required: true
+        default: 'go,dotnet'
+      baseImage: 
+        description: 'Base image'     
+        required: true
+        default: 'mcr.microsoft.com/vscode/devcontainers/base:focal'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: " Testing '${{ github.event.inputs.features }}' against '${{ github.event.inputs.baseImage }}'"
+        run: npx --yes ./dev-containers-cli-0.1.0.tgz features-test -f ${{ github.event.inputs.features }} -i ${{ github.event.inputs.baseImage }} -d `pwd` 

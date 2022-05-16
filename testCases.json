@@ -1,0 +1,29 @@
+[
+    {
+        "_id": "go then dotnet",
+        "features": [
+            {
+                "id": "go",
+                "version": "1.17"
+            },
+            {
+                "id": "dotnet",
+                "version": "latest",
+                "runtimeOnly": true
+            }
+        ],
+        "image": "mcr.microsoft.com/vscode/devcontainers/base:focal"
+    },
+    {
+        "_id": "python then jupyter",
+        "features": [
+            {
+                "id": "python"
+            },
+            {
+                "id": "jupyterlab"
+            }
+        ],
+        "image": "mcr.microsoft.com/vscode/devcontainers/base:focal"
+    }
+]

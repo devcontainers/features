@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
           matrix:
-            features: [ "go", "dotnet", "go,dotnet" ]
+            features: [ "go", "dotnet", "go,dotnet"  ]
             baseImage: [ "mcr.microsoft.com/vscode/devcontainers/base:focal" ]
     steps:
       - uses: actions/checkout@v2

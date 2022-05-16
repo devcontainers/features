@@ -4,19 +4,29 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "none", "1.1", "1.0", "0.15"],
+            "proposals": [
+                "latest",
+                "none",
+                "1.1",
+                "1.0",
+                "0.15"
+            ],
             "default": "latest",
             "description": "Terraform version"
         },
         "tflint": {
             "type": "string",
-            "proposals": ["latest"],
+            "proposals": [
+                "latest"
+            ],
             "default": "latest",
             "description": "Tflint version"
         },
         "terragrunt": {
             "type": "string",
-            "proposals": ["latest"],
+            "proposals": [
+                "latest"
+            ],
             "default": "latest",
             "description": "Terragrunt version"
         }
@@ -31,9 +41,9 @@
             "args": []
         },
         "azureTerraform.terminal": "integrated",
-        "install": {
-            "app": "",
-            "file": "install.sh"
-        }
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
     }
 }

@@ -5,7 +5,8 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-check "version" go version
+# Definition specific tests
+check "version" aws --version
 
 # Report result
 reportResults
