@@ -4,7 +4,7 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "1.55", "1.54", "1.53"],
+            "proposals": ["latest", "none", "1.55", "1.54", "1.53"],
             "default": "latest",
             "description": "Select or enter a version of Rust to install."
         },

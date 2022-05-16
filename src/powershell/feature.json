@@ -4,7 +4,7 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "7.1"],
+            "proposals": ["latest", "none", "7.1"],
             "default": "latest",
             "description": "Select or enter a version of PowerShell."
         }
