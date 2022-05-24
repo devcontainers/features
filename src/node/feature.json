@@ -12,6 +12,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install dependencies to compile native node modules (node-gyp)?"
+        },
+        "nvmInstallPath": {
+            "type": "string",
+            "default": "/usr/local/share/nvm",
+            "description": "The path where NVM will be installed."
         }
     },
     "extensions": ["dbaeumer.vscode-eslint"],
