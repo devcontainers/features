@@ -1,12 +1,11 @@
+#!/bin/bash
 
-    #!/bin/bash
+set -e
 
-    set -e
+# Optional: Import test library
+source dev-container-features-test-lib
 
-    # Optional: Import test library
-    source dev-container-features-test-lib
+echo 'NO TESTS FOR ME YET!'
 
-    echo 'NO TESTS FOR ME YET!'
-
-    # Report result
-    reportResults
+# Report result
+reportResults
