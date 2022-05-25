@@ -17,4 +17,4 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
-        run: npx --yes ./dev-containers-cli-0.3.0.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd` 
+        run: npx --yes ./devcontainers-cli-0.3.0.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd` 
