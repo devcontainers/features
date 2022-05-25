@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
           matrix:
-            features: [ "go", "dotnet", "go,dotnet"  ]
-            baseImage: [ "mcr.microsoft.com/vscode/devcontainers/base:focal" ]
+            features: [ "go", "dotnet", "go dotnet"  ]
+            baseImage: [ "ubuntu:focal" ]
     steps:
       - uses: actions/checkout@v2
 
       - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
-        run: npx --yes ./dev-containers-cli-0.1.0.tgz features-test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -d `pwd` 
+        run: npx --yes ./dev-containers-cli-0.3.0.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd` 
