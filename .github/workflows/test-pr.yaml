@@ -1,13 +1,13 @@
-name: "Test updated features"
+name: "Test updated features (PR)"
 on: 
   pull_request:
 
 jobs:
-  changes:
+  detect-changes:
     runs-on: ubuntu-latest
     outputs:
       # Expose matched filters as job 'packages' output variable
-      packages: ${{ steps.filter.outputs.changes }}
+      features: ${{ steps.filter.outputs.detect-changes }}
     steps:
     # For pull requests it's not necessary to checkout the code
     - uses: dorny/paths-filter@v2
@@ -16,14 +16,17 @@ jobs:
         filters: |
           go: ./**/go/**
           dotnet: ./**/dotnet/**
+          'python jupyterlab': ./**/jupyterlab/**
 
-  run_test:    
-    needs: changes
+
+  test:    
+    needs: detect-changes
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        features: ${{ fromJSON(needs.changes.outputs.packages) }}
+        features: ${{ fromJSON(needs.changes.outputs.features) }}
         baseImage: [ "ubuntu:focal" ]
     steps:
-      - name: " Testing '${{ matrix.features }}' against 'ubuntu:focal'"
+      - uses: actions/checkout@v2
+      - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
         run: npx --yes ./devcontainers-cli-0.3.0.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd` 

@@ -1,4 +1,4 @@
-name: "Test Features"
+name: "Test Features (CI)"
 on: 
   push:
     branches:
