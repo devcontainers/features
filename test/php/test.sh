@@ -1,13 +1,11 @@
+#!/bin/bash
 
-    #!/bin/bash
+set -e
 
-    set -e
+# Optional: Import test library
+source dev-container-features-test-lib
 
-    # Optional: Import test library
-    source dev-container-features-test-lib
+check "version" php --version
 
-    # Definition specific tests
-    check "version" php --version
-
-    # Report result
-    reportResults
+# Report result
+reportResults
