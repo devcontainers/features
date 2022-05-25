@@ -23,5 +23,9 @@
     "containerEnv": {
         "PHP_PATH": "/usr/local/php",
         "PATH":"${PHP_PATH}:${PHP_PATH}/bin:${PATH}"
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
     }
 }
