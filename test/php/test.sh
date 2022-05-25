@@ -5,7 +5,8 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-check "version" php --version
+check "PHP version" php --version
+check "Composer version" composer --version
 
 # Report result
 reportResults
