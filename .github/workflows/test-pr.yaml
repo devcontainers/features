@@ -16,7 +16,7 @@ jobs:
         filters: |
           go: ./**/go/**
           dotnet: ./**/dotnet/**
-         
+          'python jupyterlab': ./**/jupyterlab/**
 
 
   test:    
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        features: ${{ fromJSON(needs.changes.outputs.features) }}
+        features: ${{ needs.changes.outputs.features }}
         baseImage: [ "ubuntu:focal" ]
     steps:
       - uses: actions/checkout@v2
