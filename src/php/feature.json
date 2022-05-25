@@ -1,0 +1,31 @@
+{
+    "id": "php",
+    "name": "PHP",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": ["latest", "8.0.16"],
+            "default": "latest",
+            "description": "Select or enter a PHP version"
+        },
+        "installComposer": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install PHP Composer?"
+        }
+    },
+    "extensions": [
+        "xdebug.php-debug",
+        "bmewburn.vscode-intelephense-client",
+        "xdebug.php-pack",
+        "devsense.phptools-vscode"
+    ],
+    "containerEnv": {
+        "PHP_PATH": "/usr/local/php",
+        "PATH":"${PHP_PATH}:${PHP_PATH}/bin:${PATH}"
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}

@@ -26,7 +26,8 @@ jobs:
               "go", 
               "gradle", 
               "hugo", 
-              "java", 
+              "java",
+              "php",
               "python jupyterlab", # Install 'python', then 'jupyterlab'
               "kubectl-helm-minikube", 
               "maven", 
