@@ -1,0 +1,25 @@
+name: "Test updated features"
+on: 
+  pull_request:
+
+jobs:
+  generate-diff:
+    runs-on: ubuntu-latest
+    outputs:
+      features: ${{ steps.set-features.outputs.features }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - id: set-features
+      run: |   
+        features="[go]"
+        echo ::set-output name=features::$features"
+  run_test:    
+    needs: generate-diff
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        features: ${{ jobs.generate-diff.outputs.features }}
+    steps:
+      - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+        run: npx --yes ./devcontainers-cli-0.3.0.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd` 
