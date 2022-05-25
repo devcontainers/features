@@ -14,13 +14,17 @@ jobs:
       id: filter
       with:
         filters: |
-          features: src/**
+          'go': **/go/**
+          'python jupyterlab': **/jupyterlab/**
+          'dotnet': **/dotnet/**
+
   run_test:    
     needs: changes
     runs-on: ubuntu-latest
     strategy:
       matrix:
         features: ${{ fromJSON(needs.changes.outputs.packages) }}
+        baseImage: [ "ubuntu:focal" ]
     steps:
-      - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+      - name: " Testing '${{ matrix.features }}' against 'ubuntu:focal'"
         run: npx --yes ./devcontainers-cli-0.3.0.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd` 
