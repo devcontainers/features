@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        features: ${{ needs.changes.outputs.features }}
+        features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
         baseImage: [ "ubuntu:focal" ]
     steps:
       - uses: actions/checkout@v2
