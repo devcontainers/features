@@ -4,19 +4,27 @@
   "options": {
     "version": {
       "type": "string",
-      "proposals": ["lts", "latest", "none", "17", "11", "8"],
+      "proposals": [
+        "lts",
+        "latest",
+        "none",
+        "17",
+        "11",
+        "8"
+      ],
       "default": "lts",
       "description": "Select or enter a Java version to install"
     }
   },
   "buildArg": "_VSC_INSTALL_JAVA",
-  "extensions": ["vscjava.vscode-java-pack"],
+  "extensions": [
+    "vscjava.vscode-java-pack"
+  ],
   "containerEnv": {
     "SDKMAN_DIR": "/usr/local/sdkman",
     "PATH": "${SDKMAN_DIR}/bin:${SDKMAN_DIR}/candidates/java/current/bin:${PATH}"
   },
   "settings": {
-    "java.home": "/extension-java-home",
     "java.import.gradle.java.home": "/usr/local/sdkman/candidates/java/current"
   },
   "install": {
