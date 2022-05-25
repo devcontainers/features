@@ -3,23 +3,24 @@ on:
   pull_request:
 
 jobs:
-  generate-diff:
+  changes:
     runs-on: ubuntu-latest
     outputs:
-      features: ${{ steps.set-features.outputs.features }}
+      # Expose matched filters as job 'packages' output variable
+      packages: ${{ steps.filter.outputs.changes }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - id: set-features
-      run: |   
-        features="[go]"
-        echo ::set-output name=features::$features"
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          features: src/**
   run_test:    
-    needs: generate-diff
+    needs: changes
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        features: ${{ jobs.generate-diff.outputs.features }}
+        features: ${{ fromJSON(needs.changes.outputs.packages) }}
     steps:
       - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
         run: npx --yes ./devcontainers-cli-0.3.0.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd` 
