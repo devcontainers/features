@@ -1,13 +1,12 @@
+xw#!/bin/bash
 
-    #!/bin/bash
+set -e
 
-    set -e
+# Optional: Import test library
+source dev-container-features-test-lib
 
-    # Optional: Import test library
-    source dev-container-features-test-lib
+# Definition specific tests
+check "version" jupyter  --version
 
-    # Definition specific tests
-    check "version" jupyter  --version
-
-    # Report result
-    reportResults
+# Report result
+reportResults
