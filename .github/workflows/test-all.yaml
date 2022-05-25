@@ -1,9 +1,8 @@
-name: "Test Features"
+name: "Test Features (CI)"
 on: 
   push:
     branches:
     - main
-  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -22,17 +21,18 @@ jobs:
               "docker-in-docker", 
               "dotnet", 
               "git", 
-              "github-cli", 
               "git-lfs", 
+              "github-cli", 
               "go", 
               "gradle", 
-              "hugo", 
+              "hugo",
               "java",
-              "php",
+              "jekyll",
               "python jupyterlab", # Install 'python', then 'jupyterlab'
               "kubectl-helm-minikube", 
               "maven", 
               "node", 
+              "php",
               "powershell", 
               "python", 
               "ruby", 

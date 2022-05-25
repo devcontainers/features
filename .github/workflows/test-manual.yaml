@@ -1,4 +1,4 @@
-name: "Test Features (manual)"
+name: "Test Features (Manual)"
 on: 
   workflow_dispatch:
     inputs:
