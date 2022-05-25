@@ -4,13 +4,23 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "none", "1.55", "1.54", "1.53"],
+            "proposals": [
+                "latest",
+                "none",
+                "1.55",
+                "1.54",
+                "1.53"
+            ],
             "default": "latest",
             "description": "Select or enter a version of Rust to install."
         },
         "profile": {
             "type": "string",
-            "proposals": ["minimal", "default", "complete"],
+            "proposals": [
+                "minimal",
+                "default",
+                "complete"
+            ],
             "default": "minimal",
             "description": "Select a rustup install profile."
         }
@@ -18,7 +28,7 @@
     "extensions": [
         "vadimcn.vscode-lldb",
         "mutantdino.resourcemonitor",
-        "matklad.rust-analyzer",
+        "rust-lang.rust-analyzer",
         "tamasfe.even-better-toml",
         "serayuzgur.crates"
     ],
@@ -27,8 +37,12 @@
         "RUSTUP_HOME": "/usr/local/rustup",
         "PATH": "${CARGO_HOME}/bin:${PATH}"
     },
-    "capAdd": [ "SYS_PTRACE" ],
-    "securityOpt": ["seccomp=unconfined"],
+    "capAdd": [
+        "SYS_PTRACE"
+    ],
+    "securityOpt": [
+        "seccomp=unconfined"
+    ],
     "settings": {
         "lldb.executable": "/usr/bin/lldb",
         "files.watcherExclude": {
