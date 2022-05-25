@@ -14,10 +14,33 @@ jobs:
       id: filter
       with:
         filters: |
-          go: ./**/go/**
+          anaconda: ./**/anaconda/**
+          aws-cli: ./**/aws-cli/**
+          azure-cli: ./**/azure-cli/**
+          common: ./**/common/**
+          desktop-lite: ./**/desktop-lite/** 
+          docker-from-docker: ./**/docker-from-docker/**
+          docker-in-docker: ./**/docker-in-docker/**
           dotnet: ./**/dotnet/**
+          git: ./**/git/**
+          git-lfs: ./**/git-lfs/**
+          github-cli: ./**/github-cli/**
+          go: ./**/go/**
+          gradle: ./**/gradle/**
+          hugo: ./**/hugo/**
+          java: ./**/java/**
+          jekyll: ./**/jekyll/**
           'python jupyterlab': ./**/jupyterlab/**
-
+          kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
+          maven: ./**/maven/**
+          node: ./**/node/**
+          php: ./**/php/**
+          powershell: ./**/powershell/**
+          python: ./**/python/**
+          ruby: ./**/ruby/**
+          rust: ./**/rust/**
+          sshd: ./**/sshd/**
+          terraform: ./**/terraform/**
 
   test:    
     needs: detect-changes
