@@ -14,8 +14,8 @@ jobs:
       id: filter
       with:
         filters: |
-          go: **/go/**
-          dotnet: **/dotnet/**
+          go: ./**/go/**
+          dotnet: ./**/dotnet/**
 
   run_test:    
     needs: changes
