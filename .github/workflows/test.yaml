@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
           matrix:
-            features: [ "go", "dotnet", "go dotnet"  ]
+            features: [ "anaconda", "aws-cli", "azure-cli", "common", "desktop-lite", "docker-from-docker", "docker-in-docker", "dotnet", "git", "github-cli", "git-lfs", "go", "gradle", "hugo", "java", "jupyterlab", "kubectl-helm-minikube", "maven", "node", "powershell", "python", "ruby", "rust", "sshd", "terraform" ]
             baseImage: [ "ubuntu:focal" ]
     steps:
       - uses: actions/checkout@v2
