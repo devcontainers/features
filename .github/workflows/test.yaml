@@ -9,6 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
           matrix:
             features: [ "anaconda", "aws-cli", "azure-cli", "common", "desktop-lite", "docker-from-docker", "docker-in-docker", "dotnet", "git", "github-cli", "git-lfs", "go", "gradle", "hugo", "java", "jupyterlab", "kubectl-helm-minikube", "maven", "node", "powershell", "python", "ruby", "rust", "sshd", "terraform" ]
