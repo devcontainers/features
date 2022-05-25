@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       # Expose matched filters as job 'packages' output variable
-      features: ${{ steps.filter.outputs.detect-changes }}
+      features: ${{ steps.filter.outputs.changes }}
     steps:
     # For pull requests it's not necessary to checkout the code
     - uses: dorny/paths-filter@v2
