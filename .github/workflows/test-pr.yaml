@@ -16,7 +16,7 @@ jobs:
         filters: |
           go: ./**/go/**
           dotnet: ./**/dotnet/**
-          'python jupyterlab': ./**/jupyterlab/**
+         
 
 
   test:    
