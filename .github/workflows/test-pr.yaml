@@ -39,6 +39,7 @@ jobs:
           rust: ./**/rust/**
           sshd: ./**/sshd/**
           terraform: ./**/terraform/**
+          oryx: ./**/oryx/**
 
   test:    
     needs: detect-changes

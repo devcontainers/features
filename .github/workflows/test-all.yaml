@@ -39,6 +39,7 @@ jobs:
             "rust",
             "sshd",
             "terraform",
+            "oryx"
           ]
         baseImage: ["ubuntu:focal"]
     steps:
