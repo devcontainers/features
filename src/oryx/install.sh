@@ -82,9 +82,11 @@ if ! oryx --version > /dev/null ; then
     # Install dotnet unless available
     if ! dotnet --version > /dev/null ; then
         echo $(pwd)
-        cd ../dotnet
-        echo $(ls)
-        echo $($(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)) 
+        cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        echo $(pwd)
+        cd ../
+        ls -a
+        echo $(pwd)
         chmod +x ../dotnet/install.sh
         sudo ../dotnet/install.sh latest false ${USERNAME} ${UPDATE_RC} /usr/local/dotnet
     fi
