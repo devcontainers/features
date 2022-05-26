@@ -9,12 +9,17 @@
 #
 # Syntax: ./jupyter-debian.sh
 
-set -e
+set -ex
 
 VERSION=${1:-"latest"}
 USERNAME=${2:-"automatic"}
 PYTHON=${3:-"python"}
 ALLOW_ALL_ORIGINS=${4:-""}
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
+    exit 1
+fi
 
 # If in automatic mode, determine if a user already exists, if not use vscode
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
@@ -35,22 +40,13 @@ elif [ "${USERNAME}" = "none" ]; then
     USER_GID=0
 fi
 
-# Make sure we run the command as non-root user
-sudoUserIf() {
-  if [ "$(id -u)" -eq 0 ] && [ "${USERNAME}" != "root" ]; then
-    sudo -u ${USERNAME} "$@"
-  else
-    "$@"
-  fi
-}
-
 addToJupyterConfig() {
   JUPYTER_DIR="/home/${USERNAME}/.jupyter"
   JUPYTER_CONFIG="${JUPYTER_DIR}/jupyter_notebook_config.py"
 
   # Make sure the config file exists
-  test -d ${JUPYTER_DIR} || sudoUserIf mkdir ${JUPYTER_DIR}
-  test -f ${JUPYTER_CONFIG} || sudoUserIf touch ${JUPYTER_CONFIG}
+  test -d ${JUPYTER_DIR} || mkdir ${JUPYTER_DIR}
+  test -f ${JUPYTER_CONFIG} || touch ${JUPYTER_CONFIG}
 
   # Don't write the same line more than once
   grep -q ${1} ${JUPYTER_CONFIG} || echo ${1} >> ${JUPYTER_CONFIG}
@@ -65,9 +61,9 @@ fi
 # pip skips installation if JupyterLab is already installed
 echo "Installing JupyterLab..."
 if [ "${VERSION}" = "latest" ]; then
-  sudoUserIf ${PYTHON} -m pip install jupyterlab --no-cache-dir
+  ${PYTHON} -m pip install jupyterlab --no-cache-dir
 else
-  sudoUserIf ${PYTHON} -m pip install jupyterlab=="${VERSION}" --no-cache-dir
+  ${PYTHON} -m pip install jupyterlab=="${VERSION}" --no-cache-dir
 fi
 
 if [ "${ALLOW_ALL_ORIGINS}" = 'true' ]; then

@@ -7,12 +7,17 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/hugo.md
 # Maintainer: The VS Code and Codespaces Teams
 #
-# Syntax: ./jekyll-debian.sh [Jekyll version] [Non-root user] [Add rc files flag]
+# Syntax: ./jekyll-debian.sh [Jekyll version] [Non-root user]
 
 VERSION=${1:-"latest"}
 USERNAME=${2:-"automatic"}
 
 set -e
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
+    exit 1
+fi
 
 # If in automatic mode, determine if a user already exists, if not use codespace
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
@@ -32,16 +37,6 @@ elif [ "${USERNAME}" = "none" ]; then
     USER_UID=0
     USER_GID=0
 fi
-
-# Use sudo to run as non-root user is not already running
-sudoUserIf()
-{
-  if [ "$(id -u)" -eq 0 ] && [ "${USERNAME}" != "root" ]; then
-    sudo -u ${USERNAME} "$@"
-  else
-    "$@"
-  fi
-}
 
 # If we don't yet have Ruby installed, exit.
 if ! /usr/local/rvm/rubies/default/bin/ruby --version > /dev/null ; then
