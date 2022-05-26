@@ -7,12 +7,13 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/maven.md
 # Maintainer: The VS Code and Codespaces Teams
 #
-# Syntax: ./maven-debian.sh [maven version] [SDKMAN_DIR] [non-root user] [Update rc files flag]
+# Syntax: ./maven-debian.sh [maven version] [non-root user] [Update rc files flag]
 
 MAVEN_VERSION=${1:-"latest"}
-export SDKMAN_DIR=${2:-"/usr/local/sdkman"}
-USERNAME=${3:-"automatic"}
-UPDATE_RC=${4:-"true"}
+USERNAME=${2:-"automatic"}
+UPDATE_RC=${3:-"true"}
+
+SDKMAN_DIR=${SDKMAN_DIR:-"/usr/local/sdkman"}
 
 set -e
 

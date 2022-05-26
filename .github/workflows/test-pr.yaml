@@ -1,0 +1,53 @@
+name: "Test updated features (PR)"
+on: 
+  pull_request:
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      features: ${{ steps.filter.outputs.changes }}
+    steps:
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          anaconda: ./**/anaconda/**
+          aws-cli: ./**/aws-cli/**
+          azure-cli: ./**/azure-cli/**
+          common: ./**/common/**
+          desktop-lite: ./**/desktop-lite/** 
+          docker-from-docker: ./**/docker-from-docker/**
+          docker-in-docker: ./**/docker-in-docker/**
+          dotnet: ./**/dotnet/**
+          git: ./**/git/**
+          git-lfs: ./**/git-lfs/**
+          github-cli: ./**/github-cli/**
+          go: ./**/go/**
+          'java gradle': ./**/gradle/**
+          hugo: ./**/hugo/**
+          java: ./**/java/**
+          jekyll: ./**/jekyll/**
+          'python jupyterlab': ./**/jupyterlab/**
+          kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
+          'java maven': ./**/maven/**
+          node: ./**/node/**
+          php: ./**/php/**
+          powershell: ./**/powershell/**
+          python: ./**/python/**
+          ruby: ./**/ruby/**
+          rust: ./**/rust/**
+          sshd: ./**/sshd/**
+          terraform: ./**/terraform/**
+
+  test:    
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
+        baseImage: [ "ubuntu:focal" ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+        run: npx --yes ./devcontainers-cli-0.3.0.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd` 

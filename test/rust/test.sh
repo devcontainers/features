@@ -6,7 +6,9 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-check "version" rust  --version
+check "cargo version" cargo  --version
+check "rustc version" rustc  --version
+
 
 # Report result
 reportResults

@@ -1,0 +1,48 @@
+name: "Test Features (CI)"
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        features: [
+            "anaconda",
+            "aws-cli",
+            "azure-cli",
+            "common",
+            "desktop-lite",
+            "docker-from-docker",
+            "docker-in-docker",
+            "dotnet",
+            "git",
+            "git-lfs",
+            "github-cli",
+            "go",
+            "java gradle",        # Install 'java', then 'gradle'
+            "hugo",
+            "java",
+            "ruby jekyll",        # Install 'ruby', then 'jekyll'
+            "python jupyterlab",  # Install 'python', then 'jupyterlab'
+            "kubectl-helm-minikube",
+            "java maven",         # Install 'java', then 'maven'
+            "node",
+            "php",
+            "powershell",
+            "python",
+            "ruby",
+            "rust",
+            "sshd",
+            "terraform",
+          ]
+        baseImage: ["ubuntu:focal"]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+        run: npx --yes ./devcontainers-cli-0.3.0.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd`

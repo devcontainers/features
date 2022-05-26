@@ -6,7 +6,7 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-check "version" maven  --version
+check "version" mvn  --version
 
 # Report result
 reportResults
