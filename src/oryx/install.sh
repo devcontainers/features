@@ -81,6 +81,7 @@ if ! oryx --version > /dev/null ; then
 
     # Install dotnet unless available
     if ! dotnet --version > /dev/null ; then
+        chmod +x ../dotnet/install.sh
         ../dotnet/install.sh latest false ${USERNAME} ${UPDATE_RC} /usr/local/dotnet
     fi
 
