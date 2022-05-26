@@ -157,10 +157,10 @@ if ! php --version &> /dev/null ; then
     # Install xdebug
     pecl install xdebug
     XDEBUG_INI="$CONF_DIR/xdebug.ini"
-    echo "zend_extension=$(find PHP_EXT_DIR -name xdebug.so)" > XDEBUG_INI
-    echo "xdebug.mode = debug" >> XDEBUG_INI
-    echo "xdebug.start_with_request = yes" >> XDEBUG_INI
-    echo "xdebug.client_port = 9003" >> XDEBUG_INI
+    echo "zend_extension=$(find $PHP_EXT_DIR -name xdebug.so)" > $XDEBUG_INI
+    echo "xdebug.mode = debug" >> $XDEBUG_INI
+    echo "xdebug.start_with_request = yes" >> $XDEBUG_INI
+    echo "xdebug.client_port = 9003" >> $XDEBUG_INI
 
     # Install PHP Composer if needed
     if [ "${INSTALL_COMPOSER}" = "true" ]; then
