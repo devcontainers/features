@@ -88,27 +88,24 @@ if ! oryx --version > /dev/null ; then
 
     BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen 
     ORYX=/usr/local/oryx
+    GIT_ORYX=/tmp/oryx 
 
     mkdir -p ${BUILD_SCRIPT_GENERATOR}
     mkdir -p ${ORYX}
 
     chown -R ${USERNAME} ${BUILD_SCRIPT_GENERATOR} ${ORYX}
-    git clone --depth=1 https://github.com/microsoft/Oryx /tmp/oryx
+    git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
 
-    /tmp/oryx/build/buildSln.sh
+    $GIT_ORYX/build/buildSln.sh
 
-    dotnet publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release /tmp/oryx/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
+    dotnet publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
     
-    dotnet publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release /tmp/oryx/src/BuildServer/BuildServer.csproj
+    dotnet publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
 
-    echo $(cd ${BUILD_SCRIPT_GENERATOR} && ls)
     chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
     ln -s ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript ${ORYX}/oryx
-    echo $(cd ${ORYX} && ls)
-    cp -f /tmp/oryx/images/build/benv.sh ${ORYX}/benv
-    echo $(cd ${ORYX} && ls)
-    echo "vso-focal" > ${ORYX}/.imagetype
+    cp -f $GIT_ORYX/images/build/benv.sh ${ORYX}/benv
 
     updaterc "export PATH=$PATH:/usr/local/oryx && export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=/usr/local"
 fi
