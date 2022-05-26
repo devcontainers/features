@@ -53,9 +53,36 @@ function updaterc() {
     fi
 }
 
+# Function to run apt-get if needed
+apt_get_update_if_needed()
+{
+    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update
+    else
+        echo "Skipping apt-get update."
+    fi
+}
+
+# Checks if packages are installed and installs them if not
+check_packages() {
+    if ! dpkg -s "$@" > /dev/null 2>&1; then
+        apt_get_update_if_needed
+        apt-get -y install --no-install-recommends "$@"
+    fi
+}
+
+# Install dependencies
+check_packages git
+
 # If we don't already have Oryx installed, install it now.
 if ! oryx --version > /dev/null ; then
     echo "Installing Oryx..."
+
+    # Install dotnet unless available
+    if ! dotnet --version > /dev/null ; then
+        ../dotnet/install.sh latest false ${USERNAME} ${UPDATE_RC} /usr/local/dotnet
+    fi
 
     BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen 
     ORYX=/usr/local/oryx
@@ -68,7 +95,7 @@ if ! oryx --version > /dev/null ; then
 
     /tmp/oryx/build/buildSln.sh
 
-    dotnet publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release /tmp/oryx/src/BuildScriptGenerator\BuildScriptGenerator.csproj
+    dotnet publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release /tmp/oryx/src/BuildScriptGenerator/BuildScriptGenerator.csproj
 
     chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
