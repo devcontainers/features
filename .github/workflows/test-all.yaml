@@ -24,11 +24,11 @@ jobs:
               "git-lfs", 
               "github-cli", 
               "go", 
-              "gradle", 
+              "java gradle",        # Install 'java', then 'gradle'
               "hugo",
               "java",
               "jekyll",
-              "python jupyterlab", # Install 'python', then 'jupyterlab'
+              "python jupyterlab",  # Install 'python', then 'jupyterlab'
               "kubectl-helm-minikube", 
               "maven", 
               "node", 

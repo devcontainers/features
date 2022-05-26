@@ -10,9 +10,10 @@
 # Syntax: ./hugo-debian.sh [Hugo version] [HUGO_DIR] [Non-root user] [Add rc files flag]
 
 VERSION=${1:-"latest"}
-export HUGO_DIR=${2:-"/usr/local/hugo"}
 USERNAME=${3:-"automatic"}
 UPDATE_RC=${4:-"true"}
+
+HUGO_DIR=${HUGO_DIR:-"/usr/local/hugo"}
 
 set -e
 

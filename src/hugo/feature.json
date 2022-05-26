@@ -4,10 +4,16 @@
   "options": {
     "version": {
       "type": "string",
-      "proposals": ["latest"],
+      "proposals": [
+        "latest"
+      ],
       "default": "latest",
       "description": "Select or enter a version."
     }
+  },
+  "containerEnv": {
+    "HUGO_DIR": "/usr/local/hugo",
+    "PATH": "${HUGO_DIR}/bin:${PATH}"
   },
   "install": {
     "app": "",
