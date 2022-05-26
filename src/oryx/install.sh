@@ -101,13 +101,16 @@ if ! oryx --version > /dev/null ; then
     
     dotnet publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release /tmp/oryx/src/BuildServer/BuildServer.csproj
 
+    echo $(cd ${BUILD_SCRIPT_GENERATOR} && ls)
     chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
     ln -s ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript ${ORYX}/oryx
-
+    echo $(cd ${ORYX} && ls)
     cp -f /tmp/oryx/images/build/benv.sh ${ORYX}/benv
-
+    echo $(cd ${ORYX} && ls)
     echo "vso-focal" > ${ORYX}/.imagetype
+
+    updaterc "export PATH=$PATH:/usr/local/oryx && export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=/usr/local"
 fi
 
 echo "Done!"
