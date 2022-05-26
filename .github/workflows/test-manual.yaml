@@ -1,19 +1,19 @@
 name: "Test Features (Manual)"
-on: 
+on:
   workflow_dispatch:
     inputs:
       features:
-        description: 'list of features to execute tests against'     
+        description: "list of features to execute tests against"
         required: true
-        default: 'go dotnet'
-      baseImage: 
-        description: 'Base image'     
+        default: "go dotnet"
+      baseImage:
+        description: "Base image"
         required: true
-        default: 'ubuntu:focal'
+        default: "ubuntu:focal"
       logLevel:
-        description: 'Log Level (info/debug/trace)'
+        description: "Log Level (info/debug/trace)"
         required: true
-        default: 'info'
+        default: "info"
 
 jobs:
   test:
@@ -22,4 +22,4 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: " Testing '${{ github.event.inputs.features }}' against '${{ github.event.inputs.baseImage }}'"
-        run: npx --yes ./devcontainers-cli-0.3.0.tgz features test --features ${{ github.event.inputs.features }} --base-image ${{ github.event.inputs.baseImage }} --collection-folder `pwd` --log-level ${{ github.event.inputs.logLevel }} 
+        run: npx --yes ./devcontainers-cli-0.3.0.tgz features test --features ${{ github.event.inputs.features }} --base-image ${{ github.event.inputs.baseImage }} --collection-folder `pwd` --log-level ${{ github.event.inputs.logLevel }}
