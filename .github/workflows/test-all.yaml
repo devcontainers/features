@@ -30,7 +30,7 @@ jobs:
             "ruby jekyll",        # Install 'ruby', then 'jekyll'
             "python jupyterlab",  # Install 'python', then 'jupyterlab'
             "kubectl-helm-minikube",
-            "maven",
+            "java maven",         # Install 'java', then 'maven'
             "node",
             "php",
             "powershell",

@@ -30,7 +30,7 @@ jobs:
           jekyll: ./**/jekyll/**
           'python jupyterlab': ./**/jupyterlab/**
           kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
-          maven: ./**/maven/**
+          'java maven': ./**/maven/**
           node: ./**/node/**
           php: ./**/php/**
           powershell: ./**/powershell/**
