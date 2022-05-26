@@ -10,9 +10,10 @@
 # Syntax: ./anaconda-debian.sh [Conda version] [CONDA_DIR] [Non-root user] [Add rc files flag]
 
 VERSION=${1:-"latest"}
-export CONDA_DIR=${2:-"/usr/local/conda"}
-USERNAME=${3:-"automatic"}
-UPDATE_RC=${4:-"true"}
+USERNAME=${2:-"automatic"}
+UPDATE_RC=${3:-"true"}
+
+CONDA_DIR=${CONDA_DIR:-"/usr/local/conda"}
 
 set -eux
 export DEBIAN_FRONTEND=noninteractive
