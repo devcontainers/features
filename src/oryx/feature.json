@@ -1,0 +1,11 @@
+{
+    "id": "oryx",
+    "name": "Oryx",
+    "containerEnv": {
+        "PATH":"usr/local/oryx:${PATH}"
+    },
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}
