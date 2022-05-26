@@ -6,8 +6,8 @@ set -e
 source dev-container-features-test-lib
 
 check "Oryx version" oryx --version
-check "ORYX_SDK_STORAGE_BASE_URL" env | grep $ORYX_SDK_STORAGE_BASE_URL
-check "ENABLE_DYNAMIC_INSTALL" env | grep $ENABLE_DYNAMIC_INSTALL
+check "ORYX_SDK_STORAGE_BASE_URL" echo $ORYX_SDK_STORAGE_BASE_URL
+check "ENABLE_DYNAMIC_INSTALL" echo $ENABLE_DYNAMIC_INSTALL
 
 # Report result
 reportResults
