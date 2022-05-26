@@ -6,7 +6,8 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-check "version" ruby  --version
+check "ruby version" ruby  --version
+check "gem version" gem --version
 
 # Report result
 reportResults

@@ -4,7 +4,6 @@
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
 #-------------------------------------------------------------------------------------------------------------
 #
-# Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/hugo.md
 # Maintainer: The VS Code and Codespaces Teams
 #
 # Syntax: ./jekyll-debian.sh [Jekyll version] [Non-root user]
@@ -39,8 +38,14 @@ elif [ "${USERNAME}" = "none" ]; then
 fi
 
 # If we don't yet have Ruby installed, exit.
-if ! /usr/local/rvm/rubies/default/bin/ruby --version > /dev/null ; then
+if ! ruby --version > /dev/null ; then
   echo "You need to install Ruby before installing Jekyll."
+  exit 1
+fi
+
+# We need the ruby package manager, gem, as well.
+if ! gem --version > /dev/null ; then
+  echo "You need to install gem before installing Jekyll."
   exit 1
 fi
 
@@ -48,8 +53,8 @@ fi
 if ! jekyll --version > /dev/null ; then
   echo "Installing Jekyll..."
   if [ "${VERSION}" = "latest" ]; then
-    PATH="/usr/local/rvm/rubies/default/bin:${PATH}" /usr/local/rvm/rubies/default/bin/gem install jekyll
+    gem install jekyll
   else
-    PATH="/usr/local/rvm/rubies/default/bin:${PATH}" /usr/local/rvm/rubies/default/bin/gem install jekyll -v "${VERSION}"
+    gem install jekyll -v "${VERSION}"
   fi
 fi
