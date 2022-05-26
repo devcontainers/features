@@ -73,7 +73,7 @@ check_packages() {
 }
 
 # Install dependencies
-check_packages git
+check_packages git sudo
 
 # If we don't already have Oryx installed, install it now.
 if ! oryx --version > /dev/null ; then
@@ -97,7 +97,9 @@ if ! oryx --version > /dev/null ; then
 
     /tmp/oryx/build/buildSln.sh
 
-    dotnet publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release /tmp/oryx/src/BuildScriptGenerator/BuildScriptGenerator.csproj
+    dotnet publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release /tmp/oryx/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
+    
+    dotnet publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release /tmp/oryx/src/BuildServer/BuildServer.csproj
 
     chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
