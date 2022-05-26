@@ -24,7 +24,7 @@ jobs:
           git-lfs: ./**/git-lfs/**
           github-cli: ./**/github-cli/**
           go: ./**/go/**
-          gradle: ./**/gradle/**
+          'java gradle': ./**/gradle/**
           hugo: ./**/hugo/**
           java: ./**/java/**
           jekyll: ./**/jekyll/**

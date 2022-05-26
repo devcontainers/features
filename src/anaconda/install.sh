@@ -7,7 +7,7 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/anaconda.md
 # Maintainer: The VS Code and Codespaces Teams
 #
-# Syntax: ./anaconda-debian.sh [Conda version] [CONDA_DIR] [Non-root user] [Add rc files flag]
+# Syntax: ./anaconda-debian.sh [Conda version] [Non-root user] [Add rc files flag]
 
 VERSION=${1:-"latest"}
 USERNAME=${2:-"automatic"}

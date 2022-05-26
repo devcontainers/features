@@ -12,6 +12,7 @@ on:
         default: 'ubuntu:focal'
       logLevel:
         description: 'Log Level (info/debug/trace)'
+        required: true
         default: 'info'
 
 jobs:

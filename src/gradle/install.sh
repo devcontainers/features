@@ -7,12 +7,13 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/gradle.md
 # Maintainer: The VS Code and Codespaces Teams
 #
-# Syntax: ./gradle-debian.sh [Gradle version] [SDKMAN_DIR] [non-root user] [Update rc files flag]
+# Syntax: ./gradle-debian.sh [Gradle version] [non-root user] [Update rc files flag]
 
 GRADLE_VERSION=${1:-"latest"}
-export SDKMAN_DIR=${2:-"/usr/local/sdkman"}
-USERNAME=${3:-"automatic"}
-UPDATE_RC=${4:-"true"}
+USERNAME=${2:-"automatic"}
+UPDATE_RC=${3:-"true"}
+
+SDKMAN_DIR=${SDKMAN_DIR:-"/usr/local/sdkman"}
 
 set -e
 
