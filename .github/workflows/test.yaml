@@ -38,7 +38,8 @@ jobs:
               "ruby", 
               "rust", 
               "sshd", 
-              "terraform" ]
+              "terraform",
+              "oryx" ]
             baseImage: [ "ubuntu:focal" ]
     steps:
       - uses: actions/checkout@v2
