@@ -73,7 +73,7 @@ check_packages() {
 }
 
 # Install dependencies
-check_packages git sudo
+check_packages git
 
 # If we don't already have Oryx installed, install it now.
 if ! oryx --version > /dev/null ; then
@@ -83,7 +83,7 @@ if ! oryx --version > /dev/null ; then
     if ! dotnet --version > /dev/null ; then
         cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         chmod +x install-dotnet.sh
-        sudo install-dotnet.sh latest false ${USERNAME} ${UPDATE_RC} /usr/local/dotnet
+        ./install-dotnet.sh latest false ${USERNAME} ${UPDATE_RC} /usr/local/dotnet
     fi
 
     BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen 
