@@ -83,6 +83,7 @@ if ! oryx --version > /dev/null ; then
     if ! dotnet --version > /dev/null ; then
         echo $(pwd)
         cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        ls -a
         echo $(pwd)
         cd ../
         ls -a
