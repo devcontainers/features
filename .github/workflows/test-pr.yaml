@@ -27,7 +27,7 @@ jobs:
           'java gradle': ./**/gradle/**
           hugo: ./**/hugo/**
           java: ./**/java/**
-          jekyll: ./**/jekyll/**
+          'ruby jekyll': ./**/jekyll/**
           'python jupyterlab': ./**/jupyterlab/**
           kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
           'java maven': ./**/maven/**
