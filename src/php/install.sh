@@ -93,7 +93,7 @@ addcomposer() {
     php composer-setup.php
     php -r "unlink('composer-setup.php');"
 
-    mv composer.phar ${PHP_INSTALL_DIR}/composer
+    mv composer.phar "${PHP_INSTALL_DIR}/composer"
 }
 
 # Install PHP if it's missing
