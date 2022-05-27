@@ -158,7 +158,7 @@ if [[ $(php --version) != *"${VERSION}"* ]] || [[ "${VERSION}" = "latest" ]] || 
         cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
         if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-            ln -s  "${PHP_INSTALL_DIR}" ${PHP_DIR}
+            ln -s ${PHP_DIR} "${PHP_INSTALL_DIR}"
             export PATH="${PATH}:${PHP_DIR}/bin"
         fi
         PATH="${PATH}:${PHP_INSTALL_DIR}/bin"
