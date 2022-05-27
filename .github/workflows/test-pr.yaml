@@ -29,6 +29,7 @@ jobs:
           'python jupyterlab': ./**/jupyterlab/**
           kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
           node: ./**/node/**
+          oryx: ./**/oryx/**
           php: ./**/php/**
           powershell: ./**/powershell/**
           python: ./**/python/**

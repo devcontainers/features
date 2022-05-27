@@ -29,6 +29,7 @@ jobs:
             "python jupyterlab",  # Install 'python', then 'jupyterlab'
             "kubectl-helm-minikube",
             "node",
+            "oryx",
             "php",
             "powershell",
             "python",
