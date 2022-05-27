@@ -255,20 +255,20 @@ install_from_source() {
     cd /tmp
     rm -rf /tmp/python-src ${GNUPGHOME} /tmp/vscdc-settings.env
     chown -R ${USERNAME} "${INSTALL_PATH}"
-    chown -R ${USERNAME} "${PYTHON_INSTALL_PATH}"
 
-    ln -s ${INSTALL_PATH}/bin/python3 ${INSTALL_PATH}/bin/python
-    ln -s ${INSTALL_PATH}/bin/pip3 ${INSTALL_PATH}/bin/pip
-    ln -s ${INSTALL_PATH}/bin/idle3 ${INSTALL_PATH}/bin/idle
-    ln -s ${INSTALL_PATH}/bin/pydoc3 ${INSTALL_PATH}/bin/pydoc
-    ln -s ${INSTALL_PATH}/bin/python3-config ${INSTALL_PATH}/bin/python-config
+    ln -s "${INSTALL_PATH}/bin/python3" "${INSTALL_PATH}/bin/python"
+    ln -s "${INSTALL_PATH}/bin/pip3" "${INSTALL_PATH}/bin/pip"
+    ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
+    ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
+    ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        ln -s ${INSTALL_PATH}/bin/python3 ${PYTHON_INSTALL_PATH}/bin/python
-        ln -s ${INSTALL_PATH}/bin/pip3 ${PYTHON_INSTALL_PATH}/bin/pip
-        ln -s ${INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
-        ln -s ${INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
-        ln -s ${INSTALL_PATH}/bin/python3-config ${PYTHON_INSTALL_PATH}/bin/python-config
+        ln -s "${INSTALL_PATH}" "${CURRENT_PATH}"
+        ln -s "${CURRENT_PATH}/bin/python3" "${CURRENT_PATH}/bin/python"
+        ln -s "${CURRENT_PATH}/bin/pip3" "${CURRENT_PATH}/bin/pip"
+        ln -s "${CURRENT_PATH}/bin/idle3" "${CURRENT_PATH}/bin/idle"
+        ln -s "${CURRENT_PATH}/bin/pydoc3" "${CURRENT_PATH}/bin/pydoc"
+        ln -s "${CURRENT_PATH}/bin/python3-config" "${CURRENT_PATH}/bin/python-config"
     fi
 
 }
@@ -277,14 +277,15 @@ install_using_oryx() {
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
     oryx_install "python" "${PYTHON_VERSION}" "${INSTALL_PATH}" "lib" || return 1
 
-    ln -s ${INSTALL_PATH}/bin/idle3 ${INSTALL_PATH}/bin/idle
-    ln -s ${INSTALL_PATH}/bin/pydoc3 ${INSTALL_PATH}/bin/pydoc
-    ln -s ${INSTALL_PATH}/bin/python3-config ${INSTALL_PATH}/bin/python-config
+    ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
+    ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
+    ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        ln -s ${INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
-        ln -s ${INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
-        ln -s ${INSTALL_PATH}/bin/python3-config ${PYTHON_INSTALL_PATH}/bin/python-config
+        ln -s "${INSTALL_PATH}" "${CURRENT_PATH}" 
+        ln -s "${CURRENT_PATH}/bin/idle3" "${CURRENT_PATH}/bin/idle"
+        ln -s "${CURRENT_PATH}/bin/pydoc3" "${CURRENT_PATH}/bin/pydoc"
+        ln -s "${CURRENT_PATH}/bin/python3-config" "${CURRENT_PATH}/bin/python-config"
     fi
 }
 
@@ -299,6 +300,7 @@ check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev li
 
 # Install python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
+    CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
     # If the os-provided versions are "good enough", detect that and bail out.
     if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
@@ -313,7 +315,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         install_from_source
     fi
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        updaterc "if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then export PATH=${PYTHON_INSTALL_PATH}/bin:\${PATH}; fi"
+        updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
     fi
     PATH={INSTALL_PATH}/bin:${PATH}
 fi
@@ -328,8 +330,8 @@ export PIPX_BIN_DIR="${PIPX_HOME}/bin"
 export PATH="${PIPX_BIN_DIR}:${PATH}"
 
 if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-    if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then
-        export PATH=${PYTHON_INSTALL_PATH}/bin:${PATH}
+    if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then
+        export PATH=${CURRENT_PATH}/bin:${PATH}
     fi
 fi
 
