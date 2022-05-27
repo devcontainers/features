@@ -116,7 +116,7 @@ if [[ $(php --version) != *"${VERSION}"* ]] || [[ "${VERSION}" = "latest" ]] || 
     fi
 
     if [[ $(php --version) != *"${VERSION}"* ]] ; then
-        PHP_INSTALL_DIR=${PHP_DIR}/${VERSION}
+        PHP_INSTALL_DIR="${PHP_DIR}/${VERSION}"
         PHP_URL="https://www.php.net/distributions/php-${VERSION}.tar.gz"
 
         PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
@@ -146,22 +146,22 @@ if [[ $(php --version) != *"${VERSION}"* ]] || [[ "${VERSION}" = "latest" ]] || 
             VERSION_CONFIG="--with-pear"
         fi
 
-        ./configure --prefix="$PHP_INSTALL_DIR" --with-config-file-path="$PHP_INI_DIR" --with-config-file-scan-dir="$CONF_DIR" --enable-option-checking=fatal --with-curl --with-libedit --with-openssl --with-zlib --with-password-argon2 --with-sodium=shared "$VERSION_CONFIG" EXTENSION_DIR="$PHP_EXT_DIR";
+        ./configure --prefix="${PHP_INSTALL_DIR}" --with-config-file-path="$PHP_INI_DIR" --with-config-file-scan-dir="$CONF_DIR" --enable-option-checking=fatal --with-curl --with-libedit --with-openssl --with-zlib --with-password-argon2 --with-sodium=shared "$VERSION_CONFIG" EXTENSION_DIR="$PHP_EXT_DIR";
 
         make -j "$(nproc)"
         find -type f -name '*.a' -delete
         make install
-        find $PHP_INSTALL_DIR -type f -executable -exec strip --strip-all '{}' + || true
+        find "${PHP_INSTALL_DIR}" -type f -executable -exec strip --strip-all '{}' + || true
         make clean
 
         cp -v $PHP_SRC_DIR/php.ini-* "$PHP_INI_DIR/";
         cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
         if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-            ln -s  ${PHP_INSTALL_DIR} ${PHP_DIR}
-            export PATH=$PATH:${PHP_DIR}/bin
+            ln -s  "${PHP_INSTALL_DIR}" ${PHP_DIR}
+            export PATH="${PATH}:${PHP_DIR}/bin"
         fi
-        PATH=$PATH:${PHP_INSTALL_DIR}/bin
+        PATH="${PATH}:${PHP_INSTALL_DIR}/bin"
 
         # Install xdebug
         pecl install xdebug
