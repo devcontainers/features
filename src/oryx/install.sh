@@ -68,7 +68,7 @@ apt_get_update_if_needed()
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update_if_needed
-        apt-get -y install --no-install-recommends "$@"
+        DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends "$@"
     fi
 }
 
@@ -77,10 +77,8 @@ install_dotnet_using_apt() {
     sudo dpkg -i packages-microsoft-prod.deb
     rm packages-microsoft-prod.deb
     
-    sudo apt-get update
-    sudo apt-get install -y apt-transport-https
-    sudo apt-get update
-    sudo apt-get install -y dotnet-sdk-6.0
+    rm -rf /var/lib/apt/lists/*
+    check_packages apt-transport-https dotnet-sdk-6.0
 }
 
 # Install dependencies
