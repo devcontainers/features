@@ -257,8 +257,13 @@ install_from_source() {
     chown -R ${USERNAME} "${INSTALL_PATH}"
     chown -R ${USERNAME} "${PYTHON_INSTALL_PATH}"
 
+    ln -s ${INSTALL_PATH}/bin/python3 ${INSTALL_PATH}/bin/python
+    ln -s ${INSTALL_PATH}/bin/pip3 ${INSTALL_PATH}/bin/pip
+    ln -s ${INSTALL_PATH}/bin/idle3 ${INSTALL_PATH}/bin/idle
+    ln -s ${INSTALL_PATH}/bin/pydoc3 ${INSTALL_PATH}/bin/pydoc
+    ln -s ${INSTALL_PATH}/bin/python3-config ${INSTALL_PATH}/bin/python-config
+
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        mkdir -p ${PYTHON_INSTALL_PATH}/bin
         ln -s ${INSTALL_PATH}/bin/python3 ${PYTHON_INSTALL_PATH}/bin/python
         ln -s ${INSTALL_PATH}/bin/pip3 ${PYTHON_INSTALL_PATH}/bin/pip
         ln -s ${INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
@@ -272,8 +277,11 @@ install_using_oryx() {
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
     oryx_install "python" "${PYTHON_VERSION}" "${INSTALL_PATH}" "lib" || return 1
 
+    ln -s ${INSTALL_PATH}/bin/idle3 ${INSTALL_PATH}/bin/idle
+    ln -s ${INSTALL_PATH}/bin/pydoc3 ${INSTALL_PATH}/bin/pydoc
+    ln -s ${INSTALL_PATH}/bin/python3-config ${INSTALL_PATH}/bin/python-config
+
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        mkdir -p ${PYTHON_INSTALL_PATH}/bin
         ln -s ${INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
         ln -s ${INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
         ln -s ${INSTALL_PATH}/bin/python3-config ${PYTHON_INSTALL_PATH}/bin/python-config
