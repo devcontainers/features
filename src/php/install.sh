@@ -172,10 +172,11 @@ if [[ $(php --version) != *"${VERSION}"* ]] || [[ "${VERSION}" = "latest" ]] || 
         echo "xdebug.client_port = 9003" >> XDEBUG_INI
 
         # Install PHP Composer if needed
-        if [ "${INSTALL_COMPOSER}" = "true" ] && [ ! composer --version &> /dev/null ]; then
+        if [[ "${INSTALL_COMPOSER}" = "true" ]] && [[ $(composer --version) = "" ]]; then
             addcomposer
         fi
 
+        rm -rf ${PHP_SRC_DIR}
         if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
             updaterc "export PHP_DIR=${PHP_DIR}/bin"
         fi
