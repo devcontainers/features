@@ -26,7 +26,7 @@
         "devsense.phptools-vscode"
     ],
     "containerEnv": {
-        "PHP_PATH": "/usr/local/php",
+        "PHP_PATH": "/usr/local/php/current",
         "PATH":"${PHP_PATH}:${PHP_PATH}/bin:${PATH}"
     },
     "install": {

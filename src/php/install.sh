@@ -158,8 +158,9 @@ if [[ $(php --version) != *"${VERSION}"* ]] || [[ "${VERSION}" = "latest" ]] || 
         cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
         if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-            ln -s ${PHP_DIR} "${PHP_INSTALL_DIR}"
-            export PATH="${PATH}:${PHP_DIR}/bin"
+            CURRENT_DIR="${PHP_DIR}/current"
+            ln -s "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
+            export PATH="${PATH}:${CURRENT_DIR}/bin"
         fi
         PATH="${PATH}:${PHP_INSTALL_DIR}/bin"
 
@@ -178,7 +179,7 @@ if [[ $(php --version) != *"${VERSION}"* ]] || [[ "${VERSION}" = "latest" ]] || 
 
         rm -rf ${PHP_SRC_DIR}
         if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-            updaterc "export PHP_DIR=${PHP_DIR}/bin"
+            updaterc "export PHP_DIR=${CURRENT_DIR}/bin"
         fi
     else
         echo "PHP version ${VERSION} is already installed"
