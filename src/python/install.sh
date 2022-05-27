@@ -182,6 +182,7 @@ oryx_install() {
     local opt_folder="/opt/${platform}/${requested_version}"
     if [ "${target_folder}" != "none" ] && [ "${target_folder}" != "${opt_folder}" ]; then
         if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
+            mkdir -p ${target_folder}
             ln -s "${opt_folder}" "${target_folder}"
         fi
     fi
