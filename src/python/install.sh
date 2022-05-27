@@ -209,10 +209,10 @@ check_packages() {
 }
 
 install_from_source() {
-    if [ -d "${PYTHON_INSTALL_PATH}" ]; then
-        echo "(!) Path ${PYTHON_INSTALL_PATH} already exists. Remove this existing path or select a different one."
-        exit 1
-    fi
+    # if [ -d "${PYTHON_INSTALL_PATH}" ]; then
+    #     echo "(!) Path ${PYTHON_INSTALL_PATH} already exists. Remove this existing path or select a different one."
+    #     exit 1
+    # fi
     echo "(*) Building Python ${PYTHON_VERSION} from source..."
     # Install prereqs if missing
     check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev libncurses5-dev \
@@ -265,10 +265,10 @@ install_from_source() {
 }
 
 install_using_oryx() {
-    if [ -d "${PYTHON_INSTALL_PATH}" ]; then
-        echo "(!) Path ${PYTHON_INSTALL_PATH} already exists. Remove this existing path or select a different one."
-        exit 1
-    fi
+    # if [ -d "${PYTHON_INSTALL_PATH}" ]; then
+    #     echo "(!) Path ${PYTHON_INSTALL_PATH} already exists. Remove this existing path or select a different one."
+    #     exit 1
+    # fi
     oryx_install "python" "${PYTHON_VERSION}" "${PYTHON_INSTALL_PATH}" "lib" || return 1
     ln -s ${PYTHON_INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
     ln -s ${PYTHON_INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
