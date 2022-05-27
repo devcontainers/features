@@ -90,6 +90,7 @@ if ! oryx --version > /dev/null ; then
 
     # Install dotnet unless available
     if ! dotnet --version > /dev/null ; then
+        echo "'dotnet' was not detected. Attempting to install the latest version of the dotnet sdk to build oryx."
         install_dotnet_using_apt
 
         if ! dotnet --version > /dev/null ; then
