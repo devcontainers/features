@@ -305,7 +305,6 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
         updaterc "if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then export PATH=${PYTHON_INSTALL_PATH}/bin:\${PATH}; fi"
     fi
-    
     PATH={INSTALL_PATH}/bin:${PATH}
 fi
 
@@ -324,7 +323,7 @@ if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
     fi
 fi
 
-PATH={INSTALL_PATH}/bin:${PATH}
+PATH=${INSTALL_PATH}/bin:${PATH}
 
 # Create pipx group, dir, and set sticky bit
 if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
