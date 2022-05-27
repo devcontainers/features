@@ -72,6 +72,10 @@ check_packages() {
     fi
 }
 
+install_dotnet_using_apt() {
+    check_packages apt-transport-https dotnet-sdk-6.0
+}
+
 # Install dependencies
 check_packages git
 
@@ -81,9 +85,12 @@ if ! oryx --version > /dev/null ; then
 
     # Install dotnet unless available
     if ! dotnet --version > /dev/null ; then
-        cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        chmod +x install-dotnet.sh
-        ./install-dotnet.sh latest false ${USERNAME} ${UPDATE_RC} /usr/local/dotnet
+        install_dotnet_using_apt
+
+        if ! dotnet --version > /dev/null ; then
+            echo "Please install Dotnet before installing Oryx"
+            exit 1
+        fi
     fi
 
     BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen 

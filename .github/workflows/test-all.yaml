@@ -32,6 +32,7 @@ jobs:
             "kubectl-helm-minikube",
             "java maven",         # Install 'java', then 'maven'
             "node",
+            "oryx",
             "php",
             "powershell",
             "python",
@@ -39,7 +40,6 @@ jobs:
             "rust",
             "sshd",
             "terraform",
-            "oryx"
           ]
         baseImage: ["ubuntu:focal"]
     steps:
