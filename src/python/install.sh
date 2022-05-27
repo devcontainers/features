@@ -182,7 +182,7 @@ oryx_install() {
     local opt_folder="/opt/${platform}/${requested_version}"
     if [ "${target_folder}" != "none" ] && [ "${target_folder}" != "${opt_folder}" ]; then
         if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
-            mkdir -p ${target_folder}
+            mkdir -p ${opt_folder}
             ln -s "${opt_folder}" "${target_folder}"
         fi
     fi
@@ -305,7 +305,11 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     if [ "${should_install_from_source}" = "true" ]; then
         install_from_source
     fi
-    updaterc "if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then export PATH=${PYTHON_INSTALL_PATH}/bin:\${PATH}; fi"
+    if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
+        updaterc "if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then export PATH=${PYTHON_INSTALL_PATH}/bin:\${PATH}; fi"
+    else
+        PATH={INSTALL_PATH}/bin:${PATH}
+    fi
 fi
 
 # If not installing python tools, exit
@@ -317,8 +321,12 @@ fi
 export PIPX_BIN_DIR="${PIPX_HOME}/bin"
 export PATH="${PIPX_BIN_DIR}:${PATH}"
 
-if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then
-    export PATH=${PYTHON_INSTALL_PATH}/bin:\${PATH}
+if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
+    if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then
+        export PATH=${PYTHON_INSTALL_PATH}/bin:${PATH}
+    fi 
+else
+    PATH={INSTALL_PATH}/bin:${PATH}
 fi
 
 # Create pipx group, dir, and set sticky bit
