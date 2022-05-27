@@ -24,13 +24,10 @@ jobs:
           git-lfs: ./**/git-lfs/**
           github-cli: ./**/github-cli/**
           go: ./**/go/**
-          'java gradle': ./**/gradle/**
           hugo: ./**/hugo/**
           java: ./**/java/**
-          'ruby jekyll': ./**/jekyll/**
           'python jupyterlab': ./**/jupyterlab/**
           kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
-          'java maven': ./**/maven/**
           node: ./**/node/**
           php: ./**/php/**
           powershell: ./**/powershell/**
