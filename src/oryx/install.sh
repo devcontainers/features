@@ -73,11 +73,14 @@ check_packages() {
 }
 
 install_dotnet_using_apt() {
+    wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+    sudo dpkg -i packages-microsoft-prod.deb
+    rm packages-microsoft-prod.deb
     check_packages apt-transport-https dotnet-sdk-6.0
 }
 
 # Install dependencies
-check_packages git
+check_packages git sudo
 
 # If we don't already have Oryx installed, install it now.
 if ! oryx --version > /dev/null ; then
