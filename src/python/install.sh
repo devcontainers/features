@@ -17,6 +17,7 @@ UPDATE_RC=${5:-"true"}
 INSTALL_PYTHON_TOOLS=${6:-"true"}
 USE_ORYX_IF_AVAILABLE=${7:-"true"}
 OPTIMIZE_BUILD_FROM_SOURCE=${8-"false"}
+OVERRIDE_DEFAULT_VERSION=${9:-"true"}
 
 DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5"
@@ -180,7 +181,9 @@ oryx_install() {
     oryx prep --skip-detection --platforms-and-versions "${platform}=${requested_version}"
     local opt_folder="/opt/${platform}/${requested_version}"
     if [ "${target_folder}" != "none" ] && [ "${target_folder}" != "${opt_folder}" ]; then
-        ln -s "${opt_folder}" "${target_folder}"
+        if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
+            ln -s "${opt_folder}" "${target_folder}"
+        fi
     fi
     # Update library path add to conf
     if [ "${ldconfig_folder}" != "none" ]; then
@@ -209,10 +212,6 @@ check_packages() {
 }
 
 install_from_source() {
-    # if [ -d "${PYTHON_INSTALL_PATH}" ]; then
-    #     echo "(!) Path ${PYTHON_INSTALL_PATH} already exists. Remove this existing path or select a different one."
-    #     exit 1
-    # fi
     echo "(*) Building Python ${PYTHON_VERSION} from source..."
     # Install prereqs if missing
     check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev libncurses5-dev \
@@ -226,8 +225,9 @@ install_from_source() {
     # Find version using soft match
     find_version_from_git_tags PYTHON_VERSION "https://github.com/python/cpython"
 
+    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
     # Download tgz of source
-    mkdir -p /tmp/python-src "${PYTHON_INSTALL_PATH}"
+    mkdir -p /tmp/python-src ${INSTALL_PATH}
     cd /tmp/python-src
     local tgz_filename="Python-${PYTHON_VERSION}.tgz"
     local tgz_url="https://www.python.org/ftp/python/${PYTHON_VERSION}/${tgz_filename}"
@@ -251,28 +251,33 @@ install_from_source() {
     if [ "${OPTIMIZE_BUILD_FROM_SOURCE}" = "true" ]; then
         config_args="--enable-optimizations"
     fi
-    ./configure --prefix="${PYTHON_INSTALL_PATH}" --with-ensurepip=install ${config_args}
+    ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
     make -j 8
     make install
     cd /tmp
     rm -rf /tmp/python-src ${GNUPGHOME} /tmp/vscdc-settings.env
+    chown -R ${USERNAME} "${INSTALL_PATH}"
     chown -R ${USERNAME} "${PYTHON_INSTALL_PATH}"
-    ln -s ${PYTHON_INSTALL_PATH}/bin/python3 ${PYTHON_INSTALL_PATH}/bin/python
-    ln -s ${PYTHON_INSTALL_PATH}/bin/pip3 ${PYTHON_INSTALL_PATH}/bin/pip
-    ln -s ${PYTHON_INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
-    ln -s ${PYTHON_INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
-    ln -s ${PYTHON_INSTALL_PATH}/bin/python3-config ${PYTHON_INSTALL_PATH}/bin/python-config
+
+    if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
+        ln -s ${INSTALL_PATH}/bin/python3 ${PYTHON_INSTALL_PATH}/bin/python
+        ln -s ${INSTALL_PATH}/bin/pip3 ${PYTHON_INSTALL_PATH}/bin/pip
+        ln -s ${INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
+        ln -s ${INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
+        ln -s ${INSTALL_PATH}/bin/python3-config ${PYTHON_INSTALL_PATH}/bin/python-config
+    fi
+
 }
 
 install_using_oryx() {
-    # if [ -d "${PYTHON_INSTALL_PATH}" ]; then
-    #     echo "(!) Path ${PYTHON_INSTALL_PATH} already exists. Remove this existing path or select a different one."
-    #     exit 1
-    # fi
-    oryx_install "python" "${PYTHON_VERSION}" "${PYTHON_INSTALL_PATH}" "lib" || return 1
-    ln -s ${PYTHON_INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
-    ln -s ${PYTHON_INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
-    ln -s ${PYTHON_INSTALL_PATH}/bin/python3-config ${PYTHON_INSTALL_PATH}/bin/python-config
+    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
+    oryx_install "python" "${PYTHON_VERSION}" "${INSTALL_PATH}" "lib" || return 1
+
+    if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
+        ln -s ${INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
+        ln -s ${INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
+        ln -s ${INSTALL_PATH}/bin/python3-config ${PYTHON_INSTALL_PATH}/bin/python-config
+    fi
 }
 
 # Ensure apt is in non-interactive to avoid prompts
@@ -309,7 +314,11 @@ if [ "${INSTALL_PYTHON_TOOLS}" != "true" ]; then
 fi
 
 export PIPX_BIN_DIR="${PIPX_HOME}/bin"
-export PATH="${PYTHON_INSTALL_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
+export PATH="${PIPX_BIN_DIR}:${PATH}"
+
+if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then
+    export PATH=${PYTHON_INSTALL_PATH}/bin:\${PATH}
+fi
 
 # Create pipx group, dir, and set sticky bit
 if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then

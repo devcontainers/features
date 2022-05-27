@@ -37,6 +37,11 @@
       "type": "boolean",
       "default": "true",
       "description": "If links and aliases should be created."
+    },
+    "overrideDefaultVersion": {
+      "type": "boolean",
+      "default": "true",
+      "description": "Sets or overrides the default python version"
     }
   },
   "containerEnv": {
