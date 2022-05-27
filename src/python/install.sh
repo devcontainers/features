@@ -271,7 +271,7 @@ install_from_source() {
 
 install_using_oryx() {
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
-    oryx_install "python" "${PYTHON_VERSION}" "${4                                                                   }" "lib" || return 1
+    oryx_install "python" "${PYTHON_VERSION}" "${4}" "lib" || return 1
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
         ln -s ${INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
