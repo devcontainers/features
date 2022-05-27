@@ -182,7 +182,6 @@ oryx_install() {
     local opt_folder="/opt/${platform}/${requested_version}"
     if [ "${target_folder}" != "none" ] && [ "${target_folder}" != "${opt_folder}" ]; then
         if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
-            mkdir -p ${opt_folder}
             ln -s "${opt_folder}" "${target_folder}"
         fi
     fi
@@ -228,7 +227,7 @@ install_from_source() {
 
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
     # Download tgz of source
-    mkdir -p /tmp/python-src ${INSTALL_PATH}
+    mkdir -p /tmp/python-src ${INSTALL_PATH} ${PYTHON_INSTALL_PATH}
     cd /tmp/python-src
     local tgz_filename="Python-${PYTHON_VERSION}.tgz"
     local tgz_url="https://www.python.org/ftp/python/${PYTHON_VERSION}/${tgz_filename}"
@@ -272,7 +271,7 @@ install_from_source() {
 
 install_using_oryx() {
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
-    oryx_install "python" "${PYTHON_VERSION}" "${INSTALL_PATH}" "lib" || return 1
+    oryx_install "python" "${PYTHON_VERSION}" "${4                                                                   }" "lib" || return 1
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
         ln -s ${INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
@@ -324,7 +323,8 @@ export PATH="${PIPX_BIN_DIR}:${PATH}"
 if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
     if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then
         export PATH=${PYTHON_INSTALL_PATH}/bin:${PATH}
-    fi 
+    fi
+    PATH={INSTALL_PATH}/bin:${PATH}
 else
     PATH={INSTALL_PATH}/bin:${PATH}
 fi
