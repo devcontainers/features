@@ -225,7 +225,7 @@ install_from_source() {
 
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
     # Download tgz of source
-    mkdir -p /tmp/python-src ${INSTALL_PATH} ${PYTHON_INSTALL_PATH}/bin
+    mkdir -p /tmp/python-src ${INSTALL_PATH}
     cd /tmp/python-src
     local tgz_filename="Python-${PYTHON_VERSION}.tgz"
     local tgz_url="https://www.python.org/ftp/python/${PYTHON_VERSION}/${tgz_filename}"
@@ -258,6 +258,7 @@ install_from_source() {
     chown -R ${USERNAME} "${PYTHON_INSTALL_PATH}"
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
+        mkdir -p ${PYTHON_INSTALL_PATH}/bin
         ln -s ${INSTALL_PATH}/bin/python3 ${PYTHON_INSTALL_PATH}/bin/python
         ln -s ${INSTALL_PATH}/bin/pip3 ${PYTHON_INSTALL_PATH}/bin/pip
         ln -s ${INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
@@ -272,6 +273,7 @@ install_using_oryx() {
     oryx_install "python" "${PYTHON_VERSION}" "${INSTALL_PATH}" "lib" || return 1
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
+        mkdir -p ${PYTHON_INSTALL_PATH}/bin
         ln -s ${INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
         ln -s ${INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
         ln -s ${INSTALL_PATH}/bin/python3-config ${PYTHON_INSTALL_PATH}/bin/python-config
