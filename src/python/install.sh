@@ -264,11 +264,6 @@ install_from_source() {
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
         ln -s "${INSTALL_PATH}" "${CURRENT_PATH}"
-        ln -s "${CURRENT_PATH}/bin/python3" "${CURRENT_PATH}/bin/python"
-        ln -s "${CURRENT_PATH}/bin/pip3" "${CURRENT_PATH}/bin/pip"
-        ln -s "${CURRENT_PATH}/bin/idle3" "${CURRENT_PATH}/bin/idle"
-        ln -s "${CURRENT_PATH}/bin/pydoc3" "${CURRENT_PATH}/bin/pydoc"
-        ln -s "${CURRENT_PATH}/bin/python3-config" "${CURRENT_PATH}/bin/python-config"
     fi
 
 }
@@ -283,9 +278,6 @@ install_using_oryx() {
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
         ln -s "${INSTALL_PATH}" "${CURRENT_PATH}" 
-        ln -s "${CURRENT_PATH}/bin/idle3" "${CURRENT_PATH}/bin/idle"
-        ln -s "${CURRENT_PATH}/bin/pydoc3" "${CURRENT_PATH}/bin/pydoc"
-        ln -s "${CURRENT_PATH}/bin/python3-config" "${CURRENT_PATH}/bin/python-config"
     fi
 }
 
