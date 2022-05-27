@@ -227,7 +227,7 @@ install_from_source() {
 
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
     # Download tgz of source
-    mkdir -p /tmp/python-src ${INSTALL_PATH} ${PYTHON_INSTALL_PATH}
+    mkdir -p /tmp/python-src ${INSTALL_PATH} ${PYTHON_INSTALL_PATH}/bin
     cd /tmp/python-src
     local tgz_filename="Python-${PYTHON_VERSION}.tgz"
     local tgz_url="https://www.python.org/ftp/python/${PYTHON_VERSION}/${tgz_filename}"
