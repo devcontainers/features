@@ -82,7 +82,7 @@ install_dotnet_using_apt() {
 }
 
 # Install dependencies
-check_packages git sudo wget
+check_packages git sudo wget ca-certificates
 
 # If we don't already have Oryx installed, install it now.
 if ! oryx --version > /dev/null ; then
