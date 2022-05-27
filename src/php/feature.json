@@ -12,6 +12,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install PHP Composer?"
+        },
+        "overrideDefaultVersion": {
+          "type": "boolean",
+          "default": "true",
+          "description": "Sets or overrides the default PHP version"
         }
     },
     "extensions": [
