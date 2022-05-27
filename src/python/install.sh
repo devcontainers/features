@@ -181,9 +181,7 @@ oryx_install() {
     oryx prep --skip-detection --platforms-and-versions "${platform}=${requested_version}"
     local opt_folder="/opt/${platform}/${requested_version}"
     if [ "${target_folder}" != "none" ] && [ "${target_folder}" != "${opt_folder}" ]; then
-        if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
-            ln -s "${opt_folder}" "${target_folder}"
-        fi
+        ln -s "${opt_folder}" "${target_folder}"
     fi
     # Update library path add to conf
     if [ "${ldconfig_folder}" != "none" ]; then
@@ -306,9 +304,9 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     fi
     if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
         updaterc "if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then export PATH=${PYTHON_INSTALL_PATH}/bin:\${PATH}; fi"
-    else
-        PATH={INSTALL_PATH}/bin:${PATH}
     fi
+    
+    PATH={INSTALL_PATH}/bin:${PATH}
 fi
 
 # If not installing python tools, exit
@@ -324,10 +322,9 @@ if [ "${OVERRIDE_DEFAULT_VERSION}" == "true" ]; then
     if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then
         export PATH=${PYTHON_INSTALL_PATH}/bin:${PATH}
     fi
-    PATH={INSTALL_PATH}/bin:${PATH}
-else
-    PATH={INSTALL_PATH}/bin:${PATH}
 fi
+
+PATH={INSTALL_PATH}/bin:${PATH}
 
 # Create pipx group, dir, and set sticky bit
 if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
