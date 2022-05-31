@@ -79,7 +79,7 @@ if ! conda --version &> /dev/null ; then
     check_packages wget ca-certificates
 
     mkdir -p $CONDA_DIR
-    chown ${USERNAME}:root $CONDA_DIR
+    chown ${USERNAME}:${USERNAME} $CONDA_DIR
     echo "Installing Anaconda..."
 
     CONDA_VERSION=$VERSION
