@@ -41,7 +41,7 @@
     "overrideDefaultVersion": {
       "type": "boolean",
       "default": "true",
-      "description": "Sets or overrides the default python version"
+      "description": "If true, overrides existing version (if any) of python on the PATH"
     }
   },
   "containerEnv": {
