@@ -227,7 +227,7 @@ install_from_source() {
     
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${PYTHON_VERSION} already exists."
-        exit 0
+        exit 1
     fi
 
     # Download tgz of source
@@ -279,7 +279,7 @@ install_using_oryx() {
     
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${PYTHON_VERSION} already exists."
-        exit 0
+        exit 1
     fi
     oryx_install "python" "${PYTHON_VERSION}" "${INSTALL_PATH}" "lib" || return 1
 
