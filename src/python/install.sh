@@ -326,10 +326,8 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     if [ "${should_install_from_source}" = "true" ]; then
         install_from_source
     fi
-    if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
-    fi
-    PATH={INSTALL_PATH}/bin:${PATH}
+    
+    updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
 fi
 
 # If not installing python tools, exit
@@ -339,15 +337,7 @@ if [ "${INSTALL_PYTHON_TOOLS}" != "true" ]; then
 fi
 
 export PIPX_BIN_DIR="${PIPX_HOME}/bin"
-export PATH="${PIPX_BIN_DIR}:${PATH}"
-
-if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-    if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then
-        export PATH=${CURRENT_PATH}/bin:${PATH}
-    fi
-fi
-
-PATH=${INSTALL_PATH}/bin:${PATH}
+export PATH="${CURRENT_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
 
 # Create pipx group, dir, and set sticky bit
 if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
