@@ -209,6 +209,15 @@ check_packages() {
     fi
 }
 
+add_symlink_if_required() {
+    if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
+        if [ -d "${CURRENT_PATH}" ]; then
+            rm "${CURRENT_PATH}"
+        fi
+        ln -s "${INSTALL_PATH}" "${CURRENT_PATH}" 
+    fi
+}
+
 install_from_source() {
     echo "(*) Building Python ${PYTHON_VERSION} from source..."
     # Install prereqs if missing
@@ -268,9 +277,7 @@ install_from_source() {
     ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
     ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
-    if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        ln -s "${INSTALL_PATH}" "${CURRENT_PATH}"
-    fi
+    add_symlink_if_required
 
 }
 
@@ -287,9 +294,7 @@ install_using_oryx() {
     ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
     ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
-    if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        ln -s "${INSTALL_PATH}" "${CURRENT_PATH}" 
-    fi
+    add_symlink_if_required
 }
 
 # Ensure apt is in non-interactive to avoid prompts
