@@ -38,7 +38,7 @@ jobs:
             "sshd",
             "terraform",
           ]
-        baseImage: ["ubuntu:focal"]
+        baseImage: [ "ubuntu:focal", "ubuntu:jammy", "debian:11", "mcr.microsoft.com/vscode/devcontainers/base:ubuntu", "mcr.microsoft.com/vscode/devcontainers/base:debian" ]
     steps:
       - uses: actions/checkout@v2
 
