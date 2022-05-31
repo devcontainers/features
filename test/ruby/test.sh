@@ -9,5 +9,8 @@ source dev-container-features-test-lib
 check "ruby version" ruby  --version
 check "gem version" gem --version
 
+echo "location"
+echo $(whereis ruby)
+
 # Report result
 reportResults
