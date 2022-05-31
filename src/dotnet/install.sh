@@ -350,7 +350,7 @@ install_using_dotnet_releases_url() {
         updaterc "$(cat << EOF
         export DOTNET_ROOT="${CURRENT_DIR}"
         if [[ "\${PATH}" != *"\${DOTNET_ROOT}"* ]]; then export PATH="\${PATH}:\${DOTNET_ROOT}"; fi
-    EOF
+EOF
         )"
         
         # Give write permissions to the user.
