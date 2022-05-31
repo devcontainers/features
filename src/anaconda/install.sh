@@ -47,6 +47,38 @@ elif [ "${USERNAME}" = "none" ]; then
     USER_GID=0
 fi
 
+# Create or update a non-root user to match UID/GID.
+group_name="${USERNAME}"
+if id -u ${USERNAME} > /dev/null 2>&1; then
+    # User exists, update if needed
+    if [ "${USER_GID}" != "automatic" ] && [ "$USER_GID" != "$(id -g $USERNAME)" ]; then 
+        group_name="$(id -gn $USERNAME)"
+        groupmod --gid $USER_GID ${group_name}
+        usermod --gid $USER_GID $USERNAME
+    fi
+    if [ "${USER_UID}" != "automatic" ] && [ "$USER_UID" != "$(id -u $USERNAME)" ]; then 
+        usermod --uid $USER_UID $USERNAME
+    fi
+else
+    # Create user
+    if [ "${USER_GID}" = "automatic" ]; then
+        groupadd $USERNAME
+    else
+        groupadd --gid $USER_GID $USERNAME
+    fi
+    if [ "${USER_UID}" = "automatic" ]; then 
+        useradd -s /bin/bash --gid $USERNAME -m $USERNAME
+    else
+        useradd -s /bin/bash --uid $USER_UID --gid $USERNAME -m $USERNAME
+    fi
+fi
+
+# Add add sudo support for non-root user
+if [ "${USERNAME}" != "root" ]; then
+    echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME
+    chmod 0440 /etc/sudoers.d/$USERNAME
+fi
+
 architecture="$(uname -m)"
 if [ "${architecture}" != "x86_64" ]; then
     echo "(!) Architecture $architecture unsupported"
