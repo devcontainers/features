@@ -15,6 +15,7 @@ USERNAME=${3:-"automatic"}
 UPDATE_RC=${4:-"true"}
 TARGET_DOTNET_ROOT=${5:-"/usr/local/dotnet"}
 ACCESS_GROUP=${6:-"dotnet"}
+OVERRIDE_DEFAULT_VERSION=${7:-"true"}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOTNET_ARCHIVE_ARCHITECTURES="amd64"
@@ -92,7 +93,7 @@ get_common_setting() {
     echo "$1=${!1}"
 }
 
-# Add TARGET_DOTNET_ROOT variable into PATH in bashrc/zshrc files.
+# Add dotnet directory to PATH in bashrc/zshrc files if OVERRIDE_DEFAULT_VERSION=true.
 updaterc()  {
     if [ "${UPDATE_RC}" = "true" ]; then
         echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
@@ -209,6 +210,12 @@ install_using_apt() {
     else
         # Sets DOTNET_VERSION and DOTNET_PACKAGE if matches found. 
         apt_cache_package_and_version_soft_match DOTNET_VERSION DOTNET_PACKAGE false
+
+        if [[ $(dotnet --version) == *"${DOTNET_VERSION}"* ]] ; then
+            echo "Dotnet version ${DOTNET_VERSION} is already installed"
+            exit 0
+        fi
+
         if [ "$?" != 0 ]; then
             return 1
         fi
@@ -330,20 +337,27 @@ install_using_dotnet_releases_url() {
     echo "${DOTNET_DOWNLOAD_HASH} *${DOTNET_DOWNLOAD_NAME}" | sha512sum -c -
 
     # Extract binaries and add to path.
-    mkdir -p "${TARGET_DOTNET_ROOT}"
-    echo "Extract Binary to ${TARGET_DOTNET_ROOT}"
-    tar -xzf "${TMP_DIR}/${DOTNET_DOWNLOAD_NAME}" -C "${TARGET_DOTNET_ROOT}" --strip-components=1
+    DOTNET_INSTALL_PATH="${TARGET_DOTNET_ROOT}/${DOTNET_VERSION}"
+    mkdir -p "${DOTNET_INSTALL_PATH}"
+    echo "Extract Binary to ${DOTNET_INSTALL_PATH}"
+    tar -xzf "${TMP_DIR}/${DOTNET_DOWNLOAD_NAME}" -C "${DOTNET_INSTALL_PATH}" --strip-components=1
 
-    updaterc "$(cat << EOF
-    export DOTNET_ROOT="${TARGET_DOTNET_ROOT}"
-    if [[ "\${PATH}" != *"\${DOTNET_ROOT}"* ]]; then export PATH="\${PATH}:\${DOTNET_ROOT}"; fi
-EOF
-    )"
-    
-    # Give write permissions to the user.
-    chown -R ":${ACCESS_GROUP}" "${TARGET_DOTNET_ROOT}"
-    chmod g+r+w+s "${TARGET_DOTNET_ROOT}"
-    chmod -R g+r+w "${TARGET_DOTNET_ROOT}"
+    PATH="${PATH}:${DOTNET_INSTALL_PATH}"
+
+    if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
+        CURRENT_DIR="${TARGET_DOTNET_ROOT}/current"
+        ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}"
+        updaterc "$(cat << EOF
+        export DOTNET_ROOT="${CURRENT_DIR}"
+        if [[ "\${PATH}" != *"\${DOTNET_ROOT}"* ]]; then export PATH="\${PATH}:\${DOTNET_ROOT}"; fi
+    EOF
+        )"
+        
+        # Give write permissions to the user.
+        chown -R ":${ACCESS_GROUP}" "${CURRENT_DIR}"
+        chmod g+r+w+s "${CURRENT_DIR}"
+        chmod -R g+r+w "${CURRENT_DIR}"
+    fi    
 }
 
 ###########################
@@ -352,46 +366,51 @@ EOF
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Dotnet 3.1 and 5.0 are not supported on Ubuntu 22.04 (jammy)+,
-# due to lack of libssl3.0 support.
-# See: https://github.com/microsoft/vscode-dev-containers/issues/1458#issuecomment-1135077775
-# NOTE: This will only guard against installation of the dotnet versions we propose via 'features'. 
-#       The user can attempt to install any other version at their own risk.
-if [[ "${DOTNET_VERSION}" = "3.1" ]] || [[ "${DOTNET_VERSION}" = "5.0" ]]; then
-    if [[ ! "${DOTNET_VERSION_CODENAMES_REQUIRE_OLDER_LIBSSL_1}" = *"${VERSION_CODENAME}"* ]]; then
-        err "Dotnet ${DOTNET_VERSION} is not supported on Ubuntu ${VERSION_CODENAME} due to a change in the 'libssl' dependency across distributions.\n Please upgrade your version of dotnet, or downgrade your OS version."
+if [[ $(dotnet --version) != *"${DOTNET_VERSION}"* ]] || [[ "${DOTNET_VERSION}" = "latest" ]] || [[ "${DOTNET_VERSION}" = "lts" ]]; then
+
+    # Dotnet 3.1 and 5.0 are not supported on Ubuntu 22.04 (jammy)+,
+    # due to lack of libssl3.0 support.
+    # See: https://github.com/microsoft/vscode-dev-containers/issues/1458#issuecomment-1135077775
+    # NOTE: This will only guard against installation of the dotnet versions we propose via 'features'. 
+    #       The user can attempt to install any other version at their own risk.
+    if [[ "${DOTNET_VERSION}" = "3.1" ]] || [[ "${DOTNET_VERSION}" = "5.0" ]]; then
+        if [[ ! "${DOTNET_VERSION_CODENAMES_REQUIRE_OLDER_LIBSSL_1}" = *"${VERSION_CODENAME}"* ]]; then
+            err "Dotnet ${DOTNET_VERSION} is not supported on Ubuntu ${VERSION_CODENAME} due to a change in the 'libssl' dependency across distributions.\n Please upgrade your version of dotnet, or downgrade your OS version."
+            exit 1
+        fi
+    fi
+
+    # Determine if the user wants to download .NET Runtime only, or .NET SDK & Runtime
+    # and set the appropriate variables.
+    if [ "${DOTNET_RUNTIME_ONLY}" = "true" ]; then
+        DOTNET_SDK_OR_RUNTIME="runtime"
+    elif [ "${DOTNET_RUNTIME_ONLY}" = "false" ]; then
+        DOTNET_SDK_OR_RUNTIME="sdk"
+    else
+        err "Expected true for installing dotnet Runtime only or false for installing SDK and Runtime. Received ${DOTNET_RUNTIME_ONLY}."
         exit 1
     fi
-fi
 
-# Determine if the user wants to download .NET Runtime only, or .NET SDK & Runtime
-# and set the appropriate variables.
-if [ "${DOTNET_RUNTIME_ONLY}" = "true" ]; then
-    DOTNET_SDK_OR_RUNTIME="runtime"
-elif [ "${DOTNET_RUNTIME_ONLY}" = "false" ]; then
-    DOTNET_SDK_OR_RUNTIME="sdk"
+    # Install the .NET CLI
+    echo "(*) Installing .NET CLI..."
+
+    . /etc/os-release
+    architecture="$(dpkg --print-architecture)"
+
+    use_dotnet_releases_url="false"
+    if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
+        echo "Detected ${VERSION_CODENAME} on ${architecture}. Attempting to install dotnet from apt"
+        install_using_apt "${DOTNET_SDK_OR_RUNTIME}" || use_dotnet_releases_url="true"
+    else
+    use_dotnet_releases_url="true"
+    fi
+
+    if [ "${use_dotnet_releases_url}" = "true" ]; then
+        echo "Could not install dotnet from apt. Attempting to install dotnet from releases url"
+        install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}"
+    fi
+
+    echo "Done!"
 else
-    err "Expected true for installing dotnet Runtime only or false for installing SDK and Runtime. Received ${DOTNET_RUNTIME_ONLY}."
-    exit 1
+    echo "Dotnet version ${DOTNET_VERSION} is already installed"
 fi
-
-# Install the .NET CLI
-echo "(*) Installing .NET CLI..."
-
-. /etc/os-release
-architecture="$(dpkg --print-architecture)"
-
-use_dotnet_releases_url="false"
-if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
-    echo "Detected ${VERSION_CODENAME} on ${architecture}. Attempting to install dotnet from apt"
-    install_using_apt "${DOTNET_SDK_OR_RUNTIME}" || use_dotnet_releases_url="true"
-else
-   use_dotnet_releases_url="true"
-fi
-
-if [ "${use_dotnet_releases_url}" = "true" ]; then
-    echo "Could not install dotnet from apt. Attempting to install dotnet from releases url"
-    install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}"
-fi
-
-echo "Done!"

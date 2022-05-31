@@ -12,10 +12,15 @@
             "type":"boolean",
             "default": false,
             "description": "Install just the dotnet runtime if true, and sdk if false."
+        },
+        "overrideDefaultVersion": {
+          "type": "boolean",
+          "default": "true",
+          "description": "Sets or overrides the default dotnet version"
         }
     },
     "containerEnv": {
-        "DOTNET_ROOT": "/usr/local/dotnet",
+        "DOTNET_ROOT": "/usr/local/dotnet/current",
         "PATH": "${PATH}:${DOTNET_ROOT}"
     },
     "extensions": [
