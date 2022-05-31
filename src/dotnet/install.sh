@@ -213,7 +213,7 @@ install_using_apt() {
 
         if [[ $(dotnet --version) == *"${DOTNET_VERSION}"* ]] ; then
             echo "Dotnet version ${DOTNET_VERSION} is already installed"
-            exit 0
+            exit 1
         fi
 
         if [ "$?" != 0 ]; then
@@ -318,7 +318,7 @@ install_using_dotnet_releases_url() {
     DOTNET_INSTALL_PATH="${TARGET_DOTNET_ROOT}/${DOTNET_VERSION}"
     if [ -d "${DOTNET_INSTALL_PATH}" ]; then
         echo "(!) Dotnet version ${DOTNET_VERSION} already exists."
-        exit 0
+        exit 1
     fi
     # exports DOTNET_DOWNLOAD_URL, DOTNET_DOWNLOAD_HASH, DOTNET_DOWNLOAD_NAME
     echo "DOWNLOAD LINK: ${DOTNET_DOWNLOAD_URL}"
