@@ -202,19 +202,29 @@ apt_get_update_if_needed()
 }
 
 # Checks if packages are installed and installs them if not
-check_packages() {
+
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update_if_needed
         apt-get -y install --no-install-recommends "$@"
     fi
 }
 
-add_symlink_if_required() {
-    if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        if [ -d "${CURRENT_PATH}" ]; then
-            rm "${CURRENT_PATH}"
-        fi
+    if ! dpkg -s "$@" > /dev/null 2>&1; then
+        apt_get_update_if_needed
+        apt-get -y install --no-install-recommends "$@"
+    fi
+}
+
+add_symlink() {
+    if [ -d "${CURRENT_PATH}" ]; then
         ln -s "${INSTALL_PATH}" "${CURRENT_PATH}" 
+    fi
+
+    if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
+        if [[ $(ls -l ${CURRENT_PATH}) != *"-> ${INSTALL_PATH}"* ]] ; then
+            rm "${CURRENT_PATH}"
+            ln -s "${INSTALL_PATH}" "${CURRENT_PATH}" 
+        fi
     fi
 }
 
@@ -277,7 +287,7 @@ install_from_source() {
     ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
     ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
-    add_symlink_if_required
+    add_symlink
 
 }
 
@@ -294,7 +304,7 @@ install_using_oryx() {
     ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
     ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
-    add_symlink_if_required
+    add_symlink
 }
 
 # Ensure apt is in non-interactive to avoid prompts
