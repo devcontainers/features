@@ -371,11 +371,6 @@ EOF
 
 export DEBIAN_FRONTEND=noninteractive
 
-if [ -d "${PHP_INSTALL_DIR}" ]; then
-    echo "(!) PHP version ${VERSION} already exists."
-    exit 0
-fi
-
 # Dotnet 3.1 and 5.0 are not supported on Ubuntu 22.04 (jammy)+,
 # due to lack of libssl3.0 support.
 # See: https://github.com/microsoft/vscode-dev-containers/issues/1458#issuecomment-1135077775
