@@ -224,6 +224,12 @@ install_from_source() {
     find_version_from_git_tags PYTHON_VERSION "https://github.com/python/cpython"
 
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
+    
+    if [ -d "${INSTALL_PATH}" ]; then
+        echo "(!) Python version ${PYTHON_VERSION} already exists."
+        exit 1
+    fi
+
     # Download tgz of source
     mkdir -p /tmp/python-src ${INSTALL_PATH}
     cd /tmp/python-src
@@ -270,6 +276,11 @@ install_from_source() {
 
 install_using_oryx() {
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
+    
+    if [ -d "${INSTALL_PATH}" ]; then
+        echo "(!) Python version ${PYTHON_VERSION} already exists."
+        exit 1
+    fi
     oryx_install "python" "${PYTHON_VERSION}" "${INSTALL_PATH}" "lib" || return 1
 
     ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
