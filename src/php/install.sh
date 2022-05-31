@@ -119,7 +119,7 @@ fi
 PHP_INSTALL_DIR="${PHP_DIR}/${VERSION}"
 if [ -d "${PHP_INSTALL_DIR}" ]; then
     echo "(!) PHP version ${VERSION} already exists."
-    exit 0
+    exit 1
 fi
 
 PHP_URL="https://www.php.net/distributions/php-${VERSION}.tar.gz"
