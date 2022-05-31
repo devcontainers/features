@@ -210,7 +210,7 @@ check_packages() {
 }
 
 add_symlink() {
-    if ![ -d "${CURRENT_PATH}" ]; then
+    if [! -d "${CURRENT_PATH}" ]; then
         ln -s "${INSTALL_PATH}" "${CURRENT_PATH}" 
     fi
 
