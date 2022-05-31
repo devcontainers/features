@@ -16,7 +16,7 @@
         "overrideDefaultVersion": {
           "type": "boolean",
           "default": "true",
-          "description": "Sets or overrides the default PHP version"
+          "description": "If true, overrides existing version (if any) of dotnet on the PATH"
         }
     },
     "extensions": [
