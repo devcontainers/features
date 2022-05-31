@@ -1,0 +1,15 @@
+{
+    "install_python_twice": {
+        "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
+        "features": [
+            {
+                "id": "python",
+                "version": "3.8"
+            },
+            {
+                "id": "python",
+                "version": "3.9"
+            }
+        ]
+    }
+}
