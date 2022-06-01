@@ -15,6 +15,8 @@ USERNAME=${3:-"automatic"}
 UPDATE_RC=${4:-"true"}
 TARGET_DOTNET_ROOT=${5:-"/usr/local/dotnet"}
 ACCESS_GROUP=${6:-"dotnet"}
+OVERRIDE_DEFAULT_VERSION=${7:-"true"}
+INSTALL_USING_APT=${8:-"true"}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOTNET_ARCHIVE_ARCHITECTURES="amd64"
@@ -92,8 +94,8 @@ get_common_setting() {
     echo "$1=${!1}"
 }
 
-# Add TARGET_DOTNET_ROOT variable into PATH in bashrc/zshrc files.
-updaterc()  {
+# Add dotnet directory to PATH in bashrc/zshrc files if OVERRIDE_DEFAULT_VERSION=true.
+updaterc() {
     if [ "${UPDATE_RC}" = "true" ]; then
         echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
         if [[ "$(cat /etc/bash.bashrc)" != *"$1"* ]]; then
@@ -209,6 +211,12 @@ install_using_apt() {
     else
         # Sets DOTNET_VERSION and DOTNET_PACKAGE if matches found. 
         apt_cache_package_and_version_soft_match DOTNET_VERSION DOTNET_PACKAGE false
+
+        if [[ $(dotnet --version) == *"${DOTNET_VERSION}"* ]] ; then
+            echo "Dotnet version ${DOTNET_VERSION} is already installed"
+            exit 1
+        fi
+
         if [ "$?" != 0 ]; then
             return 1
         fi
@@ -307,6 +315,12 @@ install_using_dotnet_releases_url() {
     fi
 
     get_full_version_details "${sdk_or_runtime}"
+
+    DOTNET_INSTALL_PATH="${TARGET_DOTNET_ROOT}/${DOTNET_VERSION}"
+    if [ -d "${DOTNET_INSTALL_PATH}" ]; then
+        echo "(!) Dotnet version ${DOTNET_VERSION} already exists."
+        exit 1
+    fi
     # exports DOTNET_DOWNLOAD_URL, DOTNET_DOWNLOAD_HASH, DOTNET_DOWNLOAD_NAME
     echo "DOWNLOAD LINK: ${DOTNET_DOWNLOAD_URL}"
 
@@ -330,20 +344,28 @@ install_using_dotnet_releases_url() {
     echo "${DOTNET_DOWNLOAD_HASH} *${DOTNET_DOWNLOAD_NAME}" | sha512sum -c -
 
     # Extract binaries and add to path.
-    mkdir -p "${TARGET_DOTNET_ROOT}"
-    echo "Extract Binary to ${TARGET_DOTNET_ROOT}"
-    tar -xzf "${TMP_DIR}/${DOTNET_DOWNLOAD_NAME}" -C "${TARGET_DOTNET_ROOT}" --strip-components=1
+    mkdir -p "${DOTNET_INSTALL_PATH}"
+    echo "Extract Binary to ${DOTNET_INSTALL_PATH}"
+    tar -xzf "${TMP_DIR}/${DOTNET_DOWNLOAD_NAME}" -C "${DOTNET_INSTALL_PATH}" --strip-components=1
 
-    updaterc "$(cat << EOF
-    export DOTNET_ROOT="${TARGET_DOTNET_ROOT}"
-    if [[ "\${PATH}" != *"\${DOTNET_ROOT}"* ]]; then export PATH="\${PATH}:\${DOTNET_ROOT}"; fi
-EOF
-    )"
-    
+    CURRENT_DIR="${TARGET_DOTNET_ROOT}/current"
+    if [[ ! -d "${CURRENT_DIR}" ]]; then
+        ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}" 
+    fi
+
     # Give write permissions to the user.
-    chown -R ":${ACCESS_GROUP}" "${TARGET_DOTNET_ROOT}"
-    chmod g+r+w+s "${TARGET_DOTNET_ROOT}"
-    chmod -R g+r+w "${TARGET_DOTNET_ROOT}"
+    chown -R "${USERNAME}:${USERNAME}" "${CURRENT_DIR}"
+    chmod g+r+w+s "${CURRENT_DIR}"
+    chmod -R g+r+w "${CURRENT_DIR}"
+
+    if [[ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]]; then
+        if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${DOTNET_INSTALL_PATH}"* ]] ; then
+            rm "${CURRENT_DIR}"
+            ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}"
+        fi
+    fi
+    
+    updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=${CURRENT_DIR}:\${PATH}; fi"
 }
 
 ###########################
@@ -381,16 +403,16 @@ echo "(*) Installing .NET CLI..."
 . /etc/os-release
 architecture="$(dpkg --print-architecture)"
 
-use_dotnet_releases_url="false"
-if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
+if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${INSTALL_USING_APT}" = "true" ]]; then
     echo "Detected ${VERSION_CODENAME} on ${architecture}. Attempting to install dotnet from apt"
-    install_using_apt "${DOTNET_SDK_OR_RUNTIME}" || use_dotnet_releases_url="true"
+    install_using_apt "${DOTNET_SDK_OR_RUNTIME}"
 else
-   use_dotnet_releases_url="true"
-fi
+    if [[ "${INSTALL_USING_APT}" = "false" ]]; then
+        echo "Installing dotnet from releases url"
+    else
+        echo "Could not install dotnet from apt. Attempting to install dotnet from releases url"
+    fi
 
-if [ "${use_dotnet_releases_url}" = "true" ]; then
-    echo "Could not install dotnet from apt. Attempting to install dotnet from releases url"
     install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}"
 fi
 
