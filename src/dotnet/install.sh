@@ -360,9 +360,12 @@ install_using_dotnet_releases_url() {
             ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}"
         fi
     fi
-
-    updaterc "if [[ "\${PATH}\" != *\"${CURRENT_DIR}"* ]]; then export PATH=${CURRENT_DIR}:\${PATH}; fi"
     
+    updaterc "$(cat << EOF
+    if [[ "\${PATH}" != *"\${CURRENT_DIR}"* ]]; then export PATH="\${PATH}:\${CURRENT_DIR}"; fi
+EOF
+    )"
+
     # Give write permissions to the user.
     chown -R ":${ACCESS_GROUP}" "${CURRENT_DIR}"
     chmod g+r+w+s "${CURRENT_DIR}"
