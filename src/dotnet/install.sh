@@ -353,22 +353,20 @@ install_using_dotnet_releases_url() {
         ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}" 
     fi
 
-    updaterc "$(cat << EOF
-    if [[ "\${PATH}" != *"\${CURRENT_DIR}"* ]]; then export PATH="\${PATH}:\${CURRENT_DIR}"; fi
-EOF
-    )"
-
-    # Give write permissions to the user.
-    chown -R ":${ACCESS_GROUP}" "${CURRENT_DIR}"
-    chmod g+r+w+s "${CURRENT_DIR}"
-    chmod -R g+r+w "${CURRENT_DIR}"
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
         if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${DOTNET_INSTALL_PATH}"* ]] ; then
             rm "${CURRENT_DIR}"
             ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}"
         fi
-    fi    
+    fi
+
+    updaterc "if [[ "\${PATH}\" != *\"${CURRENT_DIR}"* ]]; then export PATH=${CURRENT_DIR}:\${PATH}; fi"
+    
+    # Give write permissions to the user.
+    chown -R ":${ACCESS_GROUP}" "${CURRENT_DIR}"
+    chmod g+r+w+s "${CURRENT_DIR}"
+    chmod -R g+r+w "${CURRENT_DIR}"
 }
 
 ###########################
@@ -417,12 +415,6 @@ else
     fi
 
     install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}"
-
-    # Add PATH variable into PATH in bashrc/zshrc files
-    updaterc "$(cat << EOF
-    if [[ "\${PATH}" != *"\${CURRENT_DIR}"* ]]; then export PATH="\${PATH}:\${CURRENT_DIR}"; fi
-EOF
-    )"
 fi
 
 echo "Done!"
