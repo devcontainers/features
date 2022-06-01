@@ -95,7 +95,7 @@ get_common_setting() {
 }
 
 # Add dotnet directory to PATH in bashrc/zshrc files if OVERRIDE_DEFAULT_VERSION=true.
-updaterc()  {
+updaterc() {
     if [ "${UPDATE_RC}" = "true" ]; then
         echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
         if [[ "$(cat /etc/bash.bashrc)" != *"$1"* ]]; then
@@ -353,6 +353,10 @@ install_using_dotnet_releases_url() {
         ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}" 
     fi
 
+    # Give write permissions to the user.
+    chown -R ":${ACCESS_GROUP}" "${CURRENT_DIR}"
+    chmod g+r+w+s "${CURRENT_DIR}"
+    chmod -R g+r+w "${CURRENT_DIR}"
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
         if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${DOTNET_INSTALL_PATH}"* ]] ; then
@@ -365,11 +369,6 @@ install_using_dotnet_releases_url() {
     if [[ "\${PATH}" != *"\${CURRENT_DIR}"* ]]; then export PATH="\${PATH}:\${CURRENT_DIR}"; fi
 EOF
     )"
-
-    # Give write permissions to the user.
-    chown -R ":${ACCESS_GROUP}" "${CURRENT_DIR}"
-    chmod g+r+w+s "${CURRENT_DIR}"
-    chmod -R g+r+w "${CURRENT_DIR}"
 }
 
 ###########################
