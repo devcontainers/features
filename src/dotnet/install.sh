@@ -417,6 +417,12 @@ else
     fi
 
     install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}"
+
+    # Add PATH variable into PATH in bashrc/zshrc files
+    updaterc "$(cat << EOF
+    if [[ "\${PATH}" != *"\${CURRENT_DIR}"* ]]; then export PATH="\${PATH}:\${CURRENT_DIR}"; fi
+EOF
+    )"
 fi
 
 echo "Done!"
