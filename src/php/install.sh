@@ -162,12 +162,19 @@ make clean
 cp -v $PHP_SRC_DIR/php.ini-* "$PHP_INI_DIR/";
 cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-    CURRENT_DIR="${PHP_DIR}/current"
+CURRENT_DIR="${PHP_DIR}/current"
+if [[ ! -d "${CURRENT_DIR}" ]]; then
     ln -s "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
-    export PATH="${PATH}:${CURRENT_DIR}/bin"
 fi
-PATH="${PATH}:${PHP_INSTALL_DIR}/bin"
+
+if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
+    if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${PHP_INSTALL_DIR}"* ]] ; then
+        rm "${CURRENT_DIR}"
+        ln -s "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
+    fi
+fi
+
+export PATH="${PATH}:${CURRENT_DIR}/bin"
 
 # Install xdebug
 pecl install xdebug
@@ -183,8 +190,7 @@ if [[ "${INSTALL_COMPOSER}" = "true" ]] && [[ $(composer --version) = "" ]]; the
 fi
 
 rm -rf ${PHP_SRC_DIR}
-if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-    updaterc "export PHP_DIR=${CURRENT_DIR}/bin"
-fi
+
+updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=${CURRENT_DIR}/bin:\${PATH}; fi"
 
 echo "Done!"
