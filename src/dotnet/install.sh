@@ -317,13 +317,6 @@ install_using_dotnet_releases_url() {
     get_full_version_details "${sdk_or_runtime}"
 
     DOTNET_INSTALL_PATH="${TARGET_DOTNET_ROOT}/${DOTNET_VERSION}"
-    echo "DOTNET_INSTALL_PATH ${DOTNET_INSTALL_PATH}"
-    echo "DOTNET_INSTALL_PATH ${DOTNET_INSTALL_PATH}"
-    echo "DOTNET_INSTALL_PATH ${DOTNET_INSTALL_PATH}"
-    echo "DOTNET_INSTALL_PATH ${DOTNET_INSTALL_PATH}"
-    echo "DOTNET_INSTALL_PATH ${DOTNET_INSTALL_PATH}"
-    echo "DOTNET_INSTALL_PATH ${DOTNET_INSTALL_PATH}"
-    echo "DOTNET_INSTALL_PATH ${DOTNET_INSTALL_PATH}"
     if [ -d "${DOTNET_INSTALL_PATH}" ]; then
         echo "(!) Dotnet version ${DOTNET_VERSION} already exists."
         exit 1
@@ -365,24 +358,7 @@ install_using_dotnet_releases_url() {
     chmod g+r+w+s "${CURRENT_DIR}"
     chmod -R g+r+w "${CURRENT_DIR}"
 
-    echo "OVERRIDE_DEFAULT_VERSION ${OVERRIDE_DEFAULT_VERSION}"
-    echo "OVERRIDE_DEFAULT_VERSION ${OVERRIDE_DEFAULT_VERSION}"
-    echo "OVERRIDE_DEFAULT_VERSION ${OVERRIDE_DEFAULT_VERSION}"
-    echo "OVERRIDE_DEFAULT_VERSION ${OVERRIDE_DEFAULT_VERSION}"
-    echo "OVERRIDE_DEFAULT_VERSION ${OVERRIDE_DEFAULT_VERSION}"
-    echo "OVERRIDE_DEFAULT_VERSION ${OVERRIDE_DEFAULT_VERSION}"
-    echo "OVERRIDE_DEFAULT_VERSION ${OVERRIDE_DEFAULT_VERSION}"
-    echo "OVERRIDE_DEFAULT_VERSION ${OVERRIDE_DEFAULT_VERSION}"
-
     if [[ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]]; then
-        echo $(ls -l ${CURRENT_DIR})
-        echo $(ls -l ${CURRENT_DIR})
-        echo $(ls -l ${CURRENT_DIR})
-        echo $(ls -l ${CURRENT_DIR})
-        echo $(ls -l ${CURRENT_DIR})
-        echo $(ls -l ${CURRENT_DIR})
-        echo $(ls -l ${CURRENT_DIR})
-        echo $(ls -l ${CURRENT_DIR})
         if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${DOTNET_INSTALL_PATH}"* ]] ; then
             rm "${CURRENT_DIR}"
             ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}"
