@@ -17,6 +17,7 @@ UPDATE_RC=${5:-"true"}
 INSTALL_PYTHON_TOOLS=${6:-"true"}
 USE_ORYX_IF_AVAILABLE=${7:-"true"}
 OPTIMIZE_BUILD_FROM_SOURCE=${8-"false"}
+OVERRIDE_DEFAULT_VERSION=${9:-"true"}
 
 DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5"
@@ -208,11 +209,20 @@ check_packages() {
     fi
 }
 
-install_from_source() {
-    if [ -d "${PYTHON_INSTALL_PATH}" ]; then
-        echo "(!) Path ${PYTHON_INSTALL_PATH} already exists. Remove this existing path or select a different one."
-        exit 1
+add_symlink() {
+    if [[ ! -d "${CURRENT_PATH}" ]]; then
+        ln -s "${INSTALL_PATH}" "${CURRENT_PATH}" 
     fi
+
+    if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
+        if [[ $(ls -l ${CURRENT_PATH}) != *"-> ${INSTALL_PATH}"* ]] ; then
+            rm "${CURRENT_PATH}"
+            ln -s "${INSTALL_PATH}" "${CURRENT_PATH}" 
+        fi
+    fi
+}
+
+install_from_source() {
     echo "(*) Building Python ${PYTHON_VERSION} from source..."
     # Install prereqs if missing
     check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev libncurses5-dev \
@@ -226,8 +236,15 @@ install_from_source() {
     # Find version using soft match
     find_version_from_git_tags PYTHON_VERSION "https://github.com/python/cpython"
 
+    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
+    
+    if [ -d "${INSTALL_PATH}" ]; then
+        echo "(!) Python version ${PYTHON_VERSION} already exists."
+        exit 1
+    fi
+
     # Download tgz of source
-    mkdir -p /tmp/python-src "${PYTHON_INSTALL_PATH}"
+    mkdir -p /tmp/python-src ${INSTALL_PATH}
     cd /tmp/python-src
     local tgz_filename="Python-${PYTHON_VERSION}.tgz"
     local tgz_url="https://www.python.org/ftp/python/${PYTHON_VERSION}/${tgz_filename}"
@@ -251,28 +268,37 @@ install_from_source() {
     if [ "${OPTIMIZE_BUILD_FROM_SOURCE}" = "true" ]; then
         config_args="--enable-optimizations"
     fi
-    ./configure --prefix="${PYTHON_INSTALL_PATH}" --with-ensurepip=install ${config_args}
+    ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
     make -j 8
     make install
     cd /tmp
     rm -rf /tmp/python-src ${GNUPGHOME} /tmp/vscdc-settings.env
-    chown -R ${USERNAME} "${PYTHON_INSTALL_PATH}"
-    ln -s ${PYTHON_INSTALL_PATH}/bin/python3 ${PYTHON_INSTALL_PATH}/bin/python
-    ln -s ${PYTHON_INSTALL_PATH}/bin/pip3 ${PYTHON_INSTALL_PATH}/bin/pip
-    ln -s ${PYTHON_INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
-    ln -s ${PYTHON_INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
-    ln -s ${PYTHON_INSTALL_PATH}/bin/python3-config ${PYTHON_INSTALL_PATH}/bin/python-config
+    chown -R ${USERNAME} "${INSTALL_PATH}"
+
+    ln -s "${INSTALL_PATH}/bin/python3" "${INSTALL_PATH}/bin/python"
+    ln -s "${INSTALL_PATH}/bin/pip3" "${INSTALL_PATH}/bin/pip"
+    ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
+    ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
+    ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
+
+    add_symlink
+
 }
 
 install_using_oryx() {
-    if [ -d "${PYTHON_INSTALL_PATH}" ]; then
-        echo "(!) Path ${PYTHON_INSTALL_PATH} already exists. Remove this existing path or select a different one."
+    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
+    
+    if [ -d "${INSTALL_PATH}" ]; then
+        echo "(!) Python version ${PYTHON_VERSION} already exists."
         exit 1
     fi
-    oryx_install "python" "${PYTHON_VERSION}" "${PYTHON_INSTALL_PATH}" "lib" || return 1
-    ln -s ${PYTHON_INSTALL_PATH}/bin/idle3 ${PYTHON_INSTALL_PATH}/bin/idle
-    ln -s ${PYTHON_INSTALL_PATH}/bin/pydoc3 ${PYTHON_INSTALL_PATH}/bin/pydoc
-    ln -s ${PYTHON_INSTALL_PATH}/bin/python3-config ${PYTHON_INSTALL_PATH}/bin/python-config
+    oryx_install "python" "${PYTHON_VERSION}" "${INSTALL_PATH}" "lib" || return 1
+
+    ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
+    ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
+    ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
+
+    add_symlink
 }
 
 # Ensure apt is in non-interactive to avoid prompts
@@ -286,6 +312,7 @@ check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev li
 
 # Install python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
+    CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
     # If the os-provided versions are "good enough", detect that and bail out.
     if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
@@ -299,7 +326,8 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     if [ "${should_install_from_source}" = "true" ]; then
         install_from_source
     fi
-    updaterc "if [[ \"\${PATH}\" != *\"${PYTHON_INSTALL_PATH}/bin\"* ]]; then export PATH=${PYTHON_INSTALL_PATH}/bin:\${PATH}; fi"
+    
+    updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
 fi
 
 # If not installing python tools, exit
@@ -309,7 +337,7 @@ if [ "${INSTALL_PYTHON_TOOLS}" != "true" ]; then
 fi
 
 export PIPX_BIN_DIR="${PIPX_HOME}/bin"
-export PATH="${PYTHON_INSTALL_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
+export PATH="${CURRENT_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
 
 # Create pipx group, dir, and set sticky bit
 if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
@@ -324,7 +352,7 @@ chmod g+s ${PIPX_HOME} ${PIPX_BIN_DIR}
 # Update pip if not using os provided python
 if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ] && [ ${PYTHON_VERSION} != "none" ]; then
     echo "Updating pip..."
-    ${PYTHON_INSTALL_PATH}/bin/python3 -m pip install --no-cache-dir --upgrade pip
+    ${INSTALL_PATH}/bin/python3 -m pip install --no-cache-dir --upgrade pip
 fi
 
 # Install tools
