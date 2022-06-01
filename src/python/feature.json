@@ -37,10 +37,15 @@
       "type": "boolean",
       "default": "true",
       "description": "If links and aliases should be created."
+    },
+    "overrideDefaultVersion": {
+      "type": "boolean",
+      "default": "true",
+      "description": "If true, overrides existing version (if any) of python on the PATH"
     }
   },
   "containerEnv": {
-    "PYTHON_PATH": "/usr/local/python",
+    "PYTHON_PATH": "/usr/local/python/current",
     "PIPX_HOME": "/usr/local/py-utils",
     "PIPX_BIN_DIR": "/usr/local/py-utils/bin",
     "PATH": "${PYTHON_PATH}/bin:${PATH}:${PIPX_BIN_DIR}"
