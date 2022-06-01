@@ -410,7 +410,7 @@ if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNE
     echo "Detected ${VERSION_CODENAME} on ${architecture}. Attempting to install dotnet from apt"
     install_using_apt "${DOTNET_SDK_OR_RUNTIME}" || use_dotnet_releases_url="true"
 else
-use_dotnet_releases_url="true"
+    use_dotnet_releases_url="true"
 fi
 
 if [ "${use_dotnet_releases_url}" = "true" ]; then
