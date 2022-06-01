@@ -347,21 +347,26 @@ install_using_dotnet_releases_url() {
     echo "Extract Binary to ${DOTNET_INSTALL_PATH}"
     tar -xzf "${TMP_DIR}/${DOTNET_DOWNLOAD_NAME}" -C "${DOTNET_INSTALL_PATH}" --strip-components=1
 
-    PATH="${PATH}:${DOTNET_INSTALL_PATH}"
+    CURRENT_DIR="${TARGET_DOTNET_ROOT}/current"
+    if [[ ! -d "${CURRENT_DIR}" ]]; then
+        ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}" 
+    fi
+
+    updaterc "$(cat << EOF
+    if [[ "\${PATH}" != *"\${CURRENT_DIR}"* ]]; then export PATH="\${PATH}:\${CURRENT_DIR}"; fi
+EOF
+    )"
+
+    # Give write permissions to the user.
+    chown -R ":${ACCESS_GROUP}" "${CURRENT_DIR}"
+    chmod g+r+w+s "${CURRENT_DIR}"
+    chmod -R g+r+w "${CURRENT_DIR}"
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        CURRENT_DIR="${TARGET_DOTNET_ROOT}/current"
-        ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}"
-        updaterc "$(cat << EOF
-        export DOTNET_ROOT="${CURRENT_DIR}"
-        if [[ "\${PATH}" != *"\${DOTNET_ROOT}"* ]]; then export PATH="\${PATH}:\${DOTNET_ROOT}"; fi
-EOF
-        )"
-        
-        # Give write permissions to the user.
-        chown -R ":${ACCESS_GROUP}" "${CURRENT_DIR}"
-        chmod g+r+w+s "${CURRENT_DIR}"
-        chmod -R g+r+w "${CURRENT_DIR}"
+        if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${DOTNET_INSTALL_PATH}"* ]] ; then
+            rm "${CURRENT_DIR}"
+            ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}"
+        fi
     fi    
 }
 
