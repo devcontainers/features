@@ -177,7 +177,7 @@ fi
 export PATH="${PATH}:${CURRENT_DIR}/bin"
 
 # Install xdebug
-if [[ $(pecl version) = "" ]]; then
+if [[ $(php -v) != *"with Xdebug"* ]]; then
     pecl install xdebug
     XDEBUG_INI="$CONF_DIR/xdebug.ini"
     echo "zend_extension=$(find $PHP_EXT_DIR -name xdebug.so)" > XDEBUG_INI
