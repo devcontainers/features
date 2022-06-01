@@ -16,6 +16,7 @@ UPDATE_RC=${4:-"true"}
 TARGET_DOTNET_ROOT=${5:-"/usr/local/dotnet"}
 ACCESS_GROUP=${6:-"dotnet"}
 OVERRIDE_DEFAULT_VERSION=${7:-"true"}
+INSTALL_USING_APT=${8:-"true"}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOTNET_ARCHIVE_ARCHITECTURES="amd64"
@@ -405,16 +406,16 @@ echo "(*) Installing .NET CLI..."
 . /etc/os-release
 architecture="$(dpkg --print-architecture)"
 
-use_dotnet_releases_url="false"
-if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
+if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${INSTALL_USING_APT}" = "true" ]]; then
     echo "Detected ${VERSION_CODENAME} on ${architecture}. Attempting to install dotnet from apt"
-    install_using_apt "${DOTNET_SDK_OR_RUNTIME}" || use_dotnet_releases_url="true"
+    install_using_apt "${DOTNET_SDK_OR_RUNTIME}"
 else
-    use_dotnet_releases_url="true"
-fi
+    if [[ "${INSTALL_USING_APT}" = "false" ]]; then
+        echo "Installing dotnet from releases url"
+    else
+        echo "Could not install dotnet from apt. Attempting to install dotnet from releases url"
+    fi
 
-if [ "${use_dotnet_releases_url}" = "true" ]; then
-    echo "Could not install dotnet from apt. Attempting to install dotnet from releases url"
     install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}"
 fi
 

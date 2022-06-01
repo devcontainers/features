@@ -17,6 +17,11 @@
           "type": "boolean",
           "default": "true",
           "description": "If true, overrides existing version (if any) of dotnet on the PATH"
+        },
+        "installUsingApt": {
+            "type": "boolean",
+            "default": "true",
+            "description": "If true, it installs using apt instead of the release URL"
         }
     },
     "containerEnv": {
