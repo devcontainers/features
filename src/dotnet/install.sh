@@ -354,7 +354,7 @@ install_using_dotnet_releases_url() {
     fi
 
     # Give write permissions to the user.
-    chown -R ":${USERNAME}" "${CURRENT_DIR}"
+    chown -R "${USERNAME}:${USERNAME}" "${CURRENT_DIR}"
     chmod g+r+w+s "${CURRENT_DIR}"
     chmod -R g+r+w "${CURRENT_DIR}"
 
