@@ -360,7 +360,7 @@ install_using_dotnet_releases_url() {
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
         if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${DOTNET_INSTALL_PATH}"* ]] ; then
-            rm "${CURRENT_DIR}"
+            rm -Rf "${CURRENT_DIR}"
             ln -s "${DOTNET_INSTALL_PATH}" "${CURRENT_DIR}"
         fi
     fi
@@ -369,6 +369,8 @@ install_using_dotnet_releases_url() {
     if [[ "\${PATH}" != *"\${CURRENT_DIR}"* ]]; then export PATH="\${PATH}:\${CURRENT_DIR}"; fi
 EOF
     )"
+
+    export PATH="${PATH}:${CURRENT_DIR}"
 }
 
 ###########################
