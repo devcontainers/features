@@ -6,16 +6,15 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/desktop-lite.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./desktop-lite-debian.sh [non-root user] [Desktop password] [Install web client flag] [VNC port] [Web Port]
 
-USERNAME=${1:-"automatic"}
-VNC_PASSWORD=${2:-"vscode"}
-INSTALL_NOVNC=${3:-"true"}
-VNC_PORT="${4:-5901}"
-NOVNC_PORT="${5:-6080}"
+VERSION=${VERSION:-"1.2.0"}
+VNC_PASSWORD=${VNC_PASSWORD:-"vscode"}
+NOVNC_PORT="${NOVNC_PORT:-6080}"
+VNC_PORT="${VNC_PORT:-5901}"
 
-NOVNC_VERSION=1.2.0
+INSTALL_NOVNC=${INSTALL_NOVNC:-"true"}
+USERNAME=${USERNAME:-"automatic"}
+
 WEBSOCKETIFY_VERSION=0.10.0
 
 package_list="
@@ -229,12 +228,12 @@ fi
 # Install noVNC
 if [ "${INSTALL_NOVNC}" = "true" ] && [ ! -d "/usr/local/novnc" ]; then
     mkdir -p /usr/local/novnc
-    curl -sSL https://github.com/novnc/noVNC/archive/v${NOVNC_VERSION}.zip -o /tmp/novnc-install.zip
+    curl -sSL https://github.com/novnc/noVNC/archive/v${VERSION}.zip -o /tmp/novnc-install.zip
     unzip /tmp/novnc-install.zip -d /usr/local/novnc
-    cp /usr/local/novnc/noVNC-${NOVNC_VERSION}/vnc.html /usr/local/novnc/noVNC-${NOVNC_VERSION}/index.html
+    cp /usr/local/novnc/noVNC-${VERSION}/vnc.html /usr/local/novnc/noVNC-${VERSION}/index.html
     curl -sSL https://github.com/novnc/websockify/archive/v${WEBSOCKETIFY_VERSION}.zip -o /tmp/websockify-install.zip
     unzip /tmp/websockify-install.zip -d /usr/local/novnc
-    ln -s /usr/local/novnc/websockify-${WEBSOCKETIFY_VERSION} /usr/local/novnc/noVNC-${NOVNC_VERSION}/utils/websockify
+    ln -s /usr/local/novnc/websockify-${WEBSOCKETIFY_VERSION} /usr/local/novnc/noVNC-${VERSION}/utils/websockify
     rm -f /tmp/websockify-install.zip /tmp/novnc-install.zip
 
     # Install noVNC dependencies and use them.

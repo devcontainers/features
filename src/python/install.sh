@@ -7,11 +7,10 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/python.md
 # Maintainer: The VS Code and Codespaces Teams
 #
-# Syntax: ./python-debian.sh [Python Version] [Python intall path] [PIPX_HOME] [non-root user] [Update rc files flag] [install tools flag] [Use Oryx if available flag] [Optimize when building from source flag]
 
-PYTHON_VERSION=${1:-"latest"} # 'system' checks the base image first, else installs 'latest'
-PYTHON_INSTALL_PATH=${2:-"/usr/local/python"}
-export PIPX_HOME=${3:-"/usr/local/py-utils"}
+VERSION=${VERSION:-"latest"} # 'system' checks the base image first, else installs 'latest'
+INSTALL_PATH=${INSTALL_PATH:-"/usr/local/python"}
+export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 USERNAME=${4:-"automatic"}
 UPDATE_RC=${5:-"true"}
 INSTALL_PYTHON_TOOLS=${6:-"true"}

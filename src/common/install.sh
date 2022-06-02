@@ -6,18 +6,17 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/common.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./common-debian.sh [install zsh flag] [username] [user UID] [user GID] [upgrade packages flag] [install Oh My Zsh! flag] [Add non-free packages]
 
 set -e
 
-INSTALL_ZSH=${1:-"true"}
-USERNAME=${2:-"automatic"}
-USER_UID=${3:-"automatic"}
-USER_GID=${4:-"automatic"}
-UPGRADE_PACKAGES=${5:-"true"}
-INSTALL_OH_MYS=${6:-"true"}
-ADD_NON_FREE_PACKAGES=${7:-"false"}
+INSTALL_ZSH=${INSTALL_ZSH:-"true"}
+INSTALL_OH_MY_ZSH=${INSTALL_OH_MY_ZSH:-"true"}
+UPGRADE_PACKAGES=${UPGRADE_PACKAGES:-"true"}
+USERNAME=${USERNAME:-"automatic"}
+USER_UID=${USER_UID:-"automatic"}
+USER_GID=${USER_GID:-"automatic"}
+ADD_NON_FREE_PACKAGES=${ADD_NON_FREE_PACKAGES:-"false"}
+
 SCRIPT_DIR="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
@@ -376,7 +375,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
     oh_my_install_dir="${user_rc_path}/.oh-my-zsh"
-    if [ ! -d "${oh_my_install_dir}" ] && [ "${INSTALL_OH_MYS}" = "true" ]; then
+    if [ ! -d "${oh_my_install_dir}" ] && [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
         template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
         user_rc_file="${user_rc_path}/.zshrc"
         umask g-w,o-w

@@ -6,14 +6,14 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker-in-docker.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./docker-in-docker-debian.sh [enable non-root docker access flag] [non-root user] [use moby] [Engine/CLI Version] [Major version for docker-compose]
 
-ENABLE_NONROOT_DOCKER=${1:-"true"}
-USERNAME=${2:-"automatic"}
-USE_MOBY=${3:-"true"}
-DOCKER_VERSION=${4:-"latest"} # The Docker/Moby Engine + CLI should match in version
-DOCKER_DASH_COMPOSE_VERSION=${5:-"v1"} # v1 or v2
+VERSION=${VERSION:-"latest"} # The Docker/Moby Engine + CLI should match in version
+MOBY=${MOBY:-"true"}
+DOCKER_DASH_COMPOSE_VERSION=${DOCKER_DASH_COMPOSE_VERSION:-"v1"} # v1 or v2
+
+ENABLE_NONROOT_DOCKER=${ENABLE_NONROOT_DOCKER:-"true"}
+USERNAME=${USERNAME:-"automatic"}
+
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal jammy"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal hirsute impish jammy"
@@ -135,7 +135,7 @@ export DEBIAN_FRONTEND=noninteractive
 architecture="$(dpkg --print-architecture)"
 
 # Check if distro is suppported
-if [ "${USE_MOBY}" = "true" ]; then
+if [ "${MOBY}" = "true" ]; then
     # 'get_common_setting' allows attribute to be updated remotely
     get_common_setting DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES
     if [[ "${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
@@ -170,7 +170,7 @@ fi
 
 
 # Set up the necessary apt repos (either Microsoft's or Docker's)
-if [ "${USE_MOBY}" = "true" ]; then
+if [ "${MOBY}" = "true" ]; then
 
     # Name of open source engine/cli
     engine_package_name="moby-engine"
@@ -194,13 +194,13 @@ fi
 apt-get update
 
 # Soft version matching
-if [ "${DOCKER_VERSION}" = "latest" ] || [ "${DOCKER_VERSION}" = "lts" ] || [ "${DOCKER_VERSION}" = "stable" ]; then
+if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ] || [ "${VERSION}" = "stable" ]; then
     # Empty, meaning grab whatever "latest" is in apt repo
     engine_version_suffix=""
     cli_version_suffix=""
 else
     # Fetch a valid version from the apt-cache (eg: the Microsoft repo appends +azure, breakfix, etc...)
-    docker_version_dot_escaped="${DOCKER_VERSION//./\\.}"
+    docker_version_dot_escaped="${VERSION//./\\.}"
     docker_version_dot_plus_escaped="${docker_version_dot_escaped//+/\\+}"
     # Regex needs to handle debian package version number format: https://www.systutorials.com/docs/linux/man/5-deb-version/
     docker_version_regex="^(.+:)?${docker_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
@@ -209,7 +209,7 @@ else
         engine_version_suffix="=$(apt-cache madison ${engine_package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${docker_version_regex}")"
     set -e
     if [ -z "${engine_version_suffix}" ] || [ "${engine_version_suffix}" = "=" ] || [ -z "${cli_version_suffix}" ] || [ "${cli_version_suffix}" = "=" ] ; then
-        err "No full or partial Docker / Moby version match found for \"${DOCKER_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
+        err "No full or partial Docker / Moby version match found for \"${VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
         apt-cache madison ${cli_package_name} | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
         exit 1
     fi
@@ -221,7 +221,7 @@ fi
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
 else
-    if [ "${USE_MOBY}" = "true" ]; then
+    if [ "${MOBY}" = "true" ]; then
         # Install engine
         set +e # Handle error gracefully
             apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx moby-engine${engine_version_suffix}

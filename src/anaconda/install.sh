@@ -6,13 +6,12 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/anaconda.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./anaconda-debian.sh [Conda version] [Non-root user] [Add rc files flag]
 
-VERSION=${1:-"latest"}
-USERNAME=${2:-"automatic"}
-UPDATE_RC=${3:-"true"}
 
+VERSION=${VERSION:-"latest"}
+
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
 CONDA_DIR=${CONDA_DIR:-"/usr/local/conda"}
 
 set -eux
