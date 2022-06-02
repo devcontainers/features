@@ -7,8 +7,8 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker.md
 # Maintainer: The VS Code and Codespaces Teams
 
-VERSION=${VERSION:-"latest"}
-MOBY=${MOBY:-"true"}
+DOCKER_VERSION=${VERSION:-"latest"}
+USE_MOBY=${MOBY:-"true"}
 DOCKER_DASH_COMPOSE_VERSION=${DOCKER_DASH_COMPOSE_VERSION:-"v1"} # v1 or v2
 
 ENABLE_NONROOT_DOCKER=${ENABLE_NONROOT_DOCKER:-"true"}

@@ -5,10 +5,18 @@
         "version": {
             "type": "string",
             "proposals": [
+                "latest"
+            ],
+            "default": "latest",
+            "description": "Currently Unused!"
+        },
+        "novnc_version": {
+            "type": "string",
+            "proposals": [
                 "1.2.0"
             ],
             "default": "1.2.0",
-            "description": "Version of NoVNC"
+            "description": "NoVnc Version"
         },
         "vnc_password": {
             "type": "string",

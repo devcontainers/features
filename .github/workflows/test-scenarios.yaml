@@ -1,0 +1,16 @@
+name: "Test Scenarios"
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  scenarios:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+        run: npx --yes ./devcontainers-cli-0.3.0.tgz features test --scenarios `pwd`/test-scenarios -c `pwd`

@@ -7,13 +7,14 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/desktop-lite.md
 # Maintainer: The VS Code and Codespaces Teams
 
-VERSION=${VERSION:-"1.2.0"}
+NOVNC_VERSION=${NOVNC_VERSION:-"1.2.0"} # TODO: Add in a 'latest' auto-detect and swap name to 'version'
 VNC_PASSWORD=${VNC_PASSWORD:-"vscode"}
 NOVNC_PORT="${NOVNC_PORT:-6080}"
 VNC_PORT="${VNC_PORT:-5901}"
 
 INSTALL_NOVNC=${INSTALL_NOVNC:-"true"}
 USERNAME=${USERNAME:-"automatic"}
+
 
 WEBSOCKETIFY_VERSION=0.10.0
 
@@ -228,12 +229,12 @@ fi
 # Install noVNC
 if [ "${INSTALL_NOVNC}" = "true" ] && [ ! -d "/usr/local/novnc" ]; then
     mkdir -p /usr/local/novnc
-    curl -sSL https://github.com/novnc/noVNC/archive/v${VERSION}.zip -o /tmp/novnc-install.zip
+    curl -sSL https://github.com/novnc/noVNC/archive/v${NOVNC_VERSION}.zip -o /tmp/novnc-install.zip
     unzip /tmp/novnc-install.zip -d /usr/local/novnc
-    cp /usr/local/novnc/noVNC-${VERSION}/vnc.html /usr/local/novnc/noVNC-${VERSION}/index.html
+    cp /usr/local/novnc/noVNC-${NOVNC_VERSION}/vnc.html /usr/local/novnc/noVNC-${NOVNC_VERSION}/index.html
     curl -sSL https://github.com/novnc/websockify/archive/v${WEBSOCKETIFY_VERSION}.zip -o /tmp/websockify-install.zip
     unzip /tmp/websockify-install.zip -d /usr/local/novnc
-    ln -s /usr/local/novnc/websockify-${WEBSOCKETIFY_VERSION} /usr/local/novnc/noVNC-${VERSION}/utils/websockify
+    ln -s /usr/local/novnc/websockify-${WEBSOCKETIFY_VERSION} /usr/local/novnc/noVNC-${NOVNC_VERSION}/utils/websockify
     rm -f /tmp/websockify-install.zip /tmp/novnc-install.zip
 
     # Install noVNC dependencies and use them.

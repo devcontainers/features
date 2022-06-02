@@ -1,0 +1,24 @@
+name: "Shell script linter (manual)"
+on:
+  workflow_dispatch:
+      inputs:
+        path:
+          description: "Path to the shell scripts to lint"
+          required: true
+          default: "."
+        severity:
+          description: "Minimum Severity (style, info, warning, error)"
+          required: true
+          default: "style"
+
+jobs:
+  shellchecker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Shell Linter
+      uses: azohra/shell-linter@v0.6.0
+      with:
+        path: ${{ github.event.inputs.path }}
+        severity: ${{ github.event.inputs.severity }}

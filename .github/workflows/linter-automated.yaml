@@ -1,15 +1,18 @@
-name: "Shell linter"
+name: "Shell script linter"
 on: 
   push:
     branches:
       - main
   pull_request:
-  workflow_dispatch:
 
 jobs:
   shellchecker:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
     - name: Shell Linter
       uses: azohra/shell-linter@v0.6.0
+      with:
+        path: "src/*.sh"
+        severity: "error" # [style, info, warning, error]
