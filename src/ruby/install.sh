@@ -226,6 +226,7 @@ else
     # Install rvm
     curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
     usermod -aG rvm ${USERNAME}
+    updaterc "source /usr/local/rvm/scripts/rvm"
     su ${USERNAME} -c ". /usr/local/rvm/scripts/rvm && rvm fix-permissions system"
     rm -rf ${GNUPGHOME}
 fi
