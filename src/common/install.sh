@@ -84,6 +84,7 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         net-tools \
         psmisc \
         curl \
+        tree \
         wget \
         rsync \
         ca-certificates \
