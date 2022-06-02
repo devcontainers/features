@@ -14,5 +14,5 @@ jobs:
     - name: Shell Linter
       uses: azohra/shell-linter@v0.6.0
       with:
-        path: "src/*.sh"
+        path: "src/**/*.sh"
         severity: "error" # [style, info, warning, error]

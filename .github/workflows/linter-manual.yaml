@@ -5,7 +5,7 @@ on:
         path:
           description: "Path to the shell scripts to lint"
           required: true
-          default: "."
+          default: "src/**/*.sh"
         severity:
           description: "Minimum Severity (style, info, warning, error)"
           required: true
