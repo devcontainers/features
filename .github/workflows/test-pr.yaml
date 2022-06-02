@@ -5,6 +5,7 @@ on:
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
+    continue-on-error: true
     outputs:
       features: ${{ steps.filter.outputs.changes }}
     steps:
