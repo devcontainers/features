@@ -12,31 +12,31 @@ jobs:
         id: filter
         with:
           filters: |
-          anaconda: ./**/anaconda/**
-          aws-cli: ./**/aws-cli/**
-          azure-cli: ./**/azure-cli/**
-          common: ./**/common/**
-          desktop-lite: ./**/desktop-lite/** 
-          docker-from-docker: ./**/docker-from-docker/**
-          docker-in-docker: ./**/docker-in-docker/**
-          dotnet: ./**/dotnet/**
-          git: ./**/git/**
-          git-lfs: ./**/git-lfs/**
-          github-cli: ./**/github-cli/**
-          go: ./**/go/**
-          hugo: ./**/hugo/**
-          java: ./**/java/**
-          'python jupyterlab': ./**/jupyterlab/**
-          kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
-          node: ./**/node/**
-          oryx: ./**/oryx/**
-          php: ./**/php/**
-          powershell: ./**/powershell/**
-          python: ./**/python/**
-          ruby: ./**/ruby/**
-          rust: ./**/rust/**
-          sshd: ./**/sshd/**
-          terraform: ./**/terraform/**
+            anaconda: ./**/anaconda/**
+            aws-cli: ./**/aws-cli/**
+            azure-cli: ./**/azure-cli/**
+            common: ./**/common/**
+            desktop-lite: ./**/desktop-lite/** 
+            docker-from-docker: ./**/docker-from-docker/**
+            docker-in-docker: ./**/docker-in-docker/**
+            dotnet: ./**/dotnet/**
+            git: ./**/git/**
+            git-lfs: ./**/git-lfs/**
+            github-cli: ./**/github-cli/**
+            go: ./**/go/**
+            hugo: ./**/hugo/**
+            java: ./**/java/**
+            'python jupyterlab': ./**/jupyterlab/**
+            kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
+            node: ./**/node/**
+            oryx: ./**/oryx/**
+            php: ./**/php/**
+            powershell: ./**/powershell/**
+            python: ./**/python/**
+            ruby: ./**/ruby/**
+            rust: ./**/rust/**
+            sshd: ./**/sshd/**
+            terraform: ./**/terraform/**
 
   test:
     needs: detect-changes
