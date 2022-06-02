@@ -265,7 +265,5 @@ if [ "${USERNAME}" != "root" ]; then
 fi
 
 # Clean up
-source /usr/local/rvm/scripts/rvm
-rvm cleanup all 
-gem cleanup
+su ${USERNAME} -c ". /usr/local/rvm/scripts/rvm && rvm cleanup all && \"$(which gem || echo ${ROOT_GEM})\" cleanup"
 echo "Done!"
