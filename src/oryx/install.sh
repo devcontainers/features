@@ -6,11 +6,9 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/hugo.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./oryx-debian.sh [Non-root user]
 
-USERNAME=${1:-"automatic"}
-UPDATE_RC=${2:-"true"}
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
 
 set -eu
 

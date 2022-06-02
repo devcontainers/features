@@ -6,11 +6,9 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/git-from-src.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./git-from-src-debian.sh [version] [use PPA if available]
 
-GIT_VERSION=${1:-"latest"} # 'system' checks the base image first, else installs 'latest'
-USE_PPA_IF_AVAILABLE=${2:-"false"}
+GIT_VERSION=${VERSION:-"latest"} # 'system' checks the base image first, else installs 'latest'
+USE_PPA_IF_AVAILABLE=${PPA:-"false"}
 
 GIT_CORE_PPA_ARCHIVE_GPG_KEY=E1DD270288B4E6030699E45FA1715D88E1DF1F24
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80

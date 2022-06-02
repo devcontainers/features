@@ -6,18 +6,17 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/kubectl-helm.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./kubectl-helm-debian.sh [kubectl verison] [Helm version] [minikube version] [kubectl SHA256] [Helm SHA256] [minikube SHA256]
 
 set -e
 
-KUBECTL_VERSION="${1:-"latest"}"
-HELM_VERSION="${2:-"latest"}"
-MINIKUBE_VERSION="${3:-"none"}" # latest is also valid
-KUBECTL_SHA256="${4:-"automatic"}"
-HELM_SHA256="${5:-"automatic"}"
-MINIKUBE_SHA256="${6:-"automatic"}"
-USERNAME=${7:-"automatic"}
+KUBECTL_VERSION="${VERSION:-"latest"}"
+HELM_VERSION="${HELM:-"latest"}"
+MINIKUBE_VERSION="${MINIKUBE:-"none"}" # latest is also valid
+
+KUBECTL_SHA256="${KUBECTL_SHA256:-"automatic"}"
+HELM_SHA256="${HELM_SHA256:-"automatic"}"
+MINIKUBE_SHA256="${MINIKUBE_SHA256:-"automatic"}"
+USERNAME=${USERNAME:-"automatic"}
 
 HELM_GPG_KEYS_URI="https://raw.githubusercontent.com/helm/helm/main/KEYS"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80

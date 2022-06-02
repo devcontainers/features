@@ -6,15 +6,14 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/go.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./go-debian.sh [Go version] [GOROOT] [GOPATH] [non-root user] [Add GOPATH, GOROOT to rc files flag] [Install tools flag]
 
-TARGET_GO_VERSION=${1:-"latest"}
-TARGET_GOROOT=${2:-"/usr/local/go"}
-TARGET_GOPATH=${3:-"/go"}
-USERNAME=${4:-"automatic"}
-UPDATE_RC=${5:-"true"}
-INSTALL_GO_TOOLS=${6:-"true"}
+TARGET_GO_VERSION=${VERSION:-"latest"}
+
+TARGET_GOROOT=${TARGET_GOROOT:-"/usr/local/go"}
+TARGET_GOPATH=${TARGET_GOPATH:-"/go"}
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
+INSTALL_GO_TOOLS=${INSTALL_GO_TOOLS:-"true"}
 
 # https://www.google.com/linuxrepositories/
 GO_GPG_KEY_URI="https://dl.google.com/linux/linux_signing_key.pub"

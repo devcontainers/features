@@ -5,17 +5,17 @@
 #-------------------------------------------------------------------------------------------------------------
 #
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./php-debian.sh [PHP version] [PHP_DIR] [Add Composer flag] [Non-root user] [Add rc files flag]
-
-VERSION=${1:-"latest"}
-export PHP_DIR=${2:-"/usr/local/php"}
-INSTALL_COMPOSER=${3:-"true"}
-USERNAME=${4:-"automatic"}
-UPDATE_RC=${5:-"true"}
-OVERRIDE_DEFAULT_VERSION=${6:-"true"}
 
 set -eux
+
+VERSION=${VERSION:-"latest"}
+INSTALL_COMPOSER=${INSTALL_COMPOSER:-"true"}
+OVERRIDE_DEFAULT_VERSION=${OVERRIDE_DEFAULT_VERSION:-"true"}
+
+export PHP_DIR=${PHP_DIR:-"/usr/local/php"}
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
+
 export DEBIAN_FRONTEND=noninteractive
 
 if [ "$(id -u)" -ne 0 ]; then

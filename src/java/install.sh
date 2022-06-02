@@ -9,10 +9,11 @@
 #
 # Syntax: ./java-debian.sh [JDK version] [SDKMAN_DIR] [non-root user] [Add to rc files flag]
 
-JAVA_VERSION=${1:-"lts"}
-export SDKMAN_DIR=${2:-"/usr/local/sdkman"}
-USERNAME=${3:-"automatic"}
-UPDATE_RC=${4:-"true"}
+JAVA_VERSION=${VERSION:-"lts"}
+
+export SDKMAN_DIR=${SDKMAN_DIR:-"/usr/local/sdkman"}
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
 
 set -e
 

@@ -6,10 +6,8 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/github.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./github-debian.sh [version]
 
-CLI_VERSION=${1:-"latest"}
+CLI_VERSION=${VERSION:-"latest"}
 
 GITHUB_CLI_ARCHIVE_GPG_KEY=C99B11DEB97541F0
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
