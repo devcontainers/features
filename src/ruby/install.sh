@@ -226,18 +226,16 @@ else
     # Install rvm
     curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
     usermod -aG rvm ${USERNAME}
-    updaterc "source /usr/local/rvm/scripts/rvm"
-    echo "username - ${USERNAME}"
+    source /usr/local/rvm/scripts/rvm
     rvm fix-permissions system
-    # su ${USERNAME} -c ". /usr/local/rvm/scripts/rvm && rvm fix-permissions system"
     rm -rf ${GNUPGHOME}
 fi
 
 if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then
     # Non-root user may not have "gem" in path when script is run and no ruby version
     # is installed by rvm, so handle this by using root's default gem in this case
-    ROOT_GEM='$(which gem || echo "")'
-    su ${USERNAME} -c ". /usr/local/rvm/scripts/rvm && \"$(which gem || echo ${ROOT_GEM})\" install ${DEFAULT_GEMS}"
+    ROOT_GEM="$(which gem || echo "")"
+    ${ROOT_GEM} install ${DEFAULT_GEMS}
 fi
 
 # VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
@@ -271,5 +269,7 @@ if [ ${SKIP_RBENV_RBUILD} != "true"] ; then
 fi
 
 # Clean up
-su ${USERNAME} -c ". /usr/local/rvm/scripts/rvm && rvm cleanup all && \"$(which gem || echo ${ROOT_GEM})\" cleanup"
+rvm cleanup all
+${ROOT_GEM} cleanup
+
 echo "Done!"
