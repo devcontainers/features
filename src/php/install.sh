@@ -13,6 +13,7 @@ export PHP_DIR=${2:-"/usr/local/php"}
 INSTALL_COMPOSER=${3:-"true"}
 USERNAME=${4:-"automatic"}
 UPDATE_RC=${5:-"true"}
+OVERRIDE_DEFAULT_VERSION=${6:-"true"}
 
 set -eux
 export DEBIAN_FRONTEND=noninteractive
@@ -92,84 +93,104 @@ addcomposer() {
     php composer-setup.php
     php -r "unlink('composer-setup.php');"
 
-    mv composer.phar $PHP_DIR/composer
-    updaterc "export PHP_DIR=${PHP_DIR}"
+    mv composer.phar "${PHP_INSTALL_DIR}/composer"
 }
 
 # Install PHP if it's missing
-if ! php --version &> /dev/null ; then
-    # Persistent / runtime dependencies
-    RUNTIME_DEPS="wget ca-certificates git build-essential xz-utils"
 
-    # PHP dependencies
-    PHP_DEPS="libssl-dev libcurl4-openssl-dev libedit-dev libsqlite3-dev libxml2-dev zlib1g-dev libsodium-dev libargon2-dev libonig-dev"
 
-    # Dependencies required for running "phpize"
-    PHPIZE_DEPS="autoconf dpkg-dev file g++ gcc libc-dev make pkg-config re2c"
+# Persistent / runtime dependencies
+RUNTIME_DEPS="wget ca-certificates git build-essential xz-utils"
 
-    # Install dependencies
-    check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
+# PHP dependencies
+PHP_DEPS="libssl-dev libcurl4-openssl-dev libedit-dev libsqlite3-dev libxml2-dev zlib1g-dev libsodium-dev libargon2-dev libonig-dev"
 
-    # Fetch latest version of PHP if needed
-    if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
-        find_version_from_git_tags
-    fi
+# Dependencies required for running "phpize"
+PHPIZE_DEPS="autoconf dpkg-dev file g++ gcc libc-dev make pkg-config re2c"
 
-    PHP_URL="https://www.php.net/distributions/php-${VERSION}.tar.gz"
+# Install dependencies
+check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
 
-    PHP_INI_DIR="$PHP_DIR/ini"
-    CONF_DIR="$PHP_INI_DIR/conf.d"
-    mkdir -p $CONF_DIR;
-
-    PHP_EXT_DIR="$PHP_DIR/extensions"
-    mkdir -p $PHP_EXT_DIR
-
-    PHP_SRC_DIR="/usr/src/php"
-    mkdir -p $PHP_SRC_DIR
-    cd $PHP_SRC_DIR
-    wget -O php.tar.xz "$PHP_URL"
-
-    tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR" --strip-components=1
-    cd $PHP_SRC_DIR;
-
-    # PHP 7.4+, the pecl/pear installers are officially deprecated and are removed in PHP 8+
-    # Thus, requiring an explicit "--with-pear"
-    IFS="."
-    read -a versions <<< "$VERSION"
-    PHP_MAJOR_VERSION=${versions[0]}
-    PHP_MINOR_VERSION=${versions[1]}
-
-    VERSION_CONFIG=""
-    if (( $(($PHP_MAJOR_VERSION)) >= 8 )) || (( $(($PHP_MAJOR_VERSION)) == 7 && $(($PHP_MINOR_VERSION)) >= 4 )); then 
-        VERSION_CONFIG="--with-pear"
-    fi
-
-    ./configure --prefix="$PHP_DIR" --with-config-file-path="$PHP_INI_DIR" --with-config-file-scan-dir="$CONF_DIR" --enable-option-checking=fatal --with-curl --with-libedit --with-openssl --with-zlib --with-password-argon2 --with-sodium=shared "$VERSION_CONFIG" EXTENSION_DIR="$PHP_EXT_DIR";
-
-    make -j "$(nproc)"
-    find -type f -name '*.a' -delete
-    make install
-    find $PHP_DIR -type f -executable -exec strip --strip-all '{}' + || true
-    make clean
-
-    cp -v $PHP_SRC_DIR/php.ini-* "$PHP_INI_DIR/";
-    cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
-    PATH=$PATH:${PHP_DIR}/bin
-
-    # Install xdebug
-    pecl install xdebug
-    XDEBUG_INI="$CONF_DIR/xdebug.ini"
-    echo "zend_extension=$(find $PHP_EXT_DIR -name xdebug.so)" > XDEBUG_INI
-    echo "xdebug.mode = debug" >> XDEBUG_INI
-    echo "xdebug.start_with_request = yes" >> XDEBUG_INI
-    echo "xdebug.client_port = 9003" >> XDEBUG_INI
-
-    # Install PHP Composer if needed
-    if [ "${INSTALL_COMPOSER}" = "true" ]; then
-        addcomposer
-    fi
-
-    updaterc "export PHP_DIR=${PHP_DIR}/bin"
+# Fetch latest version of PHP if needed
+if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
+    find_version_from_git_tags
 fi
+
+PHP_INSTALL_DIR="${PHP_DIR}/${VERSION}"
+if [ -d "${PHP_INSTALL_DIR}" ]; then
+    echo "(!) PHP version ${VERSION} already exists."
+    exit 1
+fi
+
+PHP_URL="https://www.php.net/distributions/php-${VERSION}.tar.gz"
+
+PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
+CONF_DIR="$PHP_INI_DIR/conf.d"
+mkdir -p $CONF_DIR;
+
+PHP_EXT_DIR="${PHP_INSTALL_DIR}/extensions"
+mkdir -p $PHP_EXT_DIR
+
+PHP_SRC_DIR="/usr/src/php"
+mkdir -p $PHP_SRC_DIR
+cd $PHP_SRC_DIR
+wget -O php.tar.xz "$PHP_URL"
+
+tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR" --strip-components=1
+cd $PHP_SRC_DIR;
+
+# PHP 7.4+, the pecl/pear installers are officially deprecated and are removed in PHP 8+
+# Thus, requiring an explicit "--with-pear"
+IFS="."
+read -a versions <<< "$VERSION"
+PHP_MAJOR_VERSION=${versions[0]}
+PHP_MINOR_VERSION=${versions[1]}
+
+VERSION_CONFIG=""
+if (( $(($PHP_MAJOR_VERSION)) >= 8 )) || (( $(($PHP_MAJOR_VERSION)) == 7 && $(($PHP_MINOR_VERSION)) >= 4 )); then 
+    VERSION_CONFIG="--with-pear"
+fi
+
+./configure --prefix="${PHP_INSTALL_DIR}" --with-config-file-path="$PHP_INI_DIR" --with-config-file-scan-dir="$CONF_DIR" --enable-option-checking=fatal --with-curl --with-libedit --with-openssl --with-zlib --with-password-argon2 --with-sodium=shared "$VERSION_CONFIG" EXTENSION_DIR="$PHP_EXT_DIR";
+
+make -j "$(nproc)"
+find -type f -name '*.a' -delete
+make install
+find "${PHP_INSTALL_DIR}" -type f -executable -exec strip --strip-all '{}' + || true
+make clean
+
+cp -v $PHP_SRC_DIR/php.ini-* "$PHP_INI_DIR/";
+cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+CURRENT_DIR="${PHP_DIR}/current"
+if [[ ! -d "${CURRENT_DIR}" ]]; then
+    ln -s "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
+fi
+
+if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
+    if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${PHP_INSTALL_DIR}"* ]] ; then
+        rm "${CURRENT_DIR}"
+        ln -s "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
+    fi
+fi
+
+export PATH="${PATH}:${CURRENT_DIR}/bin"
+
+# Install xdebug
+pecl -d php_suffix=${VERSION} install xdebug
+XDEBUG_INI="$CONF_DIR/xdebug.ini"
+echo "zend_extension=$(find $PHP_EXT_DIR -name xdebug.so)" > XDEBUG_INI
+echo "xdebug.mode = debug" >> XDEBUG_INI
+echo "xdebug.start_with_request = yes" >> XDEBUG_INI
+echo "xdebug.client_port = 9003" >> XDEBUG_INI
+
+# Install PHP Composer if needed
+if [[ "${INSTALL_COMPOSER}" = "true" ]] && [[ $(composer --version) = "" ]]; then
+    addcomposer
+fi
+
+rm -rf ${PHP_SRC_DIR}
+
+updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=${CURRENT_DIR}/bin:\${PATH}; fi"
 
 echo "Done!"

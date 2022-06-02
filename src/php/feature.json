@@ -12,6 +12,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install PHP Composer?"
+        },
+        "overrideDefaultVersion": {
+          "type": "boolean",
+          "default": "true",
+          "description": "If true, overrides existing version (if any) of dotnet on the PATH"
         }
     },
     "extensions": [
@@ -21,7 +26,7 @@
         "devsense.phptools-vscode"
     ],
     "containerEnv": {
-        "PHP_PATH": "/usr/local/php",
+        "PHP_PATH": "/usr/local/php/current",
         "PATH":"${PHP_PATH}:${PHP_PATH}/bin:${PATH}"
     },
     "install": {
