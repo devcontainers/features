@@ -9,7 +9,7 @@
 
 set -e
 
-VERSION=${VERSION:-"latest"}
+AZ_VERSION=${VERSION:-"latest"}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64"
