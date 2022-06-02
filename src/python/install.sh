@@ -371,12 +371,9 @@ if [ "${INSTALL_PYTHON_TOOLS}" = 'true' ]; then
     done
     rm -rf /tmp/pip-tmp
 
-    updaterc "$(cat << EOF
-export PIPX_HOME="${PIPX_HOME}"
-export PIPX_BIN_DIR="${PIPX_BIN_DIR}"
-if [[ "\${PATH}" != *"\${PIPX_BIN_DIR}"* ]]; then export PATH="\${PATH}:\${PIPX_BIN_DIR}"; fi
-EOF
-)"
+    updaterc "export PIPX_HOME=\"${PIPX_HOME}\""
+    updaterc "export PIPX_BIN_DIR=\"${PIPX_BIN_DIR}\""
+    updaterc "if [[ \"\${PATH}\" != *\"\${PIPX_BIN_DIR}\"* ]]; then export PATH=\"\${PATH}:\${PIPX_BIN_DIR}\"; fi"
 fi
 
 echo "Done!"
