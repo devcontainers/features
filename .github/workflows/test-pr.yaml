@@ -3,13 +3,6 @@ on:
   pull_request:
 
 jobs:
-  shellchecker:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Shell Linter
-      uses: azohra/shell-linter@v0.6.0
-
   detect-changes:
     runs-on: ubuntu-latest
     outputs:

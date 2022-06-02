@@ -1,0 +1,15 @@
+name: "Shell linter"
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  shellchecker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Shell Linter
+      uses: azohra/shell-linter@v0.6.0
