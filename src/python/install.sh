@@ -408,7 +408,7 @@ fi
 # Install JupyterLab if needed
 if [ "${INSTALL_JUPYTERLAB}" = 'true' ]; then
     install_user_package jupyterlab
-    
+
     # Configure JupyterLab if needed
     if [ "${ALLOW_ALL_ORIGINS}" = 'true' ]; then
         add_user_jupyter_config "c.ServerApp.allow_origin = '*'"
