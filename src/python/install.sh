@@ -19,6 +19,7 @@ USE_ORYX_IF_AVAILABLE=${7:-"true"}
 OPTIMIZE_BUILD_FROM_SOURCE=${8-"false"}
 OVERRIDE_DEFAULT_VERSION=${9:-"true"}
 INSTALL_JUPYTERLAB=${10:-"false"}
+ALLOW_ALL_ORIGINS=${11:-"false"}
 
 DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5"
@@ -303,22 +304,29 @@ install_using_oryx() {
 }
 
 doas_user() {
-    COMMAND=${*}
-
-    if [ "$(id -u)" -eq 0 ] && [ "${USERNAME}" != 'root' ]; then
-        echo "Executing '$COMMAND' as ${USERNAME}..."
-        su - "${USERNAME}" -c "$COMMAND"
+    COMMAND="$*"
+    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != 'root' ]; then
+        su - "$USERNAME" -c "$COMMAND"
     else
-        echo "Executing '$COMMAND'..."
         "$COMMAND"
     fi
 }
 
 install_user_package() {
-    PACKAGE=${1}
+    PACKAGE="$1"
+    doas_user $INSTALL_PATH/bin/python3 -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+}
 
-    echo "Installing ${PACKAGE}..."
-    doas_user ${INSTALL_PATH}/bin/python3 -m pip install --user --upgrade --no-cache-dir "${PACKAGE}"
+add_user_jupyter_config() {
+    CONFIG_DIR="/home/$USERNAME/.jupyter"
+    CONFIG_FILE="$CONFIG_DIR/jupyter_notebook_config.py"
+
+    # Make sure the config file exists or create it with proper permissions
+    test -d "$CONFIG_DIR" || doas_user mkdir "$CONFIG_DIR"
+    test -f "$CONFIG_FILE" || doas_user touch "$CONFIG_FILE"
+
+    # Don't write the same config more than once
+    grep -q "$1" "$CONFIG_FILE" || echo "$1" >> "$CONFIG_FILE"
 }
 
 # Ensure apt is in non-interactive to avoid prompts
@@ -399,6 +407,12 @@ fi
 # Install JupyterLab if needed
 if [ "${INSTALL_JUPYTERLAB}" = 'true' ]; then
     install_user_package jupyterlab
+    
+    # Configure JupyterLab if needed
+    if [ "${ALLOW_ALL_ORIGINS}" = 'true' ]; then
+        add_user_jupyter_config "c.ServerApp.allow_origin = '*'"
+        add_user_jupyter_config "c.NotebookApp.allow_origin = '*'"
+    fi
 fi
 
 echo "Done!"
