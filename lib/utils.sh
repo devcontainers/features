@@ -4,7 +4,7 @@ detect_user() {
     local possible_users=${2:-("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")}
     if [ "${!user_variable_name}" = "auto" ] || [ "${!user_variable_name}" = "automatic" ]; then
         declare -g ${user_variable_name}=""
-        for current_user in ${possible_users[@]}; do
+        for current_user in "${POSSIBLE_USERS[@]}"; do
             if id -u "${current_user}" > /dev/null 2>&1; then
                 declare -g ${user_variable_name}="${current_user}"
                 break

@@ -4,7 +4,10 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "none"],
+            "proposals": [
+                "latest",
+                "none"
+            ],
             "default": "latest",
             "description": "Select version of the GitHub CLI, if not latest."
         }

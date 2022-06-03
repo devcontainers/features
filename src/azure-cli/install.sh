@@ -6,12 +6,11 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/azcli.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./azcli-debian.sh
 
 set -e
 
-AZ_VERSION=${1:-"latest"}
+AZ_VERSION=${VERSION:-"latest"}
+
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64"
 AZCLI_ARCHIVE_VERSION_CODENAMES="stretch buster bullseye bionic focal"

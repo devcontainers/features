@@ -6,16 +6,15 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/rust.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./rust-debian.sh [CARGO_HOME] [RUSTUP_HOME] [non-root user] [add CARGO/RUSTUP_HOME to rc files flag] [whether to update rust] [Rust version] [rustup install profile]
 
-export CARGO_HOME=${1:-"/usr/local/cargo"}
-export RUSTUP_HOME=${2:-"/usr/local/rustup"}
-USERNAME=${3:-"automatic"}
-UPDATE_RC=${4:-"true"}
-UPDATE_RUST=${5:-"false"}
-RUST_VERSION=${6:-"latest"}
-RUSTUP_PROFILE=${7:-"minimal"}
+RUST_VERSION=${VERSION:-"latest"}
+RUSTUP_PROFILE=${PROFILE:-"minimal"}
+
+export CARGO_HOME=${CARGO_HOME:-"/usr/local/cargo"}
+export RUSTUP_HOME=${RUSTUP_HOME:-"/usr/local/rustup"}
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
+UPDATE_RUST=${UPDATE_RUST:-"false"}
 
 set -e
 
@@ -33,7 +32,7 @@ chmod +x /etc/profile.d/00-restore-env.sh
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in ${POSSIBLE_USERS[@]}; do
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
         if id -u ${CURRENT_USER} > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break

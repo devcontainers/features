@@ -6,13 +6,12 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/ruby.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./ruby-debian.sh [Ruby version] [non-root user] [Add to rc files flag] [Install tools flag]
 
-RUBY_VERSION=${1:-"latest"}
-USERNAME=${2:-"automatic"}
-UPDATE_RC=${3:-"true"}
-INSTALL_RUBY_TOOLS=${6:-"true"}
+RUBY_VERSION=${VERSION:-"latest"}
+
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
+INSTALL_RUBY_TOOLS=${INSTALL_RUBY_TOOLS:-"true"}
 
 # Note: ruby-debug-ide will install the right version of debase if missing and
 # installing debase directly fails on Ruby 3.1.0 as of 1/7/2022, so omitting.
@@ -39,7 +38,7 @@ chmod +x /etc/profile.d/00-restore-env.sh
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in ${POSSIBLE_USERS[@]}; do
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
         if id -u ${CURRENT_USER} > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break
@@ -226,15 +225,16 @@ else
     # Install rvm
     curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
     usermod -aG rvm ${USERNAME}
-    su ${USERNAME} -c ". /usr/local/rvm/scripts/rvm && rvm fix-permissions system"
+    source /usr/local/rvm/scripts/rvm
+    rvm fix-permissions system
     rm -rf ${GNUPGHOME}
 fi
 
 if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then
     # Non-root user may not have "gem" in path when script is run and no ruby version
     # is installed by rvm, so handle this by using root's default gem in this case
-    ROOT_GEM='$(which gem || echo "")'
-    su ${USERNAME} -c ". /usr/local/rvm/scripts/rvm && \"$(which gem || echo ${ROOT_GEM})\" install ${DEFAULT_GEMS}"
+    ROOT_GEM="$(which gem || echo "")"
+    ${ROOT_GEM} install ${DEFAULT_GEMS}
 fi
 
 # VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
@@ -268,7 +268,7 @@ if [ ${SKIP_RBENV_RBUILD} != "true"] ; then
 fi
 
 # Clean up
-source /usr/local/rvm/scripts/rvm
-rvm cleanup all 
-gem cleanup
+rvm cleanup all
+${ROOT_GEM} cleanup
+
 echo "Done!"

@@ -6,12 +6,11 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/hugo.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./hugo-debian.sh [Hugo version] [HUGO_DIR] [Non-root user] [Add rc files flag]
 
-VERSION=${1:-"latest"}
-USERNAME=${3:-"automatic"}
-UPDATE_RC=${4:-"true"}
+VERSION=${VERSION:-"latest"}
+
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
 
 HUGO_DIR=${HUGO_DIR:-"/usr/local/hugo"}
 
@@ -31,7 +30,7 @@ chmod +x /etc/profile.d/00-restore-env.sh
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in ${POSSIBLE_USERS[@]}; do
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
         if id -u ${CURRENT_USER} > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break

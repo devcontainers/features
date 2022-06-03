@@ -4,14 +4,22 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "8.0.16"],
+            "proposals": [
+                "latest",
+                "8.0.16"
+            ],
             "default": "latest",
             "description": "Select or enter a PHP version"
         },
-        "installComposer": {
+        "install_composer": {
             "type": "boolean",
             "default": true,
             "description": "Install PHP Composer?"
+        },
+        "override_default_version": {
+            "type": "boolean",
+            "default": "true",
+            "description": "If true, overrides existing version (if any) of dotnet on the PATH"
         }
     },
     "extensions": [
@@ -21,8 +29,8 @@
         "devsense.phptools-vscode"
     ],
     "containerEnv": {
-        "PHP_PATH": "/usr/local/php",
-        "PATH":"${PHP_PATH}:${PHP_PATH}/bin:${PATH}"
+        "PHP_PATH": "/usr/local/php/current",
+        "PATH": "${PHP_PATH}:${PHP_PATH}/bin:${PATH}"
     },
     "install": {
         "app": "",

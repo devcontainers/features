@@ -1,0 +1,43 @@
+{
+    "id": "dotnet",
+    "name": "Dotnet CLI",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest",
+                "6.0",
+                "5.0",
+                "3.1"
+            ],
+            "default": "latest",
+            "description": "Select or enter a dotnet CLI version. (Available versions may vary by Linux distribution.)"
+        },
+        "runtime_only": {
+            "type": "boolean",
+            "default": false,
+            "description": "Install just the dotnet runtime if true, and sdk if false."
+        },
+        "override_default_version": {
+            "type": "boolean",
+            "default": "true",
+            "description": "If true, overrides existing version (if any) of dotnet on the PATH"
+        },
+        "install_using_apt": {
+            "type": "boolean",
+            "default": "true",
+            "description": "If true, it installs using apt instead of the release URL"
+        }
+    },
+    "containerEnv": {
+        "DOTNET_ROOT": "/usr/local/dotnet/current",
+        "PATH": "${PATH}:${DOTNET_ROOT}"
+    },
+    "extensions": [
+        "ms-dotnettools.csharp"
+    ],
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}

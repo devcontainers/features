@@ -7,15 +7,13 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/sshd.md
 # Maintainer: The VS Code and Codespaces Teams
 #
-# Syntax: ./sshd-debian.sh [SSH Port (don't use 22)] [non-root user] [start sshd now flag] [new password for user] [fix environment flag]
-#
 # Note: You can change your user's password with "sudo passwd $(whoami)" (or just "passwd" if running as root).
 
-SSHD_PORT=${1:-"2222"}
-USERNAME=${2:-"automatic"}
-START_SSHD=${3:-"false"}
-NEW_PASSWORD=${4:-"skip"}
-FIX_ENVIRONMENT=${5:-"true"}
+SSHD_PORT=${SSHD_PORT:-"2222"}
+USERNAME=${USERNAME:-"automatic"}
+START_SSHD=${START_SSHD:-"false"}
+NEW_PASSWORD=${NEW_PASSWORD:-"skip"}
+FIX_ENVIRONMENT=${FIX_ENVIRONMENT:-"true"}
 
 set -e
 
@@ -28,7 +26,7 @@ fi
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in ${POSSIBLE_USERS[@]}; do
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
         if id -u ${CURRENT_USER} > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break

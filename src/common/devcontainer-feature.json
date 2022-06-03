@@ -3,42 +3,53 @@
     "name": "common",
     "description": "common",
     "options": {
-        "installZsh": {
+        "install_Zsh": {
             "type": "boolean",
             "default": true,
             "description": "Install ZSH?"
         },
-        "installOhMyZsh": {
+        "install_Oh_My_Zsh": {
             "type": "boolean",
             "default": true,
             "description": "Install Oh My Zsh!?"
         },
-        "upgradePackages": {
-            "type":"boolean",
+        "upgrade_packages": {
+            "type": "boolean",
             "default": true,
             "description": "Upgrade OS packages?"
         },
         "username": {
-            "type":"string",
-            "proposals": ["vscode", "codespace", "none", "automatic"],
+            "type": "string",
+            "proposals": [
+                "vscode",
+                "codespace",
+                "none",
+                "automatic"
+            ],
             "default": "automatic",
             "description": "Enter name of non-root user to configure or none to skip"
         },
-        "uid": {
-            "type":"string",
-            "proposals": ["1000", "automatic"],
+        "user_uid": {
+            "type": "string",
+            "proposals": [
+                "1000",
+                "automatic"
+            ],
             "default": "automatic",
             "description": "Enter uid for non-root user"
         },
-        "gid": {
+        "user_gid": {
             "type": "string",
-            "proposals": ["1000", "automatic"],
+            "proposals": [
+                "1000",
+                "automatic"
+            ],
             "default": "automatic",
             "description": "Enter gid for non-root user"
         },
-        "nonFreePackages": {
-            "type":"boolean",
-            "default": true,
+        "add_non_free_packages": {
+            "type": "boolean",
+            "default": false,
             "description": "Add packages from non-free Debian repository?"
         }
     },
