@@ -26,7 +26,6 @@ jobs:
             "go",
             "hugo",
             "java",
-            "python jupyterlab",  # Install 'python', then 'jupyterlab'
             "kubectl-helm-minikube",
             "node",
             "oryx",
