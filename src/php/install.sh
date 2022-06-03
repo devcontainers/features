@@ -172,7 +172,7 @@ echo "xdebug.start_with_request = yes" >> "${XDEBUG_INI}"
 echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
 
 # Install PHP Composer if needed
-if [[ "${INSTALL_COMPOSER}" = "true" ]] && [[ $(composer --version) = "" ]]; then
+if [[ "${INSTALL_COMPOSER}" = "true" ]] || [[ $(composer --version) = "" ]]; then
     addcomposer
 fi
 
