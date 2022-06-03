@@ -14,5 +14,7 @@ check "version" python --version
 # cat /home/vscode/.jupyter/jupyter_notebook_config.py
 # check "jupyterlab-config" grep 'allow_origin' /home/vscode/.jupyter/jupyter_notebook_config.py
 
+# check "numpy" /usr/local/python/current/bin/python -c 'import numpy'
+
 # Report result
 reportResults
