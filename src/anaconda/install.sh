@@ -13,7 +13,7 @@ VERSION=${1:-"latest"}
 USERNAME=${2:-"automatic"}
 UPDATE_RC=${3:-"true"}
 
-CONDA_DIR=${CONDA_DIR:-"/usr/local/conda"}
+CONDA_DIR="/usr/local/conda"
 
 set -eux
 export DEBIAN_FRONTEND=noninteractive
