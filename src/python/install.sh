@@ -365,7 +365,7 @@ if ! type pipx > /dev/null 2>&1; then
     /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
     pipx_path="/tmp/pip-tmp/bin/"
 fi
-for util in ${DEFAULT_UTILS[@]}; do
+for util in "${DEFAULT_UTILS[@]}"; do
     if ! type ${util} > /dev/null 2>&1; then
         ${pipx_path}pipx install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
     else
