@@ -1,4 +1,4 @@
-name: "Package dev container features (v1)"
+name: "(Release-v1) Package dev container features (v1)"
 on:
   push:
     tags:

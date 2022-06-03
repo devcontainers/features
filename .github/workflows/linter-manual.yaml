@@ -1,4 +1,4 @@
-name: "Shell script linter (manual)"
+name: "(Manual) Shell Script Linter"
 on:
   workflow_dispatch:
       inputs:
