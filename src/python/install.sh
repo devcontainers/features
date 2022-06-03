@@ -310,7 +310,7 @@ check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev li
             libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
 
 
-# Install python from source if needed
+# Install Python from source
 if [ "${PYTHON_VERSION}" != "none" ]; then
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
     # If the os-provided versions are "good enough", detect that and bail out.
@@ -330,7 +330,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
 fi
 
-# Install Python tools if needed
+# Install Python tools
 if [ "${INSTALL_PYTHON_TOOLS}" = 'true' ]; then
     echo 'Installing Python tools...'
     export PIPX_BIN_DIR="${PIPX_HOME}/bin"
