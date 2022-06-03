@@ -6,14 +6,15 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker-in-docker.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./docker-in-docker-debian.sh [enable non-root docker access flag] [non-root user] [use moby] [Engine/CLI Version] [Major version for docker-compose]
 
-ENABLE_NONROOT_DOCKER=${1:-"true"}
-USERNAME=${2:-"automatic"}
-USE_MOBY=${3:-"true"}
-DOCKER_VERSION=${4:-"latest"} # The Docker/Moby Engine + CLI should match in version
-DOCKER_DASH_COMPOSE_VERSION=${5:-"v1"} # v1 or v2
+
+DOCKER_VERSION=${VERSION:-"latest"} # The Docker/Moby Engine + CLI should match in version
+USE_MOBY=${MOBY:-"true"}
+DOCKER_DASH_COMPOSE_VERSION=${DOCKER_DASH_COMPOSE_VERSION:-"v1"} # v1 or v2
+
+ENABLE_NONROOT_DOCKER=${ENABLE_NONROOT_DOCKER:-"true"}
+USERNAME=${USERNAME:-"automatic"}
+
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal jammy"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal hirsute impish jammy"
@@ -40,7 +41,7 @@ fi
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in ${POSSIBLE_USERS[@]}; do
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
         if id -u ${CURRENT_USER} > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break

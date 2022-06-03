@@ -6,18 +6,18 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/python.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./python-debian.sh [Python Version] [Python intall path] [PIPX_HOME] [non-root user] [Update rc files flag] [install tools flag] [Use Oryx if available flag] [Optimize when building from source flag]
 
-PYTHON_VERSION=${1:-"latest"} # 'system' checks the base image first, else installs 'latest'
-PYTHON_INSTALL_PATH=${2:-"/usr/local/python"}
-export PIPX_HOME=${3:-"/usr/local/py-utils"}
-USERNAME=${4:-"automatic"}
-UPDATE_RC=${5:-"true"}
-INSTALL_PYTHON_TOOLS=${6:-"true"}
-USE_ORYX_IF_AVAILABLE=${7:-"true"}
-OPTIMIZE_BUILD_FROM_SOURCE=${8-"false"}
-OVERRIDE_DEFAULT_VERSION=${9:-"true"}
+PYTHON_VERSION=${VERSION:-"latest"} # 'system' checks the base image first, else installs 'latest'
+INSTALL_PYTHON_TOOLS=${INSTALL_PYTHON_TOOLS:-"true"}
+OPTIMIZE_BUILD_FROM_SOURCE=${OPTIMIZE:-"false"}
+PYTHON_INSTALL_PATH=${INSTALL_PATH:-"/usr/local/python"}
+OVERRIDE_DEFAULT_VERSION=${OVERRIDE_DEFAULT_VERSION:-"true"}
+
+export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
+
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
+USE_ORYX_IF_AVAILABLE=${USE_ORYX_IF_AVAILABLE:-"true"}
 
 DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5"
@@ -41,7 +41,7 @@ chmod +x /etc/profile.d/00-restore-env.sh
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in ${POSSIBLE_USERS[@]}; do
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
         if id -u ${CURRENT_USER} > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break
@@ -365,7 +365,7 @@ if ! type pipx > /dev/null 2>&1; then
     /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
     pipx_path="/tmp/pip-tmp/bin/"
 fi
-for util in ${DEFAULT_UTILS[@]}; do
+for util in "${DEFAULT_UTILS[@]}"; do
     if ! type ${util} > /dev/null 2>&1; then
         ${pipx_path}pipx install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
     else

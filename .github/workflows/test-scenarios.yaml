@@ -1,0 +1,15 @@
+name: "Test Scenarios"
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  scenarios:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: " Running predefined test scenarios"
+        run: npx --yes ./devcontainers-cli-0.3.0.tgz features test --scenarios `pwd`/test-scenarios -c `pwd`

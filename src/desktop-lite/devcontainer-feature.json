@@ -4,25 +4,43 @@
     "options": {
         "version": {
             "type": "string",
-            "enum": ["latest"],
+            "proposals": [
+                "latest"
+            ],
             "default": "latest",
-            "description": "Currently unused."
+            "description": "Currently Unused!"
         },
-        "password": {
+        "novnc_version": {
             "type": "string",
-            "proposals": ["vscode","codespaces","password"],
+            "proposals": [
+                "1.2.0"
+            ],
+            "default": "1.2.0",
+            "description": "NoVnc Version"
+        },
+        "vnc_password": {
+            "type": "string",
+            "proposals": [
+                "vscode",
+                "codespaces",
+                "password"
+            ],
             "default": "vscode",
             "description": "Enter a password for desktop connections"
         },
-        "webPort": {
+        "novnc_port": {
             "type": "string",
-            "proposals": ["6080"],
+            "proposals": [
+                "6080"
+            ],
             "default": "6080",
-            "description": "Enter a port for the desktop web client"
+            "description": "Enter a port for the VNC web client"
         },
-        "vncPort": {
+        "vnc_port": {
             "type": "string",
-            "proposals": ["5901"],
+            "proposals": [
+                "5901"
+            ],
             "default": "5901",
             "description": "Enter a port for the desktop VNC server"
         }

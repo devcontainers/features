@@ -6,15 +6,14 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/jupyterlab.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./jupyter-debian.sh
 
 set -ex
 
-VERSION=${1:-"latest"}
-USERNAME=${2:-"automatic"}
-PYTHON=${3:-"python"}
-ALLOW_ALL_ORIGINS=${4:-""}
+VERSION=${VERSION:-"latest"}
+PYTHON=${PYTHON_BINARY:-"python"}
+
+USERNAME=${USERNAME:-"automatic"}
+ALLOW_ALL_ORIGINS=${ALLOW_ALL_ORIGINS:-""}
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -25,7 +24,7 @@ fi
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in ${POSSIBLE_USERS[@]}; do
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
         if id -u ${CURRENT_USER} > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break

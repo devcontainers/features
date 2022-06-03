@@ -4,11 +4,16 @@
         "features": [
             {
                 "id": "python",
-                "version": "3.8"
+                "options": {
+                    "version": "3.8"
+                }
             },
             {
                 "id": "python",
-                "version": "3.9"
+                "options": {
+                    "version": "3.9",
+                    "overrideDefaultVersion": true
+                }
             }
         ]
     }

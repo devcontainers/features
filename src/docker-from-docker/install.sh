@@ -6,16 +6,16 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./docker-debian.sh [enable non-root docker socket access flag] [source socket] [target socket] [non-root user] [use moby] [CLI version] [Major version for docker-compose]
 
-ENABLE_NONROOT_DOCKER=${1:-"true"}
-SOURCE_SOCKET=${2:-"/var/run/docker-host.sock"}
-TARGET_SOCKET=${3:-"/var/run/docker.sock"}
-USERNAME=${4:-"automatic"}
-USE_MOBY=${5:-"true"}
-DOCKER_VERSION=${6:-"latest"}
-DOCKER_DASH_COMPOSE_VERSION=${7:-"v1"} # v1 or v2
+DOCKER_VERSION=${VERSION:-"latest"}
+USE_MOBY=${MOBY:-"true"}
+DOCKER_DASH_COMPOSE_VERSION=${DOCKER_DASH_COMPOSE_VERSION:-"v1"} # v1 or v2
+
+ENABLE_NONROOT_DOCKER=${ENABLE_NONROOT_DOCKER:-"true"}
+SOURCE_SOCKET=${SOURCE_SOCKET:-"/var/run/docker-host.sock"}
+TARGET_SOCKET=${TARGET_SOCKET:-"/var/run/docker.sock"}
+USERNAME=${USERNAME:-"automatic"}
+
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal jammy"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal hirsute impish jammy"
@@ -31,7 +31,7 @@ fi
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in ${POSSIBLE_USERS[@]}; do
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
         if id -u ${CURRENT_USER} > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break
