@@ -177,12 +177,7 @@ fi
 export PATH="${PATH}:${CURRENT_DIR}/bin"
 
 # Install xdebug
-pecl config-set php_ini $PHP_INI_DIR
-pecl config-set ext_dir $PHP_EXT_DIR
-pecl config-set php_bin $CURRENT_DIR/bin
-pecl config-set php_suffix $VERSION
-
-pecl install xdebug
+$CURRENT_DIR/bin/pecl install xdebug
 XDEBUG_INI="$CONF_DIR/xdebug.ini"
 echo "zend_extension=$(find $PHP_EXT_DIR -name xdebug.so)" > XDEBUG_INI
 echo "xdebug.mode = debug" >> XDEBUG_INI
