@@ -242,29 +242,41 @@ fi
 updaterc "if ! grep rvm_silence_path_mismatch_check_flag \$HOME/.rvmrc > /dev/null 2>&1; then echo 'rvm_silence_path_mismatch_check_flag=1' >> \$HOME/.rvmrc; fi\nsource /usr/local/rvm/scripts/rvm > /dev/null 2>&1"
 
 # Install rbenv/ruby-build for good measure
-if [ ${SKIP_RBENV_RBUILD} != "true"] ; then
-    git clone --depth=1 \
-        -c core.eol=lf \
-        -c core.autocrlf=false \
-        -c fsck.zeroPaddedFilemode=ignore \
-        -c fetch.fsck.zeroPaddedFilemode=ignore \
-        -c receive.fsck.zeroPaddedFilemode=ignore \
-        https://github.com/rbenv/rbenv.git /usr/local/share/rbenv
-    ln -s /usr/local/share/rbenv/bin/rbenv /usr/local/bin
-    updaterc 'eval "$(rbenv init -)"'
-    git clone --depth=1 \
-        -c core.eol=lf \
-        -c core.autocrlf=false \
-        -c fsck.zeroPaddedFilemode=ignore \
-        -c fetch.fsck.zeroPaddedFilemode=ignore \
-        -c receive.fsck.zeroPaddedFilemode=ignore \
-        https://github.com/rbenv/ruby-build.git /usr/local/share/ruby-build
-    mkdir -p /root/.rbenv/plugins
-    ln -s /usr/local/share/ruby-build /root/.rbenv/plugins/ruby-build
+if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
+
+    if [[ ! -d "/usr/local/share/rbenv" ]]; then
+        git clone --depth=1 \
+            -c core.eol=lf \
+            -c core.autocrlf=false \
+            -c fsck.zeroPaddedFilemode=ignore \
+            -c fetch.fsck.zeroPaddedFilemode=ignore \
+            -c receive.fsck.zeroPaddedFilemode=ignore \
+            https://github.com/rbenv/rbenv.git /usr/local/share/rbenv
+    
+        ln -s /usr/local/share/rbenv/bin/rbenv /usr/local/bin
+        updaterc 'eval "$(rbenv init -)"'
+    fi
+
+    if [[ ! -d "/usr/local/share/ruby-build" ]]; then
+        git clone --depth=1 \
+            -c core.eol=lf \
+            -c core.autocrlf=false \
+            -c fsck.zeroPaddedFilemode=ignore \
+            -c fetch.fsck.zeroPaddedFilemode=ignore \
+            -c receive.fsck.zeroPaddedFilemode=ignore \
+            https://github.com/rbenv/ruby-build.git /usr/local/share/ruby-build
+        mkdir -p /root/.rbenv/plugins
+
+        ln -s /usr/local/share/ruby-build /root/.rbenv/plugins/ruby-build
+    fi
+
     if [ "${USERNAME}" != "root" ]; then
         mkdir -p /home/${USERNAME}/.rbenv/plugins
         chown -R ${USERNAME} /home/${USERNAME}/.rbenv
-        ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
+
+        if [[ ! -d "/home/${USERNAME}/.rbenv/plugins/ruby-build" ]]; then
+            ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
+        fi
     fi
 fi
 

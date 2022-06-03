@@ -177,9 +177,9 @@ fi
 export PATH="${PATH}:${CURRENT_DIR}/bin"
 
 # Install xdebug
-pecl -d php_suffix="${VERSION}" install xdebug
+pecl -d php_suffix=$VERSION install xdebug
 XDEBUG_INI="$CONF_DIR/xdebug.ini"
-echo "zend_extension=$(find \"${PHP_EXT_DIR}\" -name xdebug.so)" > XDEBUG_INI
+echo "zend_extension=$(find $PHP_EXT_DIR -name xdebug.so)" > XDEBUG_INI
 echo "xdebug.mode = debug" >> XDEBUG_INI
 echo "xdebug.start_with_request = yes" >> XDEBUG_INI
 echo "xdebug.client_port = 9003" >> XDEBUG_INI
