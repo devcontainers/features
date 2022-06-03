@@ -4,17 +4,16 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": [
-                "latest"
-            ],
+            "proposals": ["latest"],
             "default": "latest",
             "description": "Select or enter an anaconda version."
         }
     },
     "containerEnv": {
-        "CONDA_DIR": "/usr/local/conda",
-        "PATH": "${CONDA_DIR}/bin:${PATH}"
+        "ANACONDA_ROOT": "/usr/local/conda",
+        "PATH": "${PATH}:${ANACONDA_ROOT}/bin"
     },
+    "extensions": [],
     "install": {
         "app": "",
         "file": "install.sh"
