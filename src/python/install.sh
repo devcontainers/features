@@ -18,6 +18,7 @@ INSTALL_PYTHON_TOOLS=${6:-"true"}
 USE_ORYX_IF_AVAILABLE=${7:-"true"}
 OPTIMIZE_BUILD_FROM_SOURCE=${8-"false"}
 OVERRIDE_DEFAULT_VERSION=${9:-"true"}
+INSTALL_JUPYTERLAB=${10:-"false"}
 
 DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5"
@@ -301,6 +302,25 @@ install_using_oryx() {
     add_symlink
 }
 
+doas_user() {
+    COMMAND=${*}
+
+    if [ "$(id -u)" -eq 0 ] && [ "${USERNAME}" != 'root' ]; then
+        echo "Executing '$COMMAND' as ${USERNAME}..."
+        su - "${USERNAME}" -c "$COMMAND"
+    else
+        echo "Executing '$COMMAND'..."
+        "$COMMAND"
+    fi
+}
+
+install_user_package() {
+    PACKAGE=${1}
+
+    echo "Installing ${PACKAGE}..."
+    doas_user ${INSTALL_PATH}/bin/python3 -m pip install --user --upgrade --no-cache-dir "${PACKAGE}"
+}
+
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
@@ -310,7 +330,7 @@ check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev li
             libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
 
 
-# Install Python from source
+# Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
     # If the os-provided versions are "good enough", detect that and bail out.
@@ -330,7 +350,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
 fi
 
-# Install Python tools
+# Install Python tools if needed
 if [ "${INSTALL_PYTHON_TOOLS}" = 'true' ]; then
     echo 'Installing Python tools...'
     export PIPX_BIN_DIR="${PIPX_HOME}/bin"
@@ -374,6 +394,11 @@ if [ "${INSTALL_PYTHON_TOOLS}" = 'true' ]; then
     updaterc "export PIPX_HOME=\"${PIPX_HOME}\""
     updaterc "export PIPX_BIN_DIR=\"${PIPX_BIN_DIR}\""
     updaterc "if [[ \"\${PATH}\" != *\"\${PIPX_BIN_DIR}\"* ]]; then export PATH=\"\${PATH}:\${PIPX_BIN_DIR}\"; fi"
+fi
+
+# Install JupyterLab if needed
+if [ "${INSTALL_JUPYTERLAB}" = 'true' ]; then
+    install_user_package jupyterlab
 fi
 
 echo "Done!"
