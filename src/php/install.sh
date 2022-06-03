@@ -87,13 +87,13 @@ find_version_from_git_tags() {
 
 # Install PHP Composer
 addcomposer() {
-    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    "${PHP_INSTALL_DIR}/bin/php" -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
     HASH="$(wget -q -O - https://composer.github.io/installer.sig)"
-    php -r "if (hash_file('sha384', 'composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-    php composer-setup.php
-    php -r "unlink('composer-setup.php');"
+    "${PHP_INSTALL_DIR}/bin/php" -r "if (hash_file('sha384', 'composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+    "${PHP_INSTALL_DIR}/bin/php" composer-setup.php
+    "${PHP_INSTALL_DIR}/bin/php" -r "unlink('composer-setup.php');"
 
-    mv composer.phar "${PHP_INSTALL_DIR}/composer"
+    mv composer.phar "${PHP_INSTALL_DIR}/bin/composer"
 }
 
 # Install PHP if it's missing
@@ -125,11 +125,11 @@ fi
 PHP_URL="https://www.php.net/distributions/php-${VERSION}.tar.gz"
 
 PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
-CONF_DIR="$PHP_INI_DIR/conf.d"
-mkdir -p $CONF_DIR;
+CONF_DIR="${PHP_INI_DIR}/conf.d"
+mkdir -p "${CONF_DIR}";
 
 PHP_EXT_DIR="${PHP_INSTALL_DIR}/extensions"
-mkdir -p $PHP_EXT_DIR
+mkdir -p "${PHP_EXT_DIR}"
 
 PHP_SRC_DIR="/usr/src/php"
 mkdir -p $PHP_SRC_DIR
@@ -142,7 +142,7 @@ cd $PHP_SRC_DIR;
 # PHP 7.4+, the pecl/pear installers are officially deprecated and are removed in PHP 8+
 # Thus, requiring an explicit "--with-pear"
 IFS="."
-read -a versions <<< "$VERSION"
+read -a versions <<< "${VERSION}"
 PHP_MAJOR_VERSION=${versions[0]}
 PHP_MINOR_VERSION=${versions[1]}
 
@@ -162,31 +162,30 @@ make clean
 cp -v $PHP_SRC_DIR/php.ini-* "$PHP_INI_DIR/";
 cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
+# Install xdebug
+"${PHP_INSTALL_DIR}/bin/pecl" install xdebug
+XDEBUG_INI="${CONF_DIR}/xdebug.ini"
+
+echo "zend_extension=${PHP_EXT_DIR}/xdebug.so" > "${XDEBUG_INI}"
+echo "xdebug.mode = debug" >> "${XDEBUG_INI}"
+echo "xdebug.start_with_request = yes" >> "${XDEBUG_INI}"
+echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
+
+# Install PHP Composer if needed
+if [[ "${INSTALL_COMPOSER}" = "true" ]] && [[ $(composer --version) = "" ]]; then
+    addcomposer
+fi
+
 CURRENT_DIR="${PHP_DIR}/current"
 if [[ ! -d "${CURRENT_DIR}" ]]; then
-    ln -s "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
+    ln -s -r "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
 fi
 
 if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
     if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${PHP_INSTALL_DIR}"* ]] ; then
         rm "${CURRENT_DIR}"
-        ln -s "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
+        ln -s -r "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
     fi
-fi
-
-export PATH="${PATH}:${CURRENT_DIR}/bin"
-
-# Install xdebug
-$CURRENT_DIR/bin/pecl install xdebug
-XDEBUG_INI="$CONF_DIR/xdebug.ini"
-echo "zend_extension=$(find $PHP_EXT_DIR -name xdebug.so)" > XDEBUG_INI
-echo "xdebug.mode = debug" >> XDEBUG_INI
-echo "xdebug.start_with_request = yes" >> XDEBUG_INI
-echo "xdebug.client_port = 9003" >> XDEBUG_INI
-
-# Install PHP Composer if needed
-if [[ "${INSTALL_COMPOSER}" = "true" ]] && [[ $(composer --version) = "" ]]; then
-    addcomposer
 fi
 
 rm -rf ${PHP_SRC_DIR}
