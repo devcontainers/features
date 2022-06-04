@@ -305,9 +305,9 @@ install_using_oryx() {
     add_symlink
 }
 
-doas_user() {
+sudo_if() {
     COMMAND="$*"
-    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != 'root' ]; then
+    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
         su - "$USERNAME" -c "$COMMAND"
     else
         "$COMMAND"
@@ -316,7 +316,7 @@ doas_user() {
 
 install_user_package() {
     PACKAGE="$1"
-    doas_user $INSTALL_PATH/bin/python3 -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+    sudo_if "$INSTALL_PATH/bin/python3" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
 }
 
 add_user_jupyter_config() {
@@ -324,8 +324,8 @@ add_user_jupyter_config() {
     CONFIG_FILE="$CONFIG_DIR/jupyter_notebook_config.py"
 
     # Make sure the config file exists or create it with proper permissions
-    test -d "$CONFIG_DIR" || doas_user mkdir "$CONFIG_DIR"
-    test -f "$CONFIG_FILE" || doas_user touch "$CONFIG_FILE"
+    test -d "$CONFIG_DIR" || sudo_if mkdir "$CONFIG_DIR"
+    test -f "$CONFIG_FILE" || sudo_if touch "$CONFIG_FILE"
 
     # Don't write the same config more than once
     grep -q "$1" "$CONFIG_FILE" || echo "$1" >> "$CONFIG_FILE"
@@ -361,7 +361,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 fi
 
 # Install Python tools if needed
-if [ "${INSTALL_PYTHON_TOOLS}" = 'true' ]; then
+if [ "${INSTALL_PYTHON_TOOLS}" = "true" ]; then
     echo 'Installing Python tools...'
     export PIPX_BIN_DIR="${PIPX_HOME}/bin"
     export PATH="${CURRENT_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
@@ -379,22 +379,22 @@ if [ "${INSTALL_PYTHON_TOOLS}" = 'true' ]; then
     # Update pip if not using os provided python
     if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ] && [ ${PYTHON_VERSION} != "none" ]; then
         echo "Updating pip..."
-        ${INSTALL_PATH}/bin/python3 -m pip install --no-cache-dir --upgrade pip
+        "${INSTALL_PATH}/bin/python3" -m pip install --no-cache-dir --upgrade pip
     fi
 
     # Install tools
     echo "Installing Python tools..."
     export PYTHONUSERBASE=/tmp/pip-tmp
     export PIP_CACHE_DIR=/tmp/pip-tmp/cache
-    pipx_path=""
+    PIPX_DIR=""
     if ! type pipx > /dev/null 2>&1; then
         pip3 install --disable-pip-version-check --no-cache-dir --user pipx 2>&1
         /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
-        pipx_path="/tmp/pip-tmp/bin/"
+        PIPX_DIR="/tmp/pip-tmp/bin"
     fi
     for util in "${DEFAULT_UTILS[@]}"; do
         if ! type ${util} > /dev/null 2>&1; then
-            ${pipx_path}pipx install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
+            "${PIPX_DIR}/pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
         else
             echo "${util} already installed. Skipping."
         fi
@@ -407,18 +407,18 @@ if [ "${INSTALL_PYTHON_TOOLS}" = 'true' ]; then
 fi
 
 # Install JupyterLab if needed
-if [ "${INSTALL_JUPYTERLAB}" = 'true' ]; then
+if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
     install_user_package jupyterlab
 
     # Configure JupyterLab if needed
-    if [ "${ALLOW_ALL_ORIGINS}" = 'true' ]; then
+    if [ "${ALLOW_ALL_ORIGINS}" = "true" ]; then
         add_user_jupyter_config "c.ServerApp.allow_origin = '*'"
         add_user_jupyter_config "c.NotebookApp.allow_origin = '*'"
     fi
 fi
 
 # Install ML packages if needed
-if [ "${INSTALL_ML_PACKAGES}" = 'true' ]; then
+if [ "${INSTALL_ML_PACKAGES}" = "true" ]; then
     install_user_package "keras"
     install_user_package "matplotlib"
     install_user_package "numpy"
@@ -433,4 +433,3 @@ if [ "${INSTALL_ML_PACKAGES}" = 'true' ]; then
 fi
 
 echo "Done!"
-exit 0

@@ -8,13 +8,10 @@ source dev-container-features-test-lib
 # Definition specific tests
 check "version" python --version
 
-# python -m pip show jupyterlab
+# Tests for optional arguments
 # check "jupyterlab" jupyter lab --version
-
-# cat /home/vscode/.jupyter/jupyter_notebook_config.py
 # check "jupyterlab-config" grep 'allow_origin' /home/vscode/.jupyter/jupyter_notebook_config.py
-
-# check "numpy" /usr/local/python/current/bin/python -c 'import numpy'
+# check "ml-packages" /usr/local/python/current/bin/python -c 'import numpy'
 
 # Report result
 reportResults
