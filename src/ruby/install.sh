@@ -191,7 +191,7 @@ fi
 find_version_from_git_tags RUBY_VERSION "https://github.com/ruby/ruby" "tags/v" "_"
 
 # Just install Ruby if RVM already installed
-if [ rvm --version != ""]; then
+if [ rvm --version != "" ]; then
     echo "Ruby Version Manager already exists."
     if [ "${RUBY_VERSION}" != "none" ]; then
         echo "Installing specified Ruby version."
