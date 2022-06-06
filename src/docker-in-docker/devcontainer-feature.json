@@ -4,7 +4,11 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "none", "20.10" ],
+            "proposals": [
+                "latest",
+                "none",
+                "20.10"
+            ],
             "default": "latest",
             "description": "Select or enter a Docker/Moby Engine version. (Availability can vary by OS version.)"
         },
@@ -13,9 +17,12 @@
             "default": true,
             "description": "Install OSS Moby build instead of Docker CE"
         },
-        "dockerDashComposeVersion": {
+        "docker_dash_compose_version": {
             "type": "string",
-            "enum": ["v1", "v2" ],
+            "enum": [
+                "v1",
+                "v2"
+            ],
             "default": "v1",
             "description": "Default version of Docker Compose (v1 or v2)"
         }
@@ -30,9 +37,9 @@
     ],
     "mounts": [
         {
-            "source":"dind-var-lib-docker", 
-             "target":"/var/lib/docker", 
-             "type":"volume"
+            "source": "dind-var-lib-docker",
+            "target": "/var/lib/docker",
+            "type": "volume"
         }
     ],
     "install": {

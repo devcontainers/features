@@ -6,12 +6,11 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/powershell.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./powershell-debian.sh [version]
 
 set -e
 
-POWERSHELL_VERSION=${1:-"latest"}
+POWERSHELL_VERSION=${VERSION:-"latest"}
+
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 POWERSHELL_ARCHIVE_ARCHITECTURES="amd64"
 POWERSHELL_ARCHIVE_VERSION_CODENAMES="stretch buster bionic focal"

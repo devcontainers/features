@@ -1,0 +1,29 @@
+name: "(Release) Release dev container features (v2)"
+on:
+  push:
+    tags:
+      - "v0.0.2" # Temporary
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate tgz
+        uses: ./.github/devcontainers-action # devcontainers/action
+        with:
+          publish-features: "true"
+          base-path-to-features: "./src"
+      
+      - name: Remove temporary devcontainer-cli # TODO: Temporary
+        run: rm -rf ./devcontainer-cli-0*
+
+      - name: Get or Create Release at current tag
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true # Lets us upload our own artifact from previous step
+          artifactErrorsFailBuild: true
+          artifacts: "./*.tgz,devcontainer-collection.json"
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -4,19 +4,29 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "none", "1.23", "1.22", "1.21"],
+            "proposals": [
+                "latest",
+                "none",
+                "1.23",
+                "1.22",
+                "1.21"
+            ],
             "default": "latest",
             "description": "Select or enter a Kubernetes version to install"
         },
         "helm": {
             "type": "string",
-            "proposals": ["latest"],
+            "proposals": [
+                "latest"
+            ],
             "default": "latest",
             "description": "Select or enter a Helm version to install"
         },
         "minikube": {
             "type": "string",
-            "proposals": ["latest"],
+            "proposals": [
+                "latest"
+            ],
             "default": "latest",
             "description": "Select or enter a Minikube version to install"
         }
@@ -26,9 +36,9 @@
     ],
     "mounts": [
         {
-            "source":"minikube-config", 
-             "target":"/home/vscode/.minikube", 
-             "type":"volume"
+            "source": "minikube-config",
+            "target": "/home/vscode/.minikube",
+            "type": "volume"
         }
     ],
     "install": {

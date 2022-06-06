@@ -4,24 +4,33 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": [ "lts", "latest", "none", "18", "16", "14" ],
+            "proposals": [
+                "lts",
+                "latest",
+                "none",
+                "18",
+                "16",
+                "14"
+            ],
             "default": "lts",
             "description": "Select or enter a Node.js version to install"
         },
-        "nodeGypDependencies": {
+        "install_tools_for_node_gyp": {
             "type": "boolean",
             "default": true,
             "description": "Install dependencies to compile native node modules (node-gyp)?"
         },
-        "nvmInstallPath": {
+        "nvm_install_path": {
             "type": "string",
             "default": "/usr/local/share/nvm",
             "description": "The path where NVM will be installed."
         }
     },
-    "extensions": ["dbaeumer.vscode-eslint"],
+    "extensions": [
+        "dbaeumer.vscode-eslint"
+    ],
     "containerEnv": {
-        "NVM_DIR":"/usr/local/share/nvm",
+        "NVM_DIR": "/usr/local/share/nvm",
         "NVM_SYMLINK_CURRENT": "true",
         "PATH": "${NVM_DIR}/current/bin:${PATH}"
     },

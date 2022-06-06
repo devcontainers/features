@@ -6,12 +6,11 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/awscli.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./awscli-debian.sh [AWS CLI version]
 
 set -e
 
-AWSCLI_VERSION=${1:-"latest"}
+VERSION=${VERSION:-"latest"}
+
 AWSCLI_GPG_KEY=FB5DB77FD5C118B80511ADA8A6310ACC4672475C
 AWSCLI_GPG_KEY_MATERIAL="-----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -108,8 +107,8 @@ install() {
     local scriptSigFile=awscli.sig
 
     # See Linux install docs at https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-    if [ "${AWSCLI_VERSION}" != "latest" ]; then
-        local versionStr=-${AWSCLI_VERSION}
+    if [ "${VERSION}" != "latest" ]; then
+        local versionStr=-${VERSION}
     fi
     architecture=$(dpkg --print-architecture)
     case "${architecture}" in

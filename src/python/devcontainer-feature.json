@@ -18,7 +18,7 @@
       "default": "os-provided",
       "description": "Select a Python version to install."
     },
-    "installTools": {
+    "install_python_tools": {
       "type": "boolean",
       "default": true,
       "description": "Install common Python tools like pylint"
@@ -33,12 +33,7 @@
       "default": "/usr/local/python",
       "description": "The path where python will be installed."
     },
-    "setup_links": {
-      "type": "boolean",
-      "default": "true",
-      "description": "If links and aliases should be created."
-    },
-    "overrideDefaultVersion": {
+    "override_default_version": {
       "type": "boolean",
       "default": "true",
       "description": "If true, overrides existing version (if any) of python on the PATH"

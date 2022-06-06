@@ -6,17 +6,16 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/terraform.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./terraform-debian.sh [terraform version] [tflint version] [terragrunt version] [terraform SHA] [tflint SHA] [terragrunt SHA]
 
 set -e
 
-TERRAFORM_VERSION="${1:-"latest"}"
-TFLINT_VERSION="${2:-"latest"}"
-TERRAGRUNT_VERSION="${3:-"latest"}"
-TERRAFORM_SHA256="${4:-"automatic"}"
-TFLINT_SHA256="${5:-"automatic"}"
-TERRAGRUNT_SHA256="${6:-"automatic"}"
+TERRAFORM_VERSION="${VERSION:-"latest"}"
+TFLINT_VERSION="${TFLINT:-"latest"}"
+TERRAGRUNT_VERSION="${TERRAGRUNT:-"latest"}"
+
+TERRAFORM_SHA256="${TERRAFORM_SHA256:-"automatic"}"
+TFLINT_SHA256="${TFLINT_SHA256:-"automatic"}"
+TERRAGRUNT_SHA256="${TERRAGRUNT_SHA256:-"automatic"}"
 
 TERRAFORM_GPG_KEY="72D7468F"
 TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/master/8CE69160EB3F2FE9.key"

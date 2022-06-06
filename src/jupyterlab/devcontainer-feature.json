@@ -4,13 +4,19 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "3.6.2"],
+            "proposals": [
+                "latest",
+                "3.6.2"
+            ],
             "default": "latest",
             "description": "Select or enter a jupyterlab version."
         },
-        "pythonBinary": {
+        "python_binary": {
             "type": "string",
-            "proposals": ["python", "/usr/local/python/bin/python"],
+            "proposals": [
+                "python",
+                "/usr/local/python/bin/python"
+            ],
             "default": "python",
             "description": "Select or enter the python binary path."
         }

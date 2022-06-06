@@ -6,17 +6,16 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/dotnet.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./dotnet-debian.sh [.NET version] [.NET runtime only] [non-root user] [add TARGET_DOTNET_ROOT to rc files flag] [.NET root] [access group name]
 
-DOTNET_VERSION=${1:-"latest"}
-DOTNET_RUNTIME_ONLY=${2:-"false"}
-USERNAME=${3:-"automatic"}
-UPDATE_RC=${4:-"true"}
-TARGET_DOTNET_ROOT=${5:-"/usr/local/dotnet"}
-ACCESS_GROUP=${6:-"dotnet"}
-OVERRIDE_DEFAULT_VERSION=${7:-"true"}
-INSTALL_USING_APT=${8:-"true"}
+DOTNET_VERSION=${VERSION:-"latest"}
+DOTNET_RUNTIME_ONLY=${RUNTIME_ONLY:-"false"}
+OVERRIDE_DEFAULT_VERSION=${OVERRIDE_DEFAULT_VERSION:-"true"}
+INSTALL_USING_APT=${INSTALL_USING_APT:-"true"}
+
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
+TARGET_DOTNET_ROOT=${TARGET_DOTNET_ROOT:-"/usr/local/dotnet"}
+ACCESS_GROUP=${ACCESS_GROUP:-"dotnet"}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOTNET_ARCHIVE_ARCHITECTURES="amd64"

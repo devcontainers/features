@@ -6,10 +6,9 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/git-lfs.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./git-lfs-debian.sh [version]
 
-GIT_LFS_VERSION=${1:-"latest"}
+GIT_LFS_VERSION=${VERSION:-"latest"}
+
 GIT_LFS_ARCHIVE_GPG_KEY_URI="https://packagecloud.io/github/git-lfs/gpgkey"
 GIT_LFS_ARCHIVE_ARCHITECTURES="amd64"
 GIT_LFS_ARCHIVE_VERSION_CODENAMES="stretch buster bullseye bionic focal"

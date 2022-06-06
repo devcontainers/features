@@ -4,7 +4,11 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "none", "20.10"],
+            "proposals": [
+                "latest",
+                "none",
+                "20.10"
+            ],
             "default": "latest",
             "description": "Select or enter a Docker/Moby CLI version. (Availability can vary by OS version.)"
         },
@@ -13,9 +17,12 @@
             "default": true,
             "description": "Install OSS Moby build instead of Docker CE"
         },
-        "dockerDashComposeVersion": {
+        "docker_dash_compose_version": {
             "type": "string",
-            "enum": ["v1", "v2" ],
+            "enum": [
+                "v1",
+                "v2"
+            ],
             "default": "v1",
             "description": "Compose version to use for docker-compose (v1 or v2)"
         }
@@ -29,9 +36,9 @@
     ],
     "mounts": [
         {
-            "source":"/var/run/docker.sock", 
-             "target":"/var/run/docker-host.sock", 
-             "type":"bind"
+            "source": "/var/run/docker.sock",
+            "target": "/var/run/docker-host.sock",
+            "type": "bind"
         }
     ],
     "install": {

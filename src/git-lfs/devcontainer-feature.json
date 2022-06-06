@@ -4,9 +4,12 @@
     "options": {
         "version": {
             "type": "string",
-            "enum": ["latest", "none"],
+            "enum": [
+                "latest",
+                "none"
+            ],
             "default": "latest",
-            "description": "Currently unused."
+            "description": "Select version of Git LFS to install"
         }
     },
     "install": {

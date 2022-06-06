@@ -6,14 +6,14 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/node.md
 # Maintainer: The VS Code and Codespaces Teams
-#
-# Syntax: ./node-debian.sh [directory to install nvm] [node version to install (use "none" to skip)] [non-root user] [Update rc files flag] [install node-gyp deps]
 
-export NVM_DIR=${1:-"/usr/local/share/nvm"}
-export NODE_VERSION=${2:-"lts"}
-USERNAME=${3:-"automatic"}
-UPDATE_RC=${4:-"true"}
-INSTALL_TOOLS_FOR_NODE_GYP="${5:-true}"
+export NODE_VERSION=${VERSION:-"lts"}
+export NVM_DIR=${NVM_INSTALL_PATH:-"/usr/local/share/nvm"}
+INSTALL_TOOLS_FOR_NODE_GYP="${INSTALL_TOOLS_FOR_NODE_GYP:-true}"
+
+USERNAME=${USERNAME:-"automatic"}
+UPDATE_RC=${UPDATE_RC:-"true"}
+
 export NVM_VERSION="0.38.0"
 
 set -e
@@ -32,7 +32,7 @@ chmod +x /etc/profile.d/00-restore-env.sh
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in ${POSSIBLE_USERS[@]}; do
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
         if id -u ${CURRENT_USER} > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break
