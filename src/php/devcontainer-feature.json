@@ -30,7 +30,7 @@
     ],
     "containerEnv": {
         "PHP_PATH": "/usr/local/php/current",
-        "PATH": "${PHP_PATH}:${PHP_PATH}/bin:${PATH}"
+        "PATH": "${PHP_PATH}/bin:${PATH}"
     },
     "install": {
         "app": "",
