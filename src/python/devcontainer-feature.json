@@ -47,11 +47,6 @@
       "type": "boolean",
       "default": false,
       "description": "Configure Jupyter to accept HTTP requests from all origins"
-    },
-    "install_ml_packages": {
-      "type": "boolean",
-      "default": false,
-      "description": "Install common packages for data science and machine learning"
     }
   },
   "containerEnv": {

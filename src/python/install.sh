@@ -21,7 +21,6 @@ USE_ORYX_IF_AVAILABLE=${USE_ORYX_IF_AVAILABLE:-"true"}
 
 INSTALL_JUPYTERLAB=${INSTALL_JUPYTERLAB:-"false"}
 ALLOW_ALL_ORIGINS=${ALLOW_ALL_ORIGINS:-"false"}
-INSTALL_ML_PACKAGES=${INSTALL_ML_PACKAGES:-"false"}
 
 DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5"
@@ -415,21 +414,6 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         add_user_jupyter_config "c.ServerApp.allow_origin = '*'"
         add_user_jupyter_config "c.NotebookApp.allow_origin = '*'"
     fi
-fi
-
-# Install ML packages if needed
-if [ "${INSTALL_ML_PACKAGES}" = "true" ]; then
-    install_user_package "keras"
-    install_user_package "matplotlib"
-    install_user_package "numpy"
-    install_user_package "pandas"
-    install_user_package "plotly"
-    install_user_package "requests"
-    install_user_package "scikit-learn"
-    install_user_package "scipy"
-    install_user_package "seaborn"
-    install_user_package "tensorflow"
-    install_user_package "torch"
 fi
 
 echo "Done!"
