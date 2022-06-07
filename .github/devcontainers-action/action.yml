@@ -1,4 +1,4 @@
-name: 'Dev Container'
+name: 'Dev Container CI'
 description: 'Publish custom development container feature(s) and/or templates(s)'
 author: 'GitHub'
 branding:
