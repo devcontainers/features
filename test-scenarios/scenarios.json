@@ -31,7 +31,7 @@
                 "id": "python",
                 "options": {
                     "install_jupyterlab": true,
-                    "allow_all_origins": true
+                    "configure_jupyterlab_allow_origin": "*"
                 }
             }
         ]

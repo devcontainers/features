@@ -43,10 +43,10 @@
       "default": false,
       "description": "Install JupyterLab, a web-based interactive development environment for notebooks"
     },
-    "allow_all_origins": {
-      "type": "boolean",
-      "default": false,
-      "description": "Configure Jupyter to accept HTTP requests from all origins"
+    "configure_jupyterlab_allow_origin": {
+      "type": "string",
+      "default": "",
+      "description": "Configure JupyterLab to accept HTTP requests from the specified origin"
     }
   },
   "containerEnv": {
