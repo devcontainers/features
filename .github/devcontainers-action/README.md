@@ -1,3 +1,3 @@
 # Devcontainers/action
 
-Temporary copy of [devcontainers/action](https://github.com/devcontainers/action).
+Temporary copy of [devcontainers/ci](https://github.com/devcontainers/ci).
