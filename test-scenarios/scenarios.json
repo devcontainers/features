@@ -16,5 +16,23 @@
                 }
             }
         ]
+    },
+    "install_jupyterlab": {
+        "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
+        "features": [
+            {
+                "id": "common",
+                "options": {
+                    "username": "vscode"
+                }
+            },
+            {
+                "id": "python",
+                "options": {
+                    "install_jupyterlab": true,
+                    "allow_all_origins": true
+                }
+            }
+        ]
     }
 }
