@@ -6,7 +6,7 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-check "version" python --version
+check "version" python  --version
 
 # Report result
 reportResults
