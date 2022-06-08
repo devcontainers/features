@@ -27,7 +27,6 @@ jobs:
             go: ./**/go/**
             hugo: ./**/hugo/**
             java: ./**/java/**
-            'python jupyterlab': ./**/jupyterlab/**
             kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
             node: ./**/node/**
             oryx: ./**/oryx/**

@@ -37,6 +37,16 @@
       "type": "boolean",
       "default": "true",
       "description": "If true, overrides existing version (if any) of python on the PATH"
+    },
+    "install_jupyterlab": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install JupyterLab, a web-based interactive development environment for notebooks"
+    },
+    "configure_jupyterlab_allow_origin": {
+      "type": "string",
+      "default": "",
+      "description": "Configure JupyterLab to accept HTTP requests from the specified origin"
     }
   },
   "containerEnv": {

@@ -19,6 +19,9 @@ USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
 USE_ORYX_IF_AVAILABLE=${USE_ORYX_IF_AVAILABLE:-"true"}
 
+INSTALL_JUPYTERLAB=${INSTALL_JUPYTERLAB:-"false"}
+CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN=${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN:-""}
+
 DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
@@ -301,6 +304,32 @@ install_using_oryx() {
     add_symlink
 }
 
+sudo_if() {
+    COMMAND="$*"
+    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
+        su - "$USERNAME" -c "$COMMAND"
+    else
+        "$COMMAND"
+    fi
+}
+
+install_user_package() {
+    PACKAGE="$1"
+    sudo_if "$INSTALL_PATH/bin/python3" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+}
+
+add_user_jupyter_config() {
+    CONFIG_DIR="/home/$USERNAME/.jupyter"
+    CONFIG_FILE="$CONFIG_DIR/jupyter_notebook_config.py"
+
+    # Make sure the config file exists or create it with proper permissions
+    test -d "$CONFIG_DIR" || sudo_if mkdir "$CONFIG_DIR"
+    test -f "$CONFIG_FILE" || sudo_if touch "$CONFIG_FILE"
+
+    # Don't write the same config more than once
+    grep -q "$1" "$CONFIG_FILE" || echo "$1" >> "$CONFIG_FILE"
+}
+
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
@@ -310,7 +339,7 @@ check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev li
             libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
 
 
-# Install python from source if needed
+# Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
     # If the os-provided versions are "good enough", detect that and bail out.
@@ -330,53 +359,62 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
 fi
 
-# If not installing python tools, exit
-if [ "${INSTALL_PYTHON_TOOLS}" != "true" ]; then
-    echo "Done!"
-    exit 0
-fi
+# Install Python tools if needed
+if [ "${INSTALL_PYTHON_TOOLS}" = "true" ]; then
+    echo 'Installing Python tools...'
+    export PIPX_BIN_DIR="${PIPX_HOME}/bin"
+    export PATH="${CURRENT_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
 
-export PIPX_BIN_DIR="${PIPX_HOME}/bin"
-export PATH="${CURRENT_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
-
-# Create pipx group, dir, and set sticky bit
-if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
-    groupadd -r pipx
-fi
-usermod -a -G pipx ${USERNAME}
-umask 0002
-mkdir -p ${PIPX_BIN_DIR}
-chown :pipx ${PIPX_HOME} ${PIPX_BIN_DIR}
-chmod g+s ${PIPX_HOME} ${PIPX_BIN_DIR}
-
-# Update pip if not using os provided python
-if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ] && [ ${PYTHON_VERSION} != "none" ]; then
-    echo "Updating pip..."
-    ${INSTALL_PATH}/bin/python3 -m pip install --no-cache-dir --upgrade pip
-fi
-
-# Install tools
-echo "Installing Python tools..."
-export PYTHONUSERBASE=/tmp/pip-tmp
-export PIP_CACHE_DIR=/tmp/pip-tmp/cache
-pipx_path=""
-if ! type pipx > /dev/null 2>&1; then
-    pip3 install --disable-pip-version-check --no-cache-dir --user pipx 2>&1
-    /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
-    pipx_path="/tmp/pip-tmp/bin/"
-fi
-for util in "${DEFAULT_UTILS[@]}"; do
-    if ! type ${util} > /dev/null 2>&1; then
-        ${pipx_path}pipx install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
-    else
-        echo "${util} already installed. Skipping."
+    # Create pipx group, dir, and set sticky bit
+    if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
+        groupadd -r pipx
     fi
-done
-rm -rf /tmp/pip-tmp
+    usermod -a -G pipx ${USERNAME}
+    umask 0002
+    mkdir -p ${PIPX_BIN_DIR}
+    chown :pipx ${PIPX_HOME} ${PIPX_BIN_DIR}
+    chmod g+s ${PIPX_HOME} ${PIPX_BIN_DIR}
 
-updaterc "$(cat << EOF
-export PIPX_HOME="${PIPX_HOME}"
-export PIPX_BIN_DIR="${PIPX_BIN_DIR}"
-if [[ "\${PATH}" != *"\${PIPX_BIN_DIR}"* ]]; then export PATH="\${PATH}:\${PIPX_BIN_DIR}"; fi
-EOF
-)"
+    # Update pip if not using os provided python
+    if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ] && [ ${PYTHON_VERSION} != "none" ]; then
+        echo "Updating pip..."
+        "${INSTALL_PATH}/bin/python3" -m pip install --no-cache-dir --upgrade pip
+    fi
+
+    # Install tools
+    echo "Installing Python tools..."
+    export PYTHONUSERBASE=/tmp/pip-tmp
+    export PIP_CACHE_DIR=/tmp/pip-tmp/cache
+    PIPX_DIR=""
+    if ! type pipx > /dev/null 2>&1; then
+        pip3 install --disable-pip-version-check --no-cache-dir --user pipx 2>&1
+        /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
+        PIPX_DIR="/tmp/pip-tmp/bin"
+    fi
+    for util in "${DEFAULT_UTILS[@]}"; do
+        if ! type ${util} > /dev/null 2>&1; then
+            "${PIPX_DIR}/pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
+        else
+            echo "${util} already installed. Skipping."
+        fi
+    done
+    rm -rf /tmp/pip-tmp
+
+    updaterc "export PIPX_HOME=\"${PIPX_HOME}\""
+    updaterc "export PIPX_BIN_DIR=\"${PIPX_BIN_DIR}\""
+    updaterc "if [[ \"\${PATH}\" != *\"\${PIPX_BIN_DIR}\"* ]]; then export PATH=\"\${PATH}:\${PIPX_BIN_DIR}\"; fi"
+fi
+
+# Install JupyterLab if needed
+if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
+    install_user_package jupyterlab
+
+    # Configure JupyterLab if needed
+    # TODO: True if it's not empty
+    if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
+        add_user_jupyter_config "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+        add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+    fi
+fi
+
+echo "Done!"
