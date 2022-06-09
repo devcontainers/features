@@ -12,8 +12,8 @@
     "init": true,
     "extensions": ["golang.Go"],
     "containerEnv": {
-        "GOPATH": "/go",
-        "PATH": "${GOPATH}/bin:${GOROOT}/bin:${PATH}"
+        "GOPATH": "/usr/local/go",
+        "PATH": "${GOPATH}/bin:${PATH}"
     },
     "capAdd": [ "SYS_PTRACE" ],
     "securityOpt": [ "seccomp=unconfined" ],
