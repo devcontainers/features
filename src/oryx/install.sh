@@ -118,8 +118,11 @@ if ! oryx --version > /dev/null ; then
     ln -s ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript ${ORYX}/oryx
     cp -f $GIT_ORYX/images/build/benv.sh ${ORYX}/benv
 
-    updaterc "export PATH=$PATH:/usr/local/oryx && export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=/usr/local"
-    chown -R ${USERNAME} /usr/local/
+    ORYX_INSTALL_DIR="/tmp/oryx-platforms"
+    mkdir -p "${ORYX_INSTALL_DIR}"
+    chown -R ${USERNAME} "${ORYX_INSTALL_DIR}"
+
+    updaterc "export PATH=$PATH:/usr/local/oryx && export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=$ORYX_INSTALL_DIR"
 fi
 
 echo "Done!"
