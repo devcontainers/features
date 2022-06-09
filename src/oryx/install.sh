@@ -119,6 +119,7 @@ if ! oryx --version > /dev/null ; then
     cp -f $GIT_ORYX/images/build/benv.sh ${ORYX}/benv
 
     updaterc "export PATH=$PATH:/usr/local/oryx && export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=/usr/local"
+    chown -R ${USERNAME} /usr/local/
 fi
 
 echo "Done!"
