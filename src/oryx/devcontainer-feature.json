@@ -2,10 +2,11 @@
     "id": "oryx",
     "name": "Oryx",
     "containerEnv": {
-        "PATH": "usr/local/oryx:${PATH}",
         "ORYX_SDK_STORAGE_BASE_URL": "https://oryx-cdn.microsoft.io",
         "ENABLE_DYNAMIC_INSTALL": "true",
-        "DYNAMIC_INSTALL_ROOT_DIR": "/tmp/oryx-platforms"
+        "DYNAMIC_INSTALL_ROOT_DIR": "/tmp/oryx-platforms",
+        "ORYX_DIR": "/usr/local/oryx",
+        "PATH": "${ORYX_DIR}:${PATH}"
     },
     "install": {
         "app": "",
