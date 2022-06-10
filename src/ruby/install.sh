@@ -167,15 +167,6 @@ check_packages() {
     fi
 }
 
-sudo_if() {
-    COMMAND="$*"
-    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
-        su - "$USERNAME" -c "$COMMAND"
-    else
-        "$COMMAND"
-    fi
-}
-
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
@@ -279,8 +270,8 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
 
     if [ "${USERNAME}" != "root" ]; then
         mkdir -p /home/${USERNAME}/.rbenv/plugins
-        sudo_if chown -R ${USERNAME} /home/${USERNAME}/.rbenv
-        sudo_if chown -R ${USERNAME} /usr/local/rvm/
+        sudo chown -R ${USERNAME} /home/${USERNAME}/.rbenv
+        sudo chown -R ${USERNAME} /usr/local/rvm/
 
         if [[ ! -d "/home/${USERNAME}/.rbenv/plugins/ruby-build" ]]; then
             ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
