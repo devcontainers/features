@@ -122,6 +122,11 @@ if [ -d "${PHP_INSTALL_DIR}" ]; then
     exit 1
 fi
 
+if ! cat /etc/group | grep -e "^php:" > /dev/null 2>&1; then
+    groupadd -r php
+fi
+usermod -a -G php "${USERNAME}"
+
 PHP_URL="https://www.php.net/distributions/php-${VERSION}.tar.gz"
 
 PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
@@ -191,5 +196,9 @@ fi
 rm -rf ${PHP_SRC_DIR}
 
 updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=${CURRENT_DIR}/bin:\${PATH}; fi"
+
+chown -R :php "${PHP_DIR}"
+chmod -R g+r+w "${PHP_DIR}"
+find "${PHP_DIR}" -type d | xargs -n 1 chmod g+s
 
 echo "Done!"

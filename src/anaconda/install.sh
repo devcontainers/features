@@ -72,11 +72,15 @@ check_packages() {
 
 # Install Conda if it's missing
 if ! conda --version &> /dev/null ; then
+    if ! cat /etc/group | grep -e "^conda:" > /dev/null 2>&1; then
+        groupadd -r conda
+    fi
+    usermod -a -G conda "${USERNAME}"
+
     # Install dependencies
     check_packages wget ca-certificates
 
     mkdir -p $CONDA_DIR
-    chown ${USERNAME}:root $CONDA_DIR
     echo "Installing Anaconda..."
 
     CONDA_VERSION=$VERSION
@@ -94,6 +98,10 @@ if ! conda --version &> /dev/null ; then
 
     rm /tmp/anaconda-install.sh 
     updaterc "export CONDA_DIR=${CONDA_DIR}/bin"
+
+    chown -R :conda "${CONDA_DIR}"
+    chmod -R g+r+w "${CONDA_DIR}"
+    find "${CONDA_DIR}" -type d | xargs -n 1 chmod g+s
 fi
 
 echo "Done!"

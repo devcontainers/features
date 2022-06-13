@@ -341,6 +341,11 @@ check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev li
 
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
+    if ! cat /etc/group | grep -e "^python:" > /dev/null 2>&1; then
+        groupadd -r python
+    fi
+    usermod -a -G python "${USERNAME}"
+
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
     # If the os-provided versions are "good enough", detect that and bail out.
     if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
@@ -357,6 +362,10 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     fi
     
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
+    
+    chown -R :python "${PYTHON_INSTALL_PATH}"
+    chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
+    find "${PYTHON_INSTALL_PATH}" -type d | xargs -n 1 chmod g+s
 fi
 
 # Install Python tools if needed
@@ -403,6 +412,10 @@ if [ "${INSTALL_PYTHON_TOOLS}" = "true" ]; then
     updaterc "export PIPX_HOME=\"${PIPX_HOME}\""
     updaterc "export PIPX_BIN_DIR=\"${PIPX_BIN_DIR}\""
     updaterc "if [[ \"\${PATH}\" != *\"\${PIPX_BIN_DIR}\"* ]]; then export PATH=\"\${PATH}:\${PIPX_BIN_DIR}\"; fi"
+
+    chown -R :python "${PIPX_HOME}"
+    chmod -R g+r+w "${PIPX_HOME}"
+    find "${PIPX_HOME}" -type d | xargs -n 1 chmod g+s
 fi
 
 # Install JupyterLab if needed

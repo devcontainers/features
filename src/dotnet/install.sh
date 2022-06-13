@@ -412,7 +412,16 @@ else
         echo "Could not install dotnet from apt. Attempting to install dotnet from releases url"
     fi
 
+    if ! cat /etc/group | grep -e "^dotnet:" > /dev/null 2>&1; then
+        groupadd -r dotnet
+    fi
+    usermod -a -G dotnet "${USERNAME}"
+
     install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}"
+    
+    chown -R :dotnet "${TARGET_DOTNET_ROOT}"
+    chmod -R g+r+w "${TARGET_DOTNET_ROOT}"
+    find "${TARGET_DOTNET_ROOT}" -type d | xargs -n 1 chmod g+s
 fi
 
 echo "Done!"

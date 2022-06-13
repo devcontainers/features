@@ -270,8 +270,6 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
 
     if [ "${USERNAME}" != "root" ]; then
         mkdir -p /home/${USERNAME}/.rbenv/plugins
-        sudo chown -R ${USERNAME} /home/${USERNAME}/.rbenv
-        sudo chown -R ${USERNAME} /usr/local/rvm/
 
         if [[ ! -d "/home/${USERNAME}/.rbenv/plugins/ruby-build" ]]; then
             ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
@@ -279,8 +277,15 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
 
         ln -s /usr/local/rvm/rubies/default/bin/ruby /usr/local/rvm/gems/default/bin 
         
+        chown -R :rvm "/home/${USERNAME}/.rbenv"
+        chmod -R g+r+w "/home/${USERNAME}/.rbenv"
+        find "/home/${USERNAME}/.rbenv" -type d | xargs -n 1 chmod g+s
     fi
 fi
+
+chown -R :rvm "/usr/local/rvm"
+chmod -R g+r+w "/usr/local/rvm"
+find "/usr/local/rvm" -type d | xargs -n 1 chmod g+s
 
 # Clean up
 rvm cleanup all
