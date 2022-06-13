@@ -80,6 +80,10 @@ if ! conda --version &> /dev/null ; then
     check_packages wget ca-certificates
 
     mkdir -p $CONDA_DIR
+    chown -R :conda "${CONDA_DIR}"
+    chmod -R g+r+w "${CONDA_DIR}"
+    
+    find "${CONDA_DIR}" -type d | xargs -n 1 chmod g+s
     echo "Installing Anaconda..."
 
     CONDA_VERSION=$VERSION
@@ -97,10 +101,6 @@ if ! conda --version &> /dev/null ; then
 
     rm /tmp/anaconda-install.sh 
     updaterc "export CONDA_DIR=${CONDA_DIR}/bin"
-
-    chown -R :conda "${CONDA_DIR}"
-    chmod -R g+r+w "${CONDA_DIR}"
-    find "${CONDA_DIR}" -type d | xargs -n 1 chmod g+s
 fi
 
 echo "Done!"
