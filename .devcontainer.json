@@ -13,6 +13,9 @@
                         "contents": "write",
                         "workflows": "write"
                     }
+                },
+                "joshspicer/devcontainer-docs": {
+                    "permissions": "write-all"
                 }
             }
         }
