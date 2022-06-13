@@ -1,8 +1,8 @@
 name: "(CI) Test Features"
 on:
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - devcontainer-docs
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Generate Documentation
-        uses: ./.github/devcontainers-action # devcontainers/ci
+        uses: ./.github/devcontainers-action # devcontainers/action
         with:
           generate-docs: "true"
           base-path-to-features: "./src"
@@ -39,6 +39,7 @@ jobs:
 
           # Add / update and commit
           git add */**/README.md
+          git status
           git commit -m 'Automated documentation update' || export NO_UPDATES=true
 
           # Push

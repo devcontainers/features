@@ -22,7 +22,7 @@ jobs:
         run: sudo apt install tree -y && tree
 
       - name: Generate tgz
-        uses: microsoft/publish-dev-container-features-action@main # devcontainers/action
+        uses: microsoft/publish-dev-container-features-action@main
         with:
           publish-features: "true"
           path-to-features: "./src"
