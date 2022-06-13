@@ -22,3 +22,5 @@ jobs:
       with:
         path: ${{ github.event.inputs.path }}
         severity: ${{ github.event.inputs.severity }}
+      env:
+        SHELLCHECK_OPTS: -e SC2072 # Acceptable use of decimal comparison
