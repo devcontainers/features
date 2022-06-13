@@ -83,9 +83,8 @@ function generateFeaturesDocumentation(basePath) {
                             return `| ${k} | ${val.description || '-'} | ${val.type || '-'} | ${val.default || '-'} |`;
                         })
                             .join('\n');
-                        return ('| Options Id | Description | Type | Default Value |' +
-                            '|-----|-----|-----|-----|' +
-                            '\n' +
+                        return ('| Options Id | Description | Type | Default Value |\n' +
+                            '|-----|-----|-----|-----|\n' +
                             contents);
                     };
                     const newReadme = README_TEMPLATE.replace('#{nwo}', `${owner}/${repo}`)
@@ -117,7 +116,7 @@ const README_TEMPLATE = `
 
 \`\`\`json
 "features": [
-    "#{featureId}": {
+    {
         "id": "#{nwo}/#{featureId}@#{versionTag}",
         "options": {
             "version": "latest"
@@ -132,5 +131,5 @@ const README_TEMPLATE = `
 
 ---
 
-_Note: This is an auto-generated file. Please do not directly edit._
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
 `;
