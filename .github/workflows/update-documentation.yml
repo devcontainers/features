@@ -1,0 +1,47 @@
+name: "(CI) Test Features"
+on:
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate Documentation
+        uses: ./.github/devcontainers-action # devcontainers/ci
+        with:
+          generate-docs: "true"
+          base-path-to-features: "./src"
+
+      - name: Add and Commit Documentation
+        id: push_image_info
+        run: |
+          set -e
+          
+          # # Push updates to ref
+          # cd "$GITHUB_WORKSPACE/ref"
+
+          GIT_BRANCH=$(echo "${{ github.ref }}" | grep -oP 'refs/(heads|tags)/\K(.+)')
+          if [ "$GIT_BRANCH" == "" ]; then 
+              GIT_BRANCH=main
+          fi
+          
+          git config --global user.email "vscr-feedback@microsoft.com"
+          git config --global user.name "Devcontainers CI"
+          git config pull.rebase false
+
+          # Pull in anything that may have come in
+          git pull "https://ci:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" "HEAD:$GIT_BRANCH"
+
+          # Add / update and commit
+          git add */**/README.md
+          git commit -m 'Automated documentation update' || export NO_UPDATES=true
+
+          # Push
+          if [ "$NO_UPDATES" != "true" ] ; then
+              git push "https://ci:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" "HEAD:$GIT_BRANCH"
+          fi

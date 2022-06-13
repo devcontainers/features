@@ -1,4 +1,4 @@
-name: 'Dev Container CI'
+name: 'Dev Container'
 description: 'Publish custom development container feature(s) and/or templates(s)'
 author: 'GitHub'
 branding:
@@ -14,6 +14,10 @@ inputs:
     required: false
     default: "false"
     description: "['true'/'false'] Publish dev container 'template' artifacts"
+  generate-docs:
+    required: false
+    default: "false"
+    description: "Parse machine-readable (.json) configuration files and commit standardized documentation"
 
   # 'features' options
   base-path-to-features:

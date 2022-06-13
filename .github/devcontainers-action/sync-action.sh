@@ -8,6 +8,6 @@ rm ./action.yml
 rm -rf ./dist
 rm -rf ./lib
 
-cp /home/codespace/ci/action.yml ./action.yml
-cp -r /home/codespace/ci/dist ./dist
-cp -r /home/codespace/ci/lib ./lib
+cp /home/codespace/action/action.yml ./action.yml
+cp -r /home/codespace/action/dist ./dist
+cp -r /home/codespace/action/lib ./lib
