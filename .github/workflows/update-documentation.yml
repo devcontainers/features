@@ -22,16 +22,14 @@ jobs:
         run: |
           set -e
           echo "Start."
-          
-          # Push updates to ref
-          cd "$GITHUB_WORKSPACE/ref"
 
           GIT_BRANCH=$(echo "${{ github.ref }}" | grep -oP 'refs/(heads|tags)/\K(.+)')
           if [ "$GIT_BRANCH" == "" ]; then 
-              GIT_BRANCH=main
+              echo "ERR: Could not determine branch."
+              exit 1
           fi
 
-          echo "GIT_BRANCH = $GIT_BRANCH"
+          echo "GIT_BRANCH = ${GIT_BRANCH}"
           
           git config --global user.email "vscr-feedback@microsoft.com"
           git config --global user.name "Devcontainers CI"

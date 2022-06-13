@@ -58,9 +58,16 @@ function generateFeaturesDocumentation(basePath) {
                         core.error(`devcontainer-feature.json not found at path '${featureJsonPath}'`);
                         return;
                     }
-                    const featureJson = JSON.parse(fs.readFileSync(featureJsonPath, 'utf8'));
-                    if (!featureJson.id) {
-                        core.error(`devconatiner-feature.json for feature '${f}' does not contain an 'id'`);
+                    let featureJson = undefined;
+                    try {
+                        featureJson = JSON.parse(fs.readFileSync(featureJsonPath, 'utf8'));
+                    }
+                    catch (err) {
+                        core.error(`Failed to parse ${featureJsonPath}: ${err}`);
+                        return;
+                    }
+                    if (!featureJson || !(featureJson === null || featureJson === void 0 ? void 0 : featureJson.id)) {
+                        core.error(`devcontainer-feature.json for feature '${f}' does not contain an 'id'`);
                         return;
                     }
                     const ref = github.context.ref;
@@ -72,7 +79,7 @@ function generateFeaturesDocumentation(basePath) {
                         versionTag = ref.replace('refs/tags/', '');
                     }
                     const generateOptionsMarkdown = () => {
-                        const options = featureJson.options;
+                        const options = featureJson === null || featureJson === void 0 ? void 0 : featureJson.options;
                         if (!options) {
                             return '';
                         }
