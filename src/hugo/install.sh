@@ -90,6 +90,11 @@ fi
 
 # Install Hugo if it's missing
 if ! hugo version &> /dev/null ; then
+    if ! cat /etc/group | grep -e "^hugo:" > /dev/null 2>&1; then
+        groupadd -r hugo
+    fi
+    usermod -a -G hugo "${USERNAME}"
+
     echo "Installing Hugo..."
     installation_dir="$HUGO_DIR/bin"
     mkdir -p "$installation_dir"
@@ -108,6 +113,10 @@ if ! hugo version &> /dev/null ; then
     rm "$hugo_filename"
 
     updaterc "export HUGO_DIR=${installation_dir}"
+
+    chown -R :hugo "${HUGO_DIR}"
+    chmod -R g+r+w "${HUGO_DIR}"
+    find "${HUGO_DIR}" -type d | xargs -n 1 chmod g+s
 fi
 
 echo "Done!"

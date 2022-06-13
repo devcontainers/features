@@ -9,7 +9,6 @@
 
 
 VERSION=${VERSION:-"latest"}
-
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
 CONDA_DIR=${CONDA_DIR:-"/usr/local/conda"}
@@ -32,8 +31,8 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
     for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
+        if id -u "${CURRENT_USER}" > /dev/null 2>&1; then
+            USERNAME="${CURRENT_USER}"
             break
         fi
     done
@@ -72,11 +71,19 @@ check_packages() {
 
 # Install Conda if it's missing
 if ! conda --version &> /dev/null ; then
+    if ! cat /etc/group | grep -e "^conda:" > /dev/null 2>&1; then
+        groupadd -r conda
+    fi
+    usermod -a -G conda "${USERNAME}"
+
     # Install dependencies
     check_packages wget ca-certificates
 
     mkdir -p $CONDA_DIR
-    chown ${USERNAME}:root $CONDA_DIR
+    chown -R :conda "${CONDA_DIR}"
+    chmod -R g+r+w "${CONDA_DIR}"
+    
+    find "${CONDA_DIR}" -type d | xargs -n 1 chmod g+s
     echo "Installing Anaconda..."
 
     CONDA_VERSION=$VERSION
