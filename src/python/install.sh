@@ -276,7 +276,6 @@ install_from_source() {
     make install
     cd /tmp
     rm -rf /tmp/python-src ${GNUPGHOME} /tmp/vscdc-settings.env
-    chown -R ${USERNAME} "${INSTALL_PATH}"
 
     ln -s "${INSTALL_PATH}/bin/python3" "${INSTALL_PATH}/bin/python"
     ln -s "${INSTALL_PATH}/bin/pip3" "${INSTALL_PATH}/bin/pip"
@@ -369,7 +368,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 fi
 
 # Install Python tools if needed
-if [ "${INSTALL_PYTHON_TOOLS}" = "true" ]; then
+if [ "${INSTALL_PYTHON_TOOLS}" = "true" ] && [ "${PYTHON_VERSION}" != "none" ]; then
     echo 'Installing Python tools...'
     export PIPX_BIN_DIR="${PIPX_HOME}/bin"
     export PATH="${CURRENT_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
