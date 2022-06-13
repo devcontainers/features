@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  generate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,14 +21,17 @@ jobs:
         id: push_image_info
         run: |
           set -e
+          echo "Start."
           
-          # # Push updates to ref
-          # cd "$GITHUB_WORKSPACE/ref"
+          # Push updates to ref
+          cd "$GITHUB_WORKSPACE/ref"
 
           GIT_BRANCH=$(echo "${{ github.ref }}" | grep -oP 'refs/(heads|tags)/\K(.+)')
           if [ "$GIT_BRANCH" == "" ]; then 
               GIT_BRANCH=main
           fi
+
+          echo "GIT_BRANCH = $GIT_BRANCH"
           
           git config --global user.email "vscr-feedback@microsoft.com"
           git config --global user.name "Devcontainers CI"
