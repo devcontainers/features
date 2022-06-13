@@ -44,9 +44,9 @@ function generateFeaturesDocumentation(basePath) {
             files.forEach(f => {
                 core.info(`Generating docs for feature '${f}'`);
                 if (f !== '.' && f !== '..') {
-                    const readmePath = path.join(basePath, f, 'README.md');
+                    const readmePath = path.join(basePath, f, 'src', 'README.md');
                     // Reads in feature.json
-                    const featureJsonPath = path.join(basePath, f, 'feature.json');
+                    const featureJsonPath = path.join(basePath, f, 'src', 'feature.json');
                     if (!fs.existsSync(featureJsonPath)) {
                         core.error(`feature.json not found for feature '${f}'`);
                         return;
@@ -70,17 +70,22 @@ function generateFeaturesDocumentation(basePath) {
                             return '';
                         }
                         const keys = Object.keys(options);
-                        const contents = keys.map(k => {
+                        const contents = keys
+                            .map(k => {
                             const val = options[k];
                             return `| ${k} | ${val.description || '-'} | ${val.type || '-'} | ${val.default || '-'} |`;
-                        }).join('\n');
-                        return '| Options Id | Description | Type | Default Value |' + '\n' + contents;
+                        })
+                            .join('\n');
+                        return ('| Options Id | Description | Type | Default Value |' +
+                            '\n' +
+                            contents);
                     };
-                    const newReadme = README_TEMPLATE
-                        .replace('#{nwo}', `${owner}/${repo}`)
+                    const newReadme = README_TEMPLATE.replace('#{nwo}', `${owner}/${repo}`)
                         .replace('#{versionTag}', versionTag)
                         .replace('#{featureId}', featureJson.id)
-                        .replace('#{featureName}', featureJson.name ? `${featureJson.name} (${featureJson.id})` : `${featureJson.id}`)
+                        .replace('#{featureName}', featureJson.name
+                        ? `${featureJson.name} (${featureJson.id})`
+                        : `${featureJson.id}`)
                         .replace('#{featureDescription}', featureJson.description ? featureJson.description : '')
                         .replace('#{optionsTable}', generateOptionsMarkdown());
                     // Remove previous readme
@@ -90,7 +95,6 @@ function generateFeaturesDocumentation(basePath) {
                     // Write new readme
                     fs.writeFileSync(readmePath, newReadme);
                 }
-                ;
             });
         });
     });

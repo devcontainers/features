@@ -1,4 +1,4 @@
-name: "(CI) Test Features"
+name: "Update Documentation"
 on:
   push:
     branches:
