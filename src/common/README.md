@@ -7,8 +7,8 @@ common
 
 ```json
 "features": [
-    "common": {
-        "id": "devcontainers/features/#{featureId}@latest",
+    {
+        "id": "devcontainers/features/common@latest",
         "options": {
             "version": "latest"
         }
@@ -18,7 +18,8 @@ common
 
 ## Options
 
-| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
 | install_Zsh | Install ZSH? | boolean | true |
 | install_Oh_My_Zsh | Install Oh My Zsh!? | boolean | true |
 | upgrade_packages | Upgrade OS packages? | boolean | true |
@@ -29,4 +30,4 @@ common
 
 ---
 
-_Note: This is an auto-generated file. Please do not directly edit._
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._

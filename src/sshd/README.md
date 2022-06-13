@@ -7,8 +7,8 @@
 
 ```json
 "features": [
-    "sshd": {
-        "id": "devcontainers/features/#{featureId}@latest",
+    {
+        "id": "devcontainers/features/sshd@latest",
         "options": {
             "version": "latest"
         }
@@ -18,9 +18,10 @@
 
 ## Options
 
-| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
 | version | Currently unused. | string | latest |
 
 ---
 
-_Note: This is an auto-generated file. Please do not directly edit._
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._

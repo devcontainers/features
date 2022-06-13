@@ -7,8 +7,8 @@
 
 ```json
 "features": [
-    "azure-cli": {
-        "id": "devcontainers/features/#{featureId}@latest",
+    {
+        "id": "devcontainers/features/azure-cli@latest",
         "options": {
             "version": "latest"
         }
@@ -18,9 +18,10 @@
 
 ## Options
 
-| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
 | version | Select or enter an Azure CLI version. (Available versions may vary by Linux distribution.) | string | latest |
 
 ---
 
-_Note: This is an auto-generated file. Please do not directly edit._
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._

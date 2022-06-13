@@ -7,8 +7,8 @@ Python (may require compilation)
 
 ```json
 "features": [
-    "python": {
-        "id": "devcontainers/features/#{featureId}@latest",
+    {
+        "id": "devcontainers/features/python@latest",
         "options": {
             "version": "latest"
         }
@@ -18,7 +18,8 @@ Python (may require compilation)
 
 ## Options
 
-| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
 | version | Select a Python version to install. | string | os-provided |
 | install_python_tools | Install common Python tools like pylint | boolean | true |
 | optimize | Optimize Python for performance when compiled (slow) | boolean | - |
@@ -29,4 +30,4 @@ Python (may require compilation)
 
 ---
 
-_Note: This is an auto-generated file. Please do not directly edit._
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._

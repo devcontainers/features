@@ -7,8 +7,8 @@
 
 ```json
 "features": [
-    "desktop-lite": {
-        "id": "devcontainers/features/#{featureId}@latest",
+    {
+        "id": "devcontainers/features/desktop-lite@latest",
         "options": {
             "version": "latest"
         }
@@ -18,7 +18,8 @@
 
 ## Options
 
-| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
 | version | Currently Unused! | string | latest |
 | novnc_version | NoVnc Version | string | 1.2.0 |
 | vnc_password | Enter a password for desktop connections | string | vscode |
@@ -27,4 +28,4 @@
 
 ---
 
-_Note: This is an auto-generated file. Please do not directly edit._
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._

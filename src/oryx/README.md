@@ -7,8 +7,8 @@
 
 ```json
 "features": [
-    "oryx": {
-        "id": "devcontainers/features/#{featureId}@latest",
+    {
+        "id": "devcontainers/features/oryx@latest",
         "options": {
             "version": "latest"
         }
@@ -22,4 +22,4 @@
 
 ---
 
-_Note: This is an auto-generated file. Please do not directly edit._
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._

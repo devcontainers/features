@@ -7,8 +7,8 @@
 
 ```json
 "features": [
-    "java": {
-        "id": "devcontainers/features/#{featureId}@latest",
+    {
+        "id": "devcontainers/features/java@latest",
         "options": {
             "version": "latest"
         }
@@ -18,9 +18,10 @@
 
 ## Options
 
-| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
 | version | Select or enter a Java version to install | string | lts |
 
 ---
 
-_Note: This is an auto-generated file. Please do not directly edit._
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._

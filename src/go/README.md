@@ -7,8 +7,8 @@
 
 ```json
 "features": [
-    "go": {
-        "id": "devcontainers/features/#{featureId}@latest",
+    {
+        "id": "devcontainers/features/go@latest",
         "options": {
             "version": "latest"
         }
@@ -18,9 +18,10 @@
 
 ## Options
 
-| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
 | version | Select or enter a Go version to install | string | latest |
 
 ---
 
-_Note: This is an auto-generated file. Please do not directly edit._
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
