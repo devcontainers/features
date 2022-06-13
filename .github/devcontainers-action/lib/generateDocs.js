@@ -46,14 +46,14 @@ function generateFeaturesDocumentation(basePath) {
                 if (f !== '.' && f !== '..') {
                     const readmePath = path.join(basePath, f, 'src', 'README.md');
                     // Reads in feature.json
-                    const featureJsonPath = path.join(basePath, f, 'src', 'feature.json');
+                    const featureJsonPath = path.join(basePath, f, 'src', 'devcontainer-feature.json');
                     if (!fs.existsSync(featureJsonPath)) {
-                        core.error(`feature.json not found for feature '${f}'`);
+                        core.error(`devcontainer-feature.json not found at path '${featureJsonPath}'`);
                         return;
                     }
                     const featureJson = JSON.parse(fs.readFileSync(featureJsonPath, 'utf8'));
                     if (!featureJson.id) {
-                        core.error(`feature.json for feature '${f}' does not contain an 'id'`);
+                        core.error(`devconatiner-feature.json for feature '${f}' does not contain an 'id'`);
                         return;
                     }
                     const ref = github.context.ref;
