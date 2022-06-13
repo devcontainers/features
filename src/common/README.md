@@ -6,9 +6,9 @@ common
 ## Example Usage
 
 ```json
-"features: [
-    "#{featureName}": {
-        "id": "devcontainers/features/common@latest",
+"features": [
+    "common": {
+        "id": "devcontainers/features/#{featureId}@latest",
         "options": {
             "version": "latest"
         }
@@ -18,7 +18,7 @@ common
 
 ## Options
 
-| Options Id | Description | Type | Default Value |
+| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
 | install_Zsh | Install ZSH? | boolean | true |
 | install_Oh_My_Zsh | Install Oh My Zsh!? | boolean | true |
 | upgrade_packages | Upgrade OS packages? | boolean | true |

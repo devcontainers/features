@@ -6,9 +6,9 @@
 ## Example Usage
 
 ```json
-"features: [
-    "#{featureName}": {
-        "id": "devcontainers/features/desktop-lite@latest",
+"features": [
+    "desktop-lite": {
+        "id": "devcontainers/features/#{featureId}@latest",
         "options": {
             "version": "latest"
         }
@@ -18,7 +18,7 @@
 
 ## Options
 
-| Options Id | Description | Type | Default Value |
+| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
 | version | Currently Unused! | string | latest |
 | novnc_version | NoVnc Version | string | 1.2.0 |
 | vnc_password | Enter a password for desktop connections | string | vscode |

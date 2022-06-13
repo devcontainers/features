@@ -6,9 +6,9 @@ Python (may require compilation)
 ## Example Usage
 
 ```json
-"features: [
-    "#{featureName}": {
-        "id": "devcontainers/features/python@latest",
+"features": [
+    "python": {
+        "id": "devcontainers/features/#{featureId}@latest",
         "options": {
             "version": "latest"
         }
@@ -18,7 +18,7 @@ Python (may require compilation)
 
 ## Options
 
-| Options Id | Description | Type | Default Value |
+| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
 | version | Select a Python version to install. | string | os-provided |
 | install_python_tools | Install common Python tools like pylint | boolean | true |
 | optimize | Optimize Python for performance when compiled (slow) | boolean | - |

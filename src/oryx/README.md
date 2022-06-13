@@ -6,9 +6,9 @@
 ## Example Usage
 
 ```json
-"features: [
-    "#{featureName}": {
-        "id": "devcontainers/features/oryx@latest",
+"features": [
+    "oryx": {
+        "id": "devcontainers/features/#{featureId}@latest",
         "options": {
             "version": "latest"
         }

@@ -6,9 +6,9 @@
 ## Example Usage
 
 ```json
-"features: [
-    "#{featureName}": {
-        "id": "devcontainers/features/sshd@latest",
+"features": [
+    "sshd": {
+        "id": "devcontainers/features/#{featureId}@latest",
         "options": {
             "version": "latest"
         }
@@ -18,7 +18,7 @@
 
 ## Options
 
-| Options Id | Description | Type | Default Value |
+| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
 | version | Currently unused. | string | latest |
 
 ---

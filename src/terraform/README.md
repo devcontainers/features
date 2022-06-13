@@ -6,9 +6,9 @@
 ## Example Usage
 
 ```json
-"features: [
-    "#{featureName}": {
-        "id": "devcontainers/features/terraform@latest",
+"features": [
+    "terraform": {
+        "id": "devcontainers/features/#{featureId}@latest",
         "options": {
             "version": "latest"
         }
@@ -18,7 +18,7 @@
 
 ## Options
 
-| Options Id | Description | Type | Default Value |
+| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
 | version | Terraform version | string | latest |
 | tflint | Tflint version | string | latest |
 | terragrunt | Terragrunt version | string | latest |

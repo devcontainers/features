@@ -6,9 +6,9 @@
 ## Example Usage
 
 ```json
-"features: [
-    "#{featureName}": {
-        "id": "devcontainers/features/dotnet@latest",
+"features": [
+    "dotnet": {
+        "id": "devcontainers/features/#{featureId}@latest",
         "options": {
             "version": "latest"
         }
@@ -18,7 +18,7 @@
 
 ## Options
 
-| Options Id | Description | Type | Default Value |
+| Options Id | Description | Type | Default Value ||-----|-----|-----|-----|
 | version | Select or enter a dotnet CLI version. (Available versions may vary by Linux distribution.) | string | latest |
 | runtime_only | Install just the dotnet runtime if true, and sdk if false. | boolean | - |
 | override_default_version | If true, overrides existing version (if any) of dotnet on the PATH | boolean | true |
