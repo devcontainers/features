@@ -35,8 +35,8 @@ jobs:
           git config --global user.name "Devcontainers CI"
           git config pull.rebase false
 
-          # Pull in anything that may have come in
-          git pull "https://ci:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" "HEAD:$GIT_BRANCH"
+          # # Pull in anything that may have come in
+          # git pull "https://ci:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" "HEAD:$GIT_BRANCH"
 
           # Add / update and commit
           git add */**/README.md
