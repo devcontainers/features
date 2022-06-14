@@ -121,7 +121,7 @@ fi
 umask 0002
 usermod -a -G nvm ${USERNAME}
 mkdir -p ${NVM_DIR}
-chown :nvm ${NVM_DIR}
+chown "${USERNAME}:nvm" ${NVM_DIR}
 chmod g+s ${NVM_DIR}
 su ${USERNAME} -c "$(cat << EOF
     set -e

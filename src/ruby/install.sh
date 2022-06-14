@@ -277,7 +277,7 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
 
         ln -s /usr/local/rvm/rubies/default/bin/ruby /usr/local/rvm/gems/default/bin 
         
-        chown -R :rvm "/home/${USERNAME}/.rbenv"
+        chown -R "${USERNAME}:rvm" "/home/${USERNAME}/.rbenv"
         chmod -R g+r+w "/home/${USERNAME}/.rbenv"
         find "/home/${USERNAME}/.rbenv" -type d | xargs -n 1 chmod g+s
     fi

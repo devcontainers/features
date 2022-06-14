@@ -114,7 +114,7 @@ if ! hugo version &> /dev/null ; then
 
     updaterc "export HUGO_DIR=${installation_dir}"
 
-    chown -R :hugo "${HUGO_DIR}"
+    chown -R "${USERNAME}:hugo" "${HUGO_DIR}"
     chmod -R g+r+w "${HUGO_DIR}"
     find "${HUGO_DIR}" -type d | xargs -n 1 chmod g+s
 fi

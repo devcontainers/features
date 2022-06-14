@@ -127,7 +127,7 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     umask 0002
     # Install SDKMAN
     curl -sSL "https://get.sdkman.io?rcupdate=false" | bash
-    chown -R :sdkman ${SDKMAN_DIR}
+    chown -R "${USERNAME}:sdkman" ${SDKMAN_DIR}
     find ${SDKMAN_DIR} -type d | xargs -d '\n' chmod g+s
     # Add sourcing of sdkman into bashrc/zshrc files (unless disabled)
     updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
