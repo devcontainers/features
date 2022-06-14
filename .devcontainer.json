@@ -1,23 +1,20 @@
 {
-    "customizations": {
-        "codespaces": {
-            "repositories": {
-                "devcontainers/cli": {
-                    "permissions": {
-                        "contents": "write",
-                        "workflows": "write"
-                    }
-                },
-                "devcontainers/action": {
-                    "permissions": {
-                        "contents": "write",
-                        "workflows": "write"
-                    }
-                },
-                "joshspicer/devcontainer-docs": {
-                    "permissions": "write-all"
-                }
-            }
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        "devcontainers/cli": {
+          "permissions": {
+            "contents": "write",
+            "workflows": "write"
+          }
+        },
+        "devcontainers/action": {
+          "permissions": {
+            "contents": "write",
+            "workflows": "write"
+          }
         }
+      }
     }
+  }
 }
