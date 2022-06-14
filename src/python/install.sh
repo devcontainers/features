@@ -362,7 +362,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
     
-    chown -R :python "${PYTHON_INSTALL_PATH}"
+    chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
     chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
     find "${PYTHON_INSTALL_PATH}" -type d | xargs -n 1 chmod g+s
 fi
