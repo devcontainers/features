@@ -2,7 +2,7 @@ name: "Update Documentation"
 on:
   push:
     branches:
-      - devcontainer-docs
+      - main
   workflow_dispatch:
 
 jobs:
