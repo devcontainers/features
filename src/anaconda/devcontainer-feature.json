@@ -13,7 +13,7 @@
     },
     "containerEnv": {
         "CONDA_DIR": "/usr/local/conda",
-        "PATH": "${CONDA_DIR}/bin:${PATH}"
+        "PATH": "${PATH}:${CONDA_DIR}/bin:"
     },
     "install": {
         "app": "",
