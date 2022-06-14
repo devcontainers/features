@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Generate tgz
-        uses: ./.github/devcontainers-action # devcontainers/ci
+        uses: ./.github/devcontainers-action # devcontainers/action
         with:
           publish-features: "true"
           base-path-to-features: "./src"

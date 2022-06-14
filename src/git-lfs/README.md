@@ -1,0 +1,27 @@
+
+# Git Large File Support (LFS) (git-lfs)
+
+
+
+## Example Usage
+
+```json
+"features": [
+    {
+        "id": "devcontainers/features/git-lfs@latest",
+        "options": {
+            "version": "latest"
+        }
+    }
+]
+```
+
+## Options
+
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
+| version | Select version of Git LFS to install | string | latest |
+
+---
+
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
