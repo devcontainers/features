@@ -277,15 +277,15 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
 
         ln -s /usr/local/rvm/rubies/default/bin/ruby /usr/local/rvm/gems/default/bin 
         
-        chown -R :rvm "/home/${USERNAME}/.rbenv"
+        chown -R "${USERNAME}:rvm" "/home/${USERNAME}/.rbenv/"
         chmod -R g+r+w "/home/${USERNAME}/.rbenv"
         find "/home/${USERNAME}/.rbenv" -type d | xargs -n 1 chmod g+s
     fi
 fi
 
-chown -R :rvm "/usr/local/rvm"
-chmod -R g+r+w "/usr/local/rvm"
-find "/usr/local/rvm" -type d | xargs -n 1 chmod g+s
+chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
+chmod -R g+r+w "/usr/local/rvm/"
+find "/usr/local/rvm/" -type d | xargs -n 1 chmod g+s
 
 # Clean up
 rvm cleanup all

@@ -147,7 +147,7 @@ if ! cat /etc/group | grep -e "^rustlang:" > /dev/null 2>&1; then
 fi
 usermod -a -G rustlang "${USERNAME}"
 mkdir -p "${CARGO_HOME}" "${RUSTUP_HOME}"
-chown :rustlang "${RUSTUP_HOME}" "${CARGO_HOME}"
+chown "${USERNAME}:rustlang" "${RUSTUP_HOME}" "${CARGO_HOME}"
 chmod g+r+w+s "${RUSTUP_HOME}" "${CARGO_HOME}"
 
 if [ "${RUST_VERSION}" = "none" ] || type rustup > /dev/null 2>&1; then

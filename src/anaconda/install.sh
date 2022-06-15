@@ -80,7 +80,7 @@ if ! conda --version &> /dev/null ; then
     check_packages wget ca-certificates
 
     mkdir -p $CONDA_DIR
-    chown -R :conda "${CONDA_DIR}"
+    chown -R "${USERNAME}:conda" "${CONDA_DIR}"
     chmod -R g+r+w "${CONDA_DIR}"
     
     find "${CONDA_DIR}" -type d | xargs -n 1 chmod g+s

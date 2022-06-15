@@ -197,7 +197,7 @@ rm -rf ${PHP_SRC_DIR}
 
 updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=${CURRENT_DIR}/bin:\${PATH}; fi"
 
-chown -R :php "${PHP_DIR}"
+chown -R "${USERNAME}:php" "${PHP_DIR}"
 chmod -R g+r+w "${PHP_DIR}"
 find "${PHP_DIR}" -type d | xargs -n 1 chmod g+s
 

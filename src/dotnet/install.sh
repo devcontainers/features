@@ -419,7 +419,7 @@ else
 
     install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}"
     
-    chown -R :dotnet "${TARGET_DOTNET_ROOT}"
+    chown -R "${USERNAME}:dotnet" "${TARGET_DOTNET_ROOT}"
     chmod -R g+r+w "${TARGET_DOTNET_ROOT}"
     find "${TARGET_DOTNET_ROOT}" -type d | xargs -n 1 chmod g+s
 fi

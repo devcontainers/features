@@ -362,7 +362,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
     
-    chown -R :python "${PYTHON_INSTALL_PATH}"
+    chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
     chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
     find "${PYTHON_INSTALL_PATH}" -type d | xargs -n 1 chmod g+s
 fi
@@ -412,7 +412,7 @@ if [ "${INSTALL_PYTHON_TOOLS}" = "true" ] && [ "${PYTHON_VERSION}" != "none" ]; 
     updaterc "export PIPX_BIN_DIR=\"${PIPX_BIN_DIR}\""
     updaterc "if [[ \"\${PATH}\" != *\"\${PIPX_BIN_DIR}\"* ]]; then export PATH=\"\${PATH}:\${PIPX_BIN_DIR}\"; fi"
 
-    chown -R :python "${PIPX_HOME}"
+    chown -R "${USERNAME}:python" "${PIPX_HOME}"
     chmod -R g+r+w "${PIPX_HOME}"
     find "${PIPX_HOME}" -type d | xargs -n 1 chmod g+s
 fi
