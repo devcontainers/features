@@ -283,8 +283,8 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
     fi
 fi
 
-chown -R "${USERNAME}:rvm" "/usr/local/rvm"
-chmod -R g+r+w "/usr/local/rvm"
+chown -R "${USERNAME}:rvm" "/usr/local/rvm/*"
+chmod -R g+r+w "/usr/local/rvm/"
 find "/usr/local/rvm" -type d | xargs -n 1 chmod g+s
 
 # Clean up
