@@ -1,0 +1,27 @@
+
+# Gradle (via SDKMAN!) (gradle)
+
+
+
+## Example Usage
+
+```json
+"features": [
+    {
+        "id": "devcontainers/features/gradle@latest",
+        "options": {
+            "version": "latest"
+        }
+    }
+]
+```
+
+## Options
+
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
+| version | Select or enter a Gradle version to install | string | latest |
+
+---
+
+_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
