@@ -25,7 +25,6 @@ jobs:
             git-lfs: ./**/git-lfs/**
             github-cli: ./**/github-cli/**
             go: ./**/go/**
-            gradle: ./**/gradle/**
             hugo: ./**/hugo/**
             java: ./**/java/**
             kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
