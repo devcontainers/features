@@ -25,6 +25,7 @@ jobs:
             "git-lfs",
             "github-cli",
             "go",
+            "gradle"
             "hugo",
             "java",
             "kubectl-helm-minikube",
