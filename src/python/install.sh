@@ -412,7 +412,7 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     updaterc "export PIPX_BIN_DIR=\"${PIPX_BIN_DIR}\""
     updaterc "if [[ \"\${PATH}\" != *\"\${PIPX_BIN_DIR}\"* ]]; then export PATH=\"\${PATH}:\${PIPX_BIN_DIR}\"; fi"
 
-    chown -R "${USERNAME}:python" "${PIPX_HOME}"
+    chown -R "${USERNAME}:pipx" "${PIPX_HOME}"
     chmod -R g+r+w "${PIPX_HOME}"
     find "${PIPX_HOME}" -type d | xargs -n 1 chmod g+s
 fi
