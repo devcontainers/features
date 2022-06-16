@@ -368,7 +368,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 fi
 
 # Install Python tools if needed
-if [ "${INSTALL_PYTHON_TOOLS}" = "true" ] && [ "${PYTHON_VERSION}" != "none" ]; then
+if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; then
     echo 'Installing Python tools...'
     export PIPX_BIN_DIR="${PIPX_HOME}/bin"
     export PATH="${CURRENT_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
@@ -384,9 +384,9 @@ if [ "${INSTALL_PYTHON_TOOLS}" = "true" ] && [ "${PYTHON_VERSION}" != "none" ]; 
     chmod g+s ${PIPX_HOME} ${PIPX_BIN_DIR}
 
     # Update pip if not using os provided python
-    if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ] && [ ${PYTHON_VERSION} != "none" ]; then
+    if [[ $(python --version) != "" ]] || [[ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ] && [ ${PYTHON_VERSION} != "none" ]]; then
         echo "Updating pip..."
-        "${INSTALL_PATH}/bin/python3" -m pip install --no-cache-dir --upgrade pip
+        python -m pip install --no-cache-dir --upgrade pip
     fi
 
     # Install tools
