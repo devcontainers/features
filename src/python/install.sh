@@ -365,13 +365,15 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
     chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
     find "${PYTHON_INSTALL_PATH}" -type d | xargs -n 1 chmod g+s
+
+    export PATH="${CURRENT_PATH}/bin:${PATH}"
 fi
 
 # Install Python tools if needed
 if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; then
     echo 'Installing Python tools...'
     export PIPX_BIN_DIR="${PIPX_HOME}/bin"
-    export PATH="${CURRENT_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
+    export PATH="${PIPX_BIN_DIR}:${PATH}"
 
     # Create pipx group, dir, and set sticky bit
     if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
