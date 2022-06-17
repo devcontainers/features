@@ -365,13 +365,15 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
     chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
     find "${PYTHON_INSTALL_PATH}" -type d | xargs -n 1 chmod g+s
+
+    PATH="${INSTALL_PATH}/bin:${PATH}"
 fi
 
 # Install Python tools if needed
-if [ "${INSTALL_PYTHON_TOOLS}" = "true" ] && [ "${PYTHON_VERSION}" != "none" ]; then
+if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; then
     echo 'Installing Python tools...'
     export PIPX_BIN_DIR="${PIPX_HOME}/bin"
-    export PATH="${CURRENT_PATH}/bin:${PIPX_BIN_DIR}:${PATH}"
+    PATH="${PATH}:${PIPX_BIN_DIR}"
 
     # Create pipx group, dir, and set sticky bit
     if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
@@ -380,13 +382,14 @@ if [ "${INSTALL_PYTHON_TOOLS}" = "true" ] && [ "${PYTHON_VERSION}" != "none" ]; 
     usermod -a -G pipx ${USERNAME}
     umask 0002
     mkdir -p ${PIPX_BIN_DIR}
-    chown :pipx ${PIPX_HOME} ${PIPX_BIN_DIR}
-    chmod g+s ${PIPX_HOME} ${PIPX_BIN_DIR}
+    chown -R "${USERNAME}:pipx" ${PIPX_HOME}
+    chmod -R g+r+w "${PIPX_HOME}" 
+    find "${PIPX_HOME}" -type d | xargs -n 1 chmod g+s
 
     # Update pip if not using os provided python
-    if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ] && [ ${PYTHON_VERSION} != "none" ]; then
+    if [[ $(python --version) != "" ]] || [[ ${PYTHON_VERSION} != "os-provided" ]] && [[ ${PYTHON_VERSION} != "system" ]] && [[ ${PYTHON_VERSION} != "none" ]]; then
         echo "Updating pip..."
-        "${INSTALL_PATH}/bin/python3" -m pip install --no-cache-dir --upgrade pip
+        python -m pip install --no-cache-dir --upgrade pip
     fi
 
     # Install tools
@@ -411,10 +414,6 @@ if [ "${INSTALL_PYTHON_TOOLS}" = "true" ] && [ "${PYTHON_VERSION}" != "none" ]; 
     updaterc "export PIPX_HOME=\"${PIPX_HOME}\""
     updaterc "export PIPX_BIN_DIR=\"${PIPX_BIN_DIR}\""
     updaterc "if [[ \"\${PATH}\" != *\"\${PIPX_BIN_DIR}\"* ]]; then export PATH=\"\${PATH}:\${PIPX_BIN_DIR}\"; fi"
-
-    chown -R "${USERNAME}:python" "${PIPX_HOME}"
-    chmod -R g+r+w "${PIPX_HOME}"
-    find "${PIPX_HOME}" -type d | xargs -n 1 chmod g+s
 fi
 
 # Install JupyterLab if needed
