@@ -366,7 +366,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
     find "${PYTHON_INSTALL_PATH}" -type d | xargs -n 1 chmod g+s
 
-    PATH="${CURRENT_PATH}/bin:${PATH}"
+    PATH="${INSTALL_PATH}/bin:${PATH}"
 fi
 
 # Install Python tools if needed
