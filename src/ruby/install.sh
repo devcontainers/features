@@ -12,6 +12,7 @@ RUBY_VERSION=${VERSION:-"latest"}
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
 INSTALL_RUBY_TOOLS=${INSTALL_RUBY_TOOLS:-"true"}
+RVM_DIR="/usr/local/rvm"
 
 # Note: ruby-debug-ide will install the right version of debase if missing and
 # installing debase directly fails on Ruby 3.1.0 as of 1/7/2022, so omitting.
@@ -218,13 +219,18 @@ else
         fi
     fi
     # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
+    umask 0002
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
     fi
     # Install rvm
-    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    mkdir -p "${RVM_DIR}"
     usermod -aG rvm ${USERNAME}
-    source /usr/local/rvm/scripts/rvm
+    chown -R "${USERNAME}:rvm" "${RVM_DIR}/"
+    chmod -R g+r+w "${RVM_DIR}/"
+
+    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    source ${RVM_DIR}/scripts/rvm
     rvm fix-permissions system
     rm -rf ${GNUPGHOME}
 fi
@@ -275,7 +281,7 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
             ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
         fi
 
-        ln -s /usr/local/rvm/rubies/default/bin/ruby /usr/local/rvm/gems/default/bin 
+        ln -s ${RVM_DIR}/rubies/default/bin/ruby ${RVM_DIR}/gems/default/bin 
         
         chown -R "${USERNAME}:rvm" "/home/${USERNAME}/.rbenv/"
         chmod -R g+r+w "/home/${USERNAME}/.rbenv"
@@ -283,9 +289,7 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
     fi
 fi
 
-chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
-chmod -R g+r+w "/usr/local/rvm/"
-find "/usr/local/rvm/" -type d | xargs -n 1 chmod g+s
+find "${RVM_DIR}" -type d | xargs -n 1 chmod g+s
 
 # Clean up
 rvm cleanup all
