@@ -199,6 +199,7 @@ if [ $(rvm --version) != "" ]; then
     SKIP_GEM_INSTALL="false"
     SKIP_RBENV_RBUILD="true"
 else
+    echo "1. (*) Keys"
     # Install RVM
     receive_gpg_keys RVM_GPG_KEYS
     # Determine appropriate settings for rvm installer
@@ -220,13 +221,19 @@ else
     # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
     umask 0002
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
+        echo "2. (*) Added group"
         groupadd -r rvm
     fi
     # Install rvm
+    echo "3. (*) Curl"
+    echo $(ls -la /usr/local/rvm)
     curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    echo "4. (*) Chown"
+    echo $(ls -la /usr/local/rvm)
     usermod -aG rvm ${USERNAME}
     chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
     chmod -R g+r+w "/usr/local/rvm/"
+    echo "5. (*) Source"
     source /usr/local/rvm/scripts/rvm
     rvm fix-permissions system
     rm -rf ${GNUPGHOME}
