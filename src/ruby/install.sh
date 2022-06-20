@@ -218,12 +218,15 @@ else
         fi
     fi
     # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
+    umask 0002
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
     fi
     # Install rvm
     curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
     usermod -aG rvm ${USERNAME}
+    chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
+    chmod -R g+r+w "/usr/local/rvm/"
     source /usr/local/rvm/scripts/rvm
     rvm fix-permissions system
     rm -rf ${GNUPGHOME}
@@ -283,8 +286,6 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
     fi
 fi
 
-chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
-chmod -R g+r+w "/usr/local/rvm/"
 find "/usr/local/rvm/" -type d | xargs -n 1 chmod g+s
 
 # Clean up
