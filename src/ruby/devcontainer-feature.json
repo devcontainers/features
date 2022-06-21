@@ -1,10 +1,17 @@
 {
     "id": "ruby",
     "name": "Ruby (via rvm)",
+    "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "none", "3.1", "3.0", "2.7"],
+            "proposals": [
+                "latest",
+                "none",
+                "3.1",
+                "3.0",
+                "2.7"
+            ],
             "default": "latest",
             "description": "Select or enter a Ruby version to install"
         }

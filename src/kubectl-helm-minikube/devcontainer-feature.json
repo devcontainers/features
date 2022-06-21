@@ -1,6 +1,7 @@
 {
     "id": "kubectl-helm-minikube",
     "name": "Kubectl, Helm, and Minkube",
+    "description": "Installs latest version of kubectl, Helm, and optionally minikube. Auto-detects latest versions and installs needed dependencies.",
     "options": {
         "version": {
             "type": "string",

@@ -1,6 +1,7 @@
 {
     "id": "oryx",
     "name": "Oryx",
+    "description": "Installs the oryx CLI",
     "containerEnv": {
         "ORYX_SDK_STORAGE_BASE_URL": "https://oryx-cdn.microsoft.io",
         "ENABLE_DYNAMIC_INSTALL": "true",

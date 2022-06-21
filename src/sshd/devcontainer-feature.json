@@ -1,10 +1,13 @@
 {
     "id": "sshd",
     "name": "SSH server",
+    "description": "Adds a SSH server into a container so that you can use an external terminal, sftp, or SSHFS to interact with it.",
     "options": {
         "version": {
             "type": "string",
-            "enum": ["latest"],
+            "enum": [
+                "latest"
+            ],
             "default": "latest",
             "description": "Currently unused."
         }

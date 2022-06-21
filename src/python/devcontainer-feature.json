@@ -1,7 +1,7 @@
 {
   "id": "python",
-  "name": "Python (may require compilation)",
-  "description": "Python (may require compilation)",
+  "name": "Python",
+  "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab is conditionally installed with the python feature. Note: May require source code compilation.",
   "options": {
     "version": {
       "type": "string",

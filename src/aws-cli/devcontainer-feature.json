@@ -1,6 +1,7 @@
 {
     "id": "aws-cli",
     "name": "AWS CLI",
+    "description": "Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
     "options": {
         "version": {
             "type": "string",

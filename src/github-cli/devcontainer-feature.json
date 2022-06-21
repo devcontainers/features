@@ -1,6 +1,7 @@
 {
     "id": "github-cli",
     "name": "GitHub CLI",
+    "description": "Installs the GitHub CLI. Auto-detects latest version and installs needed dependencies.",
     "options": {
         "version": {
             "type": "string",

@@ -1,6 +1,7 @@
 {
     "id": "docker-from-docker",
-    "name": "Docker (Moby) support, reuse host Docker Engine (Docker-from-Docker)",
+    "name": "Docker (Docker-from-Docker)",
+    "descripton": "Re-use the host docker socket, adding the Docker CLI to a container. Feature invokes a script to enable using a forwarded Docker socket within a container to run Docker commands.",
     "options": {
         "version": {
             "type": "string",

@@ -1,15 +1,20 @@
 {
   "id": "azure-cli",
   "name": "Azure CLI",
+  "description": "Installs the Azure CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
   "options": {
     "version": {
       "type": "string",
-      "proposals": ["latest"],
+      "proposals": [
+        "latest"
+      ],
       "default": "latest",
       "description": "Select or enter an Azure CLI version. (Available versions may vary by Linux distribution.)"
     }
   },
-  "extensions": ["ms-vscode.azurecli"],
+  "extensions": [
+    "ms-vscode.azurecli"
+  ],
   "install": {
     "app": "",
     "file": "install.sh"
