@@ -1,7 +1,7 @@
 
 # Node.js (via nvm) and yarn (node)
 
-
+Installs Node.js, nvm, yarn, and needed dependencies.
 
 ## Example Usage
 

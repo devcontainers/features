@@ -1,7 +1,7 @@
 
 # SSH server (sshd)
 
-
+Adds a SSH server into a container so that you can use an external terminal, sftp, or SSHFS to interact with it.
 
 ## Example Usage
 

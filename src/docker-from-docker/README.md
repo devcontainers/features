@@ -1,5 +1,5 @@
 
-# Docker (Moby) support, reuse host Docker Engine (Docker-from-Docker) (docker-from-docker)
+# Docker (Docker-from-Docker) (docker-from-docker)
 
 
 

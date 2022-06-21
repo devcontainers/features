@@ -1,7 +1,7 @@
 
-# Light-weight desktop (Fluxbox) (desktop-lite)
+# Light-weight Desktop (desktop-lite)
 
-
+Adds a lightweight Fluxbox based desktop to the container that can be accessed using a VNC viewer or the web. GUI-based commands executed from the built-in VS code terminal will open on the desktop automatically.
 
 ## Example Usage
 

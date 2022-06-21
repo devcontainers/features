@@ -1,7 +1,7 @@
 
-# Docker (Moby) support (Docker-in-Docker) (docker-in-docker)
+# Docker (Docker-in-Docker) (docker-in-docker)
 
-
+Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.
 
 ## Example Usage
 

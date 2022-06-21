@@ -1,7 +1,7 @@
 
 # Java (via SDKMAN!) (java)
 
-
+Installs Java, SDKMAN! (if not installed), and needed dependencies.
 
 ## Example Usage
 

@@ -1,7 +1,7 @@
 
 # Oryx (oryx)
 
-
+Installs the oryx CLI
 
 ## Example Usage
 

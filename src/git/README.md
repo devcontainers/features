@@ -1,7 +1,7 @@
 
-# Git (may require compilation) (git)
+# Git (from source) (git)
 
-
+Install an up-to-date version of Git, built from source as needed. Useful for when you want the latest and greatest features. Auto-detects latest stable version and installs needed dependencies.
 
 ## Example Usage
 
