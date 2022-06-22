@@ -251,7 +251,7 @@ if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then
     # Non-root user may not have "gem" in path when script is run and no ruby version
     # is installed by rvm, so handle this by using root's default gem in this case
     ROOT_GEM="$(which gem || echo "")"
-    sudo_if ${ROOT_GEM} install ${DEFAULT_GEMS}
+    sudo_if "${ROOT_GEM} install ${DEFAULT_GEMS}"
 fi
 
 # VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
