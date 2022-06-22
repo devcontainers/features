@@ -6,14 +6,11 @@ Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects la
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/terraform@latest",
-        "options": {
+"features": {
+        "devcontainers/features/terraform@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

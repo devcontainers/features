@@ -6,14 +6,11 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/common@latest",
-        "options": {
+"features": {
+        "devcontainers/features/common@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

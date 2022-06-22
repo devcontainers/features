@@ -6,14 +6,11 @@ Installs the GitHub CLI. Auto-detects latest version and installs needed depende
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/github-cli@latest",
-        "options": {
+"features": {
+        "devcontainers/features/github-cli@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

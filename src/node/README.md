@@ -6,14 +6,11 @@ Installs Node.js, nvm, yarn, and needed dependencies.
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/node@latest",
-        "options": {
+"features": {
+        "devcontainers/features/node@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

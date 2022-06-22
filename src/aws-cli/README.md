@@ -6,14 +6,11 @@ Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/aws-cli@latest",
-        "options": {
+"features": {
+        "devcontainers/features/aws-cli@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

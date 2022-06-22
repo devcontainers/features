@@ -6,14 +6,11 @@ Installs Java, SDKMAN! (if not installed), and needed dependencies.
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/java@latest",
-        "options": {
+"features": {
+        "devcontainers/features/java@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

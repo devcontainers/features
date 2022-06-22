@@ -6,14 +6,11 @@ Installs Git Large File Support (Git LFS) along with needed dependencies. Useful
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/git-lfs@latest",
-        "options": {
+"features": {
+        "devcontainers/features/git-lfs@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

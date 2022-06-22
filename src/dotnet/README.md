@@ -6,14 +6,11 @@ Installs the .NET CLI. Provides option of installing sdk or runtime, and option 
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/dotnet@latest",
-        "options": {
+"features": {
+        "devcontainers/features/dotnet@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

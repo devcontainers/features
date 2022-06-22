@@ -6,14 +6,11 @@ Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/ruby@latest",
-        "options": {
+"features": {
+        "devcontainers/features/ruby@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

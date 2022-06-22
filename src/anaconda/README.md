@@ -6,14 +6,11 @@
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/anaconda@latest",
-        "options": {
+"features": {
+        "devcontainers/features/anaconda@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

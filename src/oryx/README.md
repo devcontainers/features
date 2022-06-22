@@ -6,14 +6,11 @@ Installs the oryx CLI
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/oryx@latest",
-        "options": {
+"features": {
+        "devcontainers/features/oryx@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options
