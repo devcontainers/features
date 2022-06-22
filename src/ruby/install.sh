@@ -12,6 +12,7 @@ RUBY_VERSION=${VERSION:-"latest"}
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
 INSTALL_RUBY_TOOLS=${INSTALL_RUBY_TOOLS:-"true"}
+RVM_DIR="/usr/local/rvm"
 
 # Note: ruby-debug-ide will install the right version of debase if missing and
 # installing debase directly fails on Ruby 3.1.0 as of 1/7/2022, so omitting.
@@ -190,10 +191,11 @@ fi
 find_version_from_git_tags RUBY_VERSION "https://github.com/ruby/ruby" "tags/v" "_"
 
 # Just install Ruby if RVM already installed
-if [ $(rvm --version) != "" ]; then
+if [ -d "${RVM_DIR}" ]; then
     echo "Ruby Version Manager already exists."
     if [ "${RUBY_VERSION}" != "none" ]; then
         echo "Installing specified Ruby version."
+        PATH="${RVM_DIR}/bin:$PATH"
         su ${USERNAME} -c "rvm install ruby ${RUBY_VERSION}"
     fi
     SKIP_GEM_INSTALL="false"
@@ -221,10 +223,15 @@ else
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
     fi
+    umask 0002
     # Install rvm
-    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    mkdir -p "${RVM_DIR}"
+
     usermod -aG rvm ${USERNAME}
-    source /usr/local/rvm/scripts/rvm
+    chown -R "${USERNAME}:rvm" "${RVM_DIR}/"
+    chmod -R g+r+w "${RVM_DIR}/"
+    su ${USERNAME} -c curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    su ${USERNAME} -c source ${RVM_DIR}/scripts/rvm
     rvm fix-permissions system
     rm -rf ${GNUPGHOME}
 fi
@@ -270,22 +277,19 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
 
     if [ "${USERNAME}" != "root" ]; then
         mkdir -p /home/${USERNAME}/.rbenv/plugins
+        
+        chown -R "${USERNAME}:rvm" "/home/${USERNAME}/.rbenv/"
+        chmod -R g+r+w "/home/${USERNAME}/.rbenv"
+        find "/home/${USERNAME}/.rbenv" -type d | xargs -n 1 chmod g+s
 
         if [[ ! -d "/home/${USERNAME}/.rbenv/plugins/ruby-build" ]]; then
             ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
         fi
 
-        ln -s /usr/local/rvm/rubies/default/bin/ruby /usr/local/rvm/gems/default/bin 
+        ln -s ${RVM_DIR}/rubies/default/bin/ruby ${RVM_DIR}/gems/default/bin
         
-        chown -R "${USERNAME}:rvm" "/home/${USERNAME}/.rbenv/"
-        chmod -R g+r+w "/home/${USERNAME}/.rbenv"
-        find "/home/${USERNAME}/.rbenv" -type d | xargs -n 1 chmod g+s
     fi
 fi
-
-chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
-chmod -R g+r+w "/usr/local/rvm/"
-find "/usr/local/rvm/" -type d | xargs -n 1 chmod g+s
 
 # Clean up
 rvm cleanup all
