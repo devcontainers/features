@@ -168,16 +168,6 @@ check_packages() {
     fi
 }
 
-# Use sudo to run as non-root user is not already running
-sudo_if() {
-    COMMAND="$*"
-    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
-        su - "$USERNAME" -c "$COMMAND"
-    else
-        "$COMMAND"
-    fi
-}
-
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
@@ -251,7 +241,9 @@ if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then
     # Non-root user may not have "gem" in path when script is run and no ruby version
     # is installed by rvm, so handle this by using root's default gem in this case
     ROOT_GEM="$(which gem || echo "")"
-    sudo_if "${ROOT_GEM} install ${DEFAULT_GEMS}"
+    ${ROOT_GEM} install ${DEFAULT_GEMS}
+    echo "owners"
+    ls -la /usr/local/rvm/
 fi
 
 # VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
