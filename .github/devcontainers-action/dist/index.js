@@ -255,7 +255,6 @@ function packageTemplates(basePath) {
         }
     });
 }
-// Kick off execution
 run();
 
 
@@ -358,30 +357,28 @@ function addCollectionsMetadataFile(featuresMetadata, templatesMetadata) {
 exports.addCollectionsMetadataFile = addCollectionsMetadataFile;
 function getFeaturesAndPackage(basePath) {
     return __awaiter(this, void 0, void 0, function* () {
+        const featureDirs = fs.readdirSync(basePath);
         let metadatas = [];
-        fs.readdir(basePath, (err, files) => {
-            if (err) {
-                core.error(err.message);
-                core.setFailed(`failed to get list of features: ${err.message}`);
-                return;
-            }
-            files.forEach(file => {
-                core.info(`feature ==> ${file}`);
-                if (file !== '.' && file !== '..') {
-                    const featureFolder = path_1.default.join(basePath, file);
-                    const archiveName = `${file}.tgz`;
-                    tarDirectory(`${basePath}/${file}`, archiveName);
-                    const featureJsonPath = path_1.default.join(featureFolder, 'devcontainer-feature.json');
-                    if (!fs.existsSync(featureJsonPath)) {
-                        core.error(`Feature ${file} is missing a devcontainer-feature.json`);
-                        core.setFailed('All features must have a devcontainer-feature.json');
-                        return;
-                    }
-                    const featureMetadata = JSON.parse(fs.readFileSync(featureJsonPath, 'utf8'));
-                    metadatas.push(featureMetadata);
+        yield Promise.all(featureDirs.map((f) => __awaiter(this, void 0, void 0, function* () {
+            core.info(`feature ==> ${f}`);
+            if (f !== '.' && f !== '..') {
+                const featureFolder = path_1.default.join(basePath, f);
+                const archiveName = `${f}.tgz`;
+                yield tarDirectory(`${basePath}/${f}`, archiveName);
+                const featureJsonPath = path_1.default.join(featureFolder, 'devcontainer-feature.json');
+                if (!fs.existsSync(featureJsonPath)) {
+                    core.error(`Feature ${f} is missing a devcontainer-feature.json`);
+                    core.setFailed('All features must have a devcontainer-feature.json');
+                    return;
                 }
-            });
-        });
+                const featureMetadata = JSON.parse(fs.readFileSync(featureJsonPath, 'utf8'));
+                metadatas.push(featureMetadata);
+            }
+        })));
+        if (metadatas.length === 0) {
+            core.setFailed('No features found');
+            return;
+        }
         return metadatas;
     });
 }

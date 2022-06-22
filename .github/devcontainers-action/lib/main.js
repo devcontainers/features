@@ -104,5 +104,4 @@ function packageTemplates(basePath) {
         }
     });
 }
-// Kick off execution
 run();
