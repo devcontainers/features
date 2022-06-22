@@ -231,7 +231,7 @@ else
     chown -R "${USERNAME}:rvm" "${RVM_DIR}/"
     chmod -R g+r+w "${RVM_DIR}/"
     su ${USERNAME} -c curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
-    su ${USERNAME} -c source ${RVM_DIR}/scripts/rvm
+    source ${RVM_DIR}/scripts/rvm
     rvm fix-permissions system
     rm -rf ${GNUPGHOME}
 fi
