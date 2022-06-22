@@ -104,13 +104,13 @@ function getFeaturesAndPackage(basePath) {
                     const featureFolder = path_1.default.join(basePath, file);
                     const archiveName = `${file}.tgz`;
                     tarDirectory(`${basePath}/${file}`, archiveName);
-                    const featureJsonPath = path_1.default.join(featureFolder, "devcontainer-feature.json");
+                    const featureJsonPath = path_1.default.join(featureFolder, 'devcontainer-feature.json');
                     if (!fs.existsSync(featureJsonPath)) {
                         core.error(`Feature ${file} is missing a devcontainer-feature.json`);
                         core.setFailed('All features must have a devcontainer-feature.json');
                         return;
                     }
-                    const featureMetadata = JSON.parse(fs.readFileSync(featureJsonPath, "utf8"));
+                    const featureMetadata = JSON.parse(fs.readFileSync(featureJsonPath, 'utf8'));
                     metadatas.push(featureMetadata);
                 }
             });

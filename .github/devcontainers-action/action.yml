@@ -32,5 +32,5 @@ inputs:
     description: "Relative path to the folder containing dev container 'template(s)'"
 
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
