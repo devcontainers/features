@@ -6,14 +6,11 @@ Installs PowerShell along with needed dependencies. Useful for base Dockerfiles 
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/powershell@latest",
-        "options": {
+"features": {
+        "devcontainers/features/powershell@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

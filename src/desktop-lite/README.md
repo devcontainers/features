@@ -6,14 +6,11 @@ Adds a lightweight Fluxbox based desktop to the container that can be accessed u
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/desktop-lite@latest",
-        "options": {
+"features": {
+        "devcontainers/features/desktop-lite@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

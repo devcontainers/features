@@ -6,14 +6,11 @@ Create child containers *inside* a container, independent from the host's docker
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/docker-in-docker@latest",
-        "options": {
+"features": {
+        "devcontainers/features/docker-in-docker@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

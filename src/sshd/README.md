@@ -6,14 +6,11 @@ Adds a SSH server into a container so that you can use an external terminal, sft
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/sshd@latest",
-        "options": {
+"features": {
+        "devcontainers/features/sshd@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

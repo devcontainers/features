@@ -6,14 +6,11 @@ Installs Rust, common Rust utilities, and their required dependencies
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/rust@latest",
-        "options": {
+"features": {
+        "devcontainers/features/rust@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

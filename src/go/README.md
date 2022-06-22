@@ -6,14 +6,11 @@ Installs Go and common Go utilities. Auto-detects latest version and installs ne
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/go@latest",
-        "options": {
+"features": {
+        "devcontainers/features/go@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

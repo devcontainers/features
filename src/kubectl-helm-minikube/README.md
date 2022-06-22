@@ -6,14 +6,11 @@ Installs latest version of kubectl, Helm, and optionally minikube. Auto-detects 
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/kubectl-helm-minikube@latest",
-        "options": {
+"features": {
+        "devcontainers/features/kubectl-helm-minikube@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

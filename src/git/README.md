@@ -6,14 +6,11 @@ Install an up-to-date version of Git, built from source as needed. Useful for wh
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/git@latest",
-        "options": {
+"features": {
+        "devcontainers/features/git@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options

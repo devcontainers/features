@@ -6,14 +6,11 @@ Installs the provided version of Python, as well as PIPX, and other common Pytho
 ## Example Usage
 
 ```json
-"features": [
-    {
-        "id": "devcontainers/features/python@latest",
-        "options": {
+"features": {
+        "devcontainers/features/python@latest": {
             "version": "latest"
         }
-    }
-]
+}
 ```
 
 ## Options
