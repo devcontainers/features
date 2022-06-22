@@ -62,7 +62,7 @@ function tarDirectory(path, tgzName) {
     });
 }
 exports.tarDirectory = tarDirectory;
-function addCollectionsMetadataFile() {
+function addCollectionsMetadataFile(featuresMetadata, templatesMetadata) {
     return __awaiter(this, void 0, void 0, function* () {
         const p = path_1.default.join('.', 'devcontainer-collection.json');
         // Insert github repo metadata
@@ -81,8 +81,8 @@ function addCollectionsMetadataFile() {
         }
         const metadata = {
             sourceInformation,
-            features: [],
-            templates: []
+            features: featuresMetadata || [],
+            templates: templatesMetadata || []
         };
         // Write to the file
         yield (0, exports.writeLocalFile)(p, JSON.stringify(metadata, undefined, 4));
@@ -91,7 +91,7 @@ function addCollectionsMetadataFile() {
 exports.addCollectionsMetadataFile = addCollectionsMetadataFile;
 function getFeaturesAndPackage(basePath) {
     return __awaiter(this, void 0, void 0, function* () {
-        let archives = [];
+        let metadatas = [];
         fs.readdir(basePath, (err, files) => {
             if (err) {
                 core.error(err.message);
@@ -101,13 +101,21 @@ function getFeaturesAndPackage(basePath) {
             files.forEach(file => {
                 core.info(`feature ==> ${file}`);
                 if (file !== '.' && file !== '..') {
+                    const featureFolder = path_1.default.join(basePath, file);
                     const archiveName = `${file}.tgz`;
                     tarDirectory(`${basePath}/${file}`, archiveName);
-                    archives.push(archiveName);
+                    const featureJsonPath = path_1.default.join(featureFolder, "devcontainer-feature.json");
+                    if (!fs.existsSync(featureJsonPath)) {
+                        core.error(`Feature ${file} is missing a devcontainer-feature.json`);
+                        core.setFailed('All features must have a devcontainer-feature.json');
+                        return;
+                    }
+                    const featureMetadata = JSON.parse(fs.readFileSync(featureJsonPath, "utf8"));
+                    metadatas.push(featureMetadata);
                 }
             });
         });
-        return archives;
+        return metadatas;
     });
 }
 exports.getFeaturesAndPackage = getFeaturesAndPackage;

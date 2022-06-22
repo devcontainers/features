@@ -46,14 +46,17 @@ function run() {
         const shouldPublishFeatures = core.getInput('publish-features').toLowerCase() === 'true';
         const shouldPublishTemplate = core.getInput('publish-templates').toLowerCase() === 'true';
         const shouldGenerateDocumentation = core.getInput('generate-docs').toLowerCase() === 'true';
+        let featuresMetadata = undefined;
+        let templatesMetadata = undefined;
         if (shouldPublishFeatures) {
             core.info('Publishing features...');
             const featuresBasePath = core.getInput('base-path-to-features');
-            yield packageFeatures(featuresBasePath);
+            featuresMetadata = yield packageFeatures(featuresBasePath);
         }
         if (shouldPublishTemplate) {
             core.info('Publishing template...');
             const basePathToDefinitions = core.getInput('base-path-to-templates');
+            templatesMetadata = undefined; // TODO
             yield packageTemplates(basePathToDefinitions);
         }
         if (shouldGenerateDocumentation) {
@@ -69,20 +72,23 @@ function run() {
         }
         // TODO: Programatically add feature/template fino with relevant metadata for UX clients.
         core.info('Generation metadata file: devcontainer-collection.json');
-        yield (0, utils_1.addCollectionsMetadataFile)();
+        yield (0, utils_1.addCollectionsMetadataFile)(featuresMetadata, templatesMetadata);
     });
 }
 function packageFeatures(basePath) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             core.info(`Archiving all features in ${basePath}`);
-            yield (0, utils_1.getFeaturesAndPackage)(basePath);
+            const metadata = yield (0, utils_1.getFeaturesAndPackage)(basePath);
             core.info('Packaging features has finished.');
+            return metadata;
         }
         catch (error) {
-            if (error instanceof Error)
+            if (error instanceof Error) {
                 core.setFailed(error.message);
+            }
         }
+        return;
     });
 }
 function packageTemplates(basePath) {
