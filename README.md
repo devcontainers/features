@@ -50,8 +50,8 @@ Development container 'features' are a [proposed](https://github.com/devcontaine
 
 - [`lib`](lib) - A collection of tools, scripts, and shared configuration used generally by this repo's features.
 - [`src`](src) - A collection of subfolders, each declaring a feature. Each subfolder contains at least a `feature.json` and the appropriately declared install script.
-- [`test`](test) - Mirroring `src`, a folder-per-feature with at least a `test.sh` script. The [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute tests [of this form](https://github.com/devcontainers/features/blob/main/.github/workflows/test-all.yaml).
-- [`test-scenarios`](test-scenarios) - More complex scenarios involving a set of features from this repo. [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute tests [of this form](https://github.com/devcontainers/features/blob/main/.github/workflows/test-scenarios.yaml).
+- [`test`](test) - Mirroring `src`, a folder-per-feature with at least a `test.sh` script. The [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute [these tests in CI](https://github.com/devcontainers/features/blob/main/.github/workflows/test-all.yaml).
+- [`test-scenarios`](test-scenarios) - More complex scenarios involving a set of features from this repo. The [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute [these tests in CI](https://github.com/devcontainers/features/blob/main/.github/workflows/test-scenarios.yaml).
 
 ## Usage
 
