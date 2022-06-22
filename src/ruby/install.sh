@@ -230,17 +230,21 @@ else
     usermod -aG rvm ${USERNAME}
     chown -R "${USERNAME}:rvm" "${RVM_DIR}/"
     chmod -R g+r+w "${RVM_DIR}/"
-    su ${USERNAME} -c curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+
+    su ${USERNAME} -c "$(cat << EOF
+    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
     source ${RVM_DIR}/scripts/rvm
     rvm fix-permissions system
     rm -rf ${GNUPGHOME}
+EOF
+)" 2>&1
 fi
 
 if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then
     # Non-root user may not have "gem" in path when script is run and no ruby version
     # is installed by rvm, so handle this by using root's default gem in this case
     ROOT_GEM="$(which gem || echo "")"
-    ${ROOT_GEM} install ${DEFAULT_GEMS}
+    su ${USERNAME} -c ${ROOT_GEM} install ${DEFAULT_GEMS}
 fi
 
 # VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
