@@ -191,11 +191,10 @@ fi
 find_version_from_git_tags RUBY_VERSION "https://github.com/ruby/ruby" "tags/v" "_"
 
 # Just install Ruby if RVM already installed
-if [ -d "${RVM_DIR}" ]; then
+if [ $(rvm --version) != "" ]; then
     echo "Ruby Version Manager already exists."
     if [ "${RUBY_VERSION}" != "none" ]; then
         echo "Installing specified Ruby version."
-        PATH="${RVM_DIR}/bin:$PATH"
         su ${USERNAME} -c "rvm install ruby ${RUBY_VERSION}"
     fi
     SKIP_GEM_INSTALL="false"
@@ -220,31 +219,29 @@ else
         fi
     fi
     # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
+    umask 0002
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
     fi
-    umask 0002
     # Install rvm
     mkdir -p "${RVM_DIR}"
-
     usermod -aG rvm ${USERNAME}
-    chown -R "${USERNAME}:rvm" "${RVM_DIR}/"
-    chmod -R g+r+w "${RVM_DIR}/"
 
-    su ${USERNAME} -c "$(cat << EOF
     curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
     source ${RVM_DIR}/scripts/rvm
     rvm fix-permissions system
     rm -rf ${GNUPGHOME}
-EOF
-)" 2>&1
+
+    chown -R "${USERNAME}:rvm" "${RVM_DIR}/"
+    chmod -R g+r+w "${RVM_DIR}/"
+    find "${RVM_DIR}" -type d | xargs -n 1 chmod g+s
 fi
 
 if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then
     # Non-root user may not have "gem" in path when script is run and no ruby version
     # is installed by rvm, so handle this by using root's default gem in this case
     ROOT_GEM="$(which gem || echo "")"
-    su ${USERNAME} -c ${ROOT_GEM} install ${DEFAULT_GEMS}
+    su - ${USERNAME} -c ${ROOT_GEM} install ${DEFAULT_GEMS}
 fi
 
 # VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
@@ -281,17 +278,16 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
 
     if [ "${USERNAME}" != "root" ]; then
         mkdir -p /home/${USERNAME}/.rbenv/plugins
-        
         chown -R "${USERNAME}:rvm" "/home/${USERNAME}/.rbenv/"
-        chmod -R g+r+w "/home/${USERNAME}/.rbenv"
-        find "/home/${USERNAME}/.rbenv" -type d | xargs -n 1 chmod g+s
+        chmod -R g+r+w "/home/${USERNAME}/.rbenv/"
 
         if [[ ! -d "/home/${USERNAME}/.rbenv/plugins/ruby-build" ]]; then
             ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
         fi
 
-        ln -s ${RVM_DIR}/rubies/default/bin/ruby ${RVM_DIR}/gems/default/bin
+        ln -s ${RVM_DIR}/rubies/default/bin/ruby ${RVM_DIR}/gems/default/bin 
         
+        find "/home/${USERNAME}/.rbenv" -type d | xargs -n 1 chmod g+s
     fi
 fi
 
