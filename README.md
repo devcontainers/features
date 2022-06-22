@@ -74,7 +74,7 @@ features: {
 }
 ```
 
-The `@latest` version annotation is added implictly if omitted. To pin to a specific [release tag](https://github.com/devcontainers/features/releases), append it to the end of the feature.
+The `@latest` version annotation is added implicitly if omitted. To pin to a specific [release tag](https://github.com/devcontainers/features/releases), append it to the end of the feature.
 
 ```jsonc
 features: {
@@ -83,12 +83,12 @@ features: {
     },
 ```
 
-## Developing
+## Contributions
 
 ### Contibuting to this repository
 
-<!-- TODO -->
+This repository will accept improvement and bug fix contributions related to the [current set of maintained features](./src).
 
-### Self-hosting your own collection of features
+### Creating your own collection of features
 
-<!-- TODO -->
+_More information your creating own set of features will be posted soon._
