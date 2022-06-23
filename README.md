@@ -10,9 +10,7 @@
 
 'Features' are self-contained units of installation code and development container configuration. Features are designed to install atop a wide-range of base container images (**this repo focuses on `debian` based images**).
 
-Missing a CLI or language in your otherwise _perfect_ container image? Add the relevant 'feature' to the `features` property of a [`devcontainer.json`](https://containers.dev/implementors/json_reference/#general-properties).
-
-The [`devcontainer` CLI](https://github.com/devcontainers/cli), implemented by the VS Code Remote-Containers extension and Github Codespaces, is required to process a `devcontainer.json` and build a container images declaring 'features'.
+Missing a CLI or language in your otherwise _perfect_ container image? Add the relevant 'feature' to the `features` property of a [`devcontainer.json`](https://containers.dev/implementors/json_reference/#general-properties).  A [tool supporting the dev container specification](https://containers.dev/supporting) is required to build a development container.
 
 Development container 'features' are a [proposed](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md) addition to the [development container specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md). **Please note that 'features' are in preview and subject to breaking changes**.
 
@@ -21,17 +19,19 @@ Development container 'features' are a [proposed](https://github.com/devcontaine
 ```
 .
 ├── lib
-│   └── utils.sh
+|   ├── settings.env
+|   ├── utils.sh
+│   └── ...
 ├── README.md
 ├── src
 │   ├── dotnet
-│   │   ├── feature.json
+│   │   ├── devcontainer-feature.json
 │   │   └── install.sh
 │   ├── go
-│   │   ├── feature.json
+│   │   ├── devcontainer-feature.json
 │   │   └── install.sh
 |   ├── ...
-│   │   ├── feature.json
+│   │   ├── devcontainer-feature.json
 │   │   └── install.sh
 ├── test
 │   ├── dotnet
@@ -39,8 +39,7 @@ Development container 'features' are a [proposed](https://github.com/devcontaine
 │   └── go
 │   |   └── test.sh
 |   ├── ...
-│   │   ├── feature.json
-│   │   └── install.sh
+│   │   └── test.sh
 ├── test-scenarios
 │   ├── install_jupyterlab.sh
 │   ├── install_python_twice.sh
@@ -49,7 +48,7 @@ Development container 'features' are a [proposed](https://github.com/devcontaine
 ```
 
 - [`lib`](lib) - A collection of tools, scripts, and shared configuration used generally by this repo's features.
-- [`src`](src) - A collection of subfolders, each declaring a feature. Each subfolder contains at least a `feature.json` and the appropriately declared install script.
+- [`src`](src) - A collection of subfolders, each declaring a feature. Each subfolder contains at least a `devcontainer-feature.json` and the appropriately declared install script.
 - [`test`](test) - Mirroring `src`, a folder-per-feature with at least a `test.sh` script. The [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute [these tests in CI](https://github.com/devcontainers/features/blob/main/.github/workflows/test-all.yaml).
 - [`test-scenarios`](test-scenarios) - More complex scenarios involving a set of features from this repo. The [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute [these tests in CI](https://github.com/devcontainers/features/blob/main/.github/workflows/test-scenarios.yaml).
 
