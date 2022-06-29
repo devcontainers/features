@@ -14,6 +14,10 @@ Missing a CLI or language in your otherwise _perfect_ container image? Add the r
 
 Development container 'features' are a [proposed](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md) addition to the [development container specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md). **Please note that 'features' are in preview and subject to breaking changes**.
 
+<!-- 
+**For more information on the 'features' specification, see [https://containers.dev/implementors/features](https://containers.dev/implementors/features)**
+-->
+
 ## Repo Structure
 
 ```
