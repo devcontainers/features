@@ -11,7 +11,7 @@ export NODE_VERSION=${VERSION:-"lts"}
 export NVM_DIR=${NVM_INSTALL_PATH:-"/usr/local/share/nvm"}
 INSTALL_TOOLS_FOR_NODE_GYP="${INSTALL_TOOLS_FOR_NODE_GYP:-true}"
 
-# Space-separated list of node versions to be installed (with nvm)
+# Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
 ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
 
@@ -155,15 +155,15 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
 
     OLDIFS=$IFS
     IFS=","
-    read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-    for ver in "${additional_versions[@]}"; do
-        su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm install ${ver}"
-        su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm clear-cache"
-        # Reset the NODE_VERSION as the default version on the path.
-        if [ "${NODE_VERSION}" != "" ]; then
-                su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm use default"
-        fi
-    done
+        read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+        for ver in "${additional_versions[@]}"; do
+            su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm install ${ver}"
+            su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm clear-cache"
+            # Reset the NODE_VERSION as the default version on the path.
+            if [ "${NODE_VERSION}" != "" ]; then
+                    su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm use default"
+            fi
+        done
     IFS=$OLDIFS
 fi
 
