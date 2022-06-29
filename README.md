@@ -12,7 +12,7 @@
 
 Missing a CLI or language in your otherwise _perfect_ container image? Add the relevant 'feature' to the `features` property of a [`devcontainer.json`](https://containers.dev/implementors/json_reference/#general-properties).  A [tool supporting the dev container specification](https://containers.dev/supporting) is required to build a development container.
 
-⚠️ Development container 'features' are a [**proposed**](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md) addition to the [development container specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md). **Please note that 'features' are in preview and subject to breaking changes**.
+⚠️ Development container 'features' are a [**proposed**](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md) addition to the [development container specification](https://containers.dev/implementors/spec/). **Please note that 'features' are in preview and subject to breaking changes**.
 
 Once the [**proposed**](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md) specification is accepted, implementation details will be published at [https://containers.dev](https://containers.dev/).
 
