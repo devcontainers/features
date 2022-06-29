@@ -11,6 +11,10 @@ export NODE_VERSION=${VERSION:-"lts"}
 export NVM_DIR=${NVM_INSTALL_PATH:-"/usr/local/share/nvm"}
 INSTALL_TOOLS_FOR_NODE_GYP="${INSTALL_TOOLS_FOR_NODE_GYP:-true}"
 
+# Space-separated list of node versions to be installed (with nvm)
+# alongside NODE_VERSION, but not set as default.
+ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
+
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
 
@@ -133,7 +137,7 @@ su ${USERNAME} -c "$(cat << EOF
     if [ "${NODE_VERSION}" != "" ]; then
         nvm alias default ${NODE_VERSION}
     fi
-    nvm clear-cache 
+    nvm clear-cache
 EOF
 )" 2>&1
 # Update rc files
@@ -144,6 +148,23 @@ export NVM_DIR="${NVM_DIR}"
 [ -s "\$NVM_DIR/bash_completion" ] && . "\$NVM_DIR/bash_completion"
 EOF
 )"
+fi
+
+# Additional node versions to be installed but not be set as default.
+if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
+
+    OLDIFS=$IFS
+    IFS=","
+    read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+    for ver in "${additional_versions[@]}"; do
+        su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm install ${ver}"
+        su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm clear-cache"
+        # Reset the NODE_VERSION as the default version on the path.
+        if [ "${NODE_VERSION}" != "" ]; then
+                su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm use default"
+        fi
+    done
+    IFS=$OLDIFS
 fi
 
 # If enabled, verify "python3", "make", "gcc", "g++" commands are available so node-gyp works - https://github.com/nodejs/node-gyp
