@@ -23,9 +23,9 @@ function string_contains () {
     fi
 }
  
-expect "version_on_path"           "v18.4.0"    "$(node -v)"
+check "version_on_path"  node -v | grep 18.4.0
 string_contains "v14_installed"    "v14.19.3"   "$(ls -1 /usr/local/share/nvm/versions/node)"
-string_contains "v17_installed"    "v17.9.1"    "$(ls -1 /usr/local/share/nvm/versions/node)"
+check ls -1 /usr/local/share/nvm/versions/node | grep 17.9.1
 
 
 # Report result
