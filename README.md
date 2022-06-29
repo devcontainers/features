@@ -12,11 +12,10 @@
 
 Missing a CLI or language in your otherwise _perfect_ container image? Add the relevant 'feature' to the `features` property of a [`devcontainer.json`](https://containers.dev/implementors/json_reference/#general-properties).  A [tool supporting the dev container specification](https://containers.dev/supporting) is required to build a development container.
 
-Development container 'features' are a [proposed](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md) addition to the [development container specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md). **Please note that 'features' are in preview and subject to breaking changes**.
+⚠️ Development container 'features' are a [**proposed**](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md) addition to the [development container specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md). **Please note that 'features' are in preview and subject to breaking changes**.
 
-<!-- 
-**For more information on the 'features' specification, see [https://containers.dev/implementors/features](https://containers.dev/implementors/features)**
--->
+Once the [**proposed**](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md) specification is accepted, implementation details will be published at [https://containers.dev](https://containers.dev/).
+
 
 ## Repo Structure
 
@@ -65,6 +64,7 @@ The example below installs the `go` and `docker-in-docker` declared in the [`./s
 See the relevant feature's README for supported options.
 
 ```jsonc
+"name": "my-project-devcontainer",
 "image": "mcr.microsoft.com/devcontainers/base:ubuntu",  // Any generic, debian-based image.
 features: {
     "devcontainers/features/go@latest": {
@@ -84,6 +84,13 @@ features: {
     "devcontainers/features/go@v0.0.2": {
         "version": "1.18"
     },
+```
+
+The [devcontainer CLI reference implementation](https://github.com/devcontainers/cli) (or a [supporting tool](https://containers.dev/supporting)) can be used to build a project's dev container declaring 'features'.
+
+```bash
+git clone <my-project-with-devcontainer>
+devcontainer build --workspace-folder <path-to-my-project-with-devcontainer>
 ```
 
 ## Contributions
