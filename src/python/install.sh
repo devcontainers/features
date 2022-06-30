@@ -22,6 +22,10 @@ USE_ORYX_IF_AVAILABLE=${USE_ORYX_IF_AVAILABLE:-"true"}
 INSTALL_JUPYTERLAB=${INSTALL_JUPYTERLAB:-"false"}
 CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN=${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN:-""}
 
+# Comma-separated list of python versions to be installed
+# alongside PYTHON_VERSION, but not set as default.
+ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
+
 DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
@@ -226,7 +230,8 @@ add_symlink() {
 }
 
 install_from_source() {
-    echo "(*) Building Python ${PYTHON_VERSION} from source..."
+    VERSION=$1 
+    echo "(*) Building Python ${VERSION} from source..."
     # Install prereqs if missing
     check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev libncurses5-dev \
                 libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
@@ -237,20 +242,20 @@ install_from_source() {
     fi
 
     # Find version using soft match
-    find_version_from_git_tags PYTHON_VERSION "https://github.com/python/cpython"
+    find_version_from_git_tags VERSION "https://github.com/python/cpython"
 
-    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
+    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
     
     if [ -d "${INSTALL_PATH}" ]; then
-        echo "(!) Python version ${PYTHON_VERSION} already exists."
+        echo "(!) Python version ${VERSION} already exists."
         exit 1
     fi
 
     # Download tgz of source
     mkdir -p /tmp/python-src ${INSTALL_PATH}
     cd /tmp/python-src
-    local tgz_filename="Python-${PYTHON_VERSION}.tgz"
-    local tgz_url="https://www.python.org/ftp/python/${PYTHON_VERSION}/${tgz_filename}"
+    local tgz_filename="Python-${VERSION}.tgz"
+    local tgz_url="https://www.python.org/ftp/python/${VERSION}/${tgz_filename}"
     echo "Downloading ${tgz_filename}..."
     curl -sSL -o "/tmp/python-src/${tgz_filename}" "${tgz_url}"
 
@@ -288,13 +293,14 @@ install_from_source() {
 }
 
 install_using_oryx() {
-    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
+    VERSION=$1 
+    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
     
     if [ -d "${INSTALL_PATH}" ]; then
-        echo "(!) Python version ${PYTHON_VERSION} already exists."
+        echo "(!) Python version ${VERSION} already exists."
         exit 1
     fi
-    oryx_install "python" "${PYTHON_VERSION}" "${INSTALL_PATH}" "lib" || return 1
+    oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
 
     ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
     ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
@@ -329,6 +335,23 @@ add_user_jupyter_config() {
     grep -q "$1" "$CONFIG_FILE" || echo "$1" >> "$CONFIG_FILE"
 }
 
+install_python() {
+    version=$1
+    # If the os-provided versions are "good enough", detect that and bail out.
+    if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
+        check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
+        PYTHON_INSTALL_PATH="/usr"
+        should_install_from_source=false
+    elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
+        install_using_oryx $version || should_install_from_source=true
+    else
+        should_install_from_source=true
+    fi
+    if [ "${should_install_from_source}" = "true" ]; then
+        install_from_source $version
+    fi
+}
+
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
@@ -346,22 +369,23 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     usermod -a -G python "${USERNAME}"
 
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
-    # If the os-provided versions are "good enough", detect that and bail out.
-    if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
-        check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
-        PYTHON_INSTALL_PATH="/usr"
-        should_install_from_source=false
-    elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
-        install_using_oryx || should_install_from_source=true
-    else
-        should_install_from_source=true
-    fi
-    if [ "${should_install_from_source}" = "true" ]; then
-        install_from_source
-    fi
+    
+    install_python ${PYTHON_VERSION}
     
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
     
+    # Additional python versions to be installed but not be set as default.
+    if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
+        OLDIFS=$IFS
+        IFS=","
+            read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+            for version in "${additional_versions[@]}"; do
+                OVERRIDE_DEFAULT_VERSION="false"
+                install_python $version
+            done
+        IFS=$OLDIFS
+    fi
+
     chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
     chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
     find "${PYTHON_INSTALL_PATH}" -type d | xargs -n 1 chmod g+s
