@@ -160,10 +160,12 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
             su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm install ${ver}"
             su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm clear-cache"
             # Reset the NODE_VERSION as the default version on the path.
-            if [ "${NODE_VERSION}" != "" ]; then
-                    su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm use default"
-            fi
         done
+
+        # Ensure $NODE_VERSION is on the $PATH
+        if [ "${NODE_VERSION}" != "" ]; then
+                su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm use default"
+        fi
     IFS=$OLDIFS
 fi
 
