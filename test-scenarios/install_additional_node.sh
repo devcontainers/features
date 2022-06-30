@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -e
 
 # Optional: Import test library
