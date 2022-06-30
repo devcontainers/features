@@ -1,45 +1,21 @@
 {
-    "install_python_twice": {
-        "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
-        "features": [
-            {
-                "id": "python",
-                "options": {
-                    "version": "3.8"
-                }
-            },
-            {
-                "id": "python",
-                "options": {
-                    "version": "3.9",
-                    "overrideDefaultVersion": true
-                }
-            }
-        ]
-    },
     "install_jupyterlab": {
         "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
         "remoteUser": "vscode",
-        "features": [
-            {
-                "id": "common",
-                "options": {
-                    "username": "vscode"
-                }
+        "features": {
+            "common": {
+                "username": "vscode"
             },
-            {
-                "id": "python",
-                "options": {
-                    "install_jupyterlab": true,
-                    "configure_jupyterlab_allow_origin": "*"
-                }
+            "python": {
+                "install_jupyterlab": true,
+                "configure_jupyterlab_allow_origin": "*"
             }
-        ]
+        }
     },
     "install_additional_node": {
         "image": "debian:11",
         "features": {
-            "node" : {
+            "node": {
                 "version": "latest",
                 "additional_versions": "v17.9.1,v14.19.3"
             }
