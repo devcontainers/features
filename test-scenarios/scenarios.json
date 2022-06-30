@@ -12,7 +12,7 @@
             }
         }
     },
-    "install_addtional_ruby": {
+    "install_additional_ruby": {
         "image": "ubuntu:focal",
         "features": {
             "ruby": {
