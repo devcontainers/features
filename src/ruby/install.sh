@@ -13,6 +13,10 @@ USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
 INSTALL_RUBY_TOOLS=${INSTALL_RUBY_TOOLS:-"true"}
 
+# Comma-separated list of ruby versions to be installed (with rvm)
+# alongside RUBY_VERSION, but not set as default.
+ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
+
 # Note: ruby-debug-ide will install the right version of debase if missing and
 # installing debase directly fails on Ruby 3.1.0 as of 1/7/2022, so omitting.
 DEFAULT_GEMS="rake ruby-debug-ide"
@@ -238,6 +242,20 @@ fi
 
 # VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
 updaterc "if ! grep rvm_silence_path_mismatch_check_flag \$HOME/.rvmrc > /dev/null 2>&1; then echo 'rvm_silence_path_mismatch_check_flag=1' >> \$HOME/.rvmrc; fi\nsource /usr/local/rvm/scripts/rvm > /dev/null 2>&1"
+
+# Additional ruby versions to be installed but not be set as default.
+if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
+    OLDIFS=$IFS
+    IFS=","
+        read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+        for version in "${additional_versions[@]}"; do
+            # Figure out correct version of a three part version number is not passed
+            find_version_from_git_tags version "https://github.com/ruby/ruby" "tags/v" "_"
+            source /usr/local/rvm/scripts/rvm
+            rvm install ruby ${version}
+        done
+    IFS=$OLDIFS
+fi
 
 # Install rbenv/ruby-build for good measure
 if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
