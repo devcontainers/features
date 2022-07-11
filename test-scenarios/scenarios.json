@@ -29,5 +29,14 @@
                 "additional_versions": "2.5,3.0.4"
             }
         }
+    },
+    "install_additional_php": {
+        "image": "ubuntu:focal",
+        "features": {
+            "php": {
+                "version": "8.1.4",
+                "additional_versions": "2.5,3.0.4"
+            }
+        }
     }
 }
