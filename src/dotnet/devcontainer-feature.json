@@ -36,9 +36,5 @@
     },
     "extensions": [
         "ms-dotnettools.csharp"
-    ],
-    "install": {
-        "app": "",
-        "file": "install.sh"
-    }
+    ]
 }

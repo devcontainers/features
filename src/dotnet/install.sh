@@ -26,6 +26,10 @@ DOTNET_CDN_FEED_URI="https://dotnetcli.azureedge.net"
 # Ubuntu 22.04 and on do not ship with libssl1.1, which is required for versions of .NET < 6.0
 DOTNET_VERSION_CODENAMES_REQUIRE_OLDER_LIBSSL_1="buster bullseye bionic focal hirsute"
 
+# Comma-separated list of dotnet versions to be installed
+# alongside DOTNET_VERSION, but not set as default.
+ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
+
 # Exit on failure.
 set -e
 
@@ -235,6 +239,7 @@ install_using_apt() {
 # DOTNET_DOWNLOAD_NAME
 get_full_version_details() {
     local sdk_or_runtime="$1"
+    local VERSION="$2"
     local architecture
     local dotnet_channel_version
     local dotnet_releases_url
@@ -249,12 +254,12 @@ get_full_version_details() {
     # Set architecture variable to current user's architecture (x64 or ARM64).
     architecture="$(get_architecture_name_for_target_os)"
 
-    # Set DOTNET_VERSION to empty string to ensure jq includes all .NET versions in reverse sort below 
-    if [ "${DOTNET_VERSION}" = "latest" ]; then
-        DOTNET_VERSION=""
+    # Set VERSION to empty string to ensure jq includes all .NET versions in reverse sort below 
+    if [ "${VERSION}" = "latest" ]; then
+        VERSION=""
     fi
 
-    dotnet_patchless_version="$(echo "${DOTNET_VERSION}" | cut -d "." --field=1,2)"
+    dotnet_patchless_version="$(echo "${VERSION}" | cut -d "." --field=1,2)"
 
     set +e
     dotnet_channel_version="$(curl -s "${DOTNET_CDN_FEED_URI}/dotnet/release-metadata/releases-index.json" | jq -r --arg channel_version "${dotnet_patchless_version}" '[."releases-index"[]] | sort_by(."channel-version") | reverse | map( select(."channel-version" | startswith($channel_version))) | first | ."channel-version"')"
@@ -274,22 +279,22 @@ get_full_version_details() {
     if [ -n "${dotnet_releases_json}" ] && [[ ! "${dotnet_releases_json}" = *"Error"* ]]; then
         dotnet_latest_version="$(echo "${dotnet_releases_json}" | jq -r --arg sdk_or_runtime "${sdk_or_runtime}" '."latest-\($sdk_or_runtime)"')"
         # If user-specified version has 2 or more dots, use it as is.  Otherwise use latest version.
-        if [ "$(echo "${DOTNET_VERSION}" | grep -o "\." | wc -l)" -lt "2" ]; then
-            DOTNET_VERSION="${dotnet_latest_version}"
+        if [ "$(echo "${VERSION}" | grep -o "\." | wc -l)" -lt "2" ]; then
+            VERSION="${dotnet_latest_version}"
         fi
 
-        dotnet_download_details="$(echo "${dotnet_releases_json}" |  jq -r --arg sdk_or_runtime "${sdk_or_runtime}" --arg dotnet_version "${DOTNET_VERSION}" --arg arch "${architecture}" '.releases[]."\($sdk_or_runtime)" | select(.version==$dotnet_version) | .files[] | select(.name=="dotnet-\($sdk_or_runtime)-linux-\($arch).tar.gz")')"
+        dotnet_download_details="$(echo "${dotnet_releases_json}" |  jq -r --arg sdk_or_runtime "${sdk_or_runtime}" --arg dotnet_version "${VERSION}" --arg arch "${architecture}" '.releases[]."\($sdk_or_runtime)" | select(.version==$dotnet_version) | .files[] | select(.name=="dotnet-\($sdk_or_runtime)-linux-\($arch).tar.gz")')"
         if [ -n "${dotnet_download_details}" ]; then
-            echo "Found .NET binary version ${DOTNET_VERSION}"
+            echo "Found .NET binary version ${VERSION}"
             DOTNET_DOWNLOAD_URL="$(echo "${dotnet_download_details}" | jq -r '.url')"
             DOTNET_DOWNLOAD_HASH="$(echo "${dotnet_download_details}" | jq -r '.hash')"
             DOTNET_DOWNLOAD_NAME="$(echo "${dotnet_download_details}" | jq -r '.name')"
         else
-            err "Unable to find .NET binary for version ${DOTNET_VERSION}"
+            err "Unable to find .NET binary for version ${VERSION}"
             exit 1
         fi
     else
-        err "Unable to find .NET release details for version ${DOTNET_VERSION} at ${dotnet_releases_url}"
+        err "Unable to find .NET release details for version ${VERSION} at ${dotnet_releases_url}"
         exit 1
     fi
 }
@@ -297,6 +302,7 @@ get_full_version_details() {
 # Install .NET CLI using the .NET releases url
 install_using_dotnet_releases_url() {
     local sdk_or_runtime="$1"
+    local VERSION="$2"
 
     # Check listed package dependecies and install them if they are not already installed. 
     # NOTE: icu-devtools is a small package with similar dependecies to .NET. 
@@ -313,11 +319,11 @@ install_using_dotnet_releases_url() {
         check_packages libssl3.0
     fi
 
-    get_full_version_details "${sdk_or_runtime}"
+    get_full_version_details "${sdk_or_runtime}" "${VERSION}"
 
-    DOTNET_INSTALL_PATH="${TARGET_DOTNET_ROOT}/${DOTNET_VERSION}"
+    DOTNET_INSTALL_PATH="${TARGET_DOTNET_ROOT}/${VERSION}"
     if [ -d "${DOTNET_INSTALL_PATH}" ]; then
-        echo "(!) Dotnet version ${DOTNET_VERSION} already exists."
+        echo "(!) Dotnet version ${VERSION} already exists."
         exit 1
     fi
     # exports DOTNET_DOWNLOAD_URL, DOTNET_DOWNLOAD_HASH, DOTNET_DOWNLOAD_NAME
@@ -402,6 +408,7 @@ echo "(*) Installing .NET CLI..."
 . /etc/os-release
 architecture="$(dpkg --print-architecture)"
 
+CHANGE_OWNERSHIP="false"
 if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${INSTALL_USING_APT}" = "true" ]]; then
     echo "Detected ${VERSION_CODENAME} on ${architecture}. Attempting to install dotnet from apt"
     install_using_apt "${DOTNET_SDK_OR_RUNTIME}"
@@ -411,14 +418,28 @@ else
     else
         echo "Could not install dotnet from apt. Attempting to install dotnet from releases url"
     fi
+    install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}" "${DOTNET_VERSION}"
+    CHANGE_OWNERSHIP="true"
+fi
 
+# Additional dotnet versions to be installed but not be set as default.
+if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
+    OLDIFS=$IFS
+    IFS=","
+        read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+        for version in "${additional_versions[@]}"; do
+            OVERRIDE_DEFAULT_VERSION="false"
+            install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}" "${version}"
+        done
+    IFS=$OLDIFS
+fi
+
+if [ "${CHANGE_OWNERSHIP}" = "true" ]; then
     if ! cat /etc/group | grep -e "^dotnet:" > /dev/null 2>&1; then
         groupadd -r dotnet
     fi
     usermod -a -G dotnet "${USERNAME}"
 
-    install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}"
-    
     chown -R "${USERNAME}:dotnet" "${TARGET_DOTNET_ROOT}"
     chmod -R g+r+w "${TARGET_DOTNET_ROOT}"
     find "${TARGET_DOTNET_ROOT}" -type d | xargs -n 1 chmod g+s
