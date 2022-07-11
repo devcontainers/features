@@ -104,7 +104,7 @@ if ! oryx --version > /dev/null ; then
 
     BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen 
     ORYX=/usr/local/oryx
-    GIT_ORYX=/tmp/oryx 
+    GIT_ORYX=/opt/tmp 
 
     mkdir -p ${BUILD_SCRIPT_GENERATOR}
     mkdir -p ${ORYX}
