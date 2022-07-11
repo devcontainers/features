@@ -206,7 +206,7 @@ install_php() {
 
 install_php ${VERSION}
 
-Additional php versions to be installed but not be set as default.
+# Additional php versions to be installed but not be set as default.
 if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     OLDIFS=$IFS
     IFS=","
