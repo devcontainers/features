@@ -211,7 +211,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     OLDIFS=$IFS
     IFS=","
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-        for "${version}" in "${additional_versions[@]}"; do
+        for version in "${additional_versions[@]}"; do
             OVERRIDE_DEFAULT_VERSION="false"
             install_php "${version}"
         done
