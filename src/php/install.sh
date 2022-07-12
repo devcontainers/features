@@ -116,7 +116,7 @@ PHPIZE_DEPS="autoconf dpkg-dev file g++ gcc libc-dev make pkg-config re2c"
 check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
 
 install_php() {
-    VERSION=$1
+    VERSION="$1"
 
     # Fetch latest version of PHP if needed
     if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
@@ -204,16 +204,16 @@ install_php() {
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=${CURRENT_DIR}/bin:\${PATH}; fi"
 }
 
-install_php ${VERSION}
+install_php "${VERSION}"
 
 # Additional php versions to be installed but not be set as default.
 if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     OLDIFS=$IFS
     IFS=","
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-        for version in "${additional_versions[@]}"; do
+        for "${version}" in "${additional_versions[@]}"; do
             OVERRIDE_DEFAULT_VERSION="false"
-            install_php $version
+            install_php "${version}"
         done
     IFS=$OLDIFS
 fi
