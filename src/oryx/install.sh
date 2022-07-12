@@ -86,11 +86,6 @@ check_packages git sudo wget ca-certificates
 if ! oryx --version > /dev/null ; then
     echo "Installing Oryx..."
 
-    if ! cat /etc/group | grep -e "^oryx:" > /dev/null 2>&1; then
-        groupadd -r oryx
-    fi
-    usermod -a -G oryx "${USERNAME}"
-
     # Install dotnet unless available
     if ! dotnet --version > /dev/null ; then
         echo "'dotnet' was not detected. Attempting to install the latest version of the dotnet sdk to build oryx."
@@ -126,8 +121,9 @@ if ! oryx --version > /dev/null ; then
 
     updaterc "export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=$ORYX_INSTALL_DIR && ORYX_PREFER_USER_INSTALLED_SDKS=true"
     
-    chown -R "${USERNAME}:oryx" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
-    chmod -R g+r+w "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
+    chown -R "${USERNAME}:${USERNAME}" "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
+    chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
+    find "${ORYX_INSTALL_DIR}" -type d | xargs -n 1 chmod g+s
     find "${BUILD_SCRIPT_GENERATOR}" -type d | xargs -n 1 chmod g+s
     find "${ORYX}" -type d | xargs -n 1 chmod g+s
 fi
