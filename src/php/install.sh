@@ -196,12 +196,12 @@ install_php() {
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
         if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${PHP_INSTALL_DIR}"* ]] ; then
             rm "${CURRENT_DIR}"
-            ln -s -r "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
+            ln -s -r "${PHP_INSTALL_DIR}" "${CURRENT_DIR}"
         fi
     fi
 
-    rm -rf ${PHP_SRC_DIR}
-    updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=${CURRENT_DIR}/bin:\${PATH}; fi"
+    rm -rf "${PHP_SRC_DIR}"
+    updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=\"${CURRENT_DIR}/bin:\${PATH}\"; fi"
 }
 
 install_php "${VERSION}"
