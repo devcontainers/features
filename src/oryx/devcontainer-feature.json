@@ -8,6 +8,7 @@
         "DYNAMIC_INSTALL_ROOT_DIR": "/usr/local/oryx-platforms",
         "ORYX_PREFER_USER_INSTALLED_SDKS": "true",
         "ORYX_DIR": "/usr/local/oryx",
+        "DEBIAN_FLAVOR": "focal-scm",
         "PATH": "${ORYX_DIR}:${PATH}"
     },
     "install": {
