@@ -104,7 +104,7 @@ if ! oryx --version > /dev/null ; then
 
     BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen 
     ORYX=/usr/local/oryx
-    GIT_ORYX=/tmp/oryx 
+    GIT_ORYX=/opt/tmp 
 
     mkdir -p ${BUILD_SCRIPT_GENERATOR}
     mkdir -p ${ORYX}
@@ -122,10 +122,10 @@ if ! oryx --version > /dev/null ; then
     ln -s ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript ${ORYX}/oryx
     cp -f $GIT_ORYX/images/build/benv.sh ${ORYX}/benv
 
-    ORYX_INSTALL_DIR="/usr/local/oryx-platforms"
+    ORYX_INSTALL_DIR="/opt"
     mkdir -p "${ORYX_INSTALL_DIR}"
 
-    updaterc "export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=$ORYX_INSTALL_DIR && ORYX_PREFER_USER_INSTALLED_SDKS=true"
+    updaterc "export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=$ORYX_INSTALL_DIR && ORYX_PREFER_USER_INSTALLED_SDKS=true && export DEBIAN_FLAVOR=focal-scm"
     
     chown -R "${USERNAME}:oryx" "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
     chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
