@@ -16,6 +16,10 @@ export PHP_DIR=${PHP_DIR:-"/usr/local/php"}
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
 
+# Comma-separated list of php versions to be installed
+# alongside VERSION, but not set as default.
+ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
+
 export DEBIAN_FRONTEND=noninteractive
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -111,91 +115,108 @@ PHPIZE_DEPS="autoconf dpkg-dev file g++ gcc libc-dev make pkg-config re2c"
 # Install dependencies
 check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
 
-# Fetch latest version of PHP if needed
-if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
-    find_version_from_git_tags
-fi
+install_php() {
+    VERSION="$1"
 
-PHP_INSTALL_DIR="${PHP_DIR}/${VERSION}"
-if [ -d "${PHP_INSTALL_DIR}" ]; then
-    echo "(!) PHP version ${VERSION} already exists."
-    exit 1
-fi
+    # Fetch latest version of PHP if needed
+    if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
+        find_version_from_git_tags
+    fi
 
-if ! cat /etc/group | grep -e "^php:" > /dev/null 2>&1; then
-    groupadd -r php
-fi
-usermod -a -G php "${USERNAME}"
+    PHP_INSTALL_DIR="${PHP_DIR}/${VERSION}"
+    if [ -d "${PHP_INSTALL_DIR}" ]; then
+        echo "(!) PHP version ${VERSION} already exists."
+        exit 1
+    fi
 
-PHP_URL="https://www.php.net/distributions/php-${VERSION}.tar.gz"
+    if ! cat /etc/group | grep -e "^php:" > /dev/null 2>&1; then
+        groupadd -r php
+    fi
+    usermod -a -G php "${USERNAME}"
 
-PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
-CONF_DIR="${PHP_INI_DIR}/conf.d"
-mkdir -p "${CONF_DIR}";
+    PHP_URL="https://www.php.net/distributions/php-${VERSION}.tar.gz"
 
-PHP_EXT_DIR="${PHP_INSTALL_DIR}/extensions"
-mkdir -p "${PHP_EXT_DIR}"
+    PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
+    CONF_DIR="${PHP_INI_DIR}/conf.d"
+    mkdir -p "${CONF_DIR}";
 
-PHP_SRC_DIR="/usr/src/php"
-mkdir -p $PHP_SRC_DIR
-cd $PHP_SRC_DIR
-wget -O php.tar.xz "$PHP_URL"
+    PHP_EXT_DIR="${PHP_INSTALL_DIR}/extensions"
+    mkdir -p "${PHP_EXT_DIR}"
 
-tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR" --strip-components=1
-cd $PHP_SRC_DIR;
+    PHP_SRC_DIR="/usr/src/php"
+    mkdir -p $PHP_SRC_DIR
+    cd $PHP_SRC_DIR
+    wget -O php.tar.xz "$PHP_URL"
 
-# PHP 7.4+, the pecl/pear installers are officially deprecated and are removed in PHP 8+
-# Thus, requiring an explicit "--with-pear"
-IFS="."
-read -a versions <<< "${VERSION}"
-PHP_MAJOR_VERSION=${versions[0]}
-PHP_MINOR_VERSION=${versions[1]}
+    tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR" --strip-components=1
+    cd $PHP_SRC_DIR;
 
-VERSION_CONFIG=""
-if (( $(($PHP_MAJOR_VERSION)) >= 8 )) || (( $(($PHP_MAJOR_VERSION)) == 7 && $(($PHP_MINOR_VERSION)) >= 4 )); then 
-    VERSION_CONFIG="--with-pear"
-fi
+    # PHP 7.4+, the pecl/pear installers are officially deprecated and are removed in PHP 8+
+    # Thus, requiring an explicit "--with-pear"
+    IFS="."
+    read -a versions <<< "${VERSION}"
+    PHP_MAJOR_VERSION=${versions[0]}
+    PHP_MINOR_VERSION=${versions[1]}
 
-./configure --prefix="${PHP_INSTALL_DIR}" --with-config-file-path="$PHP_INI_DIR" --with-config-file-scan-dir="$CONF_DIR" --enable-option-checking=fatal --with-curl --with-libedit --with-openssl --with-zlib --with-password-argon2 --with-sodium=shared "$VERSION_CONFIG" EXTENSION_DIR="$PHP_EXT_DIR";
+    VERSION_CONFIG=""
+    if (( $(($PHP_MAJOR_VERSION)) >= 8 )) || (( $(($PHP_MAJOR_VERSION)) == 7 && $(($PHP_MINOR_VERSION)) >= 4 )); then 
+        VERSION_CONFIG="--with-pear"
+    fi
 
-make -j "$(nproc)"
-find -type f -name '*.a' -delete
-make install
-find "${PHP_INSTALL_DIR}" -type f -executable -exec strip --strip-all '{}' + || true
-make clean
+    ./configure --prefix="${PHP_INSTALL_DIR}" --with-config-file-path="$PHP_INI_DIR" --with-config-file-scan-dir="$CONF_DIR" --enable-option-checking=fatal --with-curl --with-libedit --with-openssl --with-zlib --with-password-argon2 --with-sodium=shared "$VERSION_CONFIG" EXTENSION_DIR="$PHP_EXT_DIR";
 
-cp -v $PHP_SRC_DIR/php.ini-* "$PHP_INI_DIR/";
-cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+    make -j "$(nproc)"
+    find -type f -name '*.a' -delete
+    make install
+    find "${PHP_INSTALL_DIR}" -type f -executable -exec strip --strip-all '{}' + || true
+    make clean
 
-# Install xdebug
-"${PHP_INSTALL_DIR}/bin/pecl" install xdebug
-XDEBUG_INI="${CONF_DIR}/xdebug.ini"
+    cp -v $PHP_SRC_DIR/php.ini-* "$PHP_INI_DIR/";
+    cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-echo "zend_extension=${PHP_EXT_DIR}/xdebug.so" > "${XDEBUG_INI}"
-echo "xdebug.mode = debug" >> "${XDEBUG_INI}"
-echo "xdebug.start_with_request = yes" >> "${XDEBUG_INI}"
-echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
+    # Install xdebug
+    "${PHP_INSTALL_DIR}/bin/pecl" install xdebug
+    XDEBUG_INI="${CONF_DIR}/xdebug.ini"
 
-# Install PHP Composer if needed
-if [[ "${INSTALL_COMPOSER}" = "true" ]] || [[ $(composer --version) = "" ]]; then
-    addcomposer
-fi
+    echo "zend_extension=${PHP_EXT_DIR}/xdebug.so" > "${XDEBUG_INI}"
+    echo "xdebug.mode = debug" >> "${XDEBUG_INI}"
+    echo "xdebug.start_with_request = yes" >> "${XDEBUG_INI}"
+    echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
 
-CURRENT_DIR="${PHP_DIR}/current"
-if [[ ! -d "${CURRENT_DIR}" ]]; then
-    ln -s -r "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
-fi
+    # Install PHP Composer if needed
+    if [[ "${INSTALL_COMPOSER}" = "true" ]] || [[ $(composer --version) = "" ]]; then
+        addcomposer
+    fi
 
-if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-    if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${PHP_INSTALL_DIR}"* ]] ; then
-        rm "${CURRENT_DIR}"
+    CURRENT_DIR="${PHP_DIR}/current"
+    if [[ ! -d "${CURRENT_DIR}" ]]; then
         ln -s -r "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
     fi
+
+    if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
+        if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${PHP_INSTALL_DIR}"* ]] ; then
+            rm "${CURRENT_DIR}"
+            ln -s -r "${PHP_INSTALL_DIR}" "${CURRENT_DIR}"
+        fi
+    fi
+
+    rm -rf "${PHP_SRC_DIR}"
+    updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=\"${CURRENT_DIR}/bin:\${PATH}\"; fi"
+}
+
+install_php "${VERSION}"
+
+# Additional php versions to be installed but not be set as default.
+if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
+    OLDIFS=$IFS
+    IFS=","
+        read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+        for version in "${additional_versions[@]}"; do
+            OVERRIDE_DEFAULT_VERSION="false"
+            install_php "${version}"
+        done
+    IFS=$OLDIFS
 fi
-
-rm -rf ${PHP_SRC_DIR}
-
-updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=${CURRENT_DIR}/bin:\${PATH}; fi"
 
 chown -R "${USERNAME}:php" "${PHP_DIR}"
 chmod -R g+r+w "${PHP_DIR}"
