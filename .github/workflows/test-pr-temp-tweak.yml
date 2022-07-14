@@ -1,0 +1,15 @@
+name: "test"
+on:
+  pull_request:
+    paths-ignore:
+      - ./**/oryx/**
+      - ./**/java/**
+      - ./**/dotnet/**
+      - ./**/php/**
+      - ./**/node/**
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No build required ; Temporary tweak for merging the PRs until branch protection rules are updated"'
