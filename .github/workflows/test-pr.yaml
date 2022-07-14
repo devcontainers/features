@@ -39,7 +39,7 @@ jobs:
             terraform: ./**/terraform/**
 
   test:
-    needs: detect-changes
+    needs: [detect-changes]
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
