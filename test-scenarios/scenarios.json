@@ -1,4 +1,13 @@
 {
+    "install_additional_php": {
+        "image": "ubuntu:focal",
+        "features": {
+            "php": {
+                "version": "8.1.4",
+                "additional_versions": "8.0.17,8.0.3"
+             }
+         }
+     },
     "install_additional_java": {
         "image": "ubuntu:focal",
         "features": {
