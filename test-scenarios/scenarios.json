@@ -1,4 +1,13 @@
 {
+    "install_additional_java": {
+        "image": "ubuntu:focal",
+        "features": {
+            "java": {
+                "version": "17",
+                "additional_versions": "11,8"
+            }
+        }
+    },
     "install_jupyterlab": {
         "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
         "remoteUser": "vscode",

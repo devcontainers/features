@@ -27,9 +27,5 @@
   },
   "settings": {
     "java.import.gradle.java.home": "/usr/local/sdkman/candidates/java/current"
-  },
-  "install": {
-    "app": "",
-    "file": "install.sh"
   }
 }
