@@ -38,22 +38,22 @@ jobs:
             sshd: ./**/sshd/**
             terraform: ./**/terraform/**
 
-  test:
-    needs: detect-changes
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    strategy:
-      matrix:
-        features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
-        baseImage:
-          [
-            "ubuntu:focal",
-            "ubuntu:jammy",
-            "debian:11",
-            "mcr.microsoft.com/vscode/devcontainers/base:ubuntu",
-            "mcr.microsoft.com/vscode/devcontainers/base:debian",
-          ]
-    steps:
-      - uses: actions/checkout@v2
-      - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
-        run: npx --yes ./devcontainers-cli-0.7.0-jospicer01.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd`
+  # test:
+  #   needs: detect-changes
+  #   runs-on: ubuntu-latest
+  #   continue-on-error: true
+  #   strategy:
+  #     matrix:
+  #       features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
+  #       baseImage:
+  #         [
+  #           "ubuntu:focal",
+  #           "ubuntu:jammy",
+  #           "debian:11",
+  #           "mcr.microsoft.com/vscode/devcontainers/base:ubuntu",
+  #           "mcr.microsoft.com/vscode/devcontainers/base:debian",
+  #         ]
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+  #       run: npx --yes ./devcontainers-cli-0.7.0-jospicer01.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd`
