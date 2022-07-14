@@ -12,6 +12,15 @@
             }
         }
     },
+    "install_additional_node": {
+        "image": "debian:11",
+        "features": {
+            "node": {
+                "version": "latest",
+                "additional_versions": "v17.9.1,v14.19.3"
+            }
+        }
+    },
     "install_additional_python": {
         "image": "ubuntu:focal",
         "features": {
