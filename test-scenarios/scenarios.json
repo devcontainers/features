@@ -5,6 +5,15 @@
             "php": {
                 "version": "8.1.4",
                 "additional_versions": "8.0.17,8.0.3"
+             }
+         }
+     },
+    "install_additional_java": {
+        "image": "ubuntu:focal",
+        "features": {
+            "java": {
+                "version": "17",
+                "additional_versions": "11,8"
             }
         }
     },
@@ -45,6 +54,15 @@
             "ruby": {
                 "version": "3.1.2",
                 "additional_versions": "2.5,3.0.4"
+            }
+        }
+    },
+    "install_additional_dotnet": {
+        "image": "ubuntu:focal",
+        "features": {
+            "dotnet": {
+                "version": "6.0.301",
+                "additional_versions": "5.0,3.1.420"
             }
         }
     }
