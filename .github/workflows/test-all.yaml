@@ -42,5 +42,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: "Install latest devcontainer CLI"
+        run: npm install -g @devcontainers/cli
+
       - name: " Testing '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
-        run: npx --yes ./devcontainers-cli-0.7.0-jospicer01.tgz features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd`
+        run: devcontainer features test -f ${{ matrix.features }} -i ${{ matrix.baseImage }} -c `pwd`
