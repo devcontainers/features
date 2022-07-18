@@ -12,5 +12,9 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'no-ci') && !contains(github.event.head_commit.message, 'CI ignore')"
     steps:
       - uses: actions/checkout@v2
-      - name: " Running predefined test scenarios"
-        run: npx --yes ./devcontainers-cli-0.7.0-jospicer01.tgz features test --scenarios `pwd`/test-scenarios -c `pwd`
+
+      - name: "Install latest devcontainer CLI"
+        run: npm install -g @devcontainers/cli
+
+      - name: "Running predefined test scenarios"
+        run: devcontainer features test --scenarios `pwd`/test-scenarios -c `pwd`

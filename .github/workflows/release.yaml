@@ -2,7 +2,7 @@ name: "(Release) Release dev container features (v2)"
 on:
   push:
     tags:
-      - "v0.0.2" # Temporary
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Generate tgz
-        uses: ./.github/devcontainers-action # devcontainers/action
+        uses: ./.github/devcontainers-action # TODO: Once 'devcontainers/action' is published, use that.
         with:
           publish-features: "true"
           base-path-to-features: "./src"
