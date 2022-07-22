@@ -15,6 +15,16 @@
       ],
       "default": "lts",
       "description": "Select or enter a Java version to install"
+    },
+    "install_gradle": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install Gradle, a build automation tool for multi-language software development"
+    },
+    "install_maven": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install Maven, a management tool for Java"
     }
   },
   "buildArg": "_VSC_INSTALL_JAVA",
@@ -23,7 +33,9 @@
   ],
   "containerEnv": {
     "SDKMAN_DIR": "/usr/local/sdkman",
-    "PATH": "${SDKMAN_DIR}/bin:${SDKMAN_DIR}/candidates/java/current/bin:${PATH}"
+    "GRADLE_USER_HOME": "${HOME}/.gradle",
+    "M2": "${HOME}/.m2",
+    "PATH": "${SDKMAN_DIR}/bin:${SDKMAN_DIR}/candidates/java/current/bin:${SDKMAN_DIR}/candidates/gradle/current/bin:${SDKMAN_DIR}/candidates/maven/current/bin:${PATH}"
   },
   "settings": {
     "java.import.gradle.java.home": "/usr/local/sdkman/candidates/java/current"

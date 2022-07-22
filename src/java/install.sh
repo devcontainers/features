@@ -10,6 +10,8 @@
 # Syntax: ./java-debian.sh [JDK version] [SDKMAN_DIR] [non-root user] [Add to rc files flag]
 
 JAVA_VERSION=${VERSION:-"lts"}
+INSTALL_GRADLE=${INSTALL_GRADLE:-"false"}
+INSTALL_MAVEN=${INSTALL_MAVEN:-"false"}
 
 export SDKMAN_DIR=${SDKMAN_DIR:-"/usr/local/sdkman"}
 USERNAME=${USERNAME:-"automatic"}
@@ -165,6 +167,18 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         done
     IFS=$OLDIFS
     su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk default java ${JAVA_VERSION}"
+fi
+
+# Install Gradle
+if [[ "${INSTALL_GRADLE}" = "true" ]] && ! gradle --version > /dev/null; then
+    sdk_install gradle latest
+    updaterc '[ -z "${GRADLE_USER_HOME}" ] && export GRADLE_USER_HOME=${HOME}/.gradle'
+fi
+
+# Install Maven
+if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null; then
+    sdk_install maven latest
+    updaterc '[ -z "$M2" ] && export M2=$HOME/.m2'
 fi
 
 echo "Done!"
