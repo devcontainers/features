@@ -1,4 +1,14 @@
 {
+    "install_gradle_and_maven": {
+        "image": "ubuntu:focal",
+        "features": {
+            "java": {
+                "version": "17",
+                "install_gradle": true,
+                "install_maven": true
+             }
+         }
+    },
     "install_additional_php": {
         "image": "ubuntu:focal",
         "features": {
