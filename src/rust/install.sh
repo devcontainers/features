@@ -94,6 +94,25 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+check_nightly_version_formatting() {
+    local variable_name=$1
+    local requested_version=${!variable_name}
+    if [ "${requested_version}" = "none" ]; then return; fi
+
+    local version_date=$(echo ${requested_version} | sed -e "s/^nightly-//")
+
+    date -d ${version_date} &>/dev/null
+    if [ $? != 0 ]; then
+        echo -e "Invalid ${variable_name} value: ${requested_version}\nNightly version should be in the format nightly-YYYY-MM-DD" >&2
+        exit 1
+    fi
+
+    if [ $(date -d ${version_date} +%s) -ge $(date +%s) ]; then
+        echo -e "Invalid ${variable_name} value: ${requested_version}\nNightly version should not exceed current date" >&2
+        exit 1
+    fi
+}
+
 updaterc() {
     if [ "${UPDATE_RC}" = "true" ]; then
         echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
@@ -159,7 +178,14 @@ else
             apt_get_update_if_needed
             apt-get -y install --no-install-recommends git
         fi
-        find_version_from_git_tags RUST_VERSION "https://github.com/rust-lang/rust" "tags/"
+
+        echo ${RUST_VERSION} | grep -q "nightly"
+        is_nightly=$?
+        if [ $is_nightly = 0 ]; then
+            check_nightly_version_formatting RUST_VERSION
+        else
+            find_version_from_git_tags RUST_VERSION "https://github.com/rust-lang/rust" "tags/"
+        fi
         default_toolchain_arg="--default-toolchain ${RUST_VERSION}"
     fi
     echo "Installing Rust..."
