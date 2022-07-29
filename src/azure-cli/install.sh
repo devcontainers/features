@@ -164,6 +164,7 @@ install_using_pip() {
 echo "(*) Installing Azure CLI..."
 . /etc/os-release
 architecture="$(dpkg --print-architecture)"
+CACHED_AZURE_VERSION="${AZ_VERSION}" # In case we need to fallback to pip and the apt path has modified the AZ_VERSION variable.
 if [[ "${AZCLI_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${AZCLI_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
     install_using_apt || use_pip="true"
 else
@@ -171,6 +172,7 @@ else
 fi
 
 if [ "${use_pip}" = "true" ]; then
+    AZ_VERSION=${CACHED_AZURE_VERSION}
     install_using_pip
 
     if [ "$?" != 0 ]; then
