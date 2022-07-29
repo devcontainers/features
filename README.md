@@ -101,4 +101,4 @@ This repository will accept improvement and bug fix contributions related to the
 
 ### Creating your own collection of features
 
-_More information your creating own set of features will be posted soon._
+Please see the [proposed specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features-distribution.md) on how to author and distribute features, as well as our [GitHub Action](https://github.com/devcontainers/action), which serves as a reference implementation for the distribution portion of the specification.
