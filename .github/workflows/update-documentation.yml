@@ -20,31 +20,27 @@ jobs:
 
       - name: Add and Commit Documentation
         id: push_image_info
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           echo "Start."
 
-          GIT_BRANCH=$(echo "${{ github.ref }}" | grep -oP 'refs/(heads|tags)/\K(.+)')
-          if [ "$GIT_BRANCH" == "" ]; then 
-              echo "ERR: Could not determine branch."
-              exit 1
-          fi
-
-          echo "GIT_BRANCH = ${GIT_BRANCH}"
-          
-          git config --global user.email "vscr-feedback@microsoft.com"
-          git config --global user.name "Devcontainers CI"
+          # Configure git and Push updates
+          git config --global user.email github-actions@github.com
+          git config --global user.name github-actions
           git config pull.rebase false
 
-          # # Pull in anything that may have come in
-          # git pull "https://ci:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" "HEAD:$GIT_BRANCH"
+          branch=automated-documentation-update-$GITHUB_RUN_ID
+          git checkout -b $branch
+          message='Automated documentation update'
 
           # Add / update and commit
           git add */**/README.md
-          git status
           git commit -m 'Automated documentation update' || export NO_UPDATES=true
 
           # Push
           if [ "$NO_UPDATES" != "true" ] ; then
-              git push "https://ci:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" "HEAD:$GIT_BRANCH"
+              git push origin "$branch"
+              gh pr create --title "$message" --body "$message"
           fi
