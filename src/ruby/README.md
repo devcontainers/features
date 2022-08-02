@@ -7,7 +7,7 @@ Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.
 
 ```json
 "features": {
-        "devcontainers/features/ruby@latest": {
+        "ghcr.io/devcontainers/features/ruby:latest": {
             "version": "latest"
         }
 }

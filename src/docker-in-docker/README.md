@@ -7,7 +7,7 @@ Create child containers *inside* a container, independent from the host's docker
 
 ```json
 "features": {
-        "devcontainers/features/docker-in-docker@latest": {
+        "ghcr.io/devcontainers/features/docker-in-docker:latest": {
             "version": "latest"
         }
 }

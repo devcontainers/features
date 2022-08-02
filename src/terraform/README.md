@@ -7,7 +7,7 @@ Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects la
 
 ```json
 "features": {
-        "devcontainers/features/terraform@latest": {
+        "ghcr.io/devcontainers/features/terraform:latest": {
             "version": "latest"
         }
 }

@@ -7,7 +7,7 @@
 
 ```json
 "features": {
-        "devcontainers/features/hugo@latest": {
+        "ghcr.io/devcontainers/features/hugo:latest": {
             "version": "latest"
         }
 }

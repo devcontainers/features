@@ -7,7 +7,7 @@ Installs the provided version of Python, as well as PIPX, and other common Pytho
 
 ```json
 "features": {
-        "devcontainers/features/python@latest": {
+        "ghcr.io/devcontainers/features/python:latest": {
             "version": "latest"
         }
 }

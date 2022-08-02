@@ -7,7 +7,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 
 ```json
 "features": {
-        "devcontainers/features/common@latest": {
+        "ghcr.io/devcontainers/features/common:latest": {
             "version": "latest"
         }
 }

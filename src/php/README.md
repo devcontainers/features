@@ -7,7 +7,7 @@
 
 ```json
 "features": {
-        "devcontainers/features/php@latest": {
+        "ghcr.io/devcontainers/features/php:latest": {
             "version": "latest"
         }
 }

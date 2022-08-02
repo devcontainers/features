@@ -7,7 +7,7 @@ Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles
 
 ```json
 "features": {
-        "devcontainers/features/aws-cli@latest": {
+        "ghcr.io/devcontainers/features/aws-cli:latest": {
             "version": "latest"
         }
 }

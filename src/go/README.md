@@ -7,7 +7,7 @@ Installs Go and common Go utilities. Auto-detects latest version and installs ne
 
 ```json
 "features": {
-        "devcontainers/features/go@latest": {
+        "ghcr.io/devcontainers/features/go:latest": {
             "version": "latest"
         }
 }
