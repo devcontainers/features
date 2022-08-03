@@ -7,7 +7,7 @@
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/anaconda:latest": {
+        "ghcr.io/devcontainers/features/anaconda:1": {
             "version": "latest"
         }
 }

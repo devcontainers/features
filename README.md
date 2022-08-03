@@ -67,10 +67,14 @@ See the relevant feature's README for supported options.
 "name": "my-project-devcontainer",
 "image": "mcr.microsoft.com/devcontainers/base:ubuntu",  // Any generic, debian-based image.
 features: {
-    "ghcr.io/devcontainers/features/go:latest": {
+    "ghcr.io/devcontainers/features/go:1": {
         "version": "1.18"
     },
-    "ghcr.io/devcontainers/features/docker-in-docker:latest": {
+    "ghcr.io/devcontainers/features/docker-in-docker": {
+        "version": "latest",
+        "moby": true
+    },
+    "ghcr.io/devcontainers/features/node:latest": {
         "version": "latest",
         "moby": true
     }
