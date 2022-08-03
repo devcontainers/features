@@ -70,13 +70,12 @@ features: {
     "ghcr.io/devcontainers/features/go:1": {
         "version": "1.18"
     },
-    "ghcr.io/devcontainers/features/docker-in-docker": {
+    "ghcr.io/devcontainers/features/docker-in-docker:latest": {
         "version": "latest",
         "moby": true
     },
-    "ghcr.io/devcontainers/features/node:latest": {
-        "version": "latest",
-        "moby": true
+    "ghcr.io/devcontainers/features/node": {
+        "version": "18"
     }
 }
 ```
