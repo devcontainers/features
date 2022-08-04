@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+# Optional: Import test library
+source dev-container-features-test-lib
+
+# Definition specific tests
+check "libcudart.so.11.0" [ 1 -eq "$(find /usr -name 'libcudart.so.11.0' | wc -l)" ]
+check "libcublas.so.11" [ 1 -eq "$(find /usr -name 'libcublas.so.11' | wc -l)" ]
+check "libcublasLt.so.11" [ 1 -eq "$(find /usr -name 'libcublasLt.so.11' | wc -l)" ]
+check "libcufft.so.10" [ 1 -eq "$(find /usr -name 'libcufft.so.10' | wc -l)" ]
+check "libcurand.so.10" [ 1 -eq "$(find /usr -name 'libcurand.so.10' | wc -l)" ]
+check "libcusolver.so.11" [ 1 -eq "$(find /usr -name 'libcusolver.so.11' | wc -l)" ]
+check "libcusparse.so.11" [ 1 -eq "$(find /usr -name 'libcusparse.so.11' | wc -l)" ]
+check "libcudnn.so.8" [ 1 -eq "$(find /usr -name 'libcudnn.so.8' | wc -l)" ]
+
+# Report result
+reportResults

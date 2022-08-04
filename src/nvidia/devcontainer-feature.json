@@ -1,0 +1,17 @@
+{
+  "id": "nvidia",
+  "name": "Nvidia",
+  "description": "Installs Nvidia's CUDA libraries.",
+  "options": {
+    "install_cuda": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install CUDA libraries"
+    },
+    "install_cudnn": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install cuDNN libraries"
+    }
+  }
+}
