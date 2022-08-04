@@ -1,5 +1,6 @@
 {
     "id": "aws-cli",
+    "version": "1.0.0",
     "name": "AWS CLI",
     "description": "Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
     "options": {
@@ -14,9 +15,5 @@
     },
     "extensions": [
         "AmazonWebServices.aws-toolkit-vscode"
-    ],
-    "install": {
-        "app": "",
-        "file": "install.sh"
-    }
+    ]
 }
