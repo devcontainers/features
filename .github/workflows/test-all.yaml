@@ -16,7 +16,7 @@ jobs:
             "anaconda",
             "aws-cli",
             "azure-cli",
-            "common",
+            "common-utils",
             "desktop-lite",
             "docker-from-docker",
             "docker-in-docker",

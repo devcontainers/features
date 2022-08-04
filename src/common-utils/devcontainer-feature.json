@@ -1,6 +1,6 @@
 {
-    "id": "common",
-    "name": "Common Debian",
+    "id": "common-utils",
+    "name": "Common Debian Utilities",
     "description": "Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.",
     "options": {
         "install_Zsh": {

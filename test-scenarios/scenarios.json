@@ -1,4 +1,12 @@
 {
+    "install_common-utils": {
+        "image": "ubuntu:focal",
+        "features": {
+            "common-utils": {
+                "username": "devcontainer"
+             }
+         }
+    },
     "install_gradle_and_maven": {
         "image": "ubuntu:focal",
         "features": {
@@ -31,7 +39,7 @@
         "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
         "remoteUser": "vscode",
         "features": {
-            "common": {
+            "common-utils": {
                 "username": "vscode"
             },
             "python": {
