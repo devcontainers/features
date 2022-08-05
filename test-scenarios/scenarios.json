@@ -31,7 +31,7 @@
         "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
         "remoteUser": "vscode",
         "features": {
-            "common": {
+            "common-utils": {
                 "username": "vscode"
             },
             "python": {
