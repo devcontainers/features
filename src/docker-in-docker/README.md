@@ -23,4 +23,4 @@ Create child containers *inside* a container, independent from the host's docker
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/docker-in-docker/devcontainer-feature.json)._

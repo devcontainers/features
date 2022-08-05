@@ -19,4 +19,4 @@ Installs the oryx CLI
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/oryx/devcontainer-feature.json)._

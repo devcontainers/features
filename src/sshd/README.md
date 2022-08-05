@@ -21,4 +21,4 @@ Adds a SSH server into a container so that you can use an external terminal, sft
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/sshd/devcontainer-feature.json)._

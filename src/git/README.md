@@ -22,4 +22,4 @@ Install an up-to-date version of Git, built from source as needed. Useful for wh
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/git/devcontainer-feature.json)._
