@@ -1,5 +1,6 @@
 {
     "id": "oryx",
+    "version": "1.0.0",
     "name": "Oryx",
     "description": "Installs the oryx CLI",
     "containerEnv": {

@@ -1,29 +1,27 @@
 name: "(Release) Release dev container features (v2)"
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
 
 jobs:
   deploy:
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: Generate tgz
+      - name: Install Oras
+        run: |
+          curl -LO https://github.com/oras-project/oras/releases/download/v0.13.0/oras_0.13.0_linux_amd64.tar.gz
+          mkdir -p oras-install/
+          tar -zxf oras_0.13.0_*.tar.gz -C oras-install/
+          mv oras-install/oras /usr/local/bin/
+          rm -rf oras_0.13.0_*.tar.gz oras-install/
+
+      - name: "Publish features to OCI"
         uses: ./.github/devcontainers-action # TODO: Once 'devcontainers/action' is published, use that.
         with:
           publish-features: "true"
+          publish-to-oci: "true"
           base-path-to-features: "./src"
-      
-      - name: Remove temporary devcontainer-cli # TODO: Temporary
-        run: rm -rf ./devcontainer-cli-0*
-
-      - name: Get or Create Release at current tag
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true # Lets us upload our own artifact from previous step
-          artifactErrorsFailBuild: true
-          artifacts: "./*.tgz,devcontainer-collection.json"
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
