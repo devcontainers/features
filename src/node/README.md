@@ -7,7 +7,7 @@ Installs Node.js, nvm, yarn, and needed dependencies.
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/node:1": {
+        "devcontainers/features/node@latest": {
             "version": "latest"
         }
 }

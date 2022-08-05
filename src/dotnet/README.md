@@ -7,7 +7,7 @@ Installs the .NET CLI. Provides option of installing sdk or runtime, and option 
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/dotnet:1": {
+        "devcontainers/features/dotnet@latest": {
             "version": "latest"
         }
 }

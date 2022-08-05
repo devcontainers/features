@@ -7,7 +7,7 @@
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/docker-from-docker:1": {
+        "devcontainers/features/docker-from-docker@latest": {
             "version": "latest"
         }
 }

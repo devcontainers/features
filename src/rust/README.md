@@ -7,7 +7,7 @@ Installs Rust, common Rust utilities, and their required dependencies
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/rust:1": {
+        "devcontainers/features/rust@latest": {
             "version": "latest"
         }
 }
