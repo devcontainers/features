@@ -1,5 +1,6 @@
 {
     "id": "github-cli",
+    "version": "1.0.0",
     "name": "GitHub CLI",
     "description": "Installs the GitHub CLI. Auto-detects latest version and installs needed dependencies.",
     "options": {
@@ -12,9 +13,5 @@
             "default": "latest",
             "description": "Select version of the GitHub CLI, if not latest."
         }
-    },
-    "install": {
-        "app": "",
-        "file": "install.sh"
     }
 }

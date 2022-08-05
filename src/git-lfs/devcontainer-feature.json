@@ -1,5 +1,6 @@
 {
     "id": "git-lfs",
+    "version": "1.0.0",
     "name": "Git Large File Support (LFS)",
     "description": "Installs Git Large File Support (Git LFS) along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like git and curl.",
     "options": {
@@ -12,9 +13,5 @@
             "default": "latest",
             "description": "Select version of Git LFS to install"
         }
-    },
-    "install": {
-        "app": "",
-        "file": "install.sh"
     }
 }

@@ -1,5 +1,6 @@
 {
   "id": "hugo",
+  "version": "1.0.0",
   "name": "Hugo",
   "options": {
     "version": {
@@ -14,9 +15,5 @@
   "containerEnv": {
     "HUGO_DIR": "/usr/local/hugo",
     "PATH": "${HUGO_DIR}/bin:${PATH}"
-  },
-  "install": {
-    "app": "",
-    "file": "install.sh"
   }
 }

@@ -1,5 +1,6 @@
 {
     "id": "git",
+    "version": "1.0.0",
     "name": "Git (from source)",
     "description": "Install an up-to-date version of Git, built from source as needed. Useful for when you want the latest and greatest features. Auto-detects latest stable version and installs needed dependencies.",
     "options": {
@@ -17,9 +18,5 @@
             "default": true,
             "description": "Install from PPA if available"
         }
-    },
-    "install": {
-        "app": "",
-        "file": "install.sh"
     }
 }
