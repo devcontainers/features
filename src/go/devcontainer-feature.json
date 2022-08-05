@@ -8,8 +8,8 @@
             "proposals": [
                 "latest",
                 "none",
-                "1.18",
-                "1.17"
+                "1.19",
+                "1.18"
             ],
             "default": "latest",
             "description": "Select or enter a Go version to install"
