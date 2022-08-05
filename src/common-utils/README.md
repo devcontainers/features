@@ -1,5 +1,5 @@
 
-# Common Debian (common)
+# Common Debian utilities (common-utils)
 
 Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.
 
@@ -7,7 +7,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/common:1": {
+        "ghcr.io/devcontainers/features/common-utils:1": {
             "version": "latest"
         }
 }

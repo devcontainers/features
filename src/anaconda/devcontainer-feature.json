@@ -1,5 +1,6 @@
 {
     "id": "anaconda",
+    "version": "1.0.0",
     "name": "Anaconda",
     "options": {
         "version": {
@@ -14,9 +15,5 @@
     "containerEnv": {
         "CONDA_DIR": "/usr/local/conda",
         "PATH": "${PATH}:${CONDA_DIR}/bin:"
-    },
-    "install": {
-        "app": "",
-        "file": "install.sh"
     }
 }

@@ -1,5 +1,6 @@
 {
     "id": "rust",
+    "version": "1.0.0",
     "name": "Rust",
     "description": "Installs Rust, common Rust utilities, and their required dependencies",
     "options": {
@@ -50,9 +51,5 @@
             "**/target/**": true
         },
         "rust-analyzer.checkOnSave.command": "clippy"
-    },
-    "install": {
-        "app": "",
-        "file": "install.sh"
     }
 }

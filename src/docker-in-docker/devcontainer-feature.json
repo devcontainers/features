@@ -1,5 +1,6 @@
 {
     "id": "docker-in-docker",
+    "version": "1.0.0",
     "name": "Docker (Docker-in-Docker)",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
     "options": {
@@ -42,9 +43,5 @@
             "target": "/var/lib/docker",
             "type": "volume"
         }
-    ],
-    "install": {
-        "app": "",
-        "file": "install.sh"
-    }
+    ]
 }

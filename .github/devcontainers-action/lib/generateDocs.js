@@ -32,95 +32,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateFeaturesDocumentation = void 0;
+exports.generateTemplateDocumentation = exports.generateFeaturesDocumentation = void 0;
 const fs = __importStar(require("fs"));
-const github = __importStar(require("@actions/github"));
 const core = __importStar(require("@actions/core"));
 const path = __importStar(require("path"));
-function generateFeaturesDocumentation(basePath) {
-    return __awaiter(this, void 0, void 0, function* () {
-        fs.readdir(basePath, (err, files) => {
-            if (err) {
-                core.error(err.message);
-                core.setFailed(`failed to generate 'features' documentation ${err.message}`);
-                return;
-            }
-            files.forEach(f => {
-                core.info(`Generating docs for feature '${f}'`);
-                if (f !== '.' && f !== '..') {
-                    const readmePath = path.join(basePath, f, 'README.md');
-                    // Reads in feature.json
-                    const featureJsonPath = path.join(basePath, f, 'devcontainer-feature.json');
-                    if (!fs.existsSync(featureJsonPath)) {
-                        core.error(`devcontainer-feature.json not found at path '${featureJsonPath}'`);
-                        return;
-                    }
-                    let featureJson = undefined;
-                    try {
-                        featureJson = JSON.parse(fs.readFileSync(featureJsonPath, 'utf8'));
-                    }
-                    catch (err) {
-                        core.error(`Failed to parse ${featureJsonPath}: ${err}`);
-                        return;
-                    }
-                    if (!featureJson || !(featureJson === null || featureJson === void 0 ? void 0 : featureJson.id)) {
-                        core.error(`devcontainer-feature.json for feature '${f}' does not contain an 'id'`);
-                        return;
-                    }
-                    const ref = github.context.ref;
-                    const owner = github.context.repo.owner;
-                    const repo = github.context.repo.repo;
-                    // Add tag if parseable
-                    let versionTag = 'latest';
-                    if (ref.includes('refs/tags/')) {
-                        versionTag = ref.replace('refs/tags/', '');
-                    }
-                    const generateOptionsMarkdown = () => {
-                        const options = featureJson === null || featureJson === void 0 ? void 0 : featureJson.options;
-                        if (!options) {
-                            return '';
-                        }
-                        const keys = Object.keys(options);
-                        const contents = keys
-                            .map(k => {
-                            const val = options[k];
-                            return `| ${k} | ${val.description || '-'} | ${val.type || '-'} | ${val.default || '-'} |`;
-                        })
-                            .join('\n');
-                        return ('| Options Id | Description | Type | Default Value |\n' +
-                            '|-----|-----|-----|-----|\n' +
-                            contents);
-                    };
-                    const newReadme = README_TEMPLATE.replace('#{nwo}', `${owner}/${repo}`)
-                        .replace('#{versionTag}', versionTag)
-                        .replace('#{featureId}', featureJson.id)
-                        .replace('#{featureName}', featureJson.name
-                        ? `${featureJson.name} (${featureJson.id})`
-                        : `${featureJson.id}`)
-                        .replace('#{featureDescription}', featureJson.description ? featureJson.description : '')
-                        .replace('#{optionsTable}', generateOptionsMarkdown());
-                    // Remove previous readme
-                    if (fs.existsSync(readmePath)) {
-                        fs.unlinkSync(readmePath);
-                    }
-                    // Write new readme
-                    fs.writeFileSync(readmePath, newReadme);
-                }
-            });
-        });
-    });
-}
-exports.generateFeaturesDocumentation = generateFeaturesDocumentation;
-const README_TEMPLATE = `
-# #{featureName}
+const utils_1 = require("./utils");
+const FEATURES_README_TEMPLATE = `
+# #{Name}
 
-#{featureDescription}
+#{Description}
 
 ## Example Usage
 
 \`\`\`json
 "features": {
-        "#{nwo}/#{featureId}@#{versionTag}": {
+        "#{Nwo}/#{Id}@#{VersionTag}": {
             "version": "latest"
         }
 }
@@ -128,9 +54,105 @@ const README_TEMPLATE = `
 
 ## Options
 
-#{optionsTable}
+#{OptionsTable}
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](#{RepoUrl})._
 `;
+const TEMPLATE_README_TEMPLATE = `
+# #{Name}
+
+#{Description}
+
+## Options
+
+#{OptionsTable}
+`;
+function generateFeaturesDocumentation(basePath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield _generateDocumentation(basePath, FEATURES_README_TEMPLATE, 'devcontainer-feature.json');
+    });
+}
+exports.generateFeaturesDocumentation = generateFeaturesDocumentation;
+function generateTemplateDocumentation(basePath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield _generateDocumentation(basePath, TEMPLATE_README_TEMPLATE, 'devcontainer-template.json');
+    });
+}
+exports.generateTemplateDocumentation = generateTemplateDocumentation;
+function _generateDocumentation(basePath, readmeTemplate, metadataFile) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const directories = fs.readdirSync(basePath);
+        yield Promise.all(directories.map((f) => __awaiter(this, void 0, void 0, function* () {
+            var _a, _b, _c;
+            if (!f.startsWith('.')) {
+                const readmePath = path.join(basePath, f, 'README.md');
+                // Reads in feature.json
+                const jsonPath = path.join(basePath, f, metadataFile);
+                if (!fs.existsSync(jsonPath)) {
+                    core.error(`${metadataFile} not found at path '${jsonPath}'`);
+                    return;
+                }
+                let parsedJson = undefined;
+                try {
+                    parsedJson = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+                }
+                catch (err) {
+                    core.error(`Failed to parse ${jsonPath}: ${err}`);
+                    return;
+                }
+                if (!parsedJson || !(parsedJson === null || parsedJson === void 0 ? void 0 : parsedJson.id)) {
+                    core.error(`${metadataFile} for '${f}' does not contain an 'id'`);
+                    return;
+                }
+                const srcInfo = (0, utils_1.getGitHubMetadata)();
+                const ref = srcInfo.ref;
+                const owner = srcInfo.owner;
+                const repo = srcInfo.repo;
+                // Add tag if parseable
+                let versionTag = 'latest';
+                if (ref && ref.includes('refs/tags/')) {
+                    versionTag = ref.replace('refs/tags/', '');
+                }
+                const generateOptionsMarkdown = () => {
+                    const options = parsedJson === null || parsedJson === void 0 ? void 0 : parsedJson.options;
+                    if (!options) {
+                        return '';
+                    }
+                    const keys = Object.keys(options);
+                    const contents = keys
+                        .map(k => {
+                        const val = options[k];
+                        return `| ${k} | ${val.description || '-'} | ${val.type || '-'} | ${val.default || '-'} |`;
+                    })
+                        .join('\n');
+                    return '| Options Id | Description | Type | Default Value |\n' + '|-----|-----|-----|-----|\n' + contents;
+                };
+                let urlToConfig = './devcontainer-feature.json';
+                const basePathTrimmed = basePath.startsWith('./') ? basePath.substring(2) : basePath;
+                if (srcInfo.owner && srcInfo.repo) {
+                    urlToConfig = `https://github.com/${srcInfo.owner}/${srcInfo.repo}/blob/main/${basePathTrimmed}/${f}/devcontainer-feature.json`;
+                }
+                const newReadme = readmeTemplate
+                    // Templates & Features
+                    .replace('#{Id}', parsedJson.id)
+                    .replace('#{Name}', parsedJson.name ? `${parsedJson.name} (${parsedJson.id})` : `${parsedJson.id}`)
+                    .replace('#{Description}', (_a = parsedJson.description) !== null && _a !== void 0 ? _a : '')
+                    .replace('#{OptionsTable}', generateOptionsMarkdown())
+                    // Features Only
+                    .replace('#{Nwo}', `${owner}/${repo}`)
+                    .replace('#{VersionTag}', versionTag)
+                    // Templates Only
+                    .replace('#{ManifestName}', (_c = (_b = parsedJson === null || parsedJson === void 0 ? void 0 : parsedJson.image) === null || _b === void 0 ? void 0 : _b.manifest) !== null && _c !== void 0 ? _c : '')
+                    .replace('#{RepoUrl}', urlToConfig);
+                // Remove previous readme
+                if (fs.existsSync(readmePath)) {
+                    fs.unlinkSync(readmePath);
+                }
+                // Write new readme
+                fs.writeFileSync(readmePath, newReadme);
+            }
+        })));
+    });
+}
