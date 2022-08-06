@@ -1,5 +1,5 @@
 
-# Common Debian utilities (common-utils)
+# Common Debian Utilities (common-utils)
 
 Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.
 
