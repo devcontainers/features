@@ -21,4 +21,4 @@ Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/ruby/devcontainer-feature.json)._

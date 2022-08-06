@@ -24,4 +24,4 @@ Installs the .NET CLI. Provides option of installing sdk or runtime, and option 
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/dotnet/devcontainer-feature.json)._
