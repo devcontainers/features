@@ -2,6 +2,7 @@
   "id": "nvidia-cuda",
   "name": "Nvidia CUDA",
   "description": "Installs Nvidia's CUDA libraries.",
+  "version": "1.0.0",
   "options": {
     "install_cuda": {
       "type": "boolean",
