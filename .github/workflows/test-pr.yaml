@@ -29,6 +29,7 @@ jobs:
             java: ./**/java/**
             kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
             node: ./**/node/**
+            nvidia-cuda: ./**/nvidia-cuda/**
             oryx: ./**/oryx/**
             php: ./**/php/**
             powershell: ./**/powershell/**

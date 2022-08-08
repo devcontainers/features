@@ -29,6 +29,7 @@ jobs:
             "java",
             "kubectl-helm-minikube",
             "node",
+            "nvidia-cuda",
             "oryx",
             "php",
             "powershell",
