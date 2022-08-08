@@ -26,11 +26,11 @@ apt-get update -yq
 if [ "$install_cuda" = "true" ]; then
     echo "Installing CUDA libraries..."
     apt-get install -yq cuda-libraries-11-7
-    echo "Successfully installed CUDA libraries!"
 fi
 
 if [ "$install_cudnn" = "true" ]; then
     echo "Installing cuDNN libraries..."
     apt-get install -yq libcudnn8
-    echo "Successfully installed cuDNN libraries!"
 fi
+
+echo "Done!"
