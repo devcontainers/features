@@ -10,7 +10,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Download Nvidia's keyring package
+# Download NVIDIA's keyring package
 ubuntu_version="$(lsb_release -sr | sed 's/\.//g')"
 keyring_repo="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu$ubuntu_version/x86_64"
 keyring_package="cuda-keyring_1.0-1_all.deb"
@@ -19,7 +19,7 @@ keyring_package_path="$(mktemp -d)"
 keyring_package_file="$keyring_package_path/$keyring_package"
 wget -O "$keyring_package_file" "$keyring_package_url"
 
-# Install Nvidia's keyring package
+# Install NVIDIA's keyring package
 apt-get install -yq "$keyring_package_file"
 apt-get update -yq
 
