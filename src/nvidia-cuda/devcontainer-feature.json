@@ -1,6 +1,6 @@
 {
-  "id": "nvidia",
-  "name": "Nvidia",
+  "id": "nvidia-cuda",
+  "name": "Nvidia CUDA",
   "description": "Installs Nvidia's CUDA libraries.",
   "options": {
     "install_cuda": {
