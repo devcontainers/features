@@ -1,6 +1,7 @@
 {
-    "id": "common",
-    "name": "Common Debian",
+    "id": "common-utils",
+    "name": "Common Debian Utilities",
+    "version": "1.0.0",
     "description": "Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.",
     "options": {
         "install_Zsh": {
@@ -55,9 +56,5 @@
     },
     "extensions": [
         "ms-dotnettools.csharp"
-    ],
-    "install": {
-        "app": "",
-        "file": "install.sh"
-    }
+    ]
 }

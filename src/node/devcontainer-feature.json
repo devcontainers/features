@@ -1,5 +1,6 @@
 {
     "id": "node",
+    "version": "1.0.0",
     "name": "Node.js (via nvm) and yarn",
     "description": "Installs Node.js, nvm, yarn, and needed dependencies.",
     "options": {

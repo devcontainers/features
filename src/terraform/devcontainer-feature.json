@@ -1,5 +1,6 @@
 {
     "id": "terraform",
+    "version": "1.0.0",
     "name": "Terraform, tflint, and TFGrunt",
     "description": "Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects latest version and installs needed dependencies.",
     "options": {
@@ -42,9 +43,5 @@
             "args": []
         },
         "azureTerraform.terminal": "integrated"
-    },
-    "install": {
-        "app": "",
-        "file": "install.sh"
     }
 }
