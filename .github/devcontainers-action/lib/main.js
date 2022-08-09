@@ -59,6 +59,8 @@ function run() {
         };
         const featuresBasePath = core.getInput('base-path-to-features');
         const templatesBasePath = core.getInput('base-path-to-templates');
+        const ociRegistry = core.getInput('oci-registry');
+        const namespace = core.getInput('features-namespace');
         let featuresMetadata = undefined;
         let templatesMetadata = undefined;
         // -- Package Release Artifacts
@@ -73,7 +75,7 @@ function run() {
         // -- Generate Documentation
         if (shouldGenerateDocumentation && featuresBasePath) {
             core.info('Generating documentation for features...');
-            yield (0, generateDocs_1.generateFeaturesDocumentation)(featuresBasePath);
+            yield (0, generateDocs_1.generateFeaturesDocumentation)(featuresBasePath, ociRegistry, namespace);
         }
         if (shouldGenerateDocumentation && templatesBasePath) {
             core.info('Generating documentation for templates...');
