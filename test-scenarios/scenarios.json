@@ -1,9 +1,9 @@
 {
     "install_gradle_and_maven": {
-        "image": "mcr.microsoft.com/devcontainers/java:latest",
+        "image": "ubuntu:focal",
         "features": {
             "java": {
-                "version": "none",
+                "version": "latest",
                 "install_gradle": true,
                 "install_maven": true
              }

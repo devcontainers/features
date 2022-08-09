@@ -100,7 +100,7 @@ sdk_install() {
     local set_as_default=${6:-"true"}
     if [ "${requested_version}" = "none" ]; then return; fi
     # Blank will install latest stable version SDKMAN has
-    if [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "default" ]; then
+    if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "default" ]; then
          requested_version=""
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
@@ -171,13 +171,13 @@ fi
 
 # Install Gradle
 if [[ "${INSTALL_GRADLE}" = "true" ]] && ! gradle --version > /dev/null; then
-    sdk_install gradle latest '\s\s' '\s\s' '^[0-9]+\.[0-9]+\.[0-9]+$'
+    sdk_install gradle latest
     updaterc '[ -z "${GRADLE_USER_HOME}" ] && export GRADLE_USER_HOME=${HOME}/.gradle'
 fi
 
 # Install Maven
 if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null; then
-    sdk_install maven latest '\s\s' '\s\s' '^[0-9]+\.[0-9]+\.[0-9]+$'
+    sdk_install maven latest
     updaterc '[ -z "$M2" ] && export M2=$HOME/.m2'
 fi
 

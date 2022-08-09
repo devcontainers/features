@@ -7,14 +7,13 @@
     "version": {
       "type": "string",
       "proposals": [
-        "lts",
         "latest",
         "none",
         "17",
         "11",
         "8"
       ],
-      "default": "lts",
+      "default": "latest",
       "description": "Select or enter a Java version to install"
     },
     "install_gradle": {
