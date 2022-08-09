@@ -67,21 +67,21 @@ See the relevant feature's README for supported options.
 "name": "my-project-devcontainer",
 "image": "mcr.microsoft.com/devcontainers/base:ubuntu",  // Any generic, debian-based image.
 features: {
-    "devcontainers/features/go@latest": {
+    "ghcr.io/devcontainers/features/go:1": {
         "version": "1.18"
     },
-    "devcontainers/features/docker-in-docker@latest": {
+    "ghcr.io/devcontainers/features/docker-in-docker:1": {
         "version": "latest",
         "moby": true
     }
 }
 ```
 
-The `@latest` version annotation is added implicitly if omitted. To pin to a specific [release tag](https://github.com/devcontainers/features/releases), append it to the end of the feature.
+The `:latest` version annotation is added implicitly if omitted. To pin to a specific package version ([example](https://github.com/devcontainers/features/pkgs/container/features/go/versions)), append it to the end of the feature.
 
 ```jsonc
 features: {
-    "devcontainers/features/go@v0.0.2": {
+    "ghcr.io/devcontainers/features/go:1": {
         "version": "1.18"
     },
 ```
