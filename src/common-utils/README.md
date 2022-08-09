@@ -7,7 +7,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 
 ```json
 "features": {
-        "devcontainers/features/common-utils@latest": {
+        "ghcr.io/devcontainers/features/common-utils:1": {
             "version": "latest"
         }
 }
@@ -27,4 +27,4 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/common-utils/devcontainer-feature.json)._

@@ -7,7 +7,7 @@ Installs Go and common Go utilities. Auto-detects latest version and installs ne
 
 ```json
 "features": {
-        "devcontainers/features/go@latest": {
+        "ghcr.io/devcontainers/features/go:1": {
             "version": "latest"
         }
 }
@@ -21,4 +21,4 @@ Installs Go and common Go utilities. Auto-detects latest version and installs ne
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/go/devcontainer-feature.json)._
