@@ -92,13 +92,14 @@ The [devcontainer CLI reference implementation](https://github.com/devcontainers
 git clone <my-project-with-devcontainer>
 devcontainer build --workspace-folder <path-to-my-project-with-devcontainer>
 ```
-
 ## Contributions
-
-### Contibuting to this repository
-
-This repository will accept improvement and bug fix contributions related to the [current set of maintained features](./src).
 
 ### Creating your own collection of features
 
-Please see the [proposed specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features-distribution.md) on how to author and distribute features, as well as our [GitHub Action](https://github.com/devcontainers/action), which serves as a reference implementation for the distribution portion of the specification.
+Please see the [proposed specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features-distribution.md) on how to start to author and distribute features your own features.
+
+We're excited for you to create features!  Our team is actively iterating on tools and examples to help members of the community author their own dev container features. If you have any feedback along the way, please let us know in the specification repo's issues on [features](https://github.com/devcontainers/spec/issues/61) or [feature distribution](https://github.com/devcontainers/spec/issues/70).
+
+### Contributing to this repository
+
+This repository will accept improvement and bug fix contributions related to the [current set of maintained features](./src).  
