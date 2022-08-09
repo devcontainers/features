@@ -7,7 +7,7 @@ Installs Node.js, nvm, yarn, and needed dependencies.
 
 ```json
 "features": {
-        "devcontainers/features/node@latest": {
+        "ghcr.io/devcontainers/features/node:1": {
             "version": "latest"
         }
 }
@@ -23,4 +23,4 @@ Installs Node.js, nvm, yarn, and needed dependencies.
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/node/devcontainer-feature.json)._
