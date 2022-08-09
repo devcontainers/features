@@ -171,13 +171,13 @@ fi
 
 # Install Gradle
 if [[ "${INSTALL_GRADLE}" = "true" ]] && ! gradle --version > /dev/null; then
-    sdk_install gradle latest
+    sdk_install gradle latest '\s\s' '\s\s' '^[0-9]+\.[0-9]+\.[0-9]+$'
     updaterc '[ -z "${GRADLE_USER_HOME}" ] && export GRADLE_USER_HOME=${HOME}/.gradle'
 fi
 
 # Install Maven
 if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null; then
-    sdk_install maven latest
+    sdk_install maven latest '\s\s' '\s\s' '^[0-9]+\.[0-9]+\.[0-9]+$'
     updaterc '[ -z "$M2" ] && export M2=$HOME/.m2'
 fi
 
