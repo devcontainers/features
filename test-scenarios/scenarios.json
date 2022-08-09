@@ -3,7 +3,7 @@
         "image": "ubuntu:focal",
         "features": {
             "java": {
-                "version": "17",
+                "version": "latest",
                 "install_gradle": true,
                 "install_maven": true
              }

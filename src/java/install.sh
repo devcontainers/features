@@ -100,7 +100,7 @@ sdk_install() {
     local set_as_default=${6:-"true"}
     if [ "${requested_version}" = "none" ]; then return; fi
     # Blank will install latest stable version SDKMAN has
-    if [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "default" ]; then
+    if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "default" ]; then
          requested_version=""
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
