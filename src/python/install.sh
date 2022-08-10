@@ -445,7 +445,6 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
     install_user_package jupyterlab
 
     # Configure JupyterLab if needed
-    # TODO: True if it's not empty
     if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
         add_user_jupyter_config "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
         add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
