@@ -9,6 +9,7 @@ source dev-container-features-test-lib
 check "dotnet" dotnet --info
 check "sdks" dotnet --list-sdks
 
+echo "Validating expected version present..."
 check "some major version of dotnet 6 is installed" dotnet --list-sdks |  grep '6\.[0-9]*\.[0-9]*'
 
 # Report result

@@ -194,7 +194,7 @@ apt_cache_package_and_version_soft_match() {
 }
 
 # Install .NET CLI using apt-get package installer
-install_using_apt() {
+install_using_apt_from_microsoft_repo() {
     local sdk_or_runtime="$1"
     local dotnet_major_minor_version
     export DOTNET_PACKAGE="dotnet-${sdk_or_runtime}"
@@ -226,6 +226,21 @@ install_using_apt() {
     fi
 
     if ! (apt-get install -yq ${DOTNET_PACKAGE}${DOTNET_VERSION}); then
+        return 1
+    fi
+}
+
+install_using_default_apt_repo() {    
+    apt_get_update_if_needed  
+    DOTNET_PACKAGE="dotnet6"
+
+    if [ "${DOTNET_VERSION}" = "latest" ] || [ "${DOTNET_VERSION}" = "lts" ] || "${DOTNET_VERSION}" = "6.0"; then
+        if ! (apt-get install -yq ${DOTNET_PACKAGE}); then
+            echo "Failed to install 'dotnet6' package from default apt repo."
+            return 1
+        fi
+    else
+        echo "The provided dotnet version is not distributed in this distro's default apt repo."
         return 1
     fi
 }
@@ -411,12 +426,12 @@ architecture="$(dpkg --print-architecture)"
 CHANGE_OWNERSHIP="false"
 if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${INSTALL_USING_APT}" = "true" ]]; then
     echo "Detected ${VERSION_CODENAME} on ${architecture}. Attempting to install dotnet from apt"
-    install_using_apt "${DOTNET_SDK_OR_RUNTIME}"
+    install_using_default_apt_repo "${DOTNET_SDK_OR_RUNTIME}" || install_using_apt_from_microsoft_repo "${DOTNET_SDK_OR_RUNTIME}"
 else
     if [[ "${INSTALL_USING_APT}" = "false" ]]; then
         echo "Installing dotnet from releases url"
     else
-        echo "Could not install dotnet from apt. Attempting to install dotnet from releases url"
+        echo "Attempting to install dotnet from releases url"
     fi
     install_using_dotnet_releases_url "${DOTNET_SDK_OR_RUNTIME}" "${DOTNET_VERSION}"
     CHANGE_OWNERSHIP="true"
