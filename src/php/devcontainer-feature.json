@@ -1,6 +1,6 @@
 {
     "id": "php",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "PHP",
     "options": {
         "version": {
@@ -12,15 +12,10 @@
             "default": "latest",
             "description": "Select or enter a PHP version"
         },
-        "install_composer": {
+        "installComposer": {
             "type": "boolean",
             "default": true,
             "description": "Install PHP Composer?"
-        },
-        "override_default_version": {
-            "type": "boolean",
-            "default": "true",
-            "description": "If true, overrides existing version (if any) of dotnet on the PATH"
         }
     },
     "extensions": [

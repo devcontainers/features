@@ -9,8 +9,8 @@
 set -eux
 
 VERSION=${VERSION:-"latest"}
-INSTALL_COMPOSER=${INSTALL_COMPOSER:-"true"}
-OVERRIDE_DEFAULT_VERSION=${OVERRIDE_DEFAULT_VERSION:-"true"}
+INSTALL_COMPOSER=${INSTALLCOMPOSER:-"true"}
+OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
 
 export PHP_DIR=${PHP_DIR:-"/usr/local/php"}
 USERNAME=${USERNAME:-"automatic"}
@@ -18,7 +18,7 @@ UPDATE_RC=${UPDATE_RC:-"true"}
 
 # Comma-separated list of php versions to be installed
 # alongside VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
+ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 
 export DEBIAN_FRONTEND=noninteractive
 

@@ -1,20 +1,20 @@
 {
     "id": "common-utils",
     "name": "Common Debian Utilities",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.",
     "options": {
-        "install_Zsh": {
+        "installZsh": {
             "type": "boolean",
             "default": true,
             "description": "Install ZSH?"
         },
-        "install_Oh_My_Zsh": {
+        "installOhMyZsh": {
             "type": "boolean",
             "default": true,
             "description": "Install Oh My Zsh!?"
         },
-        "upgrade_packages": {
+        "upgradePackages": {
             "type": "boolean",
             "default": true,
             "description": "Upgrade OS packages?"
@@ -30,7 +30,7 @@
             "default": "automatic",
             "description": "Enter name of non-root user to configure or none to skip"
         },
-        "user_uid": {
+        "uid": {
             "type": "string",
             "proposals": [
                 "1000",
@@ -39,7 +39,7 @@
             "default": "automatic",
             "description": "Enter uid for non-root user"
         },
-        "user_gid": {
+        "gid": {
             "type": "string",
             "proposals": [
                 "1000",
@@ -48,7 +48,7 @@
             "default": "automatic",
             "description": "Enter gid for non-root user"
         },
-        "add_non_free_packages": {
+        "nonFreePackages": {
             "type": "boolean",
             "default": false,
             "description": "Add packages from non-free Debian repository?"
