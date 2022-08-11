@@ -239,7 +239,7 @@ install_using_default_apt_repo() {
 
     apt_get_update_if_needed
 
-    if [ "${DOTNET_VERSION}" = "latest" ] || [ "${DOTNET_VERSION}" = "lts" ] || [ ${DOTNET_VERSION} = "6"* ]; then
+    if [[ "${DOTNET_VERSION}" = "latest" ]] || [[ "${DOTNET_VERSION}" = "lts" ]] || [[ ${DOTNET_VERSION} = "6"* ]]; then
         if ! (apt-get install -yq ${DOTNET_PACKAGE}); then
             echo "Failed to install 'dotnet6' package from default apt repo."
             return 1
