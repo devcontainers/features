@@ -8,12 +8,12 @@
 # Maintainer: The VS Code and Codespaces Teams
 
 export NODE_VERSION=${VERSION:-"lts"}
-export NVM_DIR=${NVM_INSTALL_PATH:-"/usr/local/share/nvm"}
-INSTALL_TOOLS_FOR_NODE_GYP="${INSTALL_TOOLS_FOR_NODE_GYP:-true}"
+export NVM_DIR=${NVMINSTALLPATH:-"/usr/local/share/nvm"}
+INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 
 # Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
+ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}

@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "Docker (Docker-in-Docker)",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
     "options": {
@@ -19,7 +19,7 @@
             "default": true,
             "description": "Install OSS Moby build instead of Docker CE"
         },
-        "docker_dash_compose_version": {
+        "dockerDashComposeVersion": {
             "type": "string",
             "enum": [
                 "v1",
