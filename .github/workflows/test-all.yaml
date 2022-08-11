@@ -8,7 +8,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'no-ci') && !contains(github.event.head_commit.message, 'CI ignore')"
+    if: "!contains(github.event.head_commit.message, 'no-ci') && !contains(github.event.head_commit.message, 'CI ignore') && !contains(github.event.head_commit.message, 'Automated documentation update')"
     continue-on-error: true
     strategy:
       matrix:
