@@ -31,7 +31,7 @@ DOTNET_VERSION_CODENAMES_REQUIRE_OLDER_LIBSSL_1="buster bullseye bionic focal hi
 ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 
 # Exit on failure.
-set -e
+# set -e
 
 # Setup STDERR.
 err() {
@@ -155,12 +155,12 @@ apt_cache_package_and_version_soft_match() {
     local exit_on_no_match="${3:-true}"
     local major_minor_version
 
-    major_minor_version="$(echo "${requested_version}" | cut -d "." --field=1,2)"
-    package_name="$(apt-cache search "${partial_package_name}-[0-9].[0-9]" | awk -F" - " '{print $1}' | grep -m 1 "${partial_package_name}-${major_minor_version}")"
-
     # Ensure we've exported useful variables
     . /etc/os-release
     local architecture="$(dpkg --print-architecture)"
+
+    major_minor_version="$(echo "${requested_version}" | cut -d "." --field=1,2)"
+    package_name="$(apt-cache search "${partial_package_name}-[0-9].[0-9]" | awk -F" - " '{print $1}' | grep -m 1 "${partial_package_name}-${major_minor_version}")"
     
     dot_escaped="${requested_version//./\\.}"
     dot_plus_escaped="${dot_escaped//+/\\+}"
@@ -170,14 +170,14 @@ apt_cache_package_and_version_soft_match() {
         fuzzy_version="$(apt-cache madison ${package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${version_regex}")"
     set -e
     if [ -z "${fuzzy_version}" ]; then
-        echo "(!) No full or partial for package \"${package_name}\" match found in apt-cache for \"${requested_version}\" on OS ${ID} ${VERSION_CODENAME} (${architecture})."
+        echo "(!) No full or partial for package \"${partial_package_name}\" (resolved: \"${package_name}\") match found in apt-cache for \"${requested_version}\" on OS ${ID} ${VERSION_CODENAME} (${architecture})."
 
         if $exit_on_no_match; then
             echo "Available versions:"
             apt-cache madison ${package_name} | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
             exit 1 # Fail entire script
         else
-            echo "Continuing to fallback method (if available)"
+            echo "Continuing to fallback method if available"
             return 1;
         fi
     fi
@@ -206,7 +206,7 @@ install_using_apt_from_microsoft_repo() {
     get_common_setting MICROSOFT_GPG_KEYS_URI
     curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
     echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
-    apt-get update
+    apt-get update -y
 
     if [ "${DOTNET_VERSION}" = "latest" ] || [ "${DOTNET_VERSION}" = "lts" ]; then
         DOTNET_VERSION=""
@@ -214,27 +214,32 @@ install_using_apt_from_microsoft_repo() {
     else
         # Sets DOTNET_VERSION and DOTNET_PACKAGE if matches found. 
         apt_cache_package_and_version_soft_match DOTNET_VERSION DOTNET_PACKAGE false
+        if [ "$?" != 0 ]; then
+            echo "Failed to find requested version."
+            return 1
+        fi
 
         if [[ $(dotnet --version) == *"${DOTNET_VERSION}"* ]] ; then
             echo "Dotnet version ${DOTNET_VERSION} is already installed"
-            exit 1
-        fi
-
-        if [ "$?" != 0 ]; then
             return 1
         fi
+
     fi
 
-    if ! (apt-get install -yq ${DOTNET_PACKAGE}${DOTNET_VERSION}); then
+    echo "Installing '${DOTNET_PACKAGE}${DOTNET_VERSION}'..."
+    apt-get install -yq ${DOTNET_PACKAGE}${DOTNET_VERSION}
+    if [ "$?" != 0 ]; then
+        echo "Failed to complete apt install of ${DOTNET_PACKAGE}${DOTNET_VERSION}"
         return 1
     fi
 }
 
-install_using_default_apt_repo() {    
-    apt_get_update_if_needed  
+install_using_default_apt_repo() {
     DOTNET_PACKAGE="dotnet6"
 
-    if [ "${DOTNET_VERSION}" = "latest" ] || [ "${DOTNET_VERSION}" = "lts" ] || "${DOTNET_VERSION}" = "6.0"; then
+    apt_get_update_if_needed
+
+    if [ "${DOTNET_VERSION}" = "latest" ] || [ "${DOTNET_VERSION}" = "lts" ] || [ ${DOTNET_VERSION} = "6"* ]; then
         if ! (apt-get install -yq ${DOTNET_PACKAGE}); then
             echo "Failed to install 'dotnet6' package from default apt repo."
             return 1
@@ -394,12 +399,15 @@ install_using_dotnet_releases_url() {
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Dotnet 3.1 and 5.0 are not supported on Ubuntu 22.04 (jammy)+,
+. /etc/os-release
+architecture="$(dpkg --print-architecture)"
+
+# Dotnet 3.1 and 5 are not supported on Ubuntu 22.04 (jammy)+,
 # due to lack of libssl3.0 support.
 # See: https://github.com/microsoft/vscode-dev-containers/issues/1458#issuecomment-1135077775
 # NOTE: This will only guard against installation of the dotnet versions we propose via 'features'. 
 #       The user can attempt to install any other version at their own risk.
-if [[ "${DOTNET_VERSION}" = "3.1" ]] || [[ "${DOTNET_VERSION}" = "5.0" ]]; then
+if [[ "${DOTNET_VERSION}" = "3"* ]] || [[ "${DOTNET_VERSION}" = "5"* ]]; then
     if [[ ! "${DOTNET_VERSION_CODENAMES_REQUIRE_OLDER_LIBSSL_1}" = *"${VERSION_CODENAME}"* ]]; then
         err "Dotnet ${DOTNET_VERSION} is not supported on Ubuntu ${VERSION_CODENAME} due to a change in the 'libssl' dependency across distributions.\n Please upgrade your version of dotnet, or downgrade your OS version."
         exit 1
@@ -420,13 +428,15 @@ fi
 # Install the .NET CLI
 echo "(*) Installing .NET CLI..."
 
-. /etc/os-release
-architecture="$(dpkg --print-architecture)"
-
 CHANGE_OWNERSHIP="false"
 if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${INSTALL_USING_APT}" = "true" ]]; then
     echo "Detected ${VERSION_CODENAME} on ${architecture}. Attempting to install dotnet from apt"
-    install_using_default_apt_repo "${DOTNET_SDK_OR_RUNTIME}" || install_using_apt_from_microsoft_repo "${DOTNET_SDK_OR_RUNTIME}"
+
+    install_using_default_apt_repo || install_using_apt_from_microsoft_repo "${DOTNET_SDK_OR_RUNTIME}"
+    if [ "$?" != 0 ]; then
+        echo "Could not install requested version from apt on current distribution."
+        exit 1
+    fi
 else
     if [[ "${INSTALL_USING_APT}" = "false" ]]; then
         echo "Installing dotnet from releases url"
