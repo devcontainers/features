@@ -4,14 +4,9 @@
   "description": "Installs NVIDIA CUDA libraries.",
   "version": "1.0.0",
   "options": {
-    "install_cuda": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install essential CUDA libraries"
-    },
     "install_cudnn": {
       "type": "boolean",
-      "default": true,
+      "default": false,
       "description": "Install CUDA Deep Neural Network (cuDNN) library"
     }
   }
