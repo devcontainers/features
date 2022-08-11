@@ -13,7 +13,6 @@ You can also connect to the desktop using a [VNC viewer](https://www.realvnc.com
 1. Start your VNC Viewer and connect to localhost:5901. Note that you may need to bump up the color depth to 24 bits to see full color.
 1. Enter the desktop password (`vscode` by default).
 
-
 ## Customizing Fluxbox
 
 The window manager is installed is [Fluxbox](http://fluxbox.org/). **Right-click** to see the application menu. In addition, any UI-based commands you execute inside the dev container will automatically appear on the desktop.
