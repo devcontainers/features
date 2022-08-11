@@ -24,7 +24,6 @@ If you add custom content to your base image or a Dockerfile in this location, t
 
 See the [Fluxbox menu documentation](http://www.fluxbox.org/help/man-fluxbox-menu.php) for format details. More information on additional customization can be found in Fluxbox's [help](http://www.fluxbox.org/help/) and [general](http://fluxbox.sourceforge.net/docbook/en/html/book1.html) documentation.
 
-
 ## Resolving crashes
 
 If you run into applications crashing, you may need to increase the size of the shared memory space allocated to your container. For example, this will bump it up to 1 GB in `devcontainer.json`:
