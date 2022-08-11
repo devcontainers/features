@@ -1,6 +1,6 @@
 {
     "id": "node",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "Node.js (via nvm) and yarn",
     "description": "Installs Node.js, nvm, yarn, and needed dependencies.",
     "options": {
@@ -17,12 +17,12 @@
             "default": "lts",
             "description": "Select or enter a Node.js version to install"
         },
-        "install_tools_for_node_gyp": {
+        "nodeGypDependencies": {
             "type": "boolean",
             "default": true,
             "description": "Install dependencies to compile native node modules (node-gyp)?"
         },
-        "nvm_install_path": {
+        "nvmInstallPath": {
             "type": "string",
             "default": "/usr/local/share/nvm",
             "description": "The path where NVM will be installed."

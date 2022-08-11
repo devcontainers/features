@@ -1,6 +1,6 @@
 {
     "id": "desktop-lite",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "Light-weight Desktop",
     "description": "Adds a lightweight Fluxbox based desktop to the container that can be accessed using a VNC viewer or the web. GUI-based commands executed from the built-in VS code terminal will open on the desktop automatically.",
     "options": {
@@ -12,7 +12,7 @@
             "default": "latest",
             "description": "Currently Unused!"
         },
-        "novnc_version": {
+        "noVncVersion": {
             "type": "string",
             "proposals": [
                 "1.2.0"
@@ -20,7 +20,7 @@
             "default": "1.2.0",
             "description": "NoVnc Version"
         },
-        "vnc_password": {
+        "password": {
             "type": "string",
             "proposals": [
                 "vscode",
@@ -30,7 +30,7 @@
             "default": "vscode",
             "description": "Enter a password for desktop connections"
         },
-        "novnc_port": {
+        "webPort": {
             "type": "string",
             "proposals": [
                 "6080"
@@ -38,7 +38,7 @@
             "default": "6080",
             "description": "Enter a port for the VNC web client"
         },
-        "vnc_port": {
+        "vncPort": {
             "type": "string",
             "proposals": [
                 "5901"

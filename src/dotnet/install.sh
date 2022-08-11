@@ -8,9 +8,9 @@
 # Maintainer: The VS Code and Codespaces Teams
 
 DOTNET_VERSION=${VERSION:-"latest"}
-DOTNET_RUNTIME_ONLY=${RUNTIME_ONLY:-"false"}
-OVERRIDE_DEFAULT_VERSION=${OVERRIDE_DEFAULT_VERSION:-"true"}
-INSTALL_USING_APT=${INSTALL_USING_APT:-"true"}
+DOTNET_RUNTIME_ONLY=${RUNTIMEONLY:-"false"}
+OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
+INSTALL_USING_APT=${INSTALLUSINGAPT:-"true"}
 
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
@@ -28,7 +28,7 @@ DOTNET_VERSION_CODENAMES_REQUIRE_OLDER_LIBSSL_1="buster bullseye bionic focal hi
 
 # Comma-separated list of dotnet versions to be installed
 # alongside DOTNET_VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
+ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 
 # Exit on failure.
 set -e

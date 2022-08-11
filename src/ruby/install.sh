@@ -15,7 +15,7 @@ INSTALL_RUBY_TOOLS=${INSTALL_RUBY_TOOLS:-"true"}
 
 # Comma-separated list of ruby versions to be installed (with rvm)
 # alongside RUBY_VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
+ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 
 # Note: ruby-debug-ide will install the right version of debase if missing and
 # installing debase directly fails on Ruby 3.1.0 as of 1/7/2022, so omitting.
