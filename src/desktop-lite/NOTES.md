@@ -9,7 +9,7 @@ This feature provides two ways of connecting to the desktop environment it adds.
 You can also connect to the desktop using a [VNC viewer](https://www.realvnc.com/en/connect/download/viewer/). To do so:
 
 1. Connect to the environment from a desktop tool that supports the dev container spec (e.g., VS Code client).
-1.  Forward the VNC server port (`5901` by default) to your local machine using either the `forwardPorts` property in `devcontainer.json` or the user interface in your tool (e.g., you can press <kbd>F1</kbd> or <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> and select **Ports: Focus on Ports View** in VS Code to bring it into focus).
+1. Forward the VNC server port (`5901` by default) to your local machine using either the `forwardPorts` property in `devcontainer.json` or the user interface in your tool (e.g., you can press <kbd>F1</kbd> or <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> and select **Ports: Focus on Ports View** in VS Code to bring it into focus).
 1. Start your VNC Viewer and connect to localhost:5901. Note that you may need to bump up the color depth to 24 bits to see full color.
 1. Enter the desktop password (`vscode` by default).
 
