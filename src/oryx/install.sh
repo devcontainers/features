@@ -66,7 +66,7 @@ apt_get_update_if_needed()
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update_if_needed
-        DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends "$@"
+        apt-get -y install --no-install-recommends "$@"
     fi
 }
 
@@ -95,6 +95,9 @@ if  oryx --version > /dev/null ; then
 fi
 
 echo "Installing Oryx..."
+
+# Ensure apt is in non-interactive to avoid prompts
+export DEBIAN_FRONTEND=noninteractive
 
 . /etc/os-release
 architecture="$(dpkg --print-architecture)"
