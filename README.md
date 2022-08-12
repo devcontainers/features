@@ -114,7 +114,7 @@ devcontainer build --workspace-folder <path-to-my-project-with-devcontainer>
 
 Please see the
 [proposed specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features-distribution.md)
-on how to start to author and distribute features your own features.
+on how to start to author and distribute your own features.
 
 We're excited for you to create features! Our team is actively iterating on tools and examples to help members of the
 community author their own dev container features. If you have any feedback along the way, please let us know in the
