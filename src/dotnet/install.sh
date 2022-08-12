@@ -30,9 +30,6 @@ DOTNET_VERSION_CODENAMES_REQUIRE_OLDER_LIBSSL_1="buster bullseye bionic focal hi
 # alongside DOTNET_VERSION, but not set as default.
 ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 
-# Exit on failure.
-# set -e
-
 # Setup STDERR.
 err() {
     echo "(!) $*" >&2
