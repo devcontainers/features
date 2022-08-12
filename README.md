@@ -25,43 +25,6 @@ Once the [**proposed**](https://github.com/devcontainers/spec/blob/main/proposal
 specification is accepted, implementation details will be published at
 [https://containers.dev](https://containers.dev/).
 
-## Repo Structure
-
-```
-.
-├── README.md
-├── src
-│   ├── dotnet
-│   │   ├── devcontainer-feature.json
-│   │   └── install.sh
-│   ├── go
-│   │   ├── devcontainer-feature.json
-│   │   └── install.sh
-|   ├── ...
-│   │   ├── devcontainer-feature.json
-│   │   └── install.sh
-├── test
-│   ├── dotnet
-│   │   └── test.sh
-│   └── go
-│   |   └── test.sh
-|   ├── ...
-│   │   └── test.sh
-├── test-scenarios
-│   ├── install_jupyterlab.sh
-│   ├── install_python_twice.sh
-|   ├── ...
-│   └── scenarios.json
-```
-
--   [`src`](src) - A collection of subfolders, each declaring a feature. Each subfolder contains at least a
-    `devcontainer-feature.json` and an `install.sh` script.
--   [`test`](test) - Mirroring `src`, a folder-per-feature with at least a `test.sh` script. The
-    [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute
-    [these tests in CI](https://github.com/devcontainers/features/blob/main/.github/workflows/test-all.yaml).
--   [`test-scenarios`](test-scenarios) - More complex scenarios involving a set of features from this repo. The
-    [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute
-    [these tests in CI](https://github.com/devcontainers/features/blob/main/.github/workflows/test-scenarios.yaml).
 
 ## Usage
 
@@ -106,6 +69,44 @@ The [devcontainer CLI reference implementation](https://github.com/devcontainers
 git clone <my-project-with-devcontainer>
 devcontainer build --workspace-folder <path-to-my-project-with-devcontainer>
 ```
+
+## Repo Structure
+
+```
+.
+├── README.md
+├── src
+│   ├── dotnet
+│   │   ├── devcontainer-feature.json
+│   │   └── install.sh
+│   ├── go
+│   │   ├── devcontainer-feature.json
+│   │   └── install.sh
+|   ├── ...
+│   │   ├── devcontainer-feature.json
+│   │   └── install.sh
+├── test
+│   ├── dotnet
+│   │   └── test.sh
+│   └── go
+│   |   └── test.sh
+|   ├── ...
+│   │   └── test.sh
+├── test-scenarios
+│   ├── install_jupyterlab.sh
+│   ├── install_python_twice.sh
+|   ├── ...
+│   └── scenarios.json
+```
+
+-   [`src`](src) - A collection of subfolders, each declaring a feature. Each subfolder contains at least a
+    `devcontainer-feature.json` and an `install.sh` script.
+-   [`test`](test) - Mirroring `src`, a folder-per-feature with at least a `test.sh` script. The
+    [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute
+    [these tests in CI](https://github.com/devcontainers/features/blob/main/.github/workflows/test-all.yaml).
+-   [`test-scenarios`](test-scenarios) - More complex scenarios involving a set of features from this repo. The
+    [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute
+    [these tests in CI](https://github.com/devcontainers/features/blob/main/.github/workflows/test-scenarios.yaml).
 
 ## Contributions
 
