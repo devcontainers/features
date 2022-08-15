@@ -2,7 +2,6 @@
 
 set -e
 
-install_cuda="true"
 install_cudnn=${INSTALL_CUDNN}
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -45,10 +44,8 @@ wget -O "$keyring_package_file" "$keyring_package_url"
 apt-get install -yq "$keyring_package_file"
 apt-get update -yq
 
-if [ "$install_cuda" = "true" ]; then
-    echo "Installing CUDA libraries..."
-    apt-get install -yq cuda-libraries-11-7
-fi
+echo "Installing CUDA libraries..."
+apt-get install -yq cuda-libraries-11-7
 
 if [ "$install_cudnn" = "true" ]; then
     echo "Installing cuDNN libraries..."
