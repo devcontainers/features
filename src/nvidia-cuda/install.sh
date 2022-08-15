@@ -31,14 +31,16 @@ check_packages() {
 
 check_packages wget ca-certificates
 
-# Download NVIDIA's keyring package
 source /etc/os-release
-keyring_repo="$ID$(echo $VERSION_ID | sed 's/\.//g')"
-keyring_repo_url="https://developer.download.nvidia.com/compute/cuda/repos/$keyring_repo/x86_64"
+keyring_repo="$ID$(echo $VERSION_ID | sed 's/\.//g')/$(uname -m)"
+keyring_repo_url="https://developer.download.nvidia.com/compute/cuda/repos/$keyring_repo"
+
 keyring_package="cuda-keyring_1.0-1_all.deb"
 keyring_package_url="$keyring_repo_url/$keyring_package"
 keyring_package_path="$(mktemp -d)"
 keyring_package_file="$keyring_package_path/$keyring_package"
+
+# Download NVIDIA's keyring package
 wget -O "$keyring_package_file" "$keyring_package_url"
 
 # Install NVIDIA's keyring package
