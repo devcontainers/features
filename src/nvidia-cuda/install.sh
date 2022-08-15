@@ -40,10 +40,8 @@ keyring_package_url="$keyring_repo_url/$keyring_package"
 keyring_package_path="$(mktemp -d)"
 keyring_package_file="$keyring_package_path/$keyring_package"
 
-# Download NVIDIA's keyring package
+# Download and install NVIDIA's keyring package
 wget -O "$keyring_package_file" "$keyring_package_url"
-
-# Install NVIDIA's keyring package
 apt-get install -yq "$keyring_package_file"
 apt-get update -yq
 
