@@ -3,6 +3,7 @@
 set -e
 
 install_cudnn=${INSTALL_CUDNN}
+install_nvtx=${INSTALL_NVTX}
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -50,6 +51,11 @@ apt-get install -yq cuda-libraries-11-7
 if [ "$install_cudnn" = "true" ]; then
     echo "Installing cuDNN libraries..."
     apt-get install -yq libcudnn8
+fi
+
+if [ "$install_nvtx" = "true" ]; then
+    echo "Installing NVTX..."
+    apt-get install -yq cuda-nvtx-11-7
 fi
 
 echo "Done!"

@@ -8,6 +8,11 @@
       "type": "boolean",
       "default": false,
       "description": "Install CUDA Deep Neural Network (cuDNN) library"
+    },
+    "installNvtx": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install NVIDIA Tools Extension (NVTX)"
     }
   }
 }
