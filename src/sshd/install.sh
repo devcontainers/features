@@ -50,8 +50,6 @@ check_packages() {
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
-
-
 # Install openssh-server openssh-client
 check_packages openssh-server openssh-client lsof
 
