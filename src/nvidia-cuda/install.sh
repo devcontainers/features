@@ -32,11 +32,11 @@ check_packages() {
 check_packages wget ca-certificates
 
 # Download NVIDIA's keyring package
-# TODO: Use a different command to set ubuntu_version
-# ubuntu_version="$(lsb_release -sr | sed 's/\.//g')"
-keyring_repo="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64"
+source /etc/os-release
+keyring_repo="$ID$(echo $VERSION_ID | sed 's/\.//g')"
+keyring_repo_url="https://developer.download.nvidia.com/compute/cuda/repos/$keyring_repo/x86_64"
 keyring_package="cuda-keyring_1.0-1_all.deb"
-keyring_package_url="$keyring_repo/$keyring_package"
+keyring_package_url="$keyring_repo_url/$keyring_package"
 keyring_package_path="$(mktemp -d)"
 keyring_package_file="$keyring_package_path/$keyring_package"
 wget -O "$keyring_package_file" "$keyring_package_url"
