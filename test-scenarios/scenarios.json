@@ -75,5 +75,21 @@
                 "additionalVersions": "5.0,3.1.420"
             }
         }
+    },
+    "install_dotnet_5": {
+        "image": "ubuntu:focal",
+        "features": {
+            "dotnet": {
+                "version": "5"
+            }
+        }
+    },
+    "install_dotnet_3": {
+        "image": "ubuntu:focal",
+        "features": {
+            "dotnet": {
+                "version": "3"
+            }
+        }
     }
 }
