@@ -1,6 +1,6 @@
 {
   "id": "azure-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Azure CLI",
   "description": "Installs the Azure CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
   "options": {

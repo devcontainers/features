@@ -1,6 +1,6 @@
 {
     "id": "ruby",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "Ruby (via rvm)",
     "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
     "options": {

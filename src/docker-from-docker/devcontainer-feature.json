@@ -1,6 +1,6 @@
 {
     "id": "docker-from-docker",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "name": "Docker (Docker-from-Docker)",
     "descripton": "Re-use the host docker socket, adding the Docker CLI to a container. Feature invokes a script to enable using a forwarded Docker socket within a container to run Docker commands.",
     "options": {
