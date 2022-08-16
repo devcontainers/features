@@ -24,6 +24,14 @@ inputs:
     required: false
     default: ''
     description: "Relative path to the 'src' folder containing dev container 'feature(s)'"
+  oci-registry:
+    required: false
+    default: "ghcr.io"
+    description: "Name of the OCI registry that implements the OCI Artifact Distribution Specification"
+  features-namespace:
+    required: false
+    default: "<owner>/<repo>"
+    description: "A unique indentifier for the collection of features"
 
   # 'template' options
   base-path-to-templates:

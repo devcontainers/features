@@ -1,28 +1,27 @@
 {
   "id": "java",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "name": "Java (via SDKMAN!)",
   "description": "Installs Java, SDKMAN! (if not installed), and needed dependencies.",
   "options": {
     "version": {
       "type": "string",
       "proposals": [
-        "lts",
         "latest",
         "none",
         "17",
         "11",
         "8"
       ],
-      "default": "lts",
+      "default": "latest",
       "description": "Select or enter a Java version to install"
     },
-    "install_gradle": {
+    "installGradle": {
       "type": "boolean",
       "default": false,
       "description": "Install Gradle, a build automation tool for multi-language software development"
     },
-    "install_maven": {
+    "installMaven": {
       "type": "boolean",
       "default": false,
       "description": "Install Maven, a management tool for Java"

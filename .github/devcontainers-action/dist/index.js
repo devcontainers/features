@@ -53,7 +53,7 @@ const FEATURES_README_TEMPLATE = `
 
 \`\`\`json
 "features": {
-        "#{Nwo}/#{Id}@#{VersionTag}": {
+        "#{Registry}/#{Namespace}/#{Id}:#{Version}": {
             "version": "latest"
         }
 }
@@ -76,9 +76,9 @@ const TEMPLATE_README_TEMPLATE = `
 
 #{OptionsTable}
 `;
-function generateFeaturesDocumentation(basePath) {
+function generateFeaturesDocumentation(basePath, ociRegistry, namespace) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield _generateDocumentation(basePath, FEATURES_README_TEMPLATE, 'devcontainer-feature.json');
+        yield _generateDocumentation(basePath, FEATURES_README_TEMPLATE, 'devcontainer-feature.json', ociRegistry, namespace);
     });
 }
 exports.generateFeaturesDocumentation = generateFeaturesDocumentation;
@@ -88,7 +88,7 @@ function generateTemplateDocumentation(basePath) {
     });
 }
 exports.generateTemplateDocumentation = generateTemplateDocumentation;
-function _generateDocumentation(basePath, readmeTemplate, metadataFile) {
+function _generateDocumentation(basePath, readmeTemplate, metadataFile, ociRegistry = '', namespace = '') {
     return __awaiter(this, void 0, void 0, function* () {
         const directories = fs.readdirSync(basePath);
         yield Promise.all(directories.map((f) => __awaiter(this, void 0, void 0, function* () {
@@ -114,13 +114,15 @@ function _generateDocumentation(basePath, readmeTemplate, metadataFile) {
                     return;
                 }
                 const srcInfo = (0, utils_1.getGitHubMetadata)();
-                const ref = srcInfo.ref;
                 const owner = srcInfo.owner;
                 const repo = srcInfo.repo;
-                // Add tag if parseable
-                let versionTag = 'latest';
-                if (ref && ref.includes('refs/tags/')) {
-                    versionTag = ref.replace('refs/tags/', '');
+                // Add version
+                let version = 'latest';
+                const parsedVersion = parsedJson === null || parsedJson === void 0 ? void 0 : parsedJson.version;
+                if (parsedVersion) {
+                    // example - 1.0.0
+                    const splitVersion = parsedVersion.split('.');
+                    version = splitVersion[0];
                 }
                 const generateOptionsMarkdown = () => {
                     const options = parsedJson === null || parsedJson === void 0 ? void 0 : parsedJson.options;
@@ -148,8 +150,9 @@ function _generateDocumentation(basePath, readmeTemplate, metadataFile) {
                     .replace('#{Description}', (_a = parsedJson.description) !== null && _a !== void 0 ? _a : '')
                     .replace('#{OptionsTable}', generateOptionsMarkdown())
                     // Features Only
-                    .replace('#{Nwo}', `${owner}/${repo}`)
-                    .replace('#{VersionTag}', versionTag)
+                    .replace('#{Registry}', ociRegistry)
+                    .replace('#{Namespace}', namespace == '<owner>/<repo>' ? `${owner}/${repo}` : namespace)
+                    .replace('#{Version}', version)
                     // Templates Only
                     .replace('#{ManifestName}', (_c = (_b = parsedJson === null || parsedJson === void 0 ? void 0 : parsedJson.image) === null || _b === void 0 ? void 0 : _b.manifest) !== null && _c !== void 0 ? _c : '')
                     .replace('#{RepoUrl}', urlToConfig);
@@ -232,6 +235,8 @@ function run() {
         };
         const featuresBasePath = core.getInput('base-path-to-features');
         const templatesBasePath = core.getInput('base-path-to-templates');
+        const ociRegistry = core.getInput('oci-registry');
+        const namespace = core.getInput('features-namespace');
         let featuresMetadata = undefined;
         let templatesMetadata = undefined;
         // -- Package Release Artifacts
@@ -246,7 +251,7 @@ function run() {
         // -- Generate Documentation
         if (shouldGenerateDocumentation && featuresBasePath) {
             core.info('Generating documentation for features...');
-            yield (0, generateDocs_1.generateFeaturesDocumentation)(featuresBasePath);
+            yield (0, generateDocs_1.generateFeaturesDocumentation)(featuresBasePath, ociRegistry, namespace);
         }
         if (shouldGenerateDocumentation && templatesBasePath) {
             core.info('Generating documentation for templates...');

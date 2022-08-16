@@ -7,7 +7,7 @@
 
 ```json
 "features": {
-        "devcontainers/features/docker-from-docker@latest": {
+        "ghcr.io/devcontainers/features/docker-from-docker:1": {
             "version": "latest"
         }
 }
@@ -19,8 +19,8 @@
 |-----|-----|-----|-----|
 | version | Select or enter a Docker/Moby CLI version. (Availability can vary by OS version.) | string | latest |
 | moby | Install OSS Moby build instead of Docker CE | boolean | true |
-| docker_dash_compose_version | Compose version to use for docker-compose (v1 or v2) | string | v1 |
+| dockerDashComposeVersion | Compose version to use for docker-compose (v1 or v2) | string | v1 |
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/docker-from-docker/devcontainer-feature.json)._

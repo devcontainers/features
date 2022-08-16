@@ -10,8 +10,8 @@
 # Syntax: ./java-debian.sh [JDK version] [SDKMAN_DIR] [non-root user] [Add to rc files flag]
 
 JAVA_VERSION=${VERSION:-"lts"}
-INSTALL_GRADLE=${INSTALL_GRADLE:-"false"}
-INSTALL_MAVEN=${INSTALL_MAVEN:-"false"}
+INSTALL_GRADLE=${INSTALLGRADLE:-"false"}
+INSTALL_MAVEN=${INSTALLMAVEN:-"false"}
 
 export SDKMAN_DIR=${SDKMAN_DIR:-"/usr/local/sdkman"}
 USERNAME=${USERNAME:-"automatic"}
@@ -19,7 +19,7 @@ UPDATE_RC=${UPDATE_RC:-"true"}
 
 # Comma-separated list of java versions to be installed
 # alongside JAVA_VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONAL_VERSIONS:-""}
+ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 
 set -e
 
@@ -100,7 +100,7 @@ sdk_install() {
     local set_as_default=${6:-"true"}
     if [ "${requested_version}" = "none" ]; then return; fi
     # Blank will install latest stable version SDKMAN has
-    if [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "default" ]; then
+    if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "default" ]; then
          requested_version=""
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"

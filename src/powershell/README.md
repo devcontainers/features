@@ -7,7 +7,7 @@ Installs PowerShell along with needed dependencies. Useful for base Dockerfiles 
 
 ```json
 "features": {
-        "devcontainers/features/powershell@latest": {
+        "ghcr.io/devcontainers/features/powershell:1": {
             "version": "latest"
         }
 }
@@ -21,4 +21,4 @@ Installs PowerShell along with needed dependencies. Useful for base Dockerfiles 
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](./devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/powershell/devcontainer-feature.json)._
