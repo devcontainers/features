@@ -62,7 +62,7 @@ updaterc() {
 }
 
 # Function to run apt-get if needed
-apt_get_update_if_needed()
+apt_get_update()
 {
     if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
         echo "Running apt-get update..."
@@ -75,7 +75,7 @@ apt_get_update_if_needed()
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update_if_needed
+        apt_get_update
         apt-get -y install --no-install-recommends "$@"
     fi
 }
@@ -186,7 +186,7 @@ if [ "${INSTALL_TOOLS_FOR_NODE_GYP}" = "true" ]; then
         to_install="${to_install} python3-minimal"
     fi
     if [ ! -z "${to_install}" ]; then
-        apt_get_update_if_needed
+        apt_get_update
         apt-get -y install ${to_install}
     fi
 fi

@@ -72,21 +72,16 @@ get_common_setting() {
     echo "$1=${!1}"
 }
 
-# Function to run apt-get if needed
-apt_get_update_if_needed()
+apt_get_update()
 {
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update
-    else
-        echo "Skipping apt-get update."
-    fi
+    echo "Running apt-get update..."
+    apt-get update -y
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update_if_needed
+        apt_get_update
         apt-get -y install --no-install-recommends "$@"
     fi
 }
@@ -123,7 +118,7 @@ install_using_github() {
     # Fall back on direct download if no apt package exists in microsoft pool
     check_packages curl ca-certificates gnupg2 dirmngr libc6 libgcc1 libgssapi-krb5-2 libstdc++6 libunwind8 libuuid1 zlib1g libicu[0-9][0-9]
     if ! type git > /dev/null 2>&1; then
-        apt_get_update_if_needed
+        apt_get_update
         apt-get install -y --no-install-recommends git
     fi
     if [ "${architecture}" = "amd64" ]; then

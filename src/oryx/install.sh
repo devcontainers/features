@@ -51,21 +51,16 @@ function updaterc() {
     fi
 }
 
-# Function to run apt-get if needed
-apt_get_update_if_needed()
+apt_get_update()
 {
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update
-    else
-        echo "Skipping apt-get update."
-    fi
+    echo "Running apt-get update..."
+    apt-get update -y
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update_if_needed
+        apt_get_update
         DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends "$@"
     fi
 }

@@ -110,20 +110,16 @@ updaterc() {
     fi
 }
 
-# Run apt-get if needed.
-apt_get_update_if_needed() {
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update
-    else
-        echo "Skipping apt-get update."
-    fi
+apt_get_update()
+{
+    echo "Running apt-get update..."
+    apt-get update -y
 }
 
 # Check if packages are installed and installs them if not.
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update_if_needed
+        apt_get_update
         apt-get -y install --no-install-recommends "$@"
     fi
 }
