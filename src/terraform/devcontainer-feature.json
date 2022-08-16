@@ -33,15 +33,19 @@
             "description": "Terragrunt version"
         }
     },
-    "extensions": [
-        "HashiCorp.terraform",
-        "ms-azuretools.vscode-azureterraform"
-    ],
-    "settings": {
-        "terraform.languageServer": {
-            "enabled": true,
-            "args": []
-        },
-        "azureTerraform.terminal": "integrated"
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "HashiCorp.terraform",
+                "ms-azuretools.vscode-azureterraform"
+            ],
+            "settings": {
+                "terraform.languageServer": {
+                    "enabled": true,
+                    "args": []
+                },
+                "azureTerraform.terminal": "integrated"
+            }
+        }
     }
 }

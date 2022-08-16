@@ -27,13 +27,24 @@
             "description": "Select a rustup install profile."
         }
     },
-    "extensions": [
-        "vadimcn.vscode-lldb",
-        "mutantdino.resourcemonitor",
-        "rust-lang.rust-analyzer",
-        "tamasfe.even-better-toml",
-        "serayuzgur.crates"
-    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "vadimcn.vscode-lldb",
+                "mutantdino.resourcemonitor",
+                "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml",
+                "serayuzgur.crates"
+            ],
+            "settings": {
+                "lldb.executable": "/usr/bin/lldb",
+                "files.watcherExclude": {
+                    "**/target/**": true
+                },
+                "rust-analyzer.checkOnSave.command": "clippy"
+            }
+        }
+    },
     "containerEnv": {
         "CARGO_HOME": "/usr/local/cargo",
         "RUSTUP_HOME": "/usr/local/rustup",
@@ -44,12 +55,5 @@
     ],
     "securityOpt": [
         "seccomp=unconfined"
-    ],
-    "settings": {
-        "lldb.executable": "/usr/bin/lldb",
-        "files.watcherExclude": {
-            "**/target/**": true
-        },
-        "rust-analyzer.checkOnSave.command": "clippy"
-    }
+    ]
 }

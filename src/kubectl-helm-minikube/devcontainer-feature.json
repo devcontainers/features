@@ -33,9 +33,13 @@
             "description": "Select or enter a Minikube version to install"
         }
     },
-    "extensions": [
-        "ms-kubernetes-tools.vscode-kubernetes-tools"
-    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-kubernetes-tools.vscode-kubernetes-tools"
+            ]
+        }
+    },
     "mounts": [
         {
             "source": "minikube-config",

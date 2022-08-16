@@ -17,9 +17,13 @@
         }
     },
     "init": true,
-    "extensions": [
-        "golang.Go"
-    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.Go"
+            ]
+        }
+    },
     "containerEnv": {
         "GOPATH": "/usr/local/go",
         "PATH": "${GOPATH}/bin:${PATH}"

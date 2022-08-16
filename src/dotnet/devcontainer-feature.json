@@ -30,7 +30,11 @@
         "DOTNET_ROOT": "/usr/local/dotnet/current",
         "PATH": "${PATH}:${DOTNET_ROOT}"
     },
-    "extensions": [
-        "ms-dotnettools.csharp"
-    ]
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csharp"
+            ]
+        }
+    }
 }

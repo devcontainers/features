@@ -33,9 +33,13 @@
     "containerEnv": {
         "DOCKER_BUILDKIT": "1"
     },
-    "extensions": [
-        "ms-azuretools.vscode-docker"
-    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    },
     "mounts": [
         {
             "source": "/var/run/docker.sock",

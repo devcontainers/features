@@ -18,12 +18,16 @@
             "description": "Install PHP Composer?"
         }
     },
-    "extensions": [
-        "xdebug.php-debug",
-        "bmewburn.vscode-intelephense-client",
-        "xdebug.php-pack",
-        "devsense.phptools-vscode"
-    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "xdebug.php-debug",
+                "bmewburn.vscode-intelephense-client",
+                "xdebug.php-pack",
+                "devsense.phptools-vscode"
+            ]
+        }
+    },
     "containerEnv": {
         "PHP_PATH": "/usr/local/php/current",
         "PATH": "${PHP_PATH}/bin:${PATH}"

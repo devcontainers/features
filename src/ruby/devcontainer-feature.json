@@ -17,9 +17,13 @@
             "description": "Select or enter a Ruby version to install"
         }
     },
-    "extensions": [
-        "rebornix.Ruby"
-    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "rebornix.Ruby"
+            ]
+        }
+    },
     "containerEnv": {
         "GEM_PATH": "/usr/local/rvm/gems/default:/usr/local/rvm/gems/default@global",
         "GEM_HOME": "/usr/local/rvm/gems/default",

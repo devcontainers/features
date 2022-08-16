@@ -13,7 +13,12 @@
       "description": "Select or enter an Azure CLI version. (Available versions may vary by Linux distribution.)"
     }
   },
-  "extensions": [
-    "ms-vscode.azurecli"
-  ]
+  "customizations": {
+      "vscode": {
+          "extensions": [
+            "ms-vscode.azurecli"
+          ]
+      }
+  }
 }
+
