@@ -19,7 +19,7 @@ Create child containers *inside* a container, independent from the host's docker
 |-----|-----|-----|-----|
 | version | Select or enter a Docker/Moby Engine version. (Availability can vary by OS version.) | string | latest |
 | moby | Install OSS Moby build instead of Docker CE | boolean | true |
-| docker_dash_compose_version | Default version of Docker Compose (v1 or v2) | string | v1 |
+| dockerDashComposeVersion | Default version of Docker Compose (v1 or v2) | string | v1 |
 
 ---
 

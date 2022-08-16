@@ -1,6 +1,6 @@
 {
     "id": "sshd",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "SSH server",
     "description": "Adds a SSH server into a container so that you can use an external terminal, sftp, or SSHFS to interact with it.",
     "options": {

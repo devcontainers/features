@@ -19,7 +19,7 @@
 |-----|-----|-----|-----|
 | version | Select or enter a Docker/Moby CLI version. (Availability can vary by OS version.) | string | latest |
 | moby | Install OSS Moby build instead of Docker CE | boolean | true |
-| docker_dash_compose_version | Compose version to use for docker-compose (v1 or v2) | string | v1 |
+| dockerDashComposeVersion | Compose version to use for docker-compose (v1 or v2) | string | v1 |
 
 ---
 
