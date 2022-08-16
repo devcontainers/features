@@ -1,6 +1,6 @@
 {
     "id": "rust",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "Rust",
     "description": "Installs Rust, common Rust utilities, and their required dependencies",
     "options": {
@@ -9,9 +9,9 @@
             "proposals": [
                 "latest",
                 "none",
-                "1.55",
-                "1.54",
-                "1.53"
+                "1.63",
+                "1.62",
+                "1.61"
             ],
             "default": "latest",
             "description": "Select or enter a version of Rust to install."
