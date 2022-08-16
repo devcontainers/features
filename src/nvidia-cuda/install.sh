@@ -31,16 +31,13 @@ check_packages() {
 
 check_packages wget ca-certificates
 
-source /etc/os-release
-keyring_repo="$ID$(echo $VERSION_ID | sed 's/\.//g')/$(uname -m)"
-keyring_repo_url="https://developer.download.nvidia.com/compute/cuda/repos/$keyring_repo"
-
+# Add NVIDIA's package repository to apt so that we can download packages
+# Always use the ubuntu2004 repo because the other repos (e.g., debian11) are missing packages
+nvidia_repo_url="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64"
 keyring_package="cuda-keyring_1.0-1_all.deb"
-keyring_package_url="$keyring_repo_url/$keyring_package"
+keyring_package_url="$nvidia_repo_url/$keyring_package"
 keyring_package_path="$(mktemp -d)"
 keyring_package_file="$keyring_package_path/$keyring_package"
-
-# Download and install NVIDIA's keyring package
 wget -O "$keyring_package_file" "$keyring_package_url"
 apt-get install -yq "$keyring_package_file"
 apt-get update -yq
