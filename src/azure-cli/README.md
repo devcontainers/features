@@ -19,6 +19,8 @@ Installs the Azure CLI along with needed dependencies. Useful for base Dockerfil
 |-----|-----|-----|-----|
 | version | Select or enter an Azure CLI version. (Available versions may vary by Linux distribution.) | string | latest |
 
+
+
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/azure-cli/devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/azure-cli/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._

@@ -19,6 +19,8 @@ Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.
 |-----|-----|-----|-----|
 | version | Select or enter a Ruby version to install | string | latest |
 
+
+
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/ruby/devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/ruby/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._

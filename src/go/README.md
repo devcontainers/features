@@ -19,6 +19,8 @@ Installs Go and common Go utilities. Auto-detects latest version and installs ne
 |-----|-----|-----|-----|
 | version | Select or enter a Go version to install | string | latest |
 
+
+
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/go/devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/go/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
