@@ -4,6 +4,12 @@ set -e
 
 install_cudnn=${INSTALL_CUDNN:-"false"}
 install_nvtx=${INSTALL_NVTX:-"false"}
+cuda_version=${CUDA_VERSION:-"latest"}
+cudnn_version=${CUDNN_VERSION:-"latest"}
+
+# NVIDIA's package names include this information
+latest_cuda_version="11.7"
+latest_cudnn_version="8.5.0.96-1"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -42,17 +48,20 @@ wget -O "$keyring_package_file" "$keyring_package_url"
 apt-get install -yq "$keyring_package_file"
 apt-get update -yq
 
+if [ "$cuda_version" = "latest" ]; then cuda_version="$latest_cuda_version"; fi
+if [ "$cudnn_version" = "latest" ]; then cudnn_version="$latest_cudnn_version"; fi
+
 echo "Installing CUDA libraries..."
-apt-get install -yq cuda-libraries-11-7
+apt-get install -yq cuda-libraries-${cuda_version/./-}
 
 if [ "$install_cudnn" = "true" ]; then
     echo "Installing cuDNN libraries..."
-    apt-get install -yq libcudnn8
+    apt-get install -yq libcudnn8=${cudnn_version}+cuda${cuda_version}
 fi
 
 if [ "$install_nvtx" = "true" ]; then
     echo "Installing NVTX..."
-    apt-get install -yq cuda-nvtx-11-7
+    apt-get install -yq cuda-nvtx-${cuda_version/./-}
 fi
 
 echo "Done!"
