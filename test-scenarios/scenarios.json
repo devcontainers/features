@@ -92,7 +92,7 @@
             }
         }
     },
-    "install_specific_cuda": {
+    "install_cudnn_nvxt": {
         "image": "debian",
         "features": {
             "nvidia-cuda": {
