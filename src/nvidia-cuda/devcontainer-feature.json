@@ -14,7 +14,7 @@
       "default": false,
       "description": "Install NVIDIA Tools Extension (NVTX)"
     },
-    "cudaVersion": {
+    "version": {
       "type": "string",
       "default": "latest",
       "description": "Version of CUDA to install, formatted as MAJOR.MINOR (for example, 11.7)"
