@@ -56,9 +56,11 @@ const FEATURES_README_TEMPLATE = `
 
 #{OptionsTable}
 
+#{Notes}
+
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](#{RepoUrl})._
+_Note: This file was auto-generated from the [devcontainer-feature.json](#{RepoUrl}).  Add additional notes to a \`NOTES.md\`._
 `;
 const TEMPLATE_README_TEMPLATE = `
 # #{Name}
@@ -107,8 +109,6 @@ function _generateDocumentation(basePath, readmeTemplate, metadataFile, ociRegis
                     return;
                 }
                 const srcInfo = (0, utils_1.getGitHubMetadata)();
-                const owner = srcInfo.owner;
-                const repo = srcInfo.repo;
                 // Add version
                 let version = 'latest';
                 const parsedVersion = parsedJson === null || parsedJson === void 0 ? void 0 : parsedJson.version;
@@ -131,6 +131,10 @@ function _generateDocumentation(basePath, readmeTemplate, metadataFile, ociRegis
                         .join('\n');
                     return '| Options Id | Description | Type | Default Value |\n' + '|-----|-----|-----|-----|\n' + contents;
                 };
+                const generateNotesMarkdown = () => {
+                    const notesPath = path.join(basePath, f, 'NOTES.md');
+                    return fs.existsSync(notesPath) ? fs.readFileSync(path.join(notesPath), 'utf8') : '';
+                };
                 let urlToConfig = './devcontainer-feature.json';
                 const basePathTrimmed = basePath.startsWith('./') ? basePath.substring(2) : basePath;
                 if (srcInfo.owner && srcInfo.repo) {
@@ -142,9 +146,10 @@ function _generateDocumentation(basePath, readmeTemplate, metadataFile, ociRegis
                     .replace('#{Name}', parsedJson.name ? `${parsedJson.name} (${parsedJson.id})` : `${parsedJson.id}`)
                     .replace('#{Description}', (_a = parsedJson.description) !== null && _a !== void 0 ? _a : '')
                     .replace('#{OptionsTable}', generateOptionsMarkdown())
+                    .replace('#{Notes}', generateNotesMarkdown())
                     // Features Only
                     .replace('#{Registry}', ociRegistry)
-                    .replace('#{Namespace}', namespace == '<owner>/<repo>' ? `${owner}/${repo}` : namespace)
+                    .replace('#{Namespace}', namespace)
                     .replace('#{Version}', version)
                     // Templates Only
                     .replace('#{ManifestName}', (_c = (_b = parsedJson === null || parsedJson === void 0 ? void 0 : parsedJson.image) === null || _b === void 0 ? void 0 : _b.manifest) !== null && _c !== void 0 ? _c : '')

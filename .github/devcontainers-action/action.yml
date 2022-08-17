@@ -1,5 +1,5 @@
 name: 'Dev Container'
-description: 'Publish custom development container feature(s) and/or templates(s)'
+description: 'Publish custom development container assets'
 author: 'GitHub'
 branding:
   icon: box
@@ -10,10 +10,6 @@ inputs:
     required: false
     default: "false"
     description: "['true'/'false'] Publish dev container 'feature' artifacts"
-  publish-templates:
-    required: false
-    default: "false"
-    description: "['true'/'false'] Publish dev container 'template' artifacts"
   generate-docs:
     required: false
     default: "false"
@@ -26,36 +22,10 @@ inputs:
     description: "Relative path to the 'src' folder containing dev container 'feature(s)'"
   oci-registry:
     required: false
-    default: "ghcr.io"
     description: "Name of the OCI registry that implements the OCI Artifact Distribution Specification"
   features-namespace:
     required: false
-    default: "<owner>/<repo>"
     description: "A unique indentifier for the collection of features"
-
-  # 'template' options
-  base-path-to-templates:
-    required: false
-    default: ''
-    description: "Relative path to the folder containing dev container 'template(s)'"
-
-  # EXPERIMENTAL
-  tag-individual-features:
-    required: false
-    default: "false"
-    description: "Tag individual features"
-  publish-to-npm:
-    required: false
-    default: "false"
-    description: "Should publish features to NPM?"
-  publish-release-artifacts:
-    required: false
-    default: "false"
-    description: "Publish release artifacts (classic)"
-  publish-to-oci:
-    required: false
-    default: "false"
-    description: "Publish to OCI?"
 
 runs:
   using: 'node16'
