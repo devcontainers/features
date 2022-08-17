@@ -1,4 +1,4 @@
-name: "(Release) Release dev container features (v2)"
+name: "Release dev container features"
 on:
   workflow_dispatch:
   push:
@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: "Publish features to OCI"
-        uses: ./.github/devcontainers-action # TODO: Once 'devcontainers/action' is published, use that.
+      - name: "Publish"
+        uses: devcontainers/action@v1
         with:
           publish-features: "true"
           base-path-to-features: "./src"
