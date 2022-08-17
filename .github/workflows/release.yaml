@@ -1,6 +1,9 @@
 name: "(Release) Release dev container features (v2)"
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
