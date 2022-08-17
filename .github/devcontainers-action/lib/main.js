@@ -39,83 +39,55 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const generateDocs_1 = require("./generateDocs");
 const utils_1 = require("./utils");
+const exec = __importStar(require("@actions/exec"));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         core.debug('Reading input parameters...');
         // Read inputs
         const shouldPublishFeatures = core.getInput('publish-features').toLowerCase() === 'true';
-        const shouldPublishTemplates = core.getInput('publish-templates').toLowerCase() === 'true';
         const shouldGenerateDocumentation = core.getInput('generate-docs').toLowerCase() === 'true';
-        // Experimental
-        const shouldTagIndividualFeatures = core.getInput('tag-individual-features').toLowerCase() === 'true';
-        const shouldPublishToNPM = core.getInput('publish-to-npm').toLowerCase() === 'true';
-        const shouldPublishReleaseArtifacts = core.getInput('publish-release-artifacts').toLowerCase() === 'true';
-        const shouldPublishToOCI = core.getInput('publish-to-oci').toLowerCase() === 'true';
-        const opts = {
-            shouldTagIndividualFeatures,
-            shouldPublishToNPM,
-            shouldPublishReleaseArtifacts,
-            shouldPublishToOCI
-        };
         const featuresBasePath = core.getInput('base-path-to-features');
-        const templatesBasePath = core.getInput('base-path-to-templates');
-        const ociRegistry = core.getInput('oci-registry');
-        const namespace = core.getInput('features-namespace');
-        let featuresMetadata = undefined;
-        let templatesMetadata = undefined;
-        // -- Package Release Artifacts
+        const sourceMetadata = (0, utils_1.getGitHubMetadata)();
+        const inputOciRegistry = core.getInput('oci-registry');
+        const ociRegistry = inputOciRegistry && inputOciRegistry !== '' ? inputOciRegistry : 'ghcr.io';
+        const inputNamespace = core.getInput('namespace');
+        const namespace = inputNamespace && inputNamespace !== '' ? inputNamespace : `${sourceMetadata.owner}/${sourceMetadata.repo}`;
+        const cliDebugMode = core.getInput('devcontainer-cli-debug-mode').toLowerCase() === 'true';
+        // -- Publish
         if (shouldPublishFeatures) {
             core.info('Publishing features...');
-            featuresMetadata = yield packageFeatures(featuresBasePath, opts);
-        }
-        if (shouldPublishTemplates) {
-            core.info('Publishing template...');
-            templatesMetadata = yield packageTemplates(templatesBasePath);
+            yield publishFeatures(featuresBasePath, ociRegistry, namespace, cliDebugMode);
         }
         // -- Generate Documentation
         if (shouldGenerateDocumentation && featuresBasePath) {
             core.info('Generating documentation for features...');
             yield (0, generateDocs_1.generateFeaturesDocumentation)(featuresBasePath, ociRegistry, namespace);
         }
-        if (shouldGenerateDocumentation && templatesBasePath) {
-            core.info('Generating documentation for templates...');
-            yield (0, generateDocs_1.generateTemplateDocumentation)(templatesBasePath);
-        }
-        // -- Programatically add feature/template metadata to collections file.
-        core.info('Generating metadata file: devcontainer-collection.json');
-        yield (0, utils_1.addCollectionsMetadataFile)(featuresMetadata, templatesMetadata, opts);
     });
 }
-function packageFeatures(basePath, opts) {
+function publishFeatures(basePath, ociRegistry, namespace, cliDebugMode = false) {
     return __awaiter(this, void 0, void 0, function* () {
+        // Ensures we have the devcontainer CLI installed.
+        if (!(yield (0, utils_1.ensureDevcontainerCliPresent)(cliDebugMode))) {
+            core.setFailed('Failed to install devcontainer CLI');
+            return false;
+        }
         try {
-            core.info(`Archiving all features in ${basePath}`);
-            const metadata = yield (0, utils_1.getFeaturesAndPackage)(basePath, opts);
-            core.info('Packaging features has finished.');
-            return metadata;
-        }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(error.message);
+            let cmd = 'devcontainer';
+            let args = ['features', 'publish', '-r', ociRegistry, '-n', namespace, basePath];
+            if (cliDebugMode) {
+                cmd = 'npx';
+                args = ['-y', './devcontainer.tgz', ...args];
             }
+            const res = yield exec.getExecOutput(cmd, args, {
+                ignoreReturnCode: true
+            });
+            return res.exitCode === 0;
         }
-        return;
-    });
-}
-function packageTemplates(basePath) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            core.info(`Archiving all templates in ${basePath}`);
-            const metadata = yield (0, utils_1.getTemplatesAndPackage)(basePath);
-            core.info('Packaging templates has finished.');
-            return metadata;
+        catch (err) {
+            core.setFailed(err === null || err === void 0 ? void 0 : err.message);
+            return false;
         }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(error.message);
-            }
-        }
-        return;
     });
 }
 run();
