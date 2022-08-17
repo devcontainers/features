@@ -2,14 +2,14 @@
 
 set -e
 
-install_cudnn=${INSTALLCUDNN:-"false"}
-install_nvtx=${INSTALLNVTX:-"false"}
-cuda_version=${VERSION:-"latest"}
-cudnn_version=${CUDNNVERSION:-"latest"}
+INSTALL_CUDNN=${INSTALLCUDNN:-"false"}
+INSTALL_NVTX=${INSTALLNVTX:-"false"}
+CUDA_VERSION=${VERSION:-"latest"}
+CUDNN_VERSION=${CUDNNVERSION:-"latest"}
 
 # NVIDIA's package names include this information
-latest_cuda_version="11.7"
-latest_cudnn_version="8.5.0.96-1"
+LATEST_CUDA_VERSION="11.7"
+LATEST_CUDNN_VERSION="8.5.0.96-1"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -39,29 +39,29 @@ check_packages wget ca-certificates
 
 # Add NVIDIA's package repository to apt so that we can download packages
 # Always use the ubuntu2004 repo because the other repos (e.g., debian11) are missing packages
-nvidia_repo_url="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64"
-keyring_package="cuda-keyring_1.0-1_all.deb"
-keyring_package_url="$nvidia_repo_url/$keyring_package"
-keyring_package_path="$(mktemp -d)"
-keyring_package_file="$keyring_package_path/$keyring_package"
-wget -O "$keyring_package_file" "$keyring_package_url"
-apt-get install -yq "$keyring_package_file"
+NVIDIA_REPO_URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64"
+KEYRING_PACKAGE="cuda-keyring_1.0-1_all.deb"
+KEYRING_PACKAGE_URL="$NVIDIA_REPO_URL/$KEYRING_PACKAGE"
+KEYRING_PACKAGE_PATH="$(mktemp -d)"
+KEYRING_PACKAGE_FILE="$KEYRING_PACKAGE_PATH/$KEYRING_PACKAGE"
+wget -O "$KEYRING_PACKAGE_FILE" "$KEYRING_PACKAGE_URL"
+apt-get install -yq "$KEYRING_PACKAGE_FILE"
 apt-get update -yq
 
-if [ "$cuda_version" = "latest" ]; then cuda_version="$latest_cuda_version"; fi
-if [ "$cudnn_version" = "latest" ]; then cudnn_version="$latest_cudnn_version"; fi
+if [ "$CUDA_VERSION" = "latest" ]; then CUDA_VERSION="$LATEST_CUDA_VERSION"; fi
+if [ "$CUDNN_VERSION" = "latest" ]; then CUDNN_VERSION="$LATEST_CUDNN_VERSION"; fi
 
 echo "Installing CUDA libraries..."
-apt-get install -yq cuda-libraries-${cuda_version/./-}
+apt-get install -yq cuda-libraries-${CUDA_VERSION/./-}
 
-if [ "$install_cudnn" = "true" ]; then
+if [ "$INSTALL_CUDNN" = "true" ]; then
     echo "Installing cuDNN libraries..."
-    apt-get install -yq libcudnn8=${cudnn_version}+cuda${cuda_version}
+    apt-get install -yq libcudnn8=${CUDNN_VERSION}+cuda${CUDA_VERSION}
 fi
 
-if [ "$install_nvtx" = "true" ]; then
+if [ "$INSTALL_NVTX" = "true" ]; then
     echo "Installing NVTX..."
-    apt-get install -yq cuda-nvtx-${cuda_version/./-}
+    apt-get install -yq cuda-nvtx-${CUDA_VERSION/./-}
 fi
 
 echo "Done!"
