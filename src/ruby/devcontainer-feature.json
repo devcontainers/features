@@ -1,6 +1,6 @@
 {
     "id": "ruby",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "Ruby (via rvm)",
     "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
     "options": {
@@ -17,9 +17,13 @@
             "description": "Select or enter a Ruby version to install"
         }
     },
-    "extensions": [
-        "rebornix.Ruby"
-    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "rebornix.Ruby"
+            ]
+        }
+    },
     "containerEnv": {
         "GEM_PATH": "/usr/local/rvm/gems/default:/usr/local/rvm/gems/default@global",
         "GEM_HOME": "/usr/local/rvm/gems/default",
