@@ -2,10 +2,10 @@
 
 set -e
 
-install_cudnn=${INSTALL_CUDNN:-"false"}
-install_nvtx=${INSTALL_NVTX:-"false"}
+install_cudnn=${INSTALLCUDNN:-"false"}
+install_nvtx=${INSTALLNVTX:-"false"}
 cuda_version=${VERSION:-"latest"}
-cudnn_version=${CUDNN_VERSION:-"latest"}
+cudnn_version=${CUDNNVERSION:-"latest"}
 
 # NVIDIA's package names include this information
 latest_cuda_version="11.7"

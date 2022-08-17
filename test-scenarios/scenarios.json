@@ -97,7 +97,7 @@
         "features": {
             "nvidia-cuda": {
                 "installCudnn": true,
-                "installNvxt": true,
+                "installNvtx": true,
                 "version": "11.5",
                 "cudnnVersion": "8.3.2.44-1"
             }
