@@ -37,7 +37,7 @@ jobs:
 
           # Add / update and commit
           git add */**/README.md
-          git commit -m 'Automated documentation update' || export NO_UPDATES=true
+          git commit -m 'Automated documentation update [skip ci]' || export NO_UPDATES=true
 
           # Push
           if [ "$NO_UPDATES" != "true" ] ; then
