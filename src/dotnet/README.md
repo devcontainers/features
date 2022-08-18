@@ -21,6 +21,8 @@ Installs the .NET CLI. Provides option of installing sdk or runtime, and option 
 | runtimeOnly | Install just the dotnet runtime if true, and sdk if false. | boolean | - |
 | installUsingApt | If true, it installs using apt instead of the release URL | boolean | true |
 
+
+
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/dotnet/devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/dotnet/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._

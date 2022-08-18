@@ -21,6 +21,8 @@ Installs Node.js, nvm, yarn, and needed dependencies.
 | nodeGypDependencies | Install dependencies to compile native node modules (node-gyp)? | boolean | true |
 | nvmInstallPath | The path where NVM will be installed. | string | /usr/local/share/nvm |
 
+
+
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/node/devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/node/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
