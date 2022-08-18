@@ -21,6 +21,8 @@ Installs Java, SDKMAN! (if not installed), and needed dependencies.
 | installGradle | Install Gradle, a build automation tool for multi-language software development | boolean | - |
 | installMaven | Install Maven, a management tool for Java | boolean | - |
 
+
+
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/java/devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/java/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._

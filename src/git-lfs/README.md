@@ -19,6 +19,8 @@ Installs Git Large File Support (Git LFS) along with needed dependencies. Useful
 |-----|-----|-----|-----|
 | version | Select version of Git LFS to install | string | latest |
 
+
+
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/git-lfs/devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/git-lfs/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
