@@ -68,7 +68,7 @@ check_packages() {
 install_dotnet_using_apt() {
     echo "Attempting to auto-install dotnet..."
     install_from_microsoft_feed=false
-    apt_get_update_if_needed
+    apt_get_update
     apt-get -yq install dotnet6 || install_from_microsoft_feed="true"
 
     if [ "${install_from_microsoft_feed}" = "true" ]; then
