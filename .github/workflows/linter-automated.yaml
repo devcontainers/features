@@ -1,4 +1,4 @@
-name: "(CI) Shell Script Linter"
+name: "CI - Shell Script Linter"
 on: 
   push:
     branches:

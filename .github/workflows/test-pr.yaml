@@ -1,4 +1,4 @@
-name: "(PR) Test Updated Features"
+name: "PR -Test Updated Features"
 on:
   pull_request:
 
