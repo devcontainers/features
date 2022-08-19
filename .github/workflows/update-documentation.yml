@@ -8,7 +8,7 @@ on:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    if: "github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'no-ci') && !contains(github.event.head_commit.message, 'CI ignore')"
+    if: "github.ref == 'refs/heads/main'"
     steps:
       - uses: actions/checkout@v2
 
@@ -37,7 +37,7 @@ jobs:
 
           # Add / update and commit
           git add */**/README.md
-          git commit -m 'Automated documentation update' || export NO_UPDATES=true
+          git commit -m 'Automated documentation update [skip ci]' || export NO_UPDATES=true
 
           # Push
           if [ "$NO_UPDATES" != "true" ] ; then
