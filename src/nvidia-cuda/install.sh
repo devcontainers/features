@@ -4,14 +4,8 @@ set -e
 
 INSTALL_CUDNN=${INSTALLCUDNN}
 INSTALL_NVTX=${INSTALLNVTX}
-CUDA_VERSION=${VERSION}
+CUDA_VERSION=${CUDAVERSION}
 CUDNN_VERSION=${CUDNNVERSION}
-
-# NVIDIA's package names include this information
-LATEST_CUDA_VERSION="11.7"
-LATEST_CUDNN_VERSION="8.5.0.96-1"
-if [ "$CUDA_VERSION" = "latest" ]; then CUDA_VERSION="$LATEST_CUDA_VERSION"; fi
-if [ "$CUDNN_VERSION" = "latest" ]; then CUDNN_VERSION="$LATEST_CUDNN_VERSION"; fi
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'

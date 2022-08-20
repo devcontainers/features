@@ -14,15 +14,21 @@
       "default": false,
       "description": "Install NVIDIA Tools Extension (NVTX)"
     },
-    "version": {
+    "cudaVersion": {
       "type": "string",
-      "default": "latest",
-      "description": "Version of CUDA to install, formatted as MAJOR.MINOR (for example, 11.7)"
+      "enum": [
+        "11.7"
+      ],
+      "default": "11.7",
+      "description": "Version of CUDA to install"
     },
     "cudnnVersion": {
       "type": "string",
-      "default": "latest",
-      "description": "Full version of cuDNN to install (for example, 8.5.0.96-1)"
+      "enum": [
+        "8.5.0.96-1"
+      ],
+      "default": "8.5.0.96-1",
+      "description": "Version of cuDNN to install"
     }
   }
 }
