@@ -12,16 +12,6 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Prints a more helpful error message when installation fails
-apt_try_install() {
-    apt-get install -yq "$1" || {
-        local exit_code=$?
-        echo "Failed to install $1"
-        echo "See $NVIDIA_REPO_URL for available packages and versions"
-        return $exit_code
-    }
-}
-
 # Install dependencies
 apt-get update -yq
 apt-get install -yq wget ca-certificates
@@ -37,17 +27,32 @@ wget -O "$KEYRING_PACKAGE_FILE" "$KEYRING_PACKAGE_URL"
 apt-get install -yq "$KEYRING_PACKAGE_FILE"
 apt-get update -yq
 
+# Ensure that the requested version of CUDA is available
+cuda_pkg="cuda-libraries-${CUDA_VERSION/./-}"
+nvtx_pkg="cuda-nvtx-${CUDA_VERSION/./-}"
+if ! apt-cache show "$cuda_pkg"; then
+    echo "The requested version of CUDA is not available: CUDA $CUDA_VERSION"
+    exit 1
+fi
+
+# Ensure that the requested version of cuDNN is available AND compatible
+cudnn_pkg_version="libcudnn8=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+if ! apt-cache show "$cudnn_pkg_version"; then
+    echo "The requested version of cuDNN is not available: cuDNN $CUDNN_VERSION for CUDA $CUDA_VERSION"
+    exit 1
+fi
+
 echo "Installing CUDA libraries..."
-apt_try_install "cuda-libraries-${CUDA_VERSION/./-}"
+apt-get install -yq "$cuda_pkg"
 
 if [ "$INSTALL_CUDNN" = "true" ]; then
     echo "Installing cuDNN libraries..."
-    apt_try_install "libcudnn8=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+    apt-get install -yq "$cudnn_pkg_version"
 fi
 
 if [ "$INSTALL_NVTX" = "true" ]; then
     echo "Installing NVTX..."
-    apt_try_install "cuda-nvtx-${CUDA_VERSION/./-}"
+    apt-get install -yq "$nvtx_pkg"
 fi
 
 echo "Done!"
