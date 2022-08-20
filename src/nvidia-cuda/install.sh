@@ -42,7 +42,7 @@ apt_try_install "cuda-libraries-${CUDA_VERSION/./-}"
 
 if [ "$INSTALL_CUDNN" = "true" ]; then
     echo "Installing cuDNN libraries..."
-    apt_try_install "libcudnn8=${CUDNN_VERSION}+cuda${CUDA_VERSION}"
+    apt_try_install "libcudnn8=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
 fi
 
 if [ "$INSTALL_NVTX" = "true" ]; then
