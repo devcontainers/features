@@ -21,6 +21,8 @@ Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects la
 | tflint | Tflint version | string | latest |
 | terragrunt | Terragrunt version | string | latest |
 
+
+
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/terraform/devcontainer-feature.json)._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/terraform/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._

@@ -112,14 +112,11 @@ devcontainer build --workspace-folder <path-to-my-project-with-devcontainer>
 
 ### Creating your own collection of features
 
-Please see the
-[proposed specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features-distribution.md)
-on how to start to author and distribute your own features.
+The [feature distribution specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features-distribution.md) outlines a pattern for community members and organizations to self-author features in repositories they control.
 
-We're excited for you to create features! Our team is actively iterating on tools and examples to help members of the
-community author their own dev container features. If you have any feedback along the way, please let us know in the
-specification repo's issues on [features](https://github.com/devcontainers/spec/issues/61) or
-[feature distribution](https://github.com/devcontainers/spec/issues/70).
+A template repo [`devcontainers/feature-template`](https://github.com/devcontainers/feature-template) and [GitHub Action](https://github.com/devcontainers/action) are available to help bootstrap self-authored features.
+
+We are eager to hear your feedback on self-authoring!  Please provide comments and feedback on [spec issue #70](https://github.com/devcontainers/spec/issues/70).
 
 ### Contributing to this repository
 

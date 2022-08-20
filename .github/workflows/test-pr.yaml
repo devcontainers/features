@@ -1,11 +1,10 @@
-name: "(PR) Test Updated Features"
+name: "PR -Test Updated Features"
 on:
   pull_request:
 
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'no-ci') && !contains(github.event.head_commit.message, 'CI ignore') && !contains(github.event.head_commit.message, 'Automated documentation update')"
     outputs:
       features: ${{ steps.filter.outputs.changes }}
     steps:

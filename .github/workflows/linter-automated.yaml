@@ -1,4 +1,4 @@
-name: "(CI) Shell Script Linter"
+name: "CI - Shell Script Linter"
 on: 
   push:
     branches:
@@ -8,7 +8,6 @@ on:
 jobs:
   shellchecker:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'no-ci') && !contains(github.event.head_commit.message, 'CI ignore')"
     steps:
     - uses: actions/checkout@v2
 

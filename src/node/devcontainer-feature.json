@@ -1,6 +1,6 @@
 {
     "id": "node",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "name": "Node.js (via nvm) and yarn",
     "description": "Installs Node.js, nvm, yarn, and needed dependencies.",
     "options": {
@@ -28,9 +28,13 @@
             "description": "The path where NVM will be installed."
         }
     },
-    "extensions": [
-        "dbaeumer.vscode-eslint"
-    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint"
+            ]
+        }
+    },
     "containerEnv": {
         "NVM_DIR": "/usr/local/share/nvm",
         "NVM_SYMLINK_CURRENT": "true",

@@ -1,6 +1,9 @@
-name: "(Release) Release dev container features (v2)"
+name: "Release dev container features"
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -8,20 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - name: Install Oras
-        run: |
-          curl -LO https://github.com/oras-project/oras/releases/download/v0.13.0/oras_0.13.0_linux_amd64.tar.gz
-          mkdir -p oras-install/
-          tar -zxf oras_0.13.0_*.tar.gz -C oras-install/
-          mv oras-install/oras /usr/local/bin/
-          rm -rf oras_0.13.0_*.tar.gz oras-install/
-
-      - name: "Publish features to OCI"
-        uses: ./.github/devcontainers-action # TODO: Once 'devcontainers/action' is published, use that.
+      
+      - name: "Publish"
+        uses: devcontainers/action@v1
         with:
           publish-features: "true"
-          publish-to-oci: "true"
           base-path-to-features: "./src"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
