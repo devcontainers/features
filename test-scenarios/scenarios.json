@@ -97,8 +97,17 @@
         "features": {
             "nvidia-cuda": {
                 "installCudnn": true,
+                "installNvtx": true
+            }
+        }
+    },
+    "install_cudnn_nvxt_version": {
+        "image": "debian",
+        "features": {
+            "nvidia-cuda": {
+                "installCudnn": true,
                 "installNvtx": true,
-                "version": "11.5",
+                "cudaVersion": "11.5",
                 "cudnnVersion": "8.3.2.44-1"
             }
         }

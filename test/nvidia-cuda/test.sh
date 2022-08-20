@@ -5,7 +5,7 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-# Definition specific tests
+# Make sure that cuda-nvtx-11-<minor version> installed correctly
 check "libcudart.so.11.0" test 1 -eq "$(find /usr -name 'libcudart.so.11.0' | wc -l)"
 check "libcublas.so.11" test 1 -eq "$(find /usr -name 'libcublas.so.11' | wc -l)"
 check "libcublasLt.so.11" test 1 -eq "$(find /usr -name 'libcublasLt.so.11' | wc -l)"
