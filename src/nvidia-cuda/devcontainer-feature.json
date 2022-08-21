@@ -1,18 +1,18 @@
 {
   "id": "nvidia-cuda",
   "name": "NVIDIA CUDA",
-  "description": "Installs NVIDIA CUDA libraries.",
+  "description": "Installs shared libraries for NVIDIA CUDA.",
   "version": "1.0.0",
   "options": {
     "installCudnn": {
       "type": "boolean",
       "default": false,
-      "description": "Install CUDA Deep Neural Network (cuDNN) library"
+      "description": "Additionally install CUDA Deep Neural Network (cuDNN) shared library"
     },
     "installNvtx": {
       "type": "boolean",
       "default": false,
-      "description": "Install NVIDIA Tools Extension (NVTX)"
+      "description": "Additionally install NVIDIA Tools Extension (NVTX)"
     },
     "cudaVersion": {
       "type": "string",
