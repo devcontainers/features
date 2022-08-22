@@ -91,5 +91,13 @@
                 "version": "3"
             }
         }
+    },
+    "rust_at_pinned_version": {
+        "image": "ubuntu:focal",
+        "features": {
+            "rust": {
+                "version": "1.63.0"
+            }
+        }
     }
 }
