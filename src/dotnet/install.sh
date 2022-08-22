@@ -464,7 +464,7 @@ if [ "${CHANGE_OWNERSHIP}" = "true" ]; then
 
     chown -R "${USERNAME}:dotnet" "${TARGET_DOTNET_ROOT}"
     chmod -R g+r+w "${TARGET_DOTNET_ROOT}"
-    find "${TARGET_DOTNET_ROOT}" -type d | xargs -n 1 chmod g+s
+    find "${TARGET_DOTNET_ROOT}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
 
 echo "Done!"

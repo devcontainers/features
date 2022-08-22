@@ -147,8 +147,8 @@ updaterc "export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && expo
 
 chown -R "${USERNAME}:oryx" "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
 chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
-find "${ORYX_INSTALL_DIR}" -type d | xargs -n 1 chmod g+s
-find "${BUILD_SCRIPT_GENERATOR}" -type d | xargs -n 1 chmod g+s
-find "${ORYX}" -type d | xargs -n 1 chmod g+s
+find "${ORYX_INSTALL_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
+find "${BUILD_SCRIPT_GENERATOR}" -type d -print0 | xargs -n 1 -0 chmod g+s
+find "${ORYX}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
 echo "Done!"

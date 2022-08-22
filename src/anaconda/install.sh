@@ -83,7 +83,7 @@ if ! conda --version &> /dev/null ; then
     chown -R "${USERNAME}:conda" "${CONDA_DIR}"
     chmod -R g+r+w "${CONDA_DIR}"
     
-    find "${CONDA_DIR}" -type d | xargs -n 1 chmod g+s
+    find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
     echo "Installing Anaconda..."
 
     CONDA_VERSION=$VERSION

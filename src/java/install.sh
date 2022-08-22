@@ -148,7 +148,7 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     # Install SDKMAN
     curl -sSL "https://get.sdkman.io?rcupdate=false" | bash
     chown -R "${USERNAME}:sdkman" ${SDKMAN_DIR}
-    find ${SDKMAN_DIR} -type d | xargs -d '\n' chmod g+s
+    find ${SDKMAN_DIR} -type d -print0 | xargs -d '\n' -0 chmod g+s
     # Add sourcing of sdkman into bashrc/zshrc files (unless disabled)
     updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
 fi
