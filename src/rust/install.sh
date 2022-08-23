@@ -125,22 +125,17 @@ updaterc() {
     fi
 }
 
-# Function to run apt-get if needed
-apt_get_update_if_needed()
+apt_get_update()
 {
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update
-    else
-        echo "Skipping apt-get update."
-    fi
+    echo "Running apt-get update..."
+    apt-get update -y
 }
 
 export DEBIAN_FRONTEND=noninteractive
 
 # Install curl, lldb, python3-minimal,libpython and rust dependencies if missing
 if ! dpkg -s curl ca-certificates gnupg2 lldb python3-minimal gcc libc6-dev > /dev/null 2>&1; then
-    apt_get_update_if_needed
+    apt_get_update
     apt-get -y install --no-install-recommends curl ca-certificates gcc libc6-dev
     apt-get -y install lldb python3-minimal libpython3.?
 fi
@@ -175,7 +170,7 @@ else
     if [ "${RUST_VERSION}" != "latest" ] && [ "${RUST_VERSION}" != "lts" ] && [ "${RUST_VERSION}" != "stable" ]; then
         # Find version using soft match
         if ! type git > /dev/null 2>&1; then
-            apt_get_update_if_needed
+            apt_get_update
             apt-get -y install --no-install-recommends git
         fi
 

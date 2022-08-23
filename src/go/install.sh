@@ -107,21 +107,16 @@ get_common_setting() {
     echo "$1=${!1}"
 }
 
-# Function to run apt-get if needed
-apt_get_update_if_needed()
+apt_get_update()
 {
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update
-    else
-        echo "Skipping apt-get update."
-    fi
+    echo "Running apt-get update..."
+    apt-get update -y
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update_if_needed
+        apt_get_update
         apt-get -y install --no-install-recommends "$@"
     fi
 }
@@ -131,7 +126,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Install curl, tar, git, other dependencies if missing
 check_packages curl ca-certificates gnupg2 tar g++ gcc libc6-dev make pkg-config
 if ! type git > /dev/null 2>&1; then
-    apt_get_update_if_needed
+    apt_get_update
     apt-get -y install --no-install-recommends git
 fi
 

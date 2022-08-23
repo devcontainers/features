@@ -60,15 +60,10 @@ fi
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
-# Function to call apt-get if needed
-apt_get_update_if_needed()
+apt_get_update()
 {
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update
-    else
-        echo "Skipping apt-get update."
-    fi
+    echo "Running apt-get update..."
+    apt-get update -y
 }
 
 # Run install apt-utils to avoid debconf warning then verify presence of other common developer tools and dependencies
@@ -134,7 +129,7 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         apt-get update
         package_list="${package_list} manpages-posix manpages-posix-dev"
     else
-        apt_get_update_if_needed
+        apt_get_update
     fi
 
     # Install libssl1.1 if available
@@ -167,7 +162,7 @@ fi
 
 # Get to latest versions of all packages
 if [ "${UPGRADE_PACKAGES}" = "true" ]; then
-    apt_get_update_if_needed
+    apt_get_update
     apt-get -y upgrade --no-install-recommends
     apt-get autoremove -y
 fi
@@ -366,7 +361,7 @@ fi
 # Optionally install and configure zsh and Oh My Zsh!
 if [ "${INSTALL_ZSH}" = "true" ]; then
     if ! type zsh > /dev/null 2>&1; then
-        apt_get_update_if_needed
+        apt_get_update
         apt-get install -y zsh
     fi
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then

@@ -64,7 +64,7 @@ updaterc() {
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt-get update
+        apt-get update -y
         apt-get -y install --no-install-recommends "$@"
     fi
 }

@@ -59,21 +59,16 @@ get_common_setting() {
     echo "$1=${!1}"
 }
 
-# Function to run apt-get if needed
-apt_get_update_if_needed()
+apt_get_update()
 {
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update
-    else
-        echo "Skipping apt-get update."
-    fi
+    echo "Running apt-get update..."
+    apt-get update -y
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update_if_needed
+        apt_get_update
         apt-get -y install --no-install-recommends "$@"
     fi
 }
@@ -118,7 +113,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Install dependencies
 check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr
 if ! type git > /dev/null 2>&1; then
-    apt_get_update_if_needed
+    apt_get_update
     apt-get -y install git
 fi
 
@@ -212,7 +207,7 @@ else
     if [ "${TARGET_COMPOSE_ARCH}" != "x86_64" ]; then
         # Use pip to get a version that runns on this architecture
         if ! dpkg -s python3-minimal python3-pip libffi-dev python3-venv > /dev/null 2>&1; then
-            apt_get_update_if_needed
+            apt_get_update
             apt-get -y install python3-minimal python3-pip libffi-dev python3-venv
         fi
         export PIPX_HOME=/usr/local/pipx
@@ -287,7 +282,7 @@ DOCKER_GID="$(grep -oP '^docker:x:\K[^:]+' /etc/group)"
 # If enabling non-root access and specified user is found, setup socat and add script
 chown -h "${USERNAME}":root "${TARGET_SOCKET}"        
 if ! dpkg -s socat > /dev/null 2>&1; then
-    apt_get_update_if_needed
+    apt_get_update
     apt-get -y install socat
 fi
 tee /usr/local/share/docker-init.sh > /dev/null \
