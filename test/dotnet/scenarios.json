@@ -1,0 +1,27 @@
+{
+    "install_additional_dotnet": {
+        "image": "ubuntu:focal",
+        "features": {
+            "dotnet": {
+                "version": "6.0.301",
+                "additionalVersions": "5.0,3.1.420"
+            }
+        }
+    },
+    "install_dotnet_3": {
+        "image": "ubuntu:focal",
+        "features": {
+            "dotnet": {
+                "version": "3"
+            }
+        }
+    },
+    "install_dotnet_5": {
+        "image": "ubuntu:focal",
+        "features": {
+            "dotnet": {
+                "version": "5"
+            }
+        }
+    }
+}
