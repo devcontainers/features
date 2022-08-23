@@ -43,7 +43,7 @@ jobs:
             "ubuntu:focal",
             "ubuntu:jammy",
             "debian:11",
-            "mcr.microsoft.com/vscode/devcontainers/base:ubuntu",
+            "mcr.microsoft.com/devcontainers/base:ubuntu",
             "mcr.microsoft.com/devcontainers/base:debian",
           ]
     steps:
