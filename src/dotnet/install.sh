@@ -230,7 +230,7 @@ install_using_apt_from_microsoft_repo() {
 install_using_default_apt_repo() {
     DOTNET_PACKAGE="dotnet6"
 
-    apt_get_update_if_needed
+    apt_get_update
 
     if [[ "${DOTNET_VERSION}" = "latest" ]] || [[ "${DOTNET_VERSION}" = "lts" ]] || [[ ${DOTNET_VERSION} = "6"* ]]; then
         if ! (apt-get install -yq ${DOTNET_PACKAGE}); then
