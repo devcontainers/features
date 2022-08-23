@@ -20,5 +20,12 @@
                 "configureJupyterlabAllowOrigin": "*"
             }
         }
+    },
+    "install_os_provided_python": {
+        "image": "mcr.microsoft.com/devcontainers/base:0-bullseye",
+        "features": {
+            "node": "latest",
+            "python": "os-provided"
+        }
     }
 }

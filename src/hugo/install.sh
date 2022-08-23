@@ -111,7 +111,7 @@ if ! hugo version &> /dev/null ; then
 
     chown -R "${USERNAME}:hugo" "${HUGO_DIR}"
     chmod -R g+r+w "${HUGO_DIR}"
-    find "${HUGO_DIR}" -type d | xargs -n 1 chmod g+s
+    find "${HUGO_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
 
 echo "Done!"

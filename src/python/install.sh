@@ -10,7 +10,7 @@
 PYTHON_VERSION=${VERSION:-"latest"} # 'system' checks the base image first, else installs 'latest'
 INSTALL_PYTHON_TOOLS=${INSTALLTOOLS:-"true"}
 OPTIMIZE_BUILD_FROM_SOURCE=${OPTIMIZE:-"false"}
-PYTHON_INSTALL_PATH=${INSTALLPATH}
+PYTHON_INSTALL_PATH=${INSTALLPATH:-"/usr/local/python"}
 OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
 
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
@@ -335,7 +335,12 @@ install_python() {
     # If the os-provided versions are "good enough", detect that and bail out.
     if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
-        PYTHON_INSTALL_PATH="/usr"
+        PYTHON_ROOT="/usr/bin"
+
+        ln -s "${PYTHON_ROOT}/python3" "${PYTHON_ROOT}/python"
+        ln -s "${PYTHON_ROOT}/pydoc3" "${PYTHON_ROOT}/pydoc"
+        ln -s "${PYTHON_ROOT}/python3-config" "${PYTHON_ROOT}/python-config"
+
         should_install_from_source=false
     elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
         install_using_oryx $version || should_install_from_source=true
@@ -366,9 +371,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
     
     install_python ${PYTHON_VERSION}
-    
-    updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
-    
+
     # Additional python versions to be installed but not be set as default.
     if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         OLDIFS=$IFS
@@ -381,11 +384,14 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         IFS=$OLDIFS
     fi
 
-    chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
-    chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
-    find "${PYTHON_INSTALL_PATH}" -type d | xargs -n 1 chmod g+s
+    if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ]; then
+        updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
+        chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
+        chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
+        find "${PYTHON_INSTALL_PATH}" -type d -print0 | xargs -0 -n 1 chmod g+s
 
-    PATH="${INSTALL_PATH}/bin:${PATH}"
+        PATH="${INSTALL_PATH}/bin:${PATH}"
+    fi
 fi
 
 # Install Python tools if needed
@@ -403,7 +409,7 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     mkdir -p ${PIPX_BIN_DIR}
     chown -R "${USERNAME}:pipx" ${PIPX_HOME}
     chmod -R g+r+w "${PIPX_HOME}" 
-    find "${PIPX_HOME}" -type d | xargs -n 1 chmod g+s
+    find "${PIPX_HOME}" -type d -print0 | xargs -0 -n 1 chmod g+s
 
     # Update pip if not using os provided python
     if [[ $(python --version) != "" ]] || [[ ${PYTHON_VERSION} != "os-provided" ]] && [[ ${PYTHON_VERSION} != "system" ]] && [[ ${PYTHON_VERSION} != "none" ]]; then
