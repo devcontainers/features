@@ -1,0 +1,11 @@
+{
+    "install_additional_node": {
+        "image": "debian:11",
+        "features": {
+            "node": {
+                "version": "latest",
+                "additionalVersions": "v17.9.1,v14.19.3"
+            }
+        }
+    }
+}

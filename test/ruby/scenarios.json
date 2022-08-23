@@ -1,0 +1,11 @@
+{
+    "install_additional_ruby": {
+        "image": "ubuntu:focal",
+        "features": {
+            "ruby": {
+                "version": "3.1.2",
+                "additionalVersions": "2.5,3.0.4"
+            }
+        }
+    }
+}

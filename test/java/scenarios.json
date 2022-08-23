@@ -1,0 +1,21 @@
+{
+    "install_additional_java": {
+        "image": "ubuntu:focal",
+        "features": {
+            "java": {
+                "version": "17",
+                "additionalVersions": "11,8"
+            }
+        }
+    },
+    "install_gradle_and_maven": {
+        "image": "ubuntu:focal",
+        "features": {
+            "java": {
+                "version": "latest",
+                "installGradle": true,
+                "installMaven": true
+            }
+        }
+    }
+}

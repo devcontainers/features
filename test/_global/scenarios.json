@@ -1,0 +1,18 @@
+{
+    "all_the_clis": {
+        "image": "ubuntu:focal",
+        "features": {
+            "aws-cli": {},
+            "azure-cli": {},
+            "github-cli": {}
+        }
+    },
+    "node_java_rust": {
+        "image": "ubuntu:focal",
+        "features": {
+            "node": {},
+            "java": {},
+            "rust": {}
+        }
+    }
+}

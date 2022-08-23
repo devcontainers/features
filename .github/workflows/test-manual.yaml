@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       features:
-        description: "list of features to execute tests against"
+        description: "List of features to execute tests against"
         required: true
         default: "go dotnet"
       baseImage:
@@ -25,4 +25,4 @@ jobs:
         run: npm install -g @devcontainers/cli
 
       - name: "Testing '${{ github.event.inputs.features }}' against '${{ github.event.inputs.baseImage }}'"
-        run: devcontainer features test --features ${{ github.event.inputs.features }} --base-image ${{ github.event.inputs.baseImage }} --collection-folder `pwd` --log-level ${{ github.event.inputs.logLevel }}
+        run: devcontainer features test --features ${{ github.event.inputs.features }} --base-image ${{ github.event.inputs.baseImage }} --log-level ${{ github.event.inputs.logLevel }} .
