@@ -1,4 +1,11 @@
 {
+    "install_os_provided_python": {
+        "image": "mcr.microsoft.com/devcontainers/base:0-bullseye",
+        "features": {
+            "node": "latest",
+            "python": "os-provided"
+        }
+    },
     "install_gradle_and_maven": {
         "image": "ubuntu:focal",
         "features": {
@@ -28,7 +35,7 @@
         }
     },
     "install_jupyterlab": {
-        "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
         "remoteUser": "vscode",
         "features": {
             "common-utils": {

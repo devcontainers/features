@@ -220,6 +220,6 @@ fi
 
 chown -R "${USERNAME}:php" "${PHP_DIR}"
 chmod -R g+r+w "${PHP_DIR}"
-find "${PHP_DIR}" -type d | xargs -n 1 chmod g+s
+find "${PHP_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
 echo "Done!"
