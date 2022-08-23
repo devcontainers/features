@@ -10,7 +10,7 @@
 PYTHON_VERSION=${VERSION:-"latest"} # 'system' checks the base image first, else installs 'latest'
 INSTALL_PYTHON_TOOLS=${INSTALLTOOLS:-"true"}
 OPTIMIZE_BUILD_FROM_SOURCE=${OPTIMIZE:-"false"}
-PYTHON_INSTALL_PATH=${INSTALL_PATH:-"/usr/local/python"}
+PYTHON_INSTALL_PATH=${INSTALLPATH}
 OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
 
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
