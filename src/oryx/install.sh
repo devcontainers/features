@@ -62,6 +62,10 @@ check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
         DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends "$@"
+
+        # Clean up
+        apt-get clean -y
+        rm -rf /var/lib/apt/lists/*
     fi
 }
 
@@ -81,6 +85,10 @@ install_dotnet_using_apt() {
 
     echo -e "Finished attempt to install dotnet.  Sdks installed:\n"
     dotnet --list-sdks
+
+    # Clean up
+    apt-get clean -y
+    rm -rf /var/lib/apt/lists/*
 }
 
 # If we don't already have Oryx installed, install it now.
@@ -116,9 +124,9 @@ if ! dotnet --version > /dev/null ; then
     fi
 fi
 
-BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen 
+BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
 ORYX=/usr/local/oryx
-GIT_ORYX=/opt/tmp
+GIT_ORYX=/opt/tmp/oryx-repo
 
 mkdir -p ${BUILD_SCRIPT_GENERATOR}
 mkdir -p ${ORYX}
@@ -145,5 +153,12 @@ chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
 find "${ORYX_INSTALL_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${BUILD_SCRIPT_GENERATOR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${ORYX}" -type d -print0 | xargs -n 1 -0 chmod g+s
+
+# Clean up
+rm -rf $GIT_ORYX
+
+# Remove NuGet installed by the build/buildSln.sh
+rm -rf /root/.nuget
+rm -rf /root/.local/share/NuGet
 
 echo "Done!"
