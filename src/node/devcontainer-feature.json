@@ -1,7 +1,8 @@
 {
     "id": "node",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "name": "Node.js (via nvm) and yarn",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/node",
     "description": "Installs Node.js, nvm, yarn, and needed dependencies.",
     "options": {
         "version": {

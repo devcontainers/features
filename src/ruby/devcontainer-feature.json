@@ -1,7 +1,8 @@
 {
     "id": "ruby",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "name": "Ruby (via rvm)",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/ruby",
     "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
     "options": {
         "version": {
