@@ -73,14 +73,16 @@ install_dotnet_using_apt() {
     echo "Attempting to auto-install dotnet..."
     install_from_microsoft_feed=false
     apt_get_update
-    apt-get -yq install dotnet6 || install_from_microsoft_feed="true"
+    DOTNET_INSTALLATION_PACKAGE="dotnet6"
+    apt-get -yq install $DOTNET_INSTALLATION_PACKAGE || install_from_microsoft_feed="true"
 
     if [ "${install_from_microsoft_feed}" = "true" ]; then
         echo "Attempting install from microsoft apt feed..."
         curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
         echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
         apt-get update -y
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq dotnet-sdk-6.0
+        DOTNET_INSTALLATION_PACKAGE="dotnet-sdk-6.0"
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq $DOTNET_INSTALLATION_PACKAGE
     fi
 
     echo -e "Finished attempt to install dotnet.  Sdks installed:\n"
@@ -112,6 +114,9 @@ if ! cat /etc/group | grep -e "^oryx:" > /dev/null 2>&1; then
     groupadd -r oryx
 fi
 usermod -a -G oryx "${USERNAME}"
+
+# Required to decide if we want to clean up dotnet later.
+DOTNET_INSTALLATION_PACKAGE=""
 
 # Install dotnet unless available
 if ! dotnet --version > /dev/null ; then
@@ -160,5 +165,10 @@ rm -rf $GIT_ORYX
 # Remove NuGet installed by the build/buildSln.sh
 rm -rf /root/.nuget
 rm -rf /root/.local/share/NuGet
+
+# Remove dotnet if installed by the oryx feature
+if [[ "${DOTNET_INSTALLATION_PACKAGE}" != "" ]]; then
+    apt purge -yq $DOTNET_INSTALLATION_PACKAGE
+fi
 
 echo "Done!"
