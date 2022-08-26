@@ -1,6 +1,6 @@
 {
     "id": "dotnet",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
     "description": "Installs the .NET CLI. Provides option of installing sdk or runtime, and option of versions to install. Uses latest version of .NET sdk as defaults to install.",
