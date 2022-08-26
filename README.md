@@ -88,15 +88,13 @@ devcontainer build --workspace-folder <path-to-my-project-with-devcontainer>
 ├── test
 │   ├── dotnet
 │   │   └── test.sh
-│   └── go
+│   ├── go
+|   |   ├── scenarios.json
+|   |   ├── test_scenario_1.json
 │   |   └── test.sh
 |   ├── ...
 │   │   └── test.sh
-├── test-scenarios
-│   ├── install_jupyterlab.sh
-│   ├── install_python_twice.sh
-|   ├── ...
-│   └── scenarios.json
+...
 ```
 
 -   [`src`](src) - A collection of subfolders, each declaring a feature. Each subfolder contains at least a
@@ -104,9 +102,6 @@ devcontainer build --workspace-folder <path-to-my-project-with-devcontainer>
 -   [`test`](test) - Mirroring `src`, a folder-per-feature with at least a `test.sh` script. The
     [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute
     [these tests in CI](https://github.com/devcontainers/features/blob/main/.github/workflows/test-all.yaml).
--   [`test-scenarios`](test-scenarios) - More complex scenarios involving a set of features from this repo. The
-    [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute
-    [these tests in CI](https://github.com/devcontainers/features/blob/main/.github/workflows/test-scenarios.yaml).
 
 ## Contributions
 
