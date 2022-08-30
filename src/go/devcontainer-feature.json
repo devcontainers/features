@@ -1,6 +1,6 @@
 {
     "id": "go",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "name": "Go",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/go",
     "description": "Installs Go and common Go utilities. Auto-detects latest version and installs needed dependencies.",
