@@ -93,6 +93,15 @@ install_dotnet_using_apt() {
     rm -rf /var/lib/apt/lists/*
 }
 
+. /etc/os-release
+architecture="$(dpkg --print-architecture)"
+
+# Currently, oryx is not supported with "jammy"
+if [[ "jammy" = *"${VERSION_CODENAME}"* ]]; then
+    echo "(!) Unsupported distribution version '${VERSION_CODENAME}'"
+    exit 1
+fi
+
 # If we don't already have Oryx installed, install it now.
 if  oryx --version > /dev/null ; then
     echo "oryx is already installed. Skipping installation."
@@ -104,8 +113,6 @@ echo "Installing Oryx..."
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
-. /etc/os-release
-architecture="$(dpkg --print-architecture)"
 
 # Install dependencies
 check_packages git sudo curl ca-certificates apt-transport-https gnupg2 dirmngr libc-bin
