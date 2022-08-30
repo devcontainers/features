@@ -98,7 +98,7 @@ architecture="$(dpkg --print-architecture)"
 
 # Currently, oryx is not supported with "jammy"
 if [[ "jammy" = *"${VERSION_CODENAME}"* ]]; then
-    echo "(!) Unsupported distribution version '${VERSION_CODENAME}'"
+    echo "(!) Unsupported distribution version '${VERSION_CODENAME}'."
     exit 1
 fi
 
