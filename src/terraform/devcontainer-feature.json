@@ -43,7 +43,7 @@
             "settings": {
                 "terraform.languageServer": {
                     "enabled": true,
-                    "args": []
+                    "args": ["serve"]
                 },
                 "azureTerraform.terminal": "integrated"
             }
