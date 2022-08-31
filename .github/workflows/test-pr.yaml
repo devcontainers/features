@@ -16,6 +16,7 @@ jobs:
             aws-cli: ./**/aws-cli/**
             azure-cli: ./**/azure-cli/**
             common-utils: ./**/common-utils/**
+            conda: ./**/conda/**
             desktop-lite: ./**/desktop-lite/** 
             docker-from-docker: ./**/docker-from-docker/**
             docker-in-docker: ./**/docker-in-docker/**
