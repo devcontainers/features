@@ -6,14 +6,16 @@
         "version": {
             "type": "string",
             "proposals": [
-                "latest"
+                "latest",
+                "4.11.0",
+                "4.12.0"
             ],
             "default": "latest",
             "description": "Select or enter an anaconda version."
         }
     },
     "containerEnv": {
-        "CONDA_DIR": "/usr/local/conda",
+        "CONDA_DIR": "/opt/conda",
         "PATH": "${PATH}:${CONDA_DIR}/bin:"
     }
 }
