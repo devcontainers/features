@@ -62,6 +62,10 @@ check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
         DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends "$@"
+
+        # Clean up
+        apt-get clean -y
+        rm -rf /var/lib/apt/lists/*
     fi
 }
 
@@ -69,19 +73,34 @@ install_dotnet_using_apt() {
     echo "Attempting to auto-install dotnet..."
     install_from_microsoft_feed=false
     apt_get_update
-    apt-get -yq install dotnet6 || install_from_microsoft_feed="true"
+    DOTNET_INSTALLATION_PACKAGE="dotnet6"
+    apt-get -yq install $DOTNET_INSTALLATION_PACKAGE || install_from_microsoft_feed="true"
 
     if [ "${install_from_microsoft_feed}" = "true" ]; then
         echo "Attempting install from microsoft apt feed..."
         curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
         echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
         apt-get update -y
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq dotnet-sdk-6.0
+        DOTNET_INSTALLATION_PACKAGE="dotnet-sdk-6.0"
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq $DOTNET_INSTALLATION_PACKAGE
     fi
 
     echo -e "Finished attempt to install dotnet.  Sdks installed:\n"
     dotnet --list-sdks
+
+    # Clean up
+    apt-get clean -y
+    rm -rf /var/lib/apt/lists/*
 }
+
+. /etc/os-release
+architecture="$(dpkg --print-architecture)"
+
+# Currently, oryx is not supported with "jammy"
+if [[ "jammy" = *"${VERSION_CODENAME}"* ]]; then
+    echo "(!) Unsupported distribution version '${VERSION_CODENAME}'."
+    exit 1
+fi
 
 # If we don't already have Oryx installed, install it now.
 if  oryx --version > /dev/null ; then
@@ -94,8 +113,6 @@ echo "Installing Oryx..."
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
-. /etc/os-release
-architecture="$(dpkg --print-architecture)"
 
 # Install dependencies
 check_packages git sudo curl ca-certificates apt-transport-https gnupg2 dirmngr libc-bin
@@ -104,6 +121,9 @@ if ! cat /etc/group | grep -e "^oryx:" > /dev/null 2>&1; then
     groupadd -r oryx
 fi
 usermod -a -G oryx "${USERNAME}"
+
+# Required to decide if we want to clean up dotnet later.
+DOTNET_INSTALLATION_PACKAGE=""
 
 # Install dotnet unless available
 if ! dotnet --version > /dev/null ; then
@@ -116,9 +136,9 @@ if ! dotnet --version > /dev/null ; then
     fi
 fi
 
-BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen 
+BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
 ORYX=/usr/local/oryx
-GIT_ORYX=/opt/tmp
+GIT_ORYX=/opt/tmp/oryx-repo
 
 mkdir -p ${BUILD_SCRIPT_GENERATOR}
 mkdir -p ${ORYX}
@@ -145,5 +165,17 @@ chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
 find "${ORYX_INSTALL_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${BUILD_SCRIPT_GENERATOR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${ORYX}" -type d -print0 | xargs -n 1 -0 chmod g+s
+
+# Clean up
+rm -rf $GIT_ORYX
+
+# Remove NuGet installed by the build/buildSln.sh
+rm -rf /root/.nuget
+rm -rf /root/.local/share/NuGet
+
+# Remove dotnet if installed by the oryx feature
+if [[ "${DOTNET_INSTALLATION_PACKAGE}" != "" ]]; then
+    apt purge -yq $DOTNET_INSTALLATION_PACKAGE
+fi
 
 echo "Done!"
