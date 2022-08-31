@@ -1,7 +1,8 @@
 {
     "id": "rust",
-    "version": "1.0.3",
+    "version": "1.0.5",
     "name": "Rust",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/rust",
     "description": "Installs Rust, common Rust utilities, and their required dependencies",
     "options": {
         "version": {

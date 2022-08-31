@@ -1,7 +1,8 @@
 {
     "id": "git",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "name": "Git (from source)",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/git",
     "description": "Install an up-to-date version of Git, built from source as needed. Useful for when you want the latest and greatest features. Auto-detects latest stable version and installs needed dependencies.",
     "options": {
         "version": {

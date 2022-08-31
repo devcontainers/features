@@ -1,7 +1,8 @@
 {
     "id": "common-utils",
+    "version": "1.0.4",
     "name": "Common Debian Utilities",
-    "version": "1.0.2",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/common-utils",
     "description": "Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.",
     "options": {
         "installZsh": {
