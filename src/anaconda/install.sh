@@ -11,7 +11,7 @@
 VERSION=${VERSION:-"latest"}
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
-CONDA_DIR="/opt/conda"
+CONDA_DIR=${CONDA_DIR:-"/usr/local/conda"}
 
 set -eux
 export DEBIAN_FRONTEND=noninteractive
@@ -66,10 +66,6 @@ check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt-get update -y
         apt-get -y install --no-install-recommends "$@"
-
-        # Clean up
-        apt-get clean -y
-        rm -rf /var/lib/apt/lists/*
     fi
 }
 
@@ -81,33 +77,29 @@ if ! conda --version &> /dev/null ; then
     usermod -a -G conda "${USERNAME}"
 
     # Install dependencies
-    check_packages curl ca-certificates gnupg2
+    check_packages wget ca-certificates
 
-    echo "Installing Anaconda..."
-
-    curl -sS https://repo.anaconda.com/pkgs/misc/gpgkeys/anaconda.asc | gpg --dearmor > /usr/share/keyrings/conda-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/conda-archive-keyring.gpg] https://repo.anaconda.com/pkgs/misc/debrepo/conda stable main" > /etc/apt/sources.list.d/conda.list
-
-    CONDA_PKG="conda=${VERSION}-0"
-    if [ "${VERSION}" = "latest" ]; then
-        CONDA_PKG="conda"
-    fi
-
-    check_packages $CONDA_PKG
-
-    CONDA_SCRIPT="/opt/conda/etc/profile.d/conda.sh"
-    . $CONDA_SCRIPT
-
-    conda config --add channels conda-forge
-    conda config --set channel_priority strict
-    conda config --set env_prompt '({name})'
-    echo "source ${CONDA_SCRIPT}" >> ~/.bashrc
-
+    mkdir -p $CONDA_DIR
     chown -R "${USERNAME}:conda" "${CONDA_DIR}"
     chmod -R g+r+w "${CONDA_DIR}"
     
     find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
+    echo "Installing Anaconda..."
 
+    CONDA_VERSION=$VERSION
+    if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
+        CONDA_VERSION="2021.11"
+    fi
+
+    su --login -c "wget -q https://repo.anaconda.com/archive/Anaconda3-${CONDA_VERSION}-Linux-x86_64.sh -O /tmp/anaconda-install.sh \
+        && /bin/bash /tmp/anaconda-install.sh -u -b -p ${CONDA_DIR}" ${USERNAME} 2>&1 
+    
+    if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
+        PATH=$PATH:${CONDA_DIR}/bin
+        conda update -y conda
+    fi
+
+    rm /tmp/anaconda-install.sh 
     updaterc "export CONDA_DIR=${CONDA_DIR}/bin"
 fi
 

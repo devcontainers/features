@@ -1,22 +1,20 @@
 {
     "id": "anaconda",
-    "version": "1.0.4",
+    "version": "1.0.3",
     "name": "Anaconda",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/anaconda",
     "options": {
         "version": {
             "type": "string",
             "proposals": [
-                "latest",
-                "4.11.0",
-                "4.12.0"
+                "latest"
             ],
             "default": "latest",
             "description": "Select or enter an anaconda version."
         }
     },
     "containerEnv": {
-        "CONDA_DIR": "/opt/conda",
+        "CONDA_DIR": "/usr/local/conda",
         "PATH": "${PATH}:${CONDA_DIR}/bin:"
     }
 }
