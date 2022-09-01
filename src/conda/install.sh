@@ -5,6 +5,8 @@
 #-------------------------------------------------------------------------------------------------------------
 
 VERSION=${VERSION:-"latest"}
+ADD_CONDA_FORGE=$ADDCONDAFORGE
+
 USERNAME="automatic"
 UPDATE_RC="true"
 CONDA_DIR="/opt/conda"
@@ -81,6 +83,10 @@ if ! conda --version &> /dev/null ; then
 
     CONDA_SCRIPT="/opt/conda/etc/profile.d/conda.sh"
     . $CONDA_SCRIPT
+
+    if [ "${ADD_CONDA_FORGE}" = "true" ]; then
+        conda config --add channels conda-forge
+    fi
 
     conda config --set channel_priority strict
     conda config --set env_prompt '({name})'

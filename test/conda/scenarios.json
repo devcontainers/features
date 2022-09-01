@@ -3,7 +3,8 @@
         "image": "ubuntu:focal",
         "features": {
             "conda": {
-                "version": "4.12.0"
+                "version": "4.12.0",
+                "addCondaForge": "true"
             }
         }
     }

@@ -13,6 +13,11 @@
             ],
             "default": "latest",
             "description": "Select or enter a conda version."
+        },
+        "addCondaForge": {
+            "type": "boolean",
+            "default": false,
+            "description": "Add conda-forge channel to the config?"
         }
     },
     "containerEnv": {
