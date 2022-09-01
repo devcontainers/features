@@ -166,6 +166,10 @@ find "${ORYX_INSTALL_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${BUILD_SCRIPT_GENERATOR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${ORYX}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
+# /opt/tmp/build and /opt/tmp/images is required by Oryx for dynamically installing platforms
+cp -rf $GIT_ORYX/build /opt/tmp
+cp -rf $GIT_ORYX/images /opt/tmp
+
 # Clean up
 rm -rf $GIT_ORYX
 

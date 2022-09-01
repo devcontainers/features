@@ -2,7 +2,10 @@
     "install_dotnet_and_oryx": {
         "image": "ubuntu:focal",
         "features": {
-            "dotnet": "6",
+            "dotnet": {
+                "version": "6",
+                "installUsingApt": "false"
+            },
             "oryx": {}
         }
     }
