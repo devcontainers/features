@@ -41,12 +41,10 @@
                 "ms-azuretools.vscode-azureterraform"
             ],
             "settings": {
-                "terraform.languageServer": {
-                    "enabled": true,
-                    "args": [
-                        "serve"
-                    ]
-                },
+                "terraform.languageServer.enable": true,
+                "terraform.languageServer.args": [
+                    "serve"
+                ],
                 "azureTerraform.terminal": "integrated"
             }
         }
