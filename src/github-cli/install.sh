@@ -194,7 +194,7 @@ install_deb_using_github() {
     arch=$(dpkg --print-architecture)
 
     find_version_from_git_tags CLI_VERSION https://github.com/cli/cli
-    cli_filename="gh_${CLI_VERSION}_linux_${architecture}.deb"
+    cli_filename="gh_${CLI_VERSION}_linux_${arch}.deb"
 
     mkdir -p /tmp/ghcli
     pushd /tmp/ghcli
