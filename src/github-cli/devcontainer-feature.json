@@ -1,6 +1,6 @@
 {
     "id": "github-cli",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "name": "GitHub CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/github-cli",
     "description": "Installs the GitHub CLI. Auto-detects latest version and installs needed dependencies.",
@@ -13,6 +13,11 @@
             ],
             "default": "latest",
             "description": "Select version of the GitHub CLI, if not latest."
+        },
+        "installDirectlyFromGitHubRelease": {
+            "type": "boolean",
+            "default": true
         }
     }
 }
+
