@@ -16,8 +16,8 @@
         },
         "installDirectlyFromGitHubRelease": {
             "type": "boolean",
-            "default: true"
+            "default": true
         }
     }
-    }
 }
+
