@@ -103,4 +103,29 @@ if ! conda --version &> /dev/null ; then
     updaterc "export CONDA_DIR=${CONDA_DIR}/bin"
 fi
 
+# Display a notice on conda when not running in GitHub Codespaces
+mkdir -p /usr/local/etc/vscode-dev-containers
+cat << 'EOF' > /usr/local/etc/vscode-dev-containers/conda-notice.txt
+When using "conda" from outside of GitHub Codespaces, note the Anaconda repository contains
+restrictions on commercial use that may impact certain organizations. See https://aka.ms/ghcs-conda
+
+EOF
+
+notice_script="$(cat << 'EOF'
+if [ -t 1 ] && [ "${IGNORE_NOTICE}" != "true" ] && [ "${TERM_PROGRAM}" = "vscode" ] && [ "${CODESPACES}" != "true" ] && [ ! -f "$HOME/.config/vscode-dev-containers/conda-notice-already-displayed" ]; then
+    cat "/usr/local/etc/vscode-dev-containers/conda-notice.txt"
+    mkdir -p "$HOME/.config/vscode-dev-containers"
+    ((sleep 10s; touch "$HOME/.config/vscode-dev-containers/conda-notice-already-displayed") &)
+fi
+EOF
+)"
+
+if [ -f "/etc/zsh/zshrc" ]; then
+    echo "${notice_script}" | tee -a /etc/zsh/zshrc
+fi
+
+if [ -f "/etc/bash.bashrc" ]; then
+    echo "${notice_script}" | tee -a /etc/bash.bashrc
+fi
+
 echo "Done!"
