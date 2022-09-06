@@ -1,6 +1,6 @@
 {
     "id": "terraform",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "name": "Terraform, tflint, and TFGrunt",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/terraform",
     "description": "Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects latest version and installs needed dependencies.",
@@ -41,12 +41,10 @@
                 "ms-azuretools.vscode-azureterraform"
             ],
             "settings": {
-                "terraform.languageServer": {
-                    "enabled": true,
-                    "args": [
-                        "serve"
-                    ]
-                },
+                "terraform.languageServer.enable": true,
+                "terraform.languageServer.args": [
+                    "serve"
+                ],
                 "azureTerraform.terminal": "integrated"
             }
         }
