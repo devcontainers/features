@@ -121,7 +121,11 @@ EOF
 )"
 
 if [ -f "/etc/zsh/zshrc" ]; then
-    echo "${notice_script}" | tee -a /etc/bash.bashrc >> /etc/zsh/zshrc
+    echo "${notice_script}" | tee -a /etc/zsh/zshrc
+fi
+
+if [ -f "/etc/bash.bashrc" ]; then
+    echo "${notice_script}" | tee -a /etc/bash.bashrc
 fi
 
 echo "Done!"
