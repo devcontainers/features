@@ -85,6 +85,7 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         rsync \
         ca-certificates \
         unzip \
+        bzip2 \
         zip \
         nano \
         vim-tiny \
