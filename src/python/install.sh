@@ -315,7 +315,9 @@ sudo_if() {
 
 install_user_package() {
     PACKAGE="$1"
-    sudo_if "$CURRENT_PATH/bin/python" -m pip install --upgrade --no-cache-dir "$PACKAGE"
+    PYTHON_ROOT=$(which python3)
+
+    sudo_if "$PYTHON_ROOT" -m pip install --upgrade --no-cache-dir "$PACKAGE"
 }
 
 add_user_jupyter_config() {
@@ -391,8 +393,9 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
         find "${PYTHON_INSTALL_PATH}" -type d -print0 | xargs -0 -n 1 chmod g+s
 
-        PATH="${INSTALL_PATH}/bin:${PATH}"
     fi
+
+    export PATH="${CURRENT_PATH}/bin:${PATH}"
 fi
 
 # Install Python tools if needed
@@ -444,12 +447,17 @@ fi
 
 # Install JupyterLab if needed
 if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
-    install_user_package jupyterlab
+    if [[ $(python --version) != "" ]]; then
+        install_user_package jupyterlab
 
-    # Configure JupyterLab if needed
-    if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
-        add_user_jupyter_config "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
-        add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+        # Configure JupyterLab if needed
+        if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
+            add_user_jupyter_config "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+            add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+        fi
+    else
+        echo "(!) Could not install jupyterlab. Make sure you have python installed."
+        exit 1
     fi
 fi
 

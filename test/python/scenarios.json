@@ -1,4 +1,18 @@
 {
+    "install_jupyterlab_2": {
+        "image": "mcr.microsoft.com/vscode/devcontainers/python:latest",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
+            "python": {
+                "version": "none",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
     "install_additional_python": {
         "image": "ubuntu:focal",
         "features": {
@@ -16,6 +30,7 @@
                 "username": "vscode"
             },
             "python": {
+                "version": "latest",
                 "installJupyterlab": true,
                 "configureJupyterlabAllowOrigin": "*"
             }
@@ -25,7 +40,11 @@
         "image": "mcr.microsoft.com/devcontainers/base:0-bullseye",
         "features": {
             "node": "latest",
-            "python": "os-provided"
+            "python": {
+                "version": "os-provided",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
         }
     }
 }

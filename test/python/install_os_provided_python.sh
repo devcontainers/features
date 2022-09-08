@@ -9,6 +9,7 @@ check "python3 is installed" python3 --version
 check "python is installed" python --version
 check "pip is installed" pip --version
 check "pip is installed" pip3 --version
+check "jupyter lab version" jupyter lab --version
 
 check "node is installed" node --version
 
