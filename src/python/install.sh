@@ -315,7 +315,7 @@ sudo_if() {
 
 install_user_package() {
     PACKAGE="$1"
-    sudo_if "$INSTALL_PATH/bin/python3" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+    sudo_if "$CURRENT_PATH/bin/python" -m pip install --upgrade --no-cache-dir "$PACKAGE"
 }
 
 add_user_jupyter_config() {
@@ -336,6 +336,7 @@ install_python() {
     if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
         PYTHON_ROOT="/usr/bin"
+        CURRENT_PATH=$PYTHON_ROOT
 
         ln -s "${PYTHON_ROOT}/python3" "${PYTHON_ROOT}/python"
         ln -s "${PYTHON_ROOT}/pydoc3" "${PYTHON_ROOT}/pydoc"
