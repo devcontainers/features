@@ -8,7 +8,7 @@
 # Maintainer: The VS Code and Codespaces Teams
 
 GIT_VERSION=${VERSION:-"latest"} # 'system' checks the base image first, else installs 'latest'
-USE_PPA_IF_AVAILABLE=${PPA:-"false"}
+USE_PPA_IF_AVAILABLE=${PPA}
 
 GIT_CORE_PPA_ARCHIVE_GPG_KEY=E1DD270288B4E6030699E45FA1715D88E1DF1F24
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
