@@ -447,7 +447,7 @@ fi
 
 # Install JupyterLab if needed
 if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
-    if [[ $(python --version) != "" ]]; then
+    if [[ $(python3 --version) != "" ]]; then
         install_user_package jupyterlab
 
         # Configure JupyterLab if needed
