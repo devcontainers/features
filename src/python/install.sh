@@ -336,7 +336,7 @@ install_python() {
     if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
         PYTHON_ROOT="/usr/bin"
-        CURRENT_PATH=$PYTHON_ROOT
+        CURRENT_PATH="/usr"
 
         ln -s "${PYTHON_ROOT}/python3" "${PYTHON_ROOT}/python"
         ln -s "${PYTHON_ROOT}/pydoc3" "${PYTHON_ROOT}/pydoc"
