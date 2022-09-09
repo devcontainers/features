@@ -16,7 +16,7 @@ While the some services automates SSH setup (e.g., when using the GitHub CLI for
     passwd
     ```
 
-3. Forward the SSH port (`22` by default) to your local machine using either the `forwardPorts` property in `devcontainer.json` or the user interface in your tool (e.g., you can press <kbd>F1</kbd> or <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> and select **Ports: Focus on Ports View** in VS Code to bring it into focus).
+3. Forward the SSH port (`2222` by default) to your local machine using either the `forwardPorts` property in `devcontainer.json` or the user interface in your tool (e.g., you can press <kbd>F1</kbd> or <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> and select **Ports: Focus on Ports View** in VS Code to bring it into focus).
 
 4. Use a **local terminal** (or other tool) to connect to it using the command and password from step 2. e.g.
 
