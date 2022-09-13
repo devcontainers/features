@@ -23,6 +23,6 @@
     "containerEnv": {
         "CONDA_DIR": "/opt/conda",
         "CONDA_SCRIPT":"${CONDA_DIR}/etc/profile.d/conda.sh",
-        "PATH": "${PATH}:${CONDA_DIR}/bin:"
+        "PATH": "${PATH}:${CONDA_DIR}/bin"
     }
 }
