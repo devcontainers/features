@@ -8,6 +8,19 @@
             }
         }
     },
+    "install_gradle_and_maven_for_user": {
+        "image": "ubuntu:focal",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
+            "java": {
+                "version": "latest",
+                "installGradle": true,
+                "installMaven": true
+            }
+        }
+    },
     "install_gradle_and_maven": {
         "image": "ubuntu:focal",
         "features": {
