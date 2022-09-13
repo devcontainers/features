@@ -1,6 +1,6 @@
 {
   "id": "hugo",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "name": "Hugo",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/hugo",
   "options": {
@@ -15,6 +15,6 @@
   },
   "containerEnv": {
     "HUGO_DIR": "/usr/local/hugo",
-    "PATH": "${HUGO_DIR}/bin:${PATH}"
+    "PATH": "/usr/local/hugo/bin:${PATH}"
   }
 }
