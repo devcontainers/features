@@ -10,6 +10,7 @@
     },
     "install_gradle_and_maven_for_user": {
         "image": "ubuntu:focal",
+        "remoteUser": "vscode",
         "features": {
             "common-utils": {
                 "username": "vscode"
