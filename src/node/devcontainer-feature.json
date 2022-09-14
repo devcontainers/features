@@ -1,6 +1,6 @@
 {
     "id": "node",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "name": "Node.js (via nvm) and yarn",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/node",
     "description": "Installs Node.js, nvm, yarn, and needed dependencies.",
@@ -39,6 +39,6 @@
     "containerEnv": {
         "NVM_DIR": "/usr/local/share/nvm",
         "NVM_SYMLINK_CURRENT": "true",
-        "PATH": "${NVM_DIR}/current/bin:${PATH}"
+        "PATH": "/usr/local/share/nvm/current/bin:${PATH}"
     }
 }

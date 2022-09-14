@@ -1,6 +1,6 @@
 {
     "id": "oryx",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "name": "Oryx",
     "description": "Installs the oryx CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/oryx",
@@ -11,6 +11,6 @@
         "ORYX_PREFER_USER_INSTALLED_SDKS": "true",
         "ORYX_DIR": "/usr/local/oryx",
         "DEBIAN_FLAVOR": "focal-scm",
-        "PATH": "${ORYX_DIR}:${PATH}"
+        "PATH": "/usr/local/oryx:${PATH}"
     }
 }
