@@ -1,6 +1,6 @@
 {
     "id": "anaconda",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "name": "Anaconda",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/anaconda",
     "options": {
@@ -15,6 +15,6 @@
     },
     "containerEnv": {
         "CONDA_DIR": "/usr/local/conda",
-        "PATH": "${PATH}:${CONDA_DIR}/bin:"
+        "PATH": "/usr/local/conda/bin:${PATH}"
     }
 }

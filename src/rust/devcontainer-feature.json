@@ -1,6 +1,6 @@
 {
     "id": "rust",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "name": "Rust",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/rust",
     "description": "Installs Rust, common Rust utilities, and their required dependencies",
@@ -49,7 +49,7 @@
     "containerEnv": {
         "CARGO_HOME": "/usr/local/cargo",
         "RUSTUP_HOME": "/usr/local/rustup",
-        "PATH": "${CARGO_HOME}/bin:${PATH}"
+        "PATH": "/usr/local/cargo/bin:${PATH}"
     },
     "capAdd": [
         "SYS_PTRACE"

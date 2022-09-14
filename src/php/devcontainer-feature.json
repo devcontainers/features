@@ -1,6 +1,6 @@
 {
     "id": "php",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "name": "PHP",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/php",
     "options": {
@@ -31,6 +31,6 @@
     },
     "containerEnv": {
         "PHP_PATH": "/usr/local/php/current",
-        "PATH": "${PHP_PATH}/bin:${PATH}"
+        "PATH": "/usr/local/php/current/bin:${PATH}"
     }
 }
