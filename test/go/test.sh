@@ -6,6 +6,8 @@ set -e
 source dev-container-features-test-lib
 
 check "version" go version
+check "revive version" revive --version
+check "revive is installed at correct path" which revive | grep "/go/bin/revive"
 
 # Report result
 reportResults
