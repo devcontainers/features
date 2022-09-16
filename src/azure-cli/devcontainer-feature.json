@@ -12,14 +12,19 @@
       ],
       "default": "latest",
       "description": "Select or enter an Azure CLI version. (Available versions may vary by Linux distribution.)"
+    },
+    "extensions": {
+      "type": "array",
+      "default": [],
+      "description": "Enter Azure CLI extension names you wish to include."
     }
   },
   "customizations": {
-      "vscode": {
-          "extensions": [
-            "ms-vscode.azurecli"
-          ]
-      }
+    "vscode": {
+      "extensions": [
+        "ms-vscode.azurecli"
+      ]
+    }
   },
   "installsAfter": [
     "ghcr.io/devcontainers/features/common-utils"

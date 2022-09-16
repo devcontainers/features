@@ -13,6 +13,7 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 AZ_VERSION=${VERSION:-"latest"}
+AZ_EXTENSIONS=${EXTENSIONS}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64"
@@ -183,6 +184,17 @@ if [ "${use_pip}" = "true" ]; then
         apt-cache madison azure-cli | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
         exit 1
     fi
+fi
+
+# If Azure CLI extensions are requested, loop through and install 
+if [ ${#AZ_EXTENSIONS[@]} -gt 0 ]; then
+    echo "Installing Azure CLI extensions: ${AZ_EXTENSIONS}"
+    extensions=(`echo ${AZ_EXTENSIONS} | tr ',' ' '`)
+    for i in "${extensions[@]}"
+    do
+        echo "Installing ${i}"
+        su $(getent passwd "1000" | cut -d: -f1) -c "az extension add --name ${i} -y"
+    done
 fi
 
 # Clean up
