@@ -1,0 +1,11 @@
+{
+    "install_go_tool_in_postCreate": {
+        "image": "ubuntu:focal",
+        "features": {
+            "go": {
+                "version": "latest"
+            }
+        },
+        "postCreateCommand": "go install filippo.io/mkcert@v1.4.2"
+    }
+}
