@@ -1,0 +1,26 @@
+{
+    "id": "nix",
+    "version": "1.0.0",
+    "name": "Nix",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/nix",
+    "description": "Installs Nix which is a tool that takes a unique approach to package management and system configuration",
+    "options": {
+        "version": {
+            "type": "string",
+            "enum": [
+                "latest"
+            ],
+            "default": "latest",
+            "description": "Currently unused."
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "bbenoist.Nix"
+            ]
+        }
+    },
+    "containerEnv": {
+    }
+}
