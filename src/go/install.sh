@@ -10,6 +10,7 @@
 TARGET_GO_VERSION=${VERSION:-"latest"}
 
 TARGET_GOROOT=${TARGET_GOROOT:-"/usr/local/go"}
+TARGET_GOPATH=${TARGET_GOPATH:-"/go"}
 USERNAME=${USERNAME:-"automatic"}
 INSTALL_GO_TOOLS=${INSTALL_GO_TOOLS:-"true"}
 
@@ -135,7 +136,7 @@ if ! cat /etc/group | grep -e "^golang:" > /dev/null 2>&1; then
     groupadd -r golang
 fi
 usermod -a -G golang "${USERNAME}"
-mkdir -p "${TARGET_GOROOT}"
+mkdir -p "${TARGET_GOROOT}" "${TARGET_GOPATH}"
 if [ "${TARGET_GO_VERSION}" != "none" ] && ! type go > /dev/null 2>&1; then
     # Use a temporary locaiton for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
@@ -197,7 +198,7 @@ GO_TOOLS="\
 if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
     echo "Installing common Go tools..."
     export PATH=${TARGET_GOROOT}/bin:${PATH}
-    mkdir -p /tmp/gotools /usr/local/etc/vscode-dev-containers ${TARGET_GOROOT}/bin
+    mkdir -p /tmp/gotools /usr/local/etc/vscode-dev-containers ${TARGET_GOPATH}/bin
     cd /tmp/gotools
     export GOPATH=/tmp/gotools
     export GOCACHE=/tmp/gotools/cache
@@ -213,14 +214,15 @@ if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
     (echo "${GO_TOOLS}" | xargs -n 1 go ${go_install_command} -v )2>&1 | tee -a /usr/local/etc/vscode-dev-containers/go.log
 
     # Move Go tools into path and clean up
-    mv /tmp/gotools/bin/* ${TARGET_GOROOT}/bin/
+    mv /tmp/gotools/bin/* ${TARGET_GOPATH}/bin/
 
     rm -rf /tmp/gotools
 fi
 
 
-chown -R "${USERNAME}:golang" "${TARGET_GOROOT}"
-chmod -R g+r+w "${TARGET_GOROOT}"
+chown -R "${USERNAME}:golang" "${TARGET_GOROOT}" "${TARGET_GOPATH}"
+chmod -R g+r+w "${TARGET_GOROOT}" "${TARGET_GOPATH}"
 find "${TARGET_GOROOT}" -type d -print0 | xargs -n 1 -0 chmod g+s
+find "${TARGET_GOPATH}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
 echo "Done!"
