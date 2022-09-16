@@ -1,0 +1,26 @@
+{
+  "id": "azure-dev-cli",
+  "version": "1.0.0",
+  "name": "Azure Dev CLI",
+  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/azure-dev-cli",
+  "description": "Installs the Azure Developer CLI along with needed dependencies.",
+  "options": {
+    "version": {
+      "type": "string",
+      "proposals": [
+        "latest"
+      ],
+      "default": "latest",
+      "description": "Select or enter an Azure Developer CLI version. (Available versions may vary by Linux distribution.)"
+    }
+  },
+  "customizations": {
+      "vscode": {
+          "extensions": [
+            "ms-azuretools.azure-dev",
+            "ms-azuretools.vscode-bicep"
+          ]
+      }
+  },
+  "installsAfter": ["azure-cli"]
+}
