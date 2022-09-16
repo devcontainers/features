@@ -26,6 +26,7 @@
         }
     },
     "containerEnv": {
+        "GOROOT": "/usr/local/go",
         "GOPATH": "/usr/local/go",
         "PATH": "/usr/local/go/bin:${PATH}"
     },
