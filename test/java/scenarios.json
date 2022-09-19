@@ -1,9 +1,18 @@
 {
+    "install_from_non_default_distro": {
+        "image": "ubuntu:focal",
+        "features": {
+            "java": {
+                "version": "18",
+                "jdkDistro": "open"
+            }
+        }
+    },
     "install_additional_java": {
         "image": "ubuntu:focal",
         "features": {
             "java": {
-                "version": "17",
+                "version": "18",
                 "additionalVersions": "11,8"
             }
         }

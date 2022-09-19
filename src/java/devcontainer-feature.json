@@ -17,6 +17,17 @@
       "default": "latest",
       "description": "Select or enter a Java version to install"
     },
+    "jdkDistro": {
+      "type": "string",
+      "proposals": [
+        "ms",
+        "open",
+        "oracle",
+        "tem"
+      ],
+      "default": "ms",
+      "description": "Select or enter a JDK distribution"
+    },
     "installGradle": {
       "type": "boolean",
       "default": false,
