@@ -54,12 +54,5 @@
             "default": false,
             "description": "Add packages from non-free Debian repository?"
         }
-    },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-dotnettools.csharp"
-            ]
-        }
     }
 }
