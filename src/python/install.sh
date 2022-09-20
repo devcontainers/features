@@ -320,7 +320,7 @@ install_user_package() {
 
 add_user_jupyter_config() {
     CONFIG_DIR="/home/$USERNAME/.jupyter"
-    CONFIG_FILE="$CONFIG_DIR/jupyter_notebook_config.py"
+    CONFIG_FILE="$CONFIG_DIR/jupyter_server_config.py"
 
     # Make sure the config file exists or create it with proper permissions
     test -d "$CONFIG_DIR" || sudo_if mkdir "$CONFIG_DIR"
