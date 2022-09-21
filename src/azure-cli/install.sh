@@ -10,6 +10,7 @@
 set -e
 
 AZ_VERSION=${VERSION:-"latest"}
+AZ_DEV_VERSION=${VERSION:-"latest"}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64"
@@ -177,6 +178,17 @@ if [ "${use_pip}" = "true" ]; then
         apt-cache madison azure-cli | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
         exit 1
     fi
+fi
+
+if [[ "${AZ_DEV_VERSION}" -ne "none" ]]; then
+    echo "(*) Installing Azure Dev CLI"
+
+    curl -fsSLO https://aka.ms/install-azd.sh
+    chmod +x ./install-azd.sh
+
+    ./install-azd.sh --version $AZ_DEV_VERSION
+
+    rm -f ./install-azd.sh
 fi
 
 echo "Done!"
