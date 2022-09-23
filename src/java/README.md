@@ -22,6 +22,9 @@ Installs Java, SDKMAN! (if not installed), and needed dependencies.
 | installGradle | Install Gradle, a build automation tool for multi-language software development | boolean | - |
 | installMaven | Install Maven, a management tool for Java | boolean | - |
 
+## License
+
+For the Java Feature from this repository, see [NOTICE.txt](https://github.com/devcontainers/features/tree/main/src/java/NOTICE.txt) for licensing information on JDK distributions.
 
 
 ---
