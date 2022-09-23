@@ -18,6 +18,18 @@
             }
         }
     },
+    "install_additional_jupyterlab": {
+        "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
+        "remoteUser": "vscode",
+        "features": {
+            "python": {
+                "version": "latest",
+                "additionalVersions": "3.9",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
     "install_os_provided_python": {
         "image": "mcr.microsoft.com/devcontainers/base:0-bullseye",
         "features": {
