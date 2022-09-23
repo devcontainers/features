@@ -12,6 +12,7 @@
 JAVA_VERSION=${VERSION:-"lts"}
 INSTALL_GRADLE=${INSTALLGRADLE:-"false"}
 INSTALL_MAVEN=${INSTALLMAVEN:-"false"}
+JDK_DISTRO=${JDKDISTRO}
 
 export SDKMAN_DIR=${SDKMAN_DIR:-"/usr/local/sdkman"}
 USERNAME=${USERNAME:-"automatic"}
@@ -76,12 +77,13 @@ check_packages() {
     fi
 }
 
-# Use Microsoft JDK for everything but JDK 8
-jdk_distro="ms"
+# Use Microsoft JDK for everything but JDK 8 and 18 (unless specified differently with jdkDistro option)
 get_jdk_distro() {
     VERSION="$1"
-    if echo "${VERSION}" | grep -E '^8([\s\.]|$)' > /dev/null 2>&1; then
-        jdk_distro="tem"
+    if [ "${JDK_DISTRO}" = "ms" ]; then
+        if echo "${VERSION}" | grep -E '^8([\s\.]|$)' > /dev/null 2>&1 || echo "${VERSION}" | grep -E '^18([\s\.]|$)' > /dev/null 2>&1; then
+            JDK_DISTRO="tem"
+        fi
     fi
 }
 
@@ -149,7 +151,7 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
 fi
 
 get_jdk_distro ${JAVA_VERSION}
-sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-${jdk_distro}\\s*" ".*-[a-z]+$" "true"
+sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "true"
 
 # Additional java versions to be installed but not be set as default.
 if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
@@ -158,7 +160,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
             get_jdk_distro ${version}
-            sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-${jdk_distro}\\s*" ".*-[a-z]+$" "false"
+            sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "false"
         done
     IFS=$OLDIFS
     su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk default java ${JAVA_VERSION}"
