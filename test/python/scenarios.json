@@ -12,9 +12,6 @@
         "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
         "remoteUser": "vscode",
         "features": {
-            "common-utils": {
-                "username": "vscode"
-            },
             "python": {
                 "installJupyterlab": true,
                 "configureJupyterlabAllowOrigin": "*"
