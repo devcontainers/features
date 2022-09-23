@@ -18,6 +18,7 @@ Installs Java, SDKMAN! (if not installed), and needed dependencies.
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter a Java version to install | string | latest |
+| jdkDistro | Select or enter a JDK distribution | string | ms |
 | installGradle | Install Gradle, a build automation tool for multi-language software development | boolean | - |
 | installMaven | Install Maven, a management tool for Java | boolean | - |
 
