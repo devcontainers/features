@@ -374,6 +374,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 
     # Additional python versions to be installed but not be set as default.
     if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
+        OLD_INSTALL_PATH="${INSTALL_PATH}"
         OLDIFS=$IFS
         IFS=","
             read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
@@ -381,6 +382,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
                 OVERRIDE_DEFAULT_VERSION="false"
                 install_python $version
             done
+        INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
     fi
 
