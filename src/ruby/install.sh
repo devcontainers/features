@@ -263,9 +263,6 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
             -c fetch.fsck.zeroPaddedFilemode=ignore \
             -c receive.fsck.zeroPaddedFilemode=ignore \
             https://github.com/rbenv/rbenv.git /usr/local/share/rbenv
-    
-        ln -s /usr/local/share/rbenv/bin/rbenv /usr/local/bin
-        updaterc 'eval "$(rbenv init -)"'
     fi
 
     if [[ ! -d "/usr/local/share/ruby-build" ]]; then
