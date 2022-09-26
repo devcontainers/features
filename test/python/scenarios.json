@@ -9,7 +9,7 @@
         }
     },
     "install_jupyterlab": {
-        "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
         "remoteUser": "vscode",
         "features": {
             "python": {
@@ -19,7 +19,7 @@
         }
     },
     "install_additional_jupyterlab": {
-        "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
         "remoteUser": "vscode",
         "features": {
             "python": {
