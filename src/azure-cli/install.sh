@@ -10,7 +10,7 @@
 set -e
 
 AZ_VERSION=${VERSION:-"latest"}
-AZ_DEV_VERSION=${VERSION:-"latest"}
+AZ_DEV_VERSION=${AZUREDEVCLIVERSION:-"latest"}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64"
