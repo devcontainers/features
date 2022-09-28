@@ -22,6 +22,8 @@ USE_ORYX_IF_AVAILABLE=${USE_ORYX_IF_AVAILABLE:-"true"}
 INSTALL_JUPYTERLAB=${INSTALLJUPYTERLAB:-"false"}
 CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN=${CONFIGUREJUPYTERLABALLOWORIGIN:-""}
 
+INSTALL_POETRY=${INSTALLPOETRY:-"false"}
+
 # Comma-separated list of python versions to be installed
 # alongside PYTHON_VERSION, but not set as default.
 ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
@@ -452,6 +454,11 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         add_user_jupyter_config "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
         add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
     fi
+fi
+
+# Install Poetry if needed
+if [ "${INSTALL_POETRY}" = "true" ]; then
+    install_user_package poetry
 fi
 
 echo "Done!"

@@ -36,5 +36,14 @@
             "node": "latest",
             "python": "os-provided"
         }
+    },
+    "install_poetry": {
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "remoteUser": "vscode",
+        "features": {
+            "python": {
+                "installPoetry": true
+            }
+        }
     }
 }

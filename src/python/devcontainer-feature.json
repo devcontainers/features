@@ -44,6 +44,11 @@
       "type": "string",
       "default": "",
       "description": "Configure JupyterLab to accept HTTP requests from the specified origin"
+    },
+    "installPoetry": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install Poetry, a tool for dependency management and packaging in Python."
     }
   },
   "containerEnv": {
