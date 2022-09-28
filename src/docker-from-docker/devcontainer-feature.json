@@ -28,6 +28,22 @@
             ],
             "default": "v1",
             "description": "Compose version to use for docker-compose (v1 or v2)"
+        },
+        "enableNonRootDocker": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable non-root Docker access in container"
+        },
+        "username": {
+            "type": "string",
+            "proposals": [
+                "vscode",
+                "codespace",
+                "none",
+                "automatic"
+            ],
+            "default": "automatic",
+            "description": "Enter name of non-root user to configure or none to skip"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",
