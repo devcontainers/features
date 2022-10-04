@@ -18,7 +18,8 @@ ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
 
-export NVM_VERSION="0.38.0"
+export NVM_VERSION=$(curl -H "Accept: application/vnd.github.v3+json" \
+    https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')
 
 set -e
 
@@ -126,7 +127,7 @@ su ${USERNAME} -c "$(cat << EOF
     umask 0002
     # Do not update profile - we'll do this manually
     export PROFILE=/dev/null
-    curl -so- https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh | bash 
+    curl -so- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash 
     source ${NVM_DIR}/nvm.sh
     if [ "${NODE_VERSION}" != "" ]; then
         nvm alias default ${NODE_VERSION}
