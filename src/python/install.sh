@@ -458,7 +458,7 @@ fi
 
 # Install Poetry if needed
 if [ "${INSTALL_POETRY}" = "true" ]; then
-    install_user_package poetry
+    pipx install --pip-args=--no-cache-dir poetry
 fi
 
 echo "Done!"
