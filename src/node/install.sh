@@ -120,7 +120,7 @@ umask 0002
 usermod -a -G nvm ${USERNAME}
 mkdir -p ${NVM_DIR}
 chown "${USERNAME}:nvm" ${NVM_DIR}
-chmod g+s ${NVM_DIR}
+chmod -R g+r+w ${NVM_DIR}
 su ${USERNAME} -c "$(cat << EOF
     set -e
     umask 0002
@@ -184,5 +184,7 @@ if [ "${INSTALL_TOOLS_FOR_NODE_GYP}" = "true" ]; then
         apt-get -y install ${to_install}
     fi
 fi
+
+find "${NVM_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
 echo "Done!"
