@@ -29,10 +29,10 @@
             "default": "v1",
             "description": "Default version of Docker Compose (v1 or v2)"
         },
-        "azureDnsOverride": {
+        "azureDnsAutoDetection": {
             "type": "boolean",
             "default": true,
-            "description": "Override docker daemon DNS settings to use Azure DNS"
+            "description": "Allow automatically setting the dockerd DNS server when the installation script detects it is running in Azure"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",
