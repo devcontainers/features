@@ -54,8 +54,5 @@
             "default": false,
             "description": "Add packages from non-free Debian repository?"
         }
-    },
-    "containerEnv": {
-        "DEV_CONTAINERS_DIR": "/usr/local/etc/vscode-dev-containers"
     }
 }
