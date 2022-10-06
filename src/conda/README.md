@@ -1,7 +1,7 @@
 
-# Conda - A cross-platform, language-agnostic binary package manager (conda)
+# Conda (conda)
 
-
+A cross-platform, language-agnostic binary package manager
 
 ## Example Usage
 
