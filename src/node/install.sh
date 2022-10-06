@@ -107,7 +107,7 @@ export NVM_SYMLINK_CURRENT=true
 if [ -d "${NVM_DIR}" ]; then
     echo "NVM already installed."
     if [ "${NODE_VERSION}" != "" ]; then
-       su ${USERNAME} -c "umask 0002 && . $NVM_DIR/nvm.sh && nvm install ${NODE_VERSION} && nvm clear-cache"
+       su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm install ${NODE_VERSION} && nvm clear-cache"
     fi
     exit 0
 fi
