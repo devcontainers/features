@@ -28,6 +28,11 @@
             ],
             "default": "v1",
             "description": "Default version of Docker Compose (v1 or v2)"
+        },
+        "azureDnsOverride": {
+            "type": "boolean",
+            "default": true,
+            "description": "Override docker daemon DNS settings to use Azure DNS"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",

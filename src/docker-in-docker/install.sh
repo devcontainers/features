@@ -11,6 +11,7 @@
 DOCKER_VERSION=${VERSION:-"latest"} # The Docker/Moby Engine + CLI should match in version
 USE_MOBY=${MOBY:-"true"}
 DOCKER_DASH_COMPOSE_VERSION=${DOCKERDASHCOMPOSEVERSION:-"v1"} # v1 or v2
+AZURE_DNS_OVERRIDE=${AZUREDNSOVERRIDE:-"true"}
 
 ENABLE_NONROOT_DOCKER=${ENABLE_NONROOT_DOCKER:-"true"}
 USERNAME=${USERNAME:-"automatic"}
@@ -312,7 +313,7 @@ if [ "${ENABLE_NONROOT_DOCKER}" = "true" ]; then
 fi
 
 tee /usr/local/share/docker-init.sh > /dev/null \
-<< 'EOF'
+<< EOF
 #!/bin/sh
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -321,6 +322,10 @@ tee /usr/local/share/docker-init.sh > /dev/null \
 
 set -e
 
+AZURE_DNS_OVERRIDE=$AZURE_DNS_OVERRIDE
+EOF
+
+tee -a ./docker-init.sh > /dev/null << 'EOF'
 dockerd_start="$(cat << 'INNEREOF'
     # explicitly remove dockerd and containerd PID file to ensure that it can start properly if it was stopped uncleanly
     # ie: docker kill <ID>
@@ -360,7 +365,7 @@ dockerd_start="$(cat << 'INNEREOF'
     # Handle DNS
     set +e
     cat /etc/resolv.conf | grep -i 'internal.cloudapp.net'
-    if [ $? -eq 0 ]
+    if [ $? -eq 0 ] && [ ${AZURE_DNS_OVERRIDE} = "true" ]
     then
         echo "Setting dockerd Azure DNS."
         CUSTOMDNS="--dns 168.63.129.16"
