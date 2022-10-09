@@ -17,6 +17,9 @@ keyserver hkp://keyserver.pgp.com"
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -141,8 +144,10 @@ receive_gpg_keys() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -209,8 +214,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Install curl, apt-transport-https, curl, gpg, or dirmngr, git if missing
 check_packages curl ca-certificates apt-transport-https dirmngr gnupg2
 if ! type git > /dev/null 2>&1; then
-    apt_get_update
-    apt-get -y install --no-install-recommends git
+    check_packages git
 fi
 
 # Soft version matching
@@ -236,3 +240,6 @@ else
     rm -rf "/tmp/gh/gnupg"
     echo "Done!"
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*

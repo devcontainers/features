@@ -23,6 +23,9 @@ DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal hirsute 
 # Default: Exit on any failure.
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 # Setup STDERR.
 err() {
     echo "(!) $*" >&2
@@ -72,8 +75,10 @@ get_common_setting() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -154,8 +159,7 @@ fi
 # Install dependencies
 check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr
 if ! type git > /dev/null 2>&1; then
-    apt_get_update
-    apt-get -y install git
+    check_packages git
 fi
 
 # Swap to legacy iptables for compatibility
@@ -249,10 +253,7 @@ else
     fi
     if [ "${target_compose_arch}" != "x86_64" ]; then
         # Use pip to get a version that runs on this architecture
-        if ! dpkg -s python3-minimal python3-pip libffi-dev python3-venv > /dev/null 2>&1; then
-            apt_get_update
-            apt-get -y install python3-minimal python3-pip libffi-dev python3-venv
-        fi
+        check_packages python3-minimal python3-pip libffi-dev python3-venv
         export PIPX_HOME=/usr/local/pipx
         mkdir -p ${PIPX_HOME}
         export PIPX_BIN_DIR=/usr/local/bin
@@ -299,6 +300,8 @@ fi
 # If init file already exists, exit
 if [ -f "/usr/local/share/docker-init.sh" ]; then
     echo "/usr/local/share/docker-init.sh already exists, so exiting."
+    # Clean up
+    rm -rf /var/lib/apt/lists/*
     exit 0
 fi
 echo "docker-init doesnt exist, adding..."
@@ -397,5 +400,8 @@ EOF
 
 chmod +x /usr/local/share/docker-init.sh
 chown ${USERNAME}:root /usr/local/share/docker-init.sh
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo 'docker-in-docker-debian script has completed!'

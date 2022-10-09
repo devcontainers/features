@@ -16,6 +16,9 @@ HUGO_DIR=${HUGO_DIR:-"/usr/local/hugo"}
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -63,8 +66,10 @@ updaterc() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -113,5 +118,8 @@ if ! hugo version &> /dev/null ; then
     chmod -R g+r+w "${HUGO_DIR}"
     find "${HUGO_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

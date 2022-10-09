@@ -8,6 +8,9 @@
 
 set -eux
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 VERSION=${VERSION:-"latest"}
 INSTALL_COMPOSER=${INSTALLCOMPOSER:-"true"}
 OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
@@ -73,7 +76,10 @@ updaterc() {
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt-get update
+        if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+            echo "Running apt-get update..."
+            apt-get update -y
+        fi
         apt-get -y install --no-install-recommends "$@"
     fi
 }
@@ -221,5 +227,8 @@ fi
 chown -R "${USERNAME}:php" "${PHP_DIR}"
 chmod -R g+r+w "${PHP_DIR}"
 find "${PHP_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

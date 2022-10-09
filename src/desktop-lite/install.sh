@@ -63,6 +63,9 @@ package_list_additional="
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -151,8 +154,10 @@ copy_fluxbox_config() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -176,7 +181,7 @@ apt_get_update
 if [[ -z $(apt-cache --names-only search ^tilix$) ]]; then
     . /etc/os-release
     if [ "${ID}" = "ubuntu" ]; then
-        apt-get install -y --no-install-recommends apt-transport-https software-properties-common
+        check_packages apt-transport-https software-properties-common
         add-apt-repository -y ppa:webupd8team/terminix
     elif [ "${VERSION_CODENAME}" = "stretch" ]; then
         echo "deb http://deb.debian.org/debian stretch-backports main" > /etc/apt/sources.list.d/stretch-backports.list
@@ -232,9 +237,7 @@ if [ "${INSTALL_NOVNC}" = "true" ] && [ ! -d "/usr/local/novnc" ]; then
     rm -f /tmp/websockify-install.zip /tmp/novnc-install.zip
 
     # Install noVNC dependencies and use them.
-    if ! dpkg -s python3-minimal python3-numpy > /dev/null 2>&1; then
-        apt-get -y install --no-install-recommends python3-minimal python3-numpy
-    fi
+    check_packages python3-minimal python3-numpy
     sed -i -E 's/^python /python3 /' /usr/local/novnc/websockify-${WEBSOCKETIFY_VERSION}/run
 fi
 
@@ -386,6 +389,9 @@ if [ "${USERNAME}" != "root" ]; then
     copy_fluxbox_config "/home/${USERNAME}"
     chown -R ${USERNAME} /home/${USERNAME}/.Xmodmap /home/${USERNAME}/.fluxbox
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 cat << EOF
 
