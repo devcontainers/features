@@ -9,6 +9,9 @@
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 VERSION=${VERSION:-"latest"}
 
 AWSCLI_GPG_KEY=FB5DB77FD5C118B80511ADA8A6310ACC4672475C
@@ -71,7 +74,10 @@ apt_get_update()
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
+        if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+            echo "Running apt-get update..."
+            apt-get update -y
+        fi
         apt-get -y install --no-install-recommends "$@"
     fi
 }
@@ -132,5 +138,8 @@ install() {
 echo "(*) Installing AWS CLI..."
 
 install
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

@@ -9,6 +9,9 @@
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 INSTALL_ZSH=${INSTALLZSH:-"true"}
 INSTALL_OH_MY_ZSH=${INSTALLOHMYZSH:-"true"}
 UPGRADE_PACKAGES=${UPGRADEPACKAGES:-"true"}
@@ -60,8 +63,10 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Run install apt-utils to avoid debconf warning then verify presence of other common developer tools and dependencies
@@ -446,5 +451,8 @@ echo -e "\
     EXISTING_NON_ROOT_USER=${EXISTING_NON_ROOT_USER}\n\
     RC_SNIPPET_ALREADY_ADDED=${RC_SNIPPET_ALREADY_ADDED}\n\
     ZSH_ALREADY_INSTALLED=${ZSH_ALREADY_INSTALLED}" > "${MARKER_FILE}"
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

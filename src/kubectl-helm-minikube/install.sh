@@ -9,6 +9,9 @@
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 KUBECTL_VERSION="${VERSION:-"latest"}"
 HELM_VERSION="${HELM:-"latest"}"
 MINIKUBE_VERSION="${MINIKUBE:-"none"}" # latest is also valid
@@ -102,8 +105,10 @@ find_version_from_git_tags() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -120,8 +125,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Install dependencies
 check_packages curl ca-certificates coreutils gnupg2 dirmngr bash-completion
 if ! type git > /dev/null 2>&1; then
-    apt_get_update
-    apt-get -y install --no-install-recommends git
+    check_packages git
 fi
 
 architecture="$(uname -m)"
@@ -239,5 +243,8 @@ fi
 if ! type docker > /dev/null 2>&1; then
     echo -e '\n(*) Warning: The docker command was not found.\n\nYou can use one of the following scripts to install it:\n\nhttps://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker-in-docker.md\n\nor\n\nhttps://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker.md'
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo -e "\nDone!"

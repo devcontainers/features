@@ -12,6 +12,9 @@ MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 
 set -eu
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -53,19 +56,17 @@ function updaterc() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
-        DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends "$@"
-
-        # Clean up
-        apt-get clean -y
-        rm -rf /var/lib/apt/lists/*
+        apt-get -y install --no-install-recommends "$@"
     fi
 }
 
@@ -105,6 +106,8 @@ fi
 # If we don't already have Oryx installed, install it now.
 if  oryx --version > /dev/null ; then
     echo "oryx is already installed. Skipping installation."
+    # Clean up
+    rm -rf /var/lib/apt/lists/*
     exit 0
 fi
 
@@ -181,5 +184,8 @@ rm -rf /root/.local/share/NuGet
 if [[ "${DOTNET_INSTALLATION_PACKAGE}" != "" ]]; then
     apt purge -yq $DOTNET_INSTALLATION_PACKAGE
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"
