@@ -1,6 +1,6 @@
 {
     "id": "kubectl-helm-minikube",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "name": "Kubectl, Helm, and Minkube",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/kubectl-helm-minikube",
     "description": "Installs latest version of kubectl, Helm, and optionally minikube. Auto-detects latest versions and installs needed dependencies.",
@@ -47,5 +47,8 @@
             "target": "/home/vscode/.minikube",
             "type": "volume"
         }
+    ],
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
     ]
 }

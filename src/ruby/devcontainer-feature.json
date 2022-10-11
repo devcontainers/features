@@ -1,6 +1,6 @@
 {
     "id": "ruby",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "name": "Ruby (via rvm)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/ruby",
     "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
@@ -30,5 +30,8 @@
         "GEM_HOME": "/usr/local/rvm/gems/default",
         "MY_RUBY_HOME": "/usr/local/rvm/rubies/default",
         "PATH": "/usr/local/rvm/gems/default/bin:/usr/local/rvm/gems/default@global/bin:/usr/local/rvm/rubies/default/bin:/usr/local/share/rbenv/bin:${PATH}"
-    }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
 }
