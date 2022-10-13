@@ -7,9 +7,9 @@ Installs latest version of kubectl, Helm, and optionally minikube. Auto-detects 
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
-            "version": "latest"
-        }
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+        "version": "latest"
+    }
 }
 ```
 

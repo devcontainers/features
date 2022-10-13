@@ -7,9 +7,9 @@ Adds a SSH server into a container so that you can use an external terminal, sft
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/sshd:1": {
-            "version": "latest"
-        }
+    "ghcr.io/devcontainers/features/sshd:1": {
+        "version": "latest"
+    }
 }
 ```
 

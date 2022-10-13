@@ -7,9 +7,9 @@ Installs Java, SDKMAN! (if not installed), and needed dependencies.
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/java:1": {
-            "version": "latest"
-        }
+    "ghcr.io/devcontainers/features/java:1": {
+        "version": "latest"
+    }
 }
 ```
 
