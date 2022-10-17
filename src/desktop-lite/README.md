@@ -7,9 +7,9 @@ Adds a lightweight Fluxbox based desktop to the container that can be accessed u
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/desktop-lite:1": {
-            "version": "latest"
-        }
+    "ghcr.io/devcontainers/features/desktop-lite:1": {
+        "version": "latest"
+    }
 }
 ```
 
@@ -52,19 +52,19 @@ See the [Fluxbox menu documentation](http://www.fluxbox.org/help/man-fluxbox-men
 
 If you run into applications crashing, you may need to increase the size of the shared memory space allocated to your container. For example, this will bump it up to 1 GB in `devcontainer.json`:
 
-    ```json
-    "runArgs": ["--shm-size=1g"]
-    ```
+```json
+"runArgs": ["--shm-size=1g"]
+```
 
-    Or using Docker Compose:
+Or using Docker Compose:
 
-    ```yaml
-    services:
-      your-service-here:
-        # ...
-        shm_size: '1gb'
-        # ...
-    ```
+```yaml
+services:
+  your-service-here:
+    # ...
+    shm_size: '1gb'
+    # ...
+```
 
 ## Installing a browser
 

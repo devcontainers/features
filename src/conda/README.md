@@ -1,15 +1,15 @@
 
-# Conda - A cross-platform, language-agnostic binary package manager (conda)
+# Conda (conda)
 
-
+A cross-platform, language-agnostic binary package manager
 
 ## Example Usage
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/conda:1": {
-            "version": "latest"
-        }
+    "ghcr.io/devcontainers/features/conda:1": {
+        "version": "latest"
+    }
 }
 ```
 

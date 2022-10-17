@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "1.0.4",
+    "version": "1.0.6",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -28,6 +28,11 @@
             ],
             "default": "v1",
             "description": "Default version of Docker Compose (v1 or v2)"
+        },
+        "azureDnsAutoDetection": {
+            "type": "boolean",
+            "default": true,
+            "description": "Allow automatically setting the dockerd DNS server when the installation script detects it is running in Azure"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",

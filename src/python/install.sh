@@ -34,6 +34,9 @@ keyserver hkp://keyserver.pgp.com"
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -199,8 +202,10 @@ oryx_install() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -232,8 +237,7 @@ install_from_source() {
                 libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
                 libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
     if ! type git > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends git
+        check_packages git
     fi
 
     # Find version using soft match
@@ -374,6 +378,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 
     # Additional python versions to be installed but not be set as default.
     if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
+        OLD_INSTALL_PATH="${INSTALL_PATH}"
         OLDIFS=$IFS
         IFS=","
             read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
@@ -381,6 +386,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
                 OVERRIDE_DEFAULT_VERSION="false"
                 install_python $version
             done
+        INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
     fi
 
@@ -451,5 +457,8 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
     fi
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

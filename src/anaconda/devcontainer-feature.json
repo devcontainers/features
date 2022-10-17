@@ -1,6 +1,6 @@
 {
     "id": "anaconda",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "name": "Anaconda",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/anaconda",
     "options": {

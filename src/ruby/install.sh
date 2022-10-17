@@ -28,6 +28,9 @@ keyserver hkp://keyserver.pgp.com"
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -154,8 +157,10 @@ find_version_from_git_tags() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -180,8 +185,7 @@ check_packages curl ca-certificates software-properties-common build-essential g
     procps dirmngr gawk autoconf automake bison libffi-dev libgdbm-dev libncurses5-dev \
     libsqlite3-dev libtool libyaml-dev pkg-config sqlite3 zlib1g-dev libgmp-dev libssl-dev
 if ! type git > /dev/null 2>&1; then
-    apt_get_update
-    apt-get -y install --no-install-recommends git
+    check_packages git
 fi
 
 
@@ -263,9 +267,6 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
             -c fetch.fsck.zeroPaddedFilemode=ignore \
             -c receive.fsck.zeroPaddedFilemode=ignore \
             https://github.com/rbenv/rbenv.git /usr/local/share/rbenv
-    
-        ln -s /usr/local/share/rbenv/bin/rbenv /usr/local/bin
-        updaterc 'eval "$(rbenv init -)"'
     fi
 
     if [[ ! -d "/usr/local/share/ruby-build" ]]; then
@@ -303,5 +304,8 @@ find "/usr/local/rvm/" -type d | xargs -n 1 chmod g+s
 # Clean up
 rvm cleanup all
 ${ROOT_GEM} cleanup
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

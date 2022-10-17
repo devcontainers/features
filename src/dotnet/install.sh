@@ -30,6 +30,11 @@ DOTNET_VERSION_CODENAMES_REQUIRE_OLDER_LIBSSL_1="buster bullseye bionic focal hi
 # alongside DOTNET_VERSION, but not set as default.
 ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 
+set -e
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 # Setup STDERR.
 err() {
     echo "(!) $*" >&2
@@ -109,8 +114,10 @@ updaterc() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Check if packages are installed and installs them if not.
@@ -462,5 +469,8 @@ if [ "${CHANGE_OWNERSHIP}" = "true" ]; then
     chmod -R g+r+w "${TARGET_DOTNET_ROOT}"
     find "${TARGET_DOTNET_ROOT}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

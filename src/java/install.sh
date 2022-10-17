@@ -12,6 +12,7 @@
 JAVA_VERSION=${VERSION:-"lts"}
 INSTALL_GRADLE=${INSTALLGRADLE:-"false"}
 INSTALL_MAVEN=${INSTALLMAVEN:-"false"}
+JDK_DISTRO=${JDKDISTRO}
 
 export SDKMAN_DIR=${SDKMAN_DIR:-"/usr/local/sdkman"}
 USERNAME=${USERNAME:-"automatic"}
@@ -22,6 +23,9 @@ UPDATE_RC=${UPDATE_RC:-"true"}
 ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 
 set -e
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -64,8 +68,10 @@ updaterc() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -76,12 +82,13 @@ check_packages() {
     fi
 }
 
-# Use Microsoft JDK for everything but JDK 8
-jdk_distro="ms"
+# Use Microsoft JDK for everything but JDK 8 and 18 (unless specified differently with jdkDistro option)
 get_jdk_distro() {
     VERSION="$1"
-    if echo "${VERSION}" | grep -E '^8([\s\.]|$)' > /dev/null 2>&1; then
-        jdk_distro="tem"
+    if [ "${JDK_DISTRO}" = "ms" ]; then
+        if echo "${VERSION}" | grep -E '^8([\s\.]|$)' > /dev/null 2>&1 || echo "${VERSION}" | grep -E '^18([\s\.]|$)' > /dev/null 2>&1; then
+            JDK_DISTRO="tem"
+        fi
     fi
 }
 
@@ -149,7 +156,7 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
 fi
 
 get_jdk_distro ${JAVA_VERSION}
-sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-${jdk_distro}\\s*" ".*-[a-z]+$" "true"
+sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "true"
 
 # Additional java versions to be installed but not be set as default.
 if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
@@ -158,7 +165,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
             get_jdk_distro ${version}
-            sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-${jdk_distro}\\s*" ".*-[a-z]+$" "false"
+            sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "false"
         done
     IFS=$OLDIFS
     su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk default java ${JAVA_VERSION}"
@@ -173,5 +180,8 @@ fi
 if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null; then
     sdk_install maven latest
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

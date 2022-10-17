@@ -9,6 +9,9 @@
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 POWERSHELL_VERSION=${VERSION:-"latest"}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
@@ -74,8 +77,10 @@ get_common_setting() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -118,8 +123,7 @@ install_using_github() {
     # Fall back on direct download if no apt package exists in microsoft pool
     check_packages curl ca-certificates gnupg2 dirmngr libc6 libgcc1 libgssapi-krb5-2 libstdc++6 libunwind8 libuuid1 zlib1g libicu[0-9][0-9]
     if ! type git > /dev/null 2>&1; then
-        apt_get_update
-        apt-get install -y --no-install-recommends git
+        check_packages git
     fi
     if [ "${architecture}" = "amd64" ]; then
         architecture="x64"
@@ -160,5 +164,8 @@ if [ "${use_github}" = "true" ]; then
     echo "Attempting install from GitHub release..."
     install_using_github
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

@@ -9,6 +9,9 @@
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 INSTALL_ZSH=${INSTALLZSH:-"true"}
 INSTALL_OH_MY_ZSH=${INSTALLOHMYZSH:-"true"}
 UPGRADE_PACKAGES=${UPGRADEPACKAGES:-"true"}
@@ -17,9 +20,7 @@ USER_UID=${UID:-"automatic"}
 USER_GID=${GID:-"automatic"}
 ADD_NON_FREE_PACKAGES=${NONFREEPACKAGES:-"false"}
 
-DEV_CONTAINERS_DIR="/usr/local/etc/vscode-dev-containers"
-MARKER_FILE="${DEV_CONTAINERS_DIR}/common"
-
+MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -62,8 +63,10 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Run install apt-utils to avoid debconf warning then verify presence of other common developer tools and dependencies
@@ -234,8 +237,8 @@ if [[ "${PATH}" != *"$HOME/.local/bin"* ]]; then export PATH="${PATH}:$HOME/.loc
 
 # Display optional first run image specific notice if configured and terminal is interactive
 if [ -t 1 ] && [[ "${TERM_PROGRAM}" = "vscode" || "${TERM_PROGRAM}" = "codespaces" ]] && [ ! -f "$HOME/.config/vscode-dev-containers/first-run-notice-already-displayed" ]; then
-    if [ -f "${DEV_CONTAINERS_DIR}/first-run-notice.txt" ]; then
-        cat "${DEV_CONTAINERS_DIR}/first-run-notice.txt"
+    if [ -f "/usr/local/etc/vscode-dev-containers/first-run-notice.txt" ]; then
+        cat "/usr/local/etc/vscode-dev-containers/first-run-notice.txt"
     elif [ -f "/workspaces/.codespaces/shared/first-run-notice.txt" ]; then
         cat "/workspaces/.codespaces/shared/first-run-notice.txt"
     fi
@@ -432,12 +435,12 @@ if [ ! -z "${CONTENTS_URL}" ]; then echo && echo "More info: ${CONTENTS_URL}"; f
 echo
 EOF
 )"
-if [ -f "${DEV_CONTAINERS_DIR}/meta.env" ]; then
+if [ -f "/usr/local/etc/vscode-dev-containers/meta.env" ]; then
     echo "${meta_info_script}" > /usr/local/bin/devcontainer-info
     chmod +x /usr/local/bin/devcontainer-info
 fi
 
-if [ ! -d "${DEV_CONTAINERS_DIR}" ]; then
+if [ ! -d "/usr/local/etc/vscode-dev-containers" ]; then
     mkdir -p "$(dirname "${MARKER_FILE}")"
 fi
 
@@ -448,5 +451,8 @@ echo -e "\
     EXISTING_NON_ROOT_USER=${EXISTING_NON_ROOT_USER}\n\
     RC_SNIPPET_ALREADY_ADDED=${RC_SNIPPET_ALREADY_ADDED}\n\
     ZSH_ALREADY_INSTALLED=${ZSH_ALREADY_INSTALLED}" > "${MARKER_FILE}"
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

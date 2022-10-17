@@ -22,6 +22,9 @@ export NVM_VERSION="0.38.0"
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -62,8 +65,10 @@ updaterc() {
 }
 
 apt_get_update() {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -109,6 +114,8 @@ if [ -d "${NVM_DIR}" ]; then
     if [ "${NODE_VERSION}" != "" ]; then
        su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm install ${NODE_VERSION} && nvm clear-cache"
     fi
+    # Clean up
+    rm -rf /var/lib/apt/lists/*
     exit 0
 fi
 
@@ -120,7 +127,7 @@ umask 0002
 usermod -a -G nvm ${USERNAME}
 mkdir -p ${NVM_DIR}
 chown "${USERNAME}:nvm" ${NVM_DIR}
-chmod g+s ${NVM_DIR}
+chmod -R g+r+w ${NVM_DIR}
 su ${USERNAME} -c "$(cat << EOF
     set -e
     umask 0002
@@ -184,5 +191,10 @@ if [ "${INSTALL_TOOLS_FOR_NODE_GYP}" = "true" ]; then
         apt-get -y install ${to_install}
     fi
 fi
+
+find "${NVM_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

@@ -14,6 +14,9 @@ CONDA_DIR="/opt/conda"
 set -eux
 export DEBIAN_FRONTEND=noninteractive
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -50,12 +53,11 @@ fi
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt-get update -y
+        if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+            echo "Running apt-get update..."
+            apt-get update -y
+        fi
         apt-get -y install --no-install-recommends "$@"
-
-        # Clean up
-        apt-get clean -y
-        rm -rf /var/lib/apt/lists/*
     fi
 }
 
@@ -73,6 +75,7 @@ if ! conda --version &> /dev/null ; then
 
     curl -sS https://repo.anaconda.com/pkgs/misc/gpgkeys/anaconda.asc | gpg --dearmor > /usr/share/keyrings/conda-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/conda-archive-keyring.gpg] https://repo.anaconda.com/pkgs/misc/debrepo/conda stable main" > /etc/apt/sources.list.d/conda.list
+    apt-get update -y
 
     CONDA_PKG="conda=${VERSION}-0"
     if [ "${VERSION}" = "latest" ]; then
@@ -122,5 +125,8 @@ fi
 if [ -f "/etc/bash.bashrc" ]; then
     echo "${notice_script}" | tee -a /etc/bash.bashrc
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

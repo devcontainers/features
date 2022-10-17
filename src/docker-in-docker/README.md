@@ -7,9 +7,9 @@ Create child containers *inside* a container, independent from the host's docker
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:1": {
-            "version": "latest"
-        }
+    "ghcr.io/devcontainers/features/docker-in-docker:1": {
+        "version": "latest"
+    }
 }
 ```
 
@@ -20,6 +20,7 @@ Create child containers *inside* a container, independent from the host's docker
 | version | Select or enter a Docker/Moby Engine version. (Availability can vary by OS version.) | string | latest |
 | moby | Install OSS Moby build instead of Docker CE | boolean | true |
 | dockerDashComposeVersion | Default version of Docker Compose (v1 or v2) | string | v1 |
+| azureDnsAutoDetection | Allow automatically setting the dockerd DNS server when the installation script detects it is running in Azure | boolean | true |
 
 
 

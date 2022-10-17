@@ -16,6 +16,9 @@ CONDA_DIR=${CONDA_DIR:-"/usr/local/conda"}
 set -eux
 export DEBIAN_FRONTEND=noninteractive
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -64,7 +67,10 @@ updaterc() {
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt-get update -y
+        if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+            echo "Running apt-get update..."
+            apt-get update -y
+        fi
         apt-get -y install --no-install-recommends "$@"
     fi
 }
@@ -127,5 +133,8 @@ fi
 if [ -f "/etc/bash.bashrc" ]; then
     echo "${notice_script}" | tee -a /etc/bash.bashrc
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

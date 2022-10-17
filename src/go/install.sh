@@ -19,6 +19,9 @@ GO_GPG_KEY_URI="https://dl.google.com/linux/linux_signing_key.pub"
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -97,8 +100,10 @@ get_common_setting() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -114,8 +119,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Install curl, tar, git, other dependencies if missing
 check_packages curl ca-certificates gnupg2 tar g++ gcc libc6-dev make pkg-config
 if ! type git > /dev/null 2>&1; then
-    apt_get_update
-    apt-get -y install --no-install-recommends git
+    check_packages git
 fi
 
 # Get closest match for version number specified
@@ -224,5 +228,8 @@ chown -R "${USERNAME}:golang" "${TARGET_GOROOT}" "${TARGET_GOPATH}"
 chmod -R g+r+w "${TARGET_GOROOT}" "${TARGET_GOPATH}"
 find "${TARGET_GOROOT}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${TARGET_GOPATH}" -type d -print0 | xargs -n 1 -0 chmod g+s
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

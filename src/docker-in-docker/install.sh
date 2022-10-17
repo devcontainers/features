@@ -11,6 +11,7 @@
 DOCKER_VERSION=${VERSION:-"latest"} # The Docker/Moby Engine + CLI should match in version
 USE_MOBY=${MOBY:-"true"}
 DOCKER_DASH_COMPOSE_VERSION=${DOCKERDASHCOMPOSEVERSION:-"v1"} # v1 or v2
+AZURE_DNS_AUTO_DETECTION=${AZUREDNSAUTODETECTION:-"true"}
 
 ENABLE_NONROOT_DOCKER=${ENABLE_NONROOT_DOCKER:-"true"}
 USERNAME=${USERNAME:-"automatic"}
@@ -21,6 +22,9 @@ DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal hirsute 
 
 # Default: Exit on any failure.
 set -e
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 # Setup STDERR.
 err() {
@@ -71,8 +75,10 @@ get_common_setting() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -153,8 +159,7 @@ fi
 # Install dependencies
 check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr
 if ! type git > /dev/null 2>&1; then
-    apt_get_update
-    apt-get -y install git
+    check_packages git
 fi
 
 # Swap to legacy iptables for compatibility
@@ -248,10 +253,7 @@ else
     fi
     if [ "${target_compose_arch}" != "x86_64" ]; then
         # Use pip to get a version that runs on this architecture
-        if ! dpkg -s python3-minimal python3-pip libffi-dev python3-venv > /dev/null 2>&1; then
-            apt_get_update
-            apt-get -y install python3-minimal python3-pip libffi-dev python3-venv
-        fi
+        check_packages python3-minimal python3-pip libffi-dev python3-venv
         export PIPX_HOME=/usr/local/pipx
         mkdir -p ${PIPX_HOME}
         export PIPX_BIN_DIR=/usr/local/bin
@@ -298,6 +300,8 @@ fi
 # If init file already exists, exit
 if [ -f "/usr/local/share/docker-init.sh" ]; then
     echo "/usr/local/share/docker-init.sh already exists, so exiting."
+    # Clean up
+    rm -rf /var/lib/apt/lists/*
     exit 0
 fi
 echo "docker-init doesnt exist, adding..."
@@ -312,7 +316,7 @@ if [ "${ENABLE_NONROOT_DOCKER}" = "true" ]; then
 fi
 
 tee /usr/local/share/docker-init.sh > /dev/null \
-<< 'EOF'
+<< EOF
 #!/bin/sh
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -321,6 +325,11 @@ tee /usr/local/share/docker-init.sh > /dev/null \
 
 set -e
 
+AZURE_DNS_AUTO_DETECTION=$AZURE_DNS_AUTO_DETECTION
+EOF
+
+tee -a /usr/local/share/docker-init.sh > /dev/null \
+<< 'EOF'
 dockerd_start="$(cat << 'INNEREOF'
     # explicitly remove dockerd and containerd PID file to ensure that it can start properly if it was stopped uncleanly
     # ie: docker kill <ID>
@@ -360,7 +369,7 @@ dockerd_start="$(cat << 'INNEREOF'
     # Handle DNS
     set +e
     cat /etc/resolv.conf | grep -i 'internal.cloudapp.net'
-    if [ $? -eq 0 ]
+    if [ $? -eq 0 ] && [ ${AZURE_DNS_AUTO_DETECTION} = "true" ]
     then
         echo "Setting dockerd Azure DNS."
         CUSTOMDNS="--dns 168.63.129.16"
@@ -391,5 +400,8 @@ EOF
 
 chmod +x /usr/local/share/docker-init.sh
 chown ${USERNAME}:root /usr/local/share/docker-init.sh
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo 'docker-in-docker-debian script has completed!'

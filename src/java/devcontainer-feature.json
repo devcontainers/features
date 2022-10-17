@@ -1,6 +1,6 @@
 {
   "id": "java",
-  "version": "1.0.8",
+  "version": "1.0.10",
   "name": "Java (via SDKMAN!)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/java",
   "description": "Installs Java, SDKMAN! (if not installed), and needed dependencies.",
@@ -16,6 +16,17 @@
       ],
       "default": "latest",
       "description": "Select or enter a Java version to install"
+    },
+    "jdkDistro": {
+      "type": "string",
+      "proposals": [
+        "ms",
+        "open",
+        "oracle",
+        "tem"
+      ],
+      "default": "ms",
+      "description": "Select or enter a JDK distribution"
     },
     "installGradle": {
       "type": "boolean",
