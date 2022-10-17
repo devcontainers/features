@@ -186,7 +186,7 @@ if [ "${use_pip}" = "true" ]; then
     fi
 fi
 
-if [[ "${AZ_DEV_VERSION}" -ne "none" ]]; then
+if [[ "${AZ_DEV_VERSION}" != "none" ]]; then
     echo "(*) Installing Azure Dev CLI"
 
     curl -fsSLO https://aka.ms/install-azd.sh
