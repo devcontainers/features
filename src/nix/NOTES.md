@@ -4,9 +4,9 @@ This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise 
 
 ## Location of derivation and Flake files
 
-Currently this feature requires that any Nix files or Flake files referenced are in the image, or in the case of Flakes, can be downloaded from a remote URI (e.g., `github:nixos/nixpkgs/nixpkgs-unstable#hello`). 
+Currently the `derivationUri` property only works with Nix files in the base image. Similarly, `flakeUri` works best with a remote URI (e.g., `github:nixos/nixpkgs/nixpkgs-unstable#hello`). 
 
-Proposed support for lifecycle hooks in Features ([#60](https://github.com/devcontainers/spec/issues/60)) would allow derivation or Flake files in the source tree to be installed on initial container startup via `postCreateCommand`, but today you will have to manually add this property to your `devcontainer.json` file instead.
+> Proposed support for lifecycle hooks in Features ([#60](https://github.com/devcontainers/spec/issues/60)) would allow for derivation or Flake files to exist in the source tree to be automatically installed on initial container startup, but today you will have to manually add the appropriate install command to `postCreateCommand` to your `devcontainer.json` instead.
 
 ## Multi-user vs. single-user installs
 
