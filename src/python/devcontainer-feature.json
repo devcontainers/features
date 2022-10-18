@@ -3,7 +3,7 @@
   "version": "1.0.8",
   "name": "Python",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python",
-  "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab and Poetry are conditionally installed with the python feature. Note: May require source code compilation.",
+  "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab is conditionally installed with the python feature. Note: May require source code compilation.",
   "options": {
     "version": {
       "type": "string",
@@ -25,6 +25,11 @@
       "default": true,
       "description": "Install common Python tools like pylint"
     },
+    "installToolsExtra": {
+      "type": "string",
+      "default": "",
+      "description": "Install extra Python tools - e.g. 'isort poetry sphinx'"
+    },
     "optimize": {
       "type": "boolean",
       "default": false,
@@ -44,11 +49,6 @@
       "type": "string",
       "default": "",
       "description": "Configure JupyterLab to accept HTTP requests from the specified origin"
-    },
-    "installPoetry": {
-      "type": "boolean",
-      "default": false,
-      "description": "Install Poetry, a tool for dependency management and packaging in Python."
     }
   },
   "containerEnv": {

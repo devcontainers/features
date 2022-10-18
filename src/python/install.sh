@@ -9,6 +9,7 @@
 
 PYTHON_VERSION=${VERSION:-"latest"} # 'system' checks the base image first, else installs 'latest'
 INSTALL_PYTHON_TOOLS=${INSTALLTOOLS:-"true"}
+INSTALL_PYTHON_TOOLS_EXTRA=${INSTALLTOOLSEXTRA:-""}
 OPTIMIZE_BUILD_FROM_SOURCE=${OPTIMIZE:-"false"}
 PYTHON_INSTALL_PATH=${INSTALLPATH:-"/usr/local/python"}
 OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
@@ -21,8 +22,6 @@ USE_ORYX_IF_AVAILABLE=${USE_ORYX_IF_AVAILABLE:-"true"}
 
 INSTALL_JUPYTERLAB=${INSTALLJUPYTERLAB:-"false"}
 CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN=${CONFIGUREJUPYTERLABALLOWORIGIN:-""}
-
-INSTALL_POETRY=${INSTALLPOETRY:-"false"}
 
 # Comma-separated list of python versions to be installed
 # alongside PYTHON_VERSION, but not set as default.
@@ -431,6 +430,7 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
         /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
         PIPX_DIR="/tmp/pip-tmp/bin"
     fi
+    if [[ "${INSTALL_PYTHON_TOOLS_EXTRA}" != "" ]]; then DEFAULT_UTILS=(${DEFAULT_UTILS[@]} ${INSTALL_PYTHON_TOOLS_EXTRA}); fi
     for util in "${DEFAULT_UTILS[@]}"; do
         if ! type ${util} > /dev/null 2>&1; then
             "${PIPX_DIR}/pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
@@ -454,11 +454,6 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         add_user_jupyter_config "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
         add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
     fi
-fi
-
-# Install Poetry if needed
-if [ "${INSTALL_POETRY}" = "true" ]; then
-    pipx install --pip-args=--no-cache-dir poetry
 fi
 
 echo "Done!"
