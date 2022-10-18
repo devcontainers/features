@@ -1,0 +1,40 @@
+{
+    "id": "nix",
+    "version": "0.2.0",
+    "name": "Nix Package Manager",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": ["latest"],
+            "default": "latest",
+            "description": "Version of Nix to install."
+        },
+        "multiUser": {
+            "type": "boolean",
+            "default": true,
+            "description": "Perform a multi-user install (instead of single user)"
+        },
+        "packages": {
+            "type": "string",
+            "default": "",
+            "description": "Optional space separated list of Nix packages to install in profile."
+        },
+        "flakeUri": {
+            "type": "string",
+            "default": "",
+            "description": "Optional URI to a Nix Flake to install in profile."
+        },
+        "derivationPath": {
+            "type": "string",
+            "default": "",
+            "description": "Optional path in the base image to a Nix derivation to install in the profile."
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ],
+    "containerEnv": {
+        "PATH": "/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/default/sbin:${PATH}"
+    },
+    "entrypoint": "/usr/local/share/nix-entrypoint.sh"
+}
