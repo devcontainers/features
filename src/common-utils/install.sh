@@ -112,8 +112,16 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         strace \
         manpages \
         manpages-dev \
-        init-system-helpers"
-        
+        init-system-helpers \
+        cmake \
+        libz-dev \
+        libssl-dev \
+        libexpat1-dev \
+        libcurl4-gnutls-dev \
+        gettext \
+        make \
+        gcc"
+
     # Needed for adding manpages-posix and manpages-posix-dev which are non-free packages in Debian
     if [ "${ADD_NON_FREE_PACKAGES}" = "true" ]; then
         # Bring in variables from /etc/os-release like VERSION_CODENAME
@@ -155,11 +163,17 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
 
     echo "Packages to verify are installed: ${package_list}"
     apt-get -y install --no-install-recommends ${package_list} 2> >( grep -v 'debconf: delaying package configuration, since apt-utils is not installed' >&2 )
-        
-    # Install git if not already installed (may be more recent than distro version)
-    if ! type git > /dev/null 2>&1; then
-        apt-get -y install --no-install-recommends git
-    fi
+
+    # Install latest version of git from source
+    git_version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | grep -oP '"name":\s*"v\K[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"' | sort -rV )"
+    GIT_VERSION="$(echo "${git_version_list}" | head -n 1)"
+
+    echo "Installing git v${GIT_VERSION}"
+    curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
+    pushd /tmp/git-${GIT_VERSION}
+    make -s prefix=/usr/local all && make -s prefix=/usr/local install 2>&1
+    popd
+    rm -rf /tmp/git-${GIT_VERSION}
 
     PACKAGES_ALREADY_INSTALLED="true"
 fi
