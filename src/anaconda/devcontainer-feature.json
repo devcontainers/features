@@ -1,6 +1,6 @@
 {
     "id": "anaconda",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "name": "Anaconda",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/anaconda",
     "options": {
@@ -16,5 +16,8 @@
     "containerEnv": {
         "CONDA_DIR": "/usr/local/conda",
         "PATH": "/usr/local/conda/bin:${PATH}"
-    }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
 }

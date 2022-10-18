@@ -53,5 +53,8 @@
             "target": "/var/lib/docker",
             "type": "volume"
         }
+    ],
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
     ]
 }

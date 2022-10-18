@@ -1,6 +1,6 @@
 {
     "id": "dotnet",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
     "description": "Installs the .NET CLI. Provides option of installing sdk or runtime, and option of versions to install. Uses latest version of .NET sdk as defaults to install.",
@@ -37,5 +37,8 @@
                 "ms-dotnettools.csharp"
             ]
         }
-    }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
 }

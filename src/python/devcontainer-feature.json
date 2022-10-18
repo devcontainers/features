@@ -1,6 +1,6 @@
 {
   "id": "python",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "name": "Python",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python",
   "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab is conditionally installed with the python feature. Note: May require source code compilation.",
@@ -71,5 +71,8 @@
         "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
       }
     }
-  }
+  },
+  "installsAfter": [
+      "ghcr.io/devcontainers/features/common-utils"
+  ]
 }
