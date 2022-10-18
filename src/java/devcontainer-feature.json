@@ -10,6 +10,7 @@
       "proposals": [
         "latest",
         "none",
+        "22.2",
         "17",
         "11",
         "8"
@@ -23,7 +24,8 @@
         "ms",
         "open",
         "oracle",
-        "tem"
+        "tem",
+        "grl"
       ],
       "default": "ms",
       "description": "Select or enter a JDK distribution"
