@@ -9,8 +9,14 @@ source dev-container-features-test-lib
 user="$(whoami)"
 check "user" grep vscode <<< "$user"
 
+# Check for an installation of Isort
+check "version_isort" isort --version
+
 # Check for an installation of Poetry
-check "version" poetry --version
+check "version_poetry" poetry --version
+
+# Check for an installation of Sphinx
+check "version_sphinx" sphinx-build --version
 
 # Report result
 reportResults
