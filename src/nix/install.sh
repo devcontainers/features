@@ -101,19 +101,6 @@ if  [ ! -z "${FLAKEURI}" ] && [ "${FLAKEURI}" != "none" ]; then
     echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
 fi
 
-# Install packages, flakes, etc if specified
-if [ "${MULTIUSER}" = "true" ]; then
-    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-    /nix/var/nix/profiles/default/bin/nix-daemon &
-    ${FEATURE_DIR}/post-install-steps.sh
-else
-    chmod +x,o+r ${FEATURE_DIR} ${FEATURE_DIR}/post-install-steps.sh
-    su ${USERNAME} -c "
-        . \$HOME/.nix-profile/etc/profile.d/nix.sh
-        ${FEATURE_DIR}/post-install-steps.sh
-    "
-fi
-
 # Create entrypoint if needed
 if [ "${MULTIUSER}" = "true" ]; then
     echo "(*) Setting up entrypoint..."
@@ -122,5 +109,20 @@ else
     echo -e '#!/bin/bash\nexec "$@"' > /usr/local/share/nix-entrypoint.sh
 fi
 chmod +x /usr/local/share/nix-entrypoint.sh
+
+# Install packages, flakes, etc if specified
+chmod +x,o+r ${FEATURE_DIR} ${FEATURE_DIR}/post-install-steps.sh
+if [ "${MULTIUSER}" = "true" ]; then
+    /usr/local/share/nix-entrypoint.sh
+    su ${USERNAME} -c "
+        . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+        ${FEATURE_DIR}/post-install-steps.sh
+    "
+else
+    su ${USERNAME} -c "
+        . \$HOME/.nix-profile/etc/profile.d/nix.sh
+        ${FEATURE_DIR}/post-install-steps.sh
+    "
+fi
 
 echo "Done!"
