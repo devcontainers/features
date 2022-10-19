@@ -27,6 +27,7 @@
     },
     "installToolsExtra": {
       "type": "string",
+      "proposals": [],
       "default": "",
       "description": "Install extra Python tools - e.g. 'isort poetry sphinx'"
     },
