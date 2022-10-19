@@ -94,6 +94,11 @@ get_jdk_distro() {
 
 # Use SDKMAN to install something using a partial version match
 sdk_install() {
+    echo "install_type=$1"
+    echo "requested_version=$2"
+    echo "prefix=$3"
+    echo "suffix=${4:-'\\s*'}"
+    echo "full_version_check=${5:-'.*-[a-z]+'}"
     local install_type=$1
     local requested_version=$2
     local prefix=$3
