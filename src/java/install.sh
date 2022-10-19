@@ -94,17 +94,17 @@ get_jdk_distro() {
 
 # Use SDKMAN to install something using a partial version match
 sdk_install() {
-    echo "install_type=$1"
-    echo "requested_version=$2"
-    echo "prefix=$3"
-    echo "suffix=${4:-'\\s*'}"
-    echo "full_version_check=${5:-'.*-[a-z]+'}"
     local install_type=$1
     local requested_version=$2
     local prefix=$3
     local suffix="${4:-"\\s*"}"
     local full_version_check=${5:-".*-[a-z]+"}
     local set_as_default=${6:-"true"}
+    echo "install_type=${install_type}"
+    echo "requested_version=${requested_version}"
+    echo "prefix=${prefix}"
+    echo "suffix=${suffix}"
+    echo "full_version_check=${full_version_check}"
     if [ "${requested_version}" = "none" ]; then return; fi
     # Blank will install latest stable version SDKMAN has
     if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "default" ]; then
