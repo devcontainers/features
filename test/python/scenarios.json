@@ -37,12 +37,12 @@
             "python": "os-provided"
         }
     },
-    "install_tools_extra": {
+    "install_extra_tools": {
         "image": "mcr.microsoft.com/devcontainers/base:focal",
         "remoteUser": "vscode",
         "features": {
             "python": {
-                "installToolsExtra": "isort poetry sphinx"
+                "installExtraTools": "isort poetry sphinx"
             }
         }
     }

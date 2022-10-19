@@ -25,7 +25,7 @@
       "default": true,
       "description": "Install common Python tools like pylint"
     },
-    "installToolsExtra": {
+    "installExtraTools": {
       "type": "string",
       "proposals": [],
       "default": "",

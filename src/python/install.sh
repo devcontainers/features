@@ -9,7 +9,7 @@
 
 PYTHON_VERSION=${VERSION:-"latest"} # 'system' checks the base image first, else installs 'latest'
 INSTALL_PYTHON_TOOLS=${INSTALLTOOLS:-"true"}
-INSTALL_PYTHON_TOOLS_EXTRA=${INSTALLTOOLSEXTRA:-""}
+INSTALL_PYTHON_EXTRA_TOOLS=${INSTALLEXTRATOOLS:-""}
 OPTIMIZE_BUILD_FROM_SOURCE=${OPTIMIZE:-"false"}
 PYTHON_INSTALL_PATH=${INSTALLPATH:-"/usr/local/python"}
 OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
@@ -430,8 +430,8 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
         /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
         PIPX_DIR="/tmp/pip-tmp/bin"
     fi
-    if [[ "${INSTALL_PYTHON_TOOLS_EXTRA}" != "" ]]; then
-        DEFAULT_UTILS=(${DEFAULT_UTILS[@]} ${INSTALL_PYTHON_TOOLS_EXTRA})
+    if [[ "${INSTALL_PYTHON_EXTRA_TOOLS}" != "" ]]; then
+        DEFAULT_UTILS=(${DEFAULT_UTILS[@]} ${INSTALL_PYTHON_EXTRA_TOOLS})
     fi
     for util in "${DEFAULT_UTILS[@]}"; do
         if ! type ${util} > /dev/null 2>&1; then
