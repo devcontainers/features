@@ -430,7 +430,9 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
         /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
         PIPX_DIR="/tmp/pip-tmp/bin"
     fi
-    if [[ "${INSTALL_PYTHON_TOOLS_EXTRA}" != "" ]]; then DEFAULT_UTILS=(${DEFAULT_UTILS[@]} ${INSTALL_PYTHON_TOOLS_EXTRA}); fi
+    if [[ "${INSTALL_PYTHON_TOOLS_EXTRA}" != "" ]]; then
+        DEFAULT_UTILS=(${DEFAULT_UTILS[@]} ${INSTALL_PYTHON_TOOLS_EXTRA})
+    fi
     for util in "${DEFAULT_UTILS[@]}"; do
         if ! type ${util} > /dev/null 2>&1; then
             "${PIPX_DIR}/pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
