@@ -1,0 +1,11 @@
+{
+    "dockerDefaultAddressPool": {
+        "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
+        "remoteUser": "node",
+        "features": {
+            "docker-in-docker": {
+                "dockerDefaultAddressPool": "192.168.0.0/16,size=24"
+            }
+        }
+    }
+}
