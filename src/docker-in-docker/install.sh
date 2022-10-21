@@ -12,6 +12,7 @@ DOCKER_VERSION=${VERSION:-"latest"} # The Docker/Moby Engine + CLI should match 
 USE_MOBY=${MOBY:-"true"}
 DOCKER_DASH_COMPOSE_VERSION=${DOCKERDASHCOMPOSEVERSION:-"v1"} # v1 or v2
 AZURE_DNS_AUTO_DETECTION=${AZUREDNSAUTODETECTION:-"true"}
+DOCKER_DEFAULT_ADDRESS_POOL=${DOCKERDEFAULTADDRESSPOOL}
 
 ENABLE_NONROOT_DOCKER=${ENABLE_NONROOT_DOCKER:-"true"}
 USERNAME=${USERNAME:-"automatic"}
@@ -325,12 +326,13 @@ tee /usr/local/share/docker-init.sh > /dev/null \
 
 set -e
 
-AZURE_DNS_AUTO_DETECTION=$AZURE_DNS_AUTO_DETECTION
+AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION}
+DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL}
 EOF
 
 tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
-dockerd_start="$(cat << 'INNEREOF'
+dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} $(cat << 'INNEREOF'
     # explicitly remove dockerd and containerd PID file to ensure that it can start properly if it was stopped uncleanly
     # ie: docker kill <ID>
     find /run /var/run -iname 'docker*.pid' -delete || :
@@ -377,10 +379,18 @@ dockerd_start="$(cat << 'INNEREOF'
         echo "Not setting dockerd DNS manually."
         CUSTOMDNS=""
     fi
+
     set -e
 
+    if [ -z "$DOCKER_DEFAULT_ADDRESS_POOL" ]
+    then
+        DEFAULT_ADDRESS_POOL=""
+    else
+        DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
+    fi
+
     # Start docker/moby engine
-    ( dockerd $CUSTOMDNS > /tmp/dockerd.log 2>&1 ) &
+    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
 )"
 
