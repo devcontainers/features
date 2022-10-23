@@ -80,6 +80,7 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         procps \
         lsof \
         htop \
+        iputils-ping \
         net-tools \
         psmisc \
         curl \
