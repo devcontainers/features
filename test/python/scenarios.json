@@ -3,8 +3,8 @@
         "image": "ubuntu:focal",
         "features": {
             "python": {
-                "version": "3.10.5",
-                "additionalVersions": "3.8,3.9.13"
+                "version": "3.11",
+                "additionalVersions": "3.8,3.9.13,3.10.5"
             }
         }
     },
