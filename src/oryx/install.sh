@@ -157,17 +157,23 @@ chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
 ln -s ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript ${ORYX}/oryx
 cp -f $GIT_ORYX/images/build/benv.sh ${ORYX}/benv
+cp -f $GIT_ORYX/images/build/logger.sh ${ORYX}/logger
 
 ORYX_INSTALL_DIR="/opt"
 mkdir -p "${ORYX_INSTALL_DIR}"
 
+# Directory used by the oryx tool to install python packages automatically from `requirements.txt`
+PIP_CACHE_DIR="/usr/local/share/pip-cache/lib"
+mkdir -p ${PIP_CACHE_DIR}
+
 updaterc "export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=$ORYX_INSTALL_DIR && ORYX_PREFER_USER_INSTALLED_SDKS=true && export DEBIAN_FLAVOR=focal-scm"
 
-chown -R "${USERNAME}:oryx" "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
-chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
+chown -R "${USERNAME}:oryx" "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}" "${PIP_CACHE_DIR}"
+chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}" "${PIP_CACHE_DIR}"
 find "${ORYX_INSTALL_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${BUILD_SCRIPT_GENERATOR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${ORYX}" -type d -print0 | xargs -n 1 -0 chmod g+s
+find "${PIP_CACHE_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
 # /opt/tmp/build and /opt/tmp/images is required by Oryx for dynamically installing platforms
 cp -rf $GIT_ORYX/build /opt/tmp
