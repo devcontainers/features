@@ -15,6 +15,14 @@
             ],
             "default": "latest",
             "description": "Select or enter a Go version to install"
+        },
+        "golangciLintVersion": {
+            "type": "string",
+            "proposals": [
+                "latest"
+            ],
+            "default": "latest",
+            "description": "Select or enter a golangci-lint version to install"
         }
     },
     "init": true,
