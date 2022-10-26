@@ -162,7 +162,7 @@ cp -f $GIT_ORYX/images/build/logger.sh ${ORYX}/logger
 ORYX_INSTALL_DIR="/opt"
 mkdir -p "${ORYX_INSTALL_DIR}"
 
-# Directory used by the oryx tool to install python packages automatically from `requirements.txt`
+# Directory used by the oryx tool to cache the automatically installed python packages from `requirements.txt`
 PIP_CACHE_DIR="/usr/local/share/pip-cache/lib"
 mkdir -p ${PIP_CACHE_DIR}
 
