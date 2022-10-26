@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -33,6 +33,12 @@
             "type": "boolean",
             "default": true,
             "description": "Allow automatically setting the dockerd DNS server when the installation script detects it is running in Azure"
+        },
+        "dockerDefaultAddressPool": {
+            "type": "string",
+            "default": "",
+            "proposals": [],
+            "description": "Define default address pools for Docker networks. e.g. base=192.168.0.0/16,size=24"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",

@@ -1,7 +1,7 @@
 {
     "id": "kubectl-helm-minikube",
-    "version": "1.0.5",
-    "name": "Kubectl, Helm, and Minkube",
+    "version": "1.0.6",
+    "name": "Kubectl, Helm, and Minikube",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/kubectl-helm-minikube",
     "description": "Installs latest version of kubectl, Helm, and optionally minikube. Auto-detects latest versions and installs needed dependencies.",
     "options": {
