@@ -1,0 +1,11 @@
+{
+    "install_hugo_extended": {
+        "image": "mcr.microsoft.com/devcontainers/base",
+        "features": {
+            "hugo": {
+                "version": "latest",
+                "extended": true
+            }
+        }
+    }
+}
