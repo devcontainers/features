@@ -19,7 +19,7 @@
         "golangciLintVersion": {
             "type": "string",
             "default": "latest",
-            "description": "Enter a golangci-lint version to install or 'latest'"
+            "description": "Version of golangci-lint to install"
         }
     },
     "init": true,
