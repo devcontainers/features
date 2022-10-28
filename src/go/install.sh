@@ -8,6 +8,7 @@
 # Maintainer: The VS Code and Codespaces Teams
 
 TARGET_GO_VERSION=${VERSION:-"latest"}
+GOLANGCILINT_VERSION=${GOLANGCILINTVERSION:-"latest"}
 
 TARGET_GOROOT=${TARGET_GOROOT:-"/usr/local/go"}
 TARGET_GOPATH=${TARGET_GOPATH:-"/go"}
@@ -197,8 +198,7 @@ GO_TOOLS="\
     github.com/mgechev/revive@latest \
     github.com/uudashr/gopkgs/v2/cmd/gopkgs@latest \
     github.com/ramya-rao-a/go-outline@latest \
-    github.com/go-delve/delve/cmd/dlv@latest \
-    github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
+    github.com/go-delve/delve/cmd/dlv@latest"
 if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
     echo "Installing common Go tools..."
     export PATH=${TARGET_GOROOT}/bin:${PATH}
@@ -219,8 +219,18 @@ if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
 
     # Move Go tools into path and clean up
     mv /tmp/gotools/bin/* ${TARGET_GOPATH}/bin/
-
     rm -rf /tmp/gotools
+
+    # Install golangci-lint from precompiled binares
+    if [ "$GOLANGCILINT_VERSION" = "latest" ] || [ "$GOLANGCILINT_VERSION" = "" ]; then
+        echo "Installing golangci-lint latest..."
+        curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+            sh -s -- -b "${TARGET_GOPATH}/bin"
+    else
+        echo "Installing golangci-lint ${GOLANGCILINT_VERSION}..."
+        curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+            sh -s -- -b "${TARGET_GOPATH}/bin" "v${GOLANGCILINT_VERSION}"
+    fi
 fi
 
 
