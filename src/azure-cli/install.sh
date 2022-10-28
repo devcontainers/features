@@ -193,7 +193,7 @@ if [ ${#AZ_EXTENSIONS[@]} -gt 0 ]; then
     for i in "${extensions[@]}"
     do
         echo "Installing ${i}"
-        su ${_REMOTE_USER} -c "az extension add --name ${i} -y"
+        su ${_REMOTE_USER} -c "az extension add --name ${i} -y" || continue
     done
 fi
 
