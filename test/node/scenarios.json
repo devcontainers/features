@@ -16,5 +16,14 @@
                 "version": "latest"
             }
         }
+    },
+    "version_none": {
+        "image": "mcr.microsoft.com/devcontainers/base",
+        "remoteUser": "vscode",
+        "features": {
+            "node": {
+                "version": "none"
+            }
+        }
     }
 }
