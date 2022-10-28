@@ -288,7 +288,7 @@ install_from_source() {
     ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
     add_symlink
-
+    PYTHON_SRC="${INSTALL_PATH}/bin/python3"
 }
 
 install_using_oryx() {
@@ -306,6 +306,7 @@ install_using_oryx() {
     ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
     add_symlink
+    PYTHON_SRC="${INSTALL_PATH}/bin/python3"
 }
 
 sudo_if() {
@@ -319,7 +320,7 @@ sudo_if() {
 
 install_user_package() {
     PACKAGE="$1"
-    sudo_if "$INSTALL_PATH/bin/python3" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+    sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
 }
 
 add_user_jupyter_config() {
@@ -398,6 +399,8 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 
         PATH="${INSTALL_PATH}/bin:${PATH}"
     fi
+else
+    PYTHON_SRC=$(which python)
 fi
 
 # Install Python tools if needed
@@ -449,12 +452,17 @@ fi
 
 # Install JupyterLab if needed
 if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
-    install_user_package jupyterlab
+    if [[ $(python --version) != "" ]]; then
+        install_user_package jupyterlab
 
-    # Configure JupyterLab if needed
-    if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
-        add_user_jupyter_config "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
-        add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+        # Configure JupyterLab if needed
+        if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
+            add_user_jupyter_config "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+            add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+        fi
+    else
+        echo "(!) Could not install jupyterlab. Python not found."
+        exit 1
     fi
 fi
 

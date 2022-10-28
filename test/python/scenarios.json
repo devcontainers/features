@@ -13,6 +13,7 @@
         "remoteUser": "vscode",
         "features": {
             "python": {
+                "version": "latest",
                 "installJupyterlab": true,
                 "configureJupyterlabAllowOrigin": "*"
             }
@@ -35,6 +36,17 @@
         "features": {
             "node": "latest",
             "python": "os-provided"
+        }
+    },
+    "install_jupyterlab_from_python_image": {
+        "image": "mcr.microsoft.com/devcontainers/python:3.10-bullseye",
+        "remoteUser": "vscode",
+        "features": {
+            "python": {
+                "version": "none",
+                "installTools": false,
+                "installJupyterlab": true
+            }
         }
     }
 }
