@@ -204,7 +204,7 @@ rm -rf /var/lib/apt/lists/*
 
 # Ensure privs are correct for installed node versions. Unfortunately the
 # way nvm installs node versions pulls privs from the tar which does not
-# have group read set. We need this when the gid/uid is updated.
+# have group write set. We need this when the gid/uid is updated.
 chmod -R g+rw "${NVM_DIR}/versions"
 
 echo "Done!"
