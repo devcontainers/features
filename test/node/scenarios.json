@@ -9,7 +9,7 @@
         }
     },
     "non_root_user": {
-        "image": "mcr.microsoft.com/vscode/devcontainers/base",
+        "image": "mcr.microsoft.com/devcontainers/base",
         "remoteUser": "vscode",
         "features": {
             "node": {
