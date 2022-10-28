@@ -288,7 +288,7 @@ install_from_source() {
     ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
     add_symlink
-    PYTHON_SRC="${INSTALL_PATH}/bin/python3"
+
 }
 
 install_using_oryx() {
@@ -306,7 +306,6 @@ install_using_oryx() {
     ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
     add_symlink
-    PYTHON_SRC="${INSTALL_PATH}/bin/python3"
 }
 
 sudo_if() {
@@ -399,6 +398,8 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 
         PATH="${INSTALL_PATH}/bin:${PATH}"
     fi
+    
+    PYTHON_SRC="${INSTALL_PATH}/bin/python3"
 else
     PYTHON_SRC=$(which python)
 fi
