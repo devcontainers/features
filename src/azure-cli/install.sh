@@ -193,7 +193,7 @@ if [ ${#AZ_EXTENSIONS[@]} -gt 0 ]; then
     for i in "${extensions[@]}"
     do
         echo "Installing ${i}"
-        su $(getent passwd "1000" | cut -d: -f1) -c "az extension add --name ${i} -y"
+        su ${_REMOTE_USER} -c "az extension add --name ${i} -y"
     done
 fi
 
