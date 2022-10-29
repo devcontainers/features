@@ -2,10 +2,12 @@
     "id": "nix",
     "version": "1.0.0",
     "name": "Nix Package Manager",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/nix",
+    "description": "Installs the Nix package manager and optionally a set of packages.",  
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest"],
+            "proposals": ["latest", "2.11"],
             "default": "latest",
             "description": "Version of Nix to install."
         },
