@@ -7,8 +7,7 @@ cd "${FEATURE_DIR}"
 # Option defaults
 VERSION="${VERSION:-"latest"}"
 MULTIUSER="${MULTIUSER:-"true"}"
-PACKAGES="${PACKAGES:-""}"
-DERIVATIONPATH="${DERIVATIONPATH:-""}"
+PACKAGES="${PACKAGES//,/ }"
 FLAKEURI="${FLAKEURI:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 

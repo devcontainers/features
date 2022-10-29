@@ -8,16 +8,6 @@ if [ ! -z "${PACKAGES}" ] && [ "${PACKAGES}" != "none" ]; then
     nix-env --install ${PACKAGES}
 fi
 
-# Install deriviation (blah.nix) in profile if specified
-if [ ! -z "${DERIVATIONPATH}" ] && [ "${DERIVATIONPATH}" != "none" ]; then
-    if [ ! -e "${DERIVATIONPATH}" ]; then
-        echo "The file ${DERIVATIONPATH} does not exist! Skipping.."
-    else 
-        echo "Installing derivation ${DERIVATIONPATH} in profile..."
-        nix-env -f "${DERIVATIONPATH}" -i
-    fi
-fi
-
 # Install Nix flake in profile if specified
 if [ ! -z "${FLAKEURI}" ] && [ "${FLAKEURI}" != "none" ]; then
     echo "Installing flake ${FLAKEURI} in profile..."

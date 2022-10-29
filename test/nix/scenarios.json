@@ -77,7 +77,7 @@
         "remoteUser": "vscode",
         "features": {
             "nix": {
-                "packages": "nodejs vim yarn"
+                "packages": "nodejs,vim,yarn"
             }
         }
     },

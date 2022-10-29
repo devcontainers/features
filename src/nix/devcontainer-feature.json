@@ -7,7 +7,7 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "2.11"],
+            "proposals": ["latest", "2.11", "2.10"],
             "default": "latest",
             "description": "Version of Nix to install."
         },
@@ -19,17 +19,12 @@
         "packages": {
             "type": "string",
             "default": "",
-            "description": "Optional space separated list of Nix packages to install in profile."
+            "description": "Optional comma separated list of Nix packages to install in profile."
         },
         "flakeUri": {
             "type": "string",
             "default": "",
             "description": "Optional URI to a Nix Flake to install in profile."
-        },
-        "derivationPath": {
-            "type": "string",
-            "default": "",
-            "description": "Optional path in the base image to a Nix derivation to install in the profile."
         }
     },
     "installsAfter": [
