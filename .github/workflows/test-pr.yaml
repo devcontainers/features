@@ -38,6 +38,7 @@ jobs:
             rust: ./**/rust/**
             sshd: ./**/sshd/**
             terraform: ./**/terraform/**
+            nix: ./**/nix/**
 
   test:
     needs: [detect-changes]
