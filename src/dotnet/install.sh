@@ -200,12 +200,12 @@ install_using_apt_from_microsoft_repo() {
     export DOTNET_PACKAGE="dotnet-${sdk_or_runtime}"
 
     # Install dependencies
-    check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr
+    check_packages apt-transport-https curl ca-certificates
 
     # Import key safely and import Microsoft apt repo
     get_common_setting MICROSOFT_GPG_KEYS_URI
-    curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
-    echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+    curl -sSL ${MICROSOFT_GPG_KEYS_URI} | tee -a /usr/share/keyrings/microsoft-archive-keyring.asc
+    echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.asc] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
     apt-get update -y
 
     if [ "${DOTNET_VERSION}" = "latest" ] || [ "${DOTNET_VERSION}" = "lts" ]; then

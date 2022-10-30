@@ -79,8 +79,8 @@ install_dotnet_using_apt() {
 
     if [ "${install_from_microsoft_feed}" = "true" ]; then
         echo "Attempting install from microsoft apt feed..."
-        curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
-        echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+        curl -sSL ${MICROSOFT_GPG_KEYS_URI} | tee -a /usr/share/keyrings/microsoft-archive-keyring.asc
+        echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.asc] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
         apt-get update -y
         DOTNET_INSTALLATION_PACKAGE="dotnet-sdk-6.0"
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq $DOTNET_INSTALLATION_PACKAGE
@@ -118,7 +118,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 
 # Install dependencies
-check_packages git sudo curl ca-certificates apt-transport-https gnupg2 dirmngr libc-bin
+check_packages git sudo curl ca-certificates apt-transport-https libc-bin
 
 if ! cat /etc/group | grep -e "^oryx:" > /dev/null 2>&1; then
     groupadd -r oryx

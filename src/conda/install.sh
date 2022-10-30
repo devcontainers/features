@@ -69,12 +69,12 @@ if ! conda --version &> /dev/null ; then
     usermod -a -G conda "${USERNAME}"
 
     # Install dependencies
-    check_packages curl ca-certificates gnupg2
+    check_packages curl ca-certificates
 
     echo "Installing Conda..."
 
-    curl -sS https://repo.anaconda.com/pkgs/misc/gpgkeys/anaconda.asc | gpg --dearmor > /usr/share/keyrings/conda-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/conda-archive-keyring.gpg] https://repo.anaconda.com/pkgs/misc/debrepo/conda stable main" > /etc/apt/sources.list.d/conda.list
+    curl -sS https://repo.anaconda.com/pkgs/misc/gpgkeys/anaconda.asc | tee -a /usr/share/keyrings/conda-archive-keyring.asc
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/conda-archive-keyring.asc] https://repo.anaconda.com/pkgs/misc/debrepo/conda stable main" > /etc/apt/sources.list.d/conda.list
     apt-get update -y
 
     CONDA_PKG="conda=${VERSION}-0"
