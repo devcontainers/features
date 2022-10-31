@@ -453,7 +453,7 @@ fi
 
 # Install JupyterLab if needed
 if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
-    if [[ $(python --version) != "" ]]; then
+    if [ ! -z "${PYTHON_SRC}" ]; then
         install_user_package jupyterlab
 
         # Configure JupyterLab if needed
@@ -462,7 +462,7 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
             add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
         fi
     else
-        echo "(!) Could not install jupyterlab. Python not found."
+        echo "(!) Could not install Jupyterlab. Python not found."
         exit 1
     fi
 fi
