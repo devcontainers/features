@@ -15,11 +15,17 @@ set -e
 if [ "${vscode_uid}" != "" ]; then
     echo "User vscode UID is ${vscode_uid}."
     if [ "${vscode_uid}" != "1000" ]; then
-        echo "User vscode UID was adjusted."
+        echo -e "User vscode UID was adjusted.\nWARNING: This scenario is not expected to work, so adjusting owner on Nix."
+        chown -R vscode /nix
     fi
 fi
 nix_uid="$(stat /nix -c "%u")"
 echo "/nix UID is ${nix_uid}."
+if [ "${nix_uid}" != "${vscode_uid}" ]; then
+    echo -e "WARNING: User UID does not match /nix owner. This scenario is not expected to work, so adjusting owner of /nix for testing purposes."
+    chown -R vscode /nix
+fi
+
 
 cat /etc/os-release
 
