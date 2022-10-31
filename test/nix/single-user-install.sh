@@ -16,7 +16,7 @@ if [ "${vscode_uid}" != "" ]; then
     echo "User vscode UID is ${vscode_uid}."
     if [ "${vscode_uid}" != "1000" ]; then
         echo -e "User vscode UID was adjusted.\nWARNING: This scenario is not expected to work, so adjusting owner on Nix."
-        chown -R vscode /nix
+        sudo chown -R vscode /nix
     fi
 fi
 nix_uid="$(stat /nix -c "%u")"
