@@ -13,7 +13,7 @@
         "remoteUser": "vscode",
         "features": {
             "nix": {
-                "multiUser": true,
+                "multiUser": false,
                 "version": "2.10"
             }
         }

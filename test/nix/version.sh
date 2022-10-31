@@ -20,6 +20,10 @@ if [ "${vscode_uid}" != "" ]; then
 fi
 nix_uid="$(stat /nix -c "%u")"
 echo "/nix UID is ${nix_uid}."
+if [ "${nix_uid}" != "${vscode_uid}" ]; then
+    echo -e "WARNING: User UID does not match /nix owner. This scenario is not expected to work, so adjusting owner of /nix for testing purposes."
+    sudo chown -R vscode /nix
+fi
 
 cat /etc/os-release
 
