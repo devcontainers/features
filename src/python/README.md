@@ -22,7 +22,7 @@ Installs the provided version of Python, as well as PIPX, and other common Pytho
 | optimize | Optimize Python for performance when compiled (slow) | boolean | false |
 | installPath | The path where python will be installed. | string | /usr/local/python |
 | installJupyterlab | Install JupyterLab, a web-based interactive development environment for notebooks | boolean | false |
-| configureJupyterlabAllowOrigin | Configure JupyterLab to accept HTTP requests from the specified origin | string |  |
+| configureJupyterlabAllowOrigin | Configure JupyterLab to accept HTTP requests from the specified origin | string | - |
 
 
 

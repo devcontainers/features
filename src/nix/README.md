@@ -19,8 +19,8 @@ Installs the Nix package manager and optionally a set of packages.
 |-----|-----|-----|-----|
 | version | Version of Nix to install. | string | latest |
 | multiUser | Perform a multi-user install (instead of single user) | boolean | true |
-| packages | Optional comma separated list of Nix packages to install in profile. | string |  |
-| flakeUri | Optional URI to a Nix Flake to install in profile. | string |  |
+| packages | Optional comma separated list of Nix packages to install in profile. | string | - |
+| flakeUri | Optional URI to a Nix Flake to install in profile. | string | - |
 
 ## OS Support
 
