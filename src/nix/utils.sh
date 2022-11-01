@@ -256,6 +256,14 @@ update_rc_file() {
     fi
 }
 
+# Update a file if with string if not already present
+# create_or_update_file <file> <string>
+create_or_update_file() {
+    if [ ! -e "$1" ] || [[ "$(cat "$1")" != *"$2"* ]]; then
+        echo "$2" >> "$1"
+    fi
+}
+
 # Use semver logic to decrement a version number then look for the closest match
 find_prev_version_from_git_tags() {
     local variable_name=$1
