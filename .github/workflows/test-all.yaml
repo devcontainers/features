@@ -38,6 +38,7 @@ jobs:
             "rust",
             "sshd",
             "terraform",
+            "nix",
         ]
         baseImage:
           [
@@ -88,6 +89,7 @@ jobs:
             "rust",
             "sshd",
             "terraform",
+            "nix",
         ]
     steps:
       - uses: actions/checkout@v2
