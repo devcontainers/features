@@ -60,7 +60,7 @@
         "ms-python.vscode-pylance"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
         "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
         "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
         "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
@@ -74,6 +74,7 @@
     }
   },
   "installsAfter": [
-      "ghcr.io/devcontainers/features/common-utils"
+      "ghcr.io/devcontainers/features/common-utils",
+      "ghcr.io/devcontainers/features/oryx"
   ]
 }

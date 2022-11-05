@@ -299,13 +299,16 @@ install_using_oryx() {
         echo "(!) Python version ${VERSION} already exists."
         exit 1
     fi
+
+    # The python install root path may not exist, so create it
+    mkdir -p "${PYTHON_INSTALL_PATH}"
     oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
 
     ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
     ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
     ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
-    add_symlink
+   add_symlink
 }
 
 sudo_if() {
@@ -339,11 +342,15 @@ install_python() {
     # If the os-provided versions are "good enough", detect that and bail out.
     if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
-        PYTHON_ROOT="/usr/bin"
+        INSTALL_PATH="/usr"
 
-        ln -s "${PYTHON_ROOT}/python3" "${PYTHON_ROOT}/python"
-        ln -s "${PYTHON_ROOT}/pydoc3" "${PYTHON_ROOT}/pydoc"
-        ln -s "${PYTHON_ROOT}/python3-config" "${PYTHON_ROOT}/python-config"
+        ln -s "${INSTALL_PATH}/bin/python3" "${INSTALL_PATH}/bin/python"
+        ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
+        ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
+
+        # Add the current symlink but point it to "/usr" since python is at /usr/bin/python
+        mkdir -p "${PYTHON_INSTALL_PATH}"
+        add_symlink
 
         should_install_from_source=false
     elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
