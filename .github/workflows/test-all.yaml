@@ -38,12 +38,16 @@ jobs:
             "rust",
             "sshd",
             "terraform",
+            "nix",
         ]
         baseImage:
           [
             "ubuntu:focal",
             "ubuntu:jammy",
+            "ubuntu:bionic",
             "debian:11",
+            "debian:10",
+            "debian:9",
             "mcr.microsoft.com/devcontainers/base:ubuntu",
             "mcr.microsoft.com/devcontainers/base:debian",
           ]
@@ -88,6 +92,7 @@ jobs:
             "rust",
             "sshd",
             "terraform",
+            "nix",
         ]
     steps:
       - uses: actions/checkout@v2

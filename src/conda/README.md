@@ -18,7 +18,7 @@ A cross-platform, language-agnostic binary package manager
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter a conda version. | string | latest |
-| addCondaForge | Add conda-forge channel to the config? | boolean | - |
+| addCondaForge | Add conda-forge channel to the config? | boolean | false |
 
 ## Using Conda
 

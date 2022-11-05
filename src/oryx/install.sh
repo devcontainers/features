@@ -146,7 +146,12 @@ GIT_ORYX=/opt/tmp/oryx-repo
 mkdir -p ${BUILD_SCRIPT_GENERATOR}
 mkdir -p ${ORYX}
 
-git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
+git clone https://github.com/microsoft/Oryx $GIT_ORYX
+cd $GIT_ORYX
+
+# https://github.com/microsoft/Oryx/commit/74e4830b3636e5cfbce5b3e3358bd5bb66a87f45 is breaking the `oryx` tool
+# Pinning to a previous working commit until the upstream issue is fixed.
+git reset --hard 2b19efca9729673fc259e6a817be3cc0bb73b9d5
 
 $GIT_ORYX/build/buildSln.sh
 

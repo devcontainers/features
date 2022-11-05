@@ -23,7 +23,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 | username | Enter name of non-root user to configure or none to skip | string | automatic |
 | uid | Enter uid for non-root user | string | automatic |
 | gid | Enter gid for non-root user | string | automatic |
-| nonFreePackages | Add packages from non-free Debian repository? | boolean | - |
+| nonFreePackages | Add packages from non-free Debian repository? | boolean | false |
 
 ## Speeding up the command prompt in large repositories
 
