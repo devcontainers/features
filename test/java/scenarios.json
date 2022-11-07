@@ -40,5 +40,17 @@
                 "installMaven": true
             }
         }
+    },
+    "install_gradle_and_maven_with_specific_version": {
+        "image": "ubuntu:focal",
+        "features": {
+            "java": {
+                "version": "latest",
+                "installGradle": "true",
+                "gradleVersion": "6.8.3",
+                "installMaven": "true",
+                "mavenVersion": "3.6.3"
+            }
+        }
     }
 }
