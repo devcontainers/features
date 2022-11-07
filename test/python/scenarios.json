@@ -33,8 +33,13 @@
     "install_os_provided_python": {
         "image": "mcr.microsoft.com/devcontainers/base:0-bullseye",
         "features": {
-            "node": "latest",
             "python": "os-provided"
+        }
+    },
+    "install_via_oryx": {
+        "image": "mcr.microsoft.com/oryx/build:full-debian-bullseye",
+        "features": {
+            "python": "3.10"
         }
     }
 }
