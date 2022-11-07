@@ -1,6 +1,6 @@
 {
     "id": "oryx",
-    "version": "1.0.7",
+    "version": "1.0.10",
     "name": "Oryx",
     "description": "Installs the oryx CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/oryx",
@@ -12,5 +12,8 @@
         "ORYX_DIR": "/usr/local/oryx",
         "DEBIAN_FLAVOR": "focal-scm",
         "PATH": "/usr/local/oryx:${PATH}"
-    }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
 }

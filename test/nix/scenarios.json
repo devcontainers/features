@@ -1,0 +1,93 @@
+{
+    "single-user-install": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "nix": {
+                "multiUser": false
+            }
+        }
+    },
+    "version": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "nix": {
+                "multiUser": false,
+                "version": "2.10"
+            }
+        }
+    },
+    "multi-user-install": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "nix": {
+                "multiUser": true
+            }
+        }
+    },
+    "os-ubuntu": {
+        "image": "ubuntu",
+        "remoteUser": "root",
+        "features": {
+            "nix": {
+                "multiUser": true
+            }
+        }
+    },
+    "os-debian": {
+        "image": "debian",
+        "remoteUser": "root",
+        "features": {
+            "nix": {
+                "multiUser": true
+            }
+        }
+    },
+    "os-rockylinux": {
+        "image": "rockylinux:9",
+        "remoteUser": "root",
+        "features": {
+            "nix": {
+                "multiUser": true
+            }
+        }
+    },
+    "os-fedora": {
+        "image": "fedora",
+        "remoteUser": "root",
+        "features": {
+            "nix": {
+                "multiUser": true
+            }
+        }
+    },
+    "os-alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "remoteUser": "vscode",
+        "features": {
+            "nix": {
+                "multiUser": true
+            }
+        }
+    },
+    "packages": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "nix": {
+                "packages": "nodejs,vim,yarn"
+            }
+        }
+    },
+    "flake": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "nix": {
+                "flakeUri": "github:nixos/nixpkgs/nixpkgs-unstable#hello"
+            }
+        }
+    }
+}

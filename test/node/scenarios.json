@@ -3,8 +3,26 @@
         "image": "debian:11",
         "features": {
             "node": {
-                "version": "latest",
+                "version": "lts",
                 "additionalVersions": "v17.9.1,v14.19.3"
+            }
+        }
+    },
+    "non_root_user": {
+        "image": "mcr.microsoft.com/devcontainers/base",
+        "remoteUser": "vscode",
+        "features": {
+            "node": {
+                "version": "latest"
+            }
+        }
+    },
+    "version_none": {
+        "image": "mcr.microsoft.com/devcontainers/base",
+        "remoteUser": "vscode",
+        "features": {
+            "node": {
+                "version": "none"
             }
         }
     }

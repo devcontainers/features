@@ -3,7 +3,8 @@
         "image": "ubuntu:focal",
         "features": {
             "go": {
-                "version": "latest"
+                "version": "latest",
+                "golangciLintVersion": "1.50.0"
             }
         },
         "postCreateCommand": "go install filippo.io/mkcert@v1.4.2"

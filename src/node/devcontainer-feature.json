@@ -1,6 +1,6 @@
 {
     "id": "node",
-    "version": "1.0.7",
+    "version": "1.1.1",
     "name": "Node.js (via nvm) and yarn",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/node",
     "description": "Installs Node.js, nvm, yarn, and needed dependencies.",
@@ -27,6 +27,11 @@
             "type": "string",
             "default": "/usr/local/share/nvm",
             "description": "The path where NVM will be installed."
+        },
+        "nvmVersion": {
+            "type": "string",
+            "default": "0.39.2",
+            "description": "Version of NVM to install."
         }
     },
     "customizations": {
@@ -40,5 +45,8 @@
         "NVM_DIR": "/usr/local/share/nvm",
         "NVM_SYMLINK_CURRENT": "true",
         "PATH": "/usr/local/share/nvm/current/bin:${PATH}"
-    }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
 }

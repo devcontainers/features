@@ -1,6 +1,6 @@
 {
   "id": "java",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "name": "Java (via SDKMAN!)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/java",
   "description": "Installs Java, SDKMAN! (if not installed), and needed dependencies.",
@@ -54,5 +54,8 @@
     "SDKMAN_DIR": "/usr/local/sdkman",
     "JAVA_HOME": "/usr/local/sdkman/candidates/java/current",
     "PATH": "/usr/local/sdkman/bin:/usr/local/sdkman/candidates/java/current/bin:/usr/local/sdkman/candidates/gradle/current/bin:/usr/local/sdkman/candidates/maven/current/bin:${PATH}"
-  }
+  },
+  "installsAfter": [
+      "ghcr.io/devcontainers/features/common-utils"
+  ]
 }

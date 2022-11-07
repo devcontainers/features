@@ -31,5 +31,8 @@
             "ms-azuretools.vscode-bicep"
           ]
       }
-  }
+  },
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/common-utils"
+  ]
 }
