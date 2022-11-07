@@ -308,7 +308,7 @@ install_using_oryx() {
     ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
     ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
 
-   add_symlink
+    add_symlink
 }
 
 sudo_if() {
