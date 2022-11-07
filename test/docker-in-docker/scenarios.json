@@ -1,0 +1,29 @@
+{
+    "dockerDefaultAddressPool": {
+        "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
+        "remoteUser": "node",
+        "features": {
+            "docker-in-docker": {
+                "dockerDefaultAddressPool": "base=192.168.0.0/16,size=24"
+            }
+        }
+    },
+    "azureDnsAutoDetectionEnabled": {
+        "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
+        "remoteUser": "node",
+        "features": {
+            "docker-in-docker": {
+                "azureDnsAutoDetection": true
+            }
+        }
+    },
+    "azureDnsAutoDetectionDisabled": {
+        "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
+        "remoteUser": "node",
+        "features": {
+            "docker-in-docker": {
+                "azureDnsAutoDetection": false
+            }
+        }
+    }
+}

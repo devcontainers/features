@@ -17,6 +17,9 @@ FIX_ENVIRONMENT=${FIX_ENVIRONMENT:-"true"}
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -41,8 +44,10 @@ fi
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -166,4 +171,8 @@ echo -e "Done!\n\n- Port: ${SSHD_PORT}\n- User: ${USERNAME}"
 if [ "${EMIT_PASSWORD}" = "true" ]; then
     echo "- Password: ${NEW_PASSWORD}"
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 echo -e "\nForward port ${SSHD_PORT} to your local machine and run:\n\n  ssh -p ${SSHD_PORT} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GlobalKnownHostsFile=/dev/null ${USERNAME}@localhost\n"

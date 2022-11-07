@@ -1,6 +1,6 @@
 {
   "id": "nvidia-cuda",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "name": "NVIDIA CUDA",
   "description": "Installs shared libraries for NVIDIA CUDA.",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/nvidia-cuda",
@@ -48,5 +48,8 @@
       "default": "8.5.0.96",
       "description": "Version of cuDNN to install"
     }
-  }
+  },
+  "installsAfter": [
+      "ghcr.io/devcontainers/features/common-utils"
+  ]
 }

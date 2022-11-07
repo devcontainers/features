@@ -18,6 +18,9 @@ UPDATE_RUST=${UPDATE_RUST:-"false"}
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -127,8 +130,18 @@ updaterc() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
+}
+
+# Checks if packages are installed and installs them if not
+check_packages() {
+    if ! dpkg -s "$@" >/dev/null 2>&1; then
+        apt_get_update
+        apt-get -y install --no-install-recommends "$@"
+    fi
 }
 
 export DEBIAN_FRONTEND=noninteractive
@@ -170,8 +183,7 @@ else
     if [ "${RUST_VERSION}" != "latest" ] && [ "${RUST_VERSION}" != "lts" ] && [ "${RUST_VERSION}" != "stable" ]; then
         # Find version using soft match
         if ! type git > /dev/null 2>&1; then
-            apt_get_update
-            apt-get -y install --no-install-recommends git
+            check_packages git
         fi
 
         is_nightly=0
@@ -214,6 +226,9 @@ EOF
 
 # Make files writable for rustlang group
 chmod -R g+r+w "${RUSTUP_HOME}" "${CARGO_HOME}"
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"
 

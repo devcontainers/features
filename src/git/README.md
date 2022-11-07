@@ -7,9 +7,9 @@ Install an up-to-date version of Git, built from source as needed. Useful for wh
 
 ```json
 "features": {
-        "ghcr.io/devcontainers/features/git:1": {
-            "version": "latest"
-        }
+    "ghcr.io/devcontainers/features/git:1": {
+        "version": "latest"
+    }
 }
 ```
 

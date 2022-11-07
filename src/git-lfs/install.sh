@@ -19,6 +19,9 @@ keyserver hkp://keyserver.pgp.com"
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -107,8 +110,10 @@ receive_gpg_keys() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -178,8 +183,7 @@ export DEBIAN_FRONTEND=noninteractive
 . /etc/os-release
 check_packages curl ca-certificates gnupg2 dirmngr apt-transport-https
 if ! type git > /dev/null 2>&1; then
-    apt_get_update
-    apt-get -y install --no-install-recommends git
+    check_packages git
 fi
 if [ "${ID}" = "debian" ]; then
     check_packages debian-archive-keyring
@@ -198,5 +202,8 @@ fi
 if [ "${use_github}" = "true" ]; then
     install_using_github
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

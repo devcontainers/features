@@ -17,6 +17,9 @@ keyserver hkp://keyserver.pgp.com"
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -76,8 +79,10 @@ receive_gpg_keys() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -96,12 +101,16 @@ export DEBIAN_FRONTEND=noninteractive
 # If the os provided version is "good enough", just install that.
 if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
     if type git > /dev/null 2>&1; then
-      echo "Detected existing system install: $(git version)"
-      exit 0
+        echo "Detected existing system install: $(git version)"
+        # Clean up
+        rm -rf /var/lib/apt/lists/*
+        exit 0
     fi
 
     echo "Installing git from OS apt repository"
     check_packages git
+    # Clean up
+    rm -rf /var/lib/apt/lists/*
     exit 0
 fi
 
@@ -114,6 +123,7 @@ if ([ "${GIT_VERSION}" = "latest" ] || [ "${GIT_VERSION}" = "lts" ] || [ "${GIT_
     apt-get update
     apt-get -y install --no-install-recommends git 
     rm -rf "/tmp/tmp-gnupg"
+    rm -rf /var/lib/apt/lists/*
     exit 0
 fi
 
@@ -143,4 +153,5 @@ echo "Building..."
 cd /tmp/git-${GIT_VERSION}
 make -s prefix=/usr/local all && make -s prefix=/usr/local install 2>&1
 rm -rf /tmp/git-${GIT_VERSION}
+rm -rf /var/lib/apt/lists/*
 echo "Done!"

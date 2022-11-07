@@ -9,6 +9,9 @@
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 TERRAFORM_VERSION="${VERSION:-"latest"}"
 TFLINT_VERSION="${TFLINT:-"latest"}"
 TERRAGRUNT_VERSION="${TERRAGRUNT:-"latest"}"
@@ -124,8 +127,10 @@ find_version_from_git_tags() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -142,8 +147,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Install dependencies if missing
 check_packages curl ca-certificates gnupg2 dirmngr coreutils unzip
 if ! type git > /dev/null 2>&1; then
-    apt_get_update
-    apt-get -y install --no-install-recommends git
+    check_packages git
 fi
 
 # Verify requested version is available, convert latest
@@ -209,4 +213,8 @@ if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
 fi
 
 rm -rf /tmp/tf-downloads ${GNUPGHOME}
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 echo "Done!"

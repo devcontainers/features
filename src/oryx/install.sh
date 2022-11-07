@@ -12,6 +12,9 @@ MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 
 set -eu
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -53,19 +56,17 @@ function updaterc() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
-        DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends "$@"
-
-        # Clean up
-        apt-get clean -y
-        rm -rf /var/lib/apt/lists/*
+        apt-get -y install --no-install-recommends "$@"
     fi
 }
 
@@ -105,6 +106,8 @@ fi
 # If we don't already have Oryx installed, install it now.
 if  oryx --version > /dev/null ; then
     echo "oryx is already installed. Skipping installation."
+    # Clean up
+    rm -rf /var/lib/apt/lists/*
     exit 0
 fi
 
@@ -143,7 +146,12 @@ GIT_ORYX=/opt/tmp/oryx-repo
 mkdir -p ${BUILD_SCRIPT_GENERATOR}
 mkdir -p ${ORYX}
 
-git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
+git clone https://github.com/microsoft/Oryx $GIT_ORYX
+cd $GIT_ORYX
+
+# https://github.com/microsoft/Oryx/commit/74e4830b3636e5cfbce5b3e3358bd5bb66a87f45 is breaking the `oryx` tool
+# Pinning to a previous working commit until the upstream issue is fixed.
+git reset --hard 2b19efca9729673fc259e6a817be3cc0bb73b9d5
 
 $GIT_ORYX/build/buildSln.sh
 
@@ -154,17 +162,23 @@ chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
 ln -s ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript ${ORYX}/oryx
 cp -f $GIT_ORYX/images/build/benv.sh ${ORYX}/benv
+cp -f $GIT_ORYX/images/build/logger.sh ${ORYX}/logger
 
 ORYX_INSTALL_DIR="/opt"
 mkdir -p "${ORYX_INSTALL_DIR}"
 
+# Directory used by the oryx tool to cache the automatically installed python packages from `requirements.txt`
+PIP_CACHE_DIR="/usr/local/share/pip-cache/lib"
+mkdir -p ${PIP_CACHE_DIR}
+
 updaterc "export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=$ORYX_INSTALL_DIR && ORYX_PREFER_USER_INSTALLED_SDKS=true && export DEBIAN_FLAVOR=focal-scm"
 
-chown -R "${USERNAME}:oryx" "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
-chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}"
+chown -R "${USERNAME}:oryx" "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}" "${PIP_CACHE_DIR}"
+chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}" "${PIP_CACHE_DIR}"
 find "${ORYX_INSTALL_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${BUILD_SCRIPT_GENERATOR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${ORYX}" -type d -print0 | xargs -n 1 -0 chmod g+s
+find "${PIP_CACHE_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
 # /opt/tmp/build and /opt/tmp/images is required by Oryx for dynamically installing platforms
 cp -rf $GIT_ORYX/build /opt/tmp
@@ -181,5 +195,8 @@ rm -rf /root/.local/share/NuGet
 if [[ "${DOTNET_INSTALLATION_PACKAGE}" != "" ]]; then
     apt purge -yq $DOTNET_INSTALLATION_PACKAGE
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

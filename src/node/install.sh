@@ -1,13 +1,14 @@
 #!/bin/bash
-#-------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
+# Licensed under the MIT License. See https://github.com/devcontainers/features/blob/main/LICENSE for license information.
+#-------------------------------------------------------------------------------------------------------------------------
 #
-# Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/node.md
-# Maintainer: The VS Code and Codespaces Teams
+# Docs: https://github.com/devcontainers/features/tree/main/src/node
+# Maintainer: The Dev Container spec maintainers
 
 export NODE_VERSION=${VERSION:-"lts"}
+export NVM_VERSION="${NVMVERSION:-"0.39.2"}"
 export NVM_DIR=${NVMINSTALLPATH:-"/usr/local/share/nvm"}
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 
@@ -18,9 +19,10 @@ ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
 
-export NVM_VERSION="0.38.0"
-
 set -e
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -62,8 +64,10 @@ updaterc() {
 }
 
 apt_get_update() {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -100,65 +104,73 @@ elif [ "${NODE_VERSION}" = "latest" ]; then
     export NODE_VERSION="node"
 fi
 
-# Create a symlink to the installed version for use in Dockerfile PATH statements
-export NVM_SYMLINK_CURRENT=true
-
-# Install the specified node version if NVM directory already exists, then exit
-if [ -d "${NVM_DIR}" ]; then
-    echo "NVM already installed."
-    if [ "${NODE_VERSION}" != "" ]; then
-       su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm install ${NODE_VERSION} && nvm clear-cache"
-    fi
-    exit 0
-fi
-
-# Create nvm group, nvm dir, and set sticky bit
-if ! cat /etc/group | grep -e "^nvm:" > /dev/null 2>&1; then
-    groupadd -r nvm
-fi
+# Install snipppet that we will run as the user
+nvm_install_snippet="$(cat << EOF
+set -e
 umask 0002
-usermod -a -G nvm ${USERNAME}
-mkdir -p ${NVM_DIR}
-chown "${USERNAME}:nvm" ${NVM_DIR}
-chmod g+s ${NVM_DIR}
-su ${USERNAME} -c "$(cat << EOF
-    set -e
-    umask 0002
-    # Do not update profile - we'll do this manually
-    export PROFILE=/dev/null
-    curl -so- https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh | bash 
-    source ${NVM_DIR}/nvm.sh
-    if [ "${NODE_VERSION}" != "" ]; then
-        nvm alias default ${NODE_VERSION}
-    fi
-    nvm clear-cache
+# Do not update profile - we'll do this manually
+export PROFILE=/dev/null
+curl -so- https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh | bash 
+source ${NVM_DIR}/nvm.sh
+if [ "${NODE_VERSION}" != "" ]; then
+    nvm alias default ${NODE_VERSION}
+fi
 EOF
-)" 2>&1
-# Update rc files
-if [ "${UPDATE_RC}" = "true" ]; then
-updaterc "$(cat <<EOF
+)"
+
+# Snippet that should be added into rc / profiles
+nvm_rc_snippet="$(cat << EOF
 export NVM_DIR="${NVM_DIR}"
 [ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
 [ -s "\$NVM_DIR/bash_completion" ] && . "\$NVM_DIR/bash_completion"
 EOF
 )"
+
+# Create a symlink to the installed version for use in Dockerfile PATH statements
+export NVM_SYMLINK_CURRENT=true
+
+# Create nvm group to the user's UID or GID to change while still allowing access to nvm
+if ! cat /etc/group | grep -e "^nvm:" > /dev/null 2>&1; then
+    groupadd -r nvm
+fi
+usermod -a -G nvm ${USERNAME}
+
+# Install nvm (which also installs NODE_VERSION), otherwise
+# use nvm to install the specified node version. Always use
+# umask 0002 so both the owner so that everything is u+rw,g+rw
+umask 0002
+if [ ! -d "${NVM_DIR}" ]; then
+    # Create nvm dir, and set sticky bit
+    mkdir -p ${NVM_DIR}
+    chown "${USERNAME}:nvm" ${NVM_DIR}
+    chmod g+rws ${NVM_DIR}
+    su ${USERNAME} -c "${nvm_install_snippet}" 2>&1
+    # Update rc files
+    if [ "${UPDATE_RC}" = "true" ]; then
+        updaterc "${nvm_rc_snippet}"
+    fi
+else
+    echo "NVM already installed."
+    if [ "${NODE_VERSION}" != "" ]; then
+        su ${USERNAME} -c "umask 0002 && . $NVM_DIR/nvm.sh && nvm install ${NODE_VERSION}"
+    fi
 fi
 
-# Additional node versions to be installed but not be set as default.
+# Additional node versions to be installed but not be set as 
+# default we can assume the nvm is the group owner of the nvm
+# directory and the sticky bit on directories so any installed
+# files will have will have the correct ownership (nvm)
 if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
-
     OLDIFS=$IFS
     IFS=","
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for ver in "${additional_versions[@]}"; do
-            su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm install ${ver}"
-            su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm clear-cache"
-            # Reset the NODE_VERSION as the default version on the path.
+            su ${USERNAME} -c "umask 0002 && . $NVM_DIR/nvm.sh && nvm install ${ver}"
         done
 
         # Ensure $NODE_VERSION is on the $PATH
         if [ "${NODE_VERSION}" != "" ]; then
-                su ${USERNAME} -c ". $NVM_DIR/nvm.sh && nvm use default"
+                su ${USERNAME} -c "umask 0002 && . $NVM_DIR/nvm.sh && nvm use default"
         fi
     IFS=$OLDIFS
 fi
@@ -184,5 +196,16 @@ if [ "${INSTALL_TOOLS_FOR_NODE_GYP}" = "true" ]; then
         apt-get -y install ${to_install}
     fi
 fi
+
+
+# Clean up
+su ${USERNAME} -c "umask 0002 && . $NVM_DIR/nvm.sh && nvm clear-cache"
+rm -rf /var/lib/apt/lists/*
+
+# Ensure privs are correct for installed node versions. Unfortunately the
+# way nvm installs node versions pulls privs from the tar which does not
+# have group write set. We need this when the gid/uid is updated.
+mkdir -p "${NVM_DIR}/versions"
+chmod -R g+rw "${NVM_DIR}/versions"
 
 echo "Done!"

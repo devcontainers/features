@@ -35,6 +35,9 @@ keyserver hkp://keyserver.pgp.com"
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -200,8 +203,10 @@ oryx_install() {
 
 apt_get_update()
 {
-    echo "Running apt-get update..."
-    apt-get update -y
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
 
 # Checks if packages are installed and installs them if not
@@ -233,8 +238,7 @@ install_from_source() {
                 libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
                 libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
     if ! type git > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends git
+        check_packages git
     fi
 
     # Find version using soft match
@@ -296,6 +300,9 @@ install_using_oryx() {
         echo "(!) Python version ${VERSION} already exists."
         exit 1
     fi
+
+    # The python install root path may not exist, so create it
+    mkdir -p "${PYTHON_INSTALL_PATH}"
     oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
 
     ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
@@ -336,11 +343,15 @@ install_python() {
     # If the os-provided versions are "good enough", detect that and bail out.
     if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
-        PYTHON_ROOT="/usr/bin"
+        INSTALL_PATH="/usr"
 
-        ln -s "${PYTHON_ROOT}/python3" "${PYTHON_ROOT}/python"
-        ln -s "${PYTHON_ROOT}/pydoc3" "${PYTHON_ROOT}/pydoc"
-        ln -s "${PYTHON_ROOT}/python3-config" "${PYTHON_ROOT}/python-config"
+        ln -s "${INSTALL_PATH}/bin/python3" "${INSTALL_PATH}/bin/python"
+        ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
+        ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
+
+        # Add the current symlink but point it to "/usr" since python is at /usr/bin/python
+        mkdir -p "${PYTHON_INSTALL_PATH}"
+        add_symlink
 
         should_install_from_source=false
     elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
@@ -457,5 +468,8 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
     fi
 fi
+
+# Clean up
+rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

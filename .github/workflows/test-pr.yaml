@@ -38,6 +38,7 @@ jobs:
             rust: ./**/rust/**
             sshd: ./**/sshd/**
             terraform: ./**/terraform/**
+            nix: ./**/nix/**
 
   test:
     needs: [detect-changes]
@@ -50,7 +51,9 @@ jobs:
           [
             "ubuntu:focal",
             "ubuntu:jammy",
+            "ubuntu:bionic",
             "debian:11",
+            "debian:10",
             "mcr.microsoft.com/devcontainers/base:ubuntu",
             "mcr.microsoft.com/devcontainers/base:debian",
           ]
