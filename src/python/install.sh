@@ -9,7 +9,7 @@
 
 PYTHON_VERSION="${VERSION:-"latest"}" # 'system' or 'os-provided' checks the base image first, else installs 'latest'
 INSTALL_PYTHON_TOOLS="${INSTALLTOOLS:-"true"}"
-OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}
+OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
