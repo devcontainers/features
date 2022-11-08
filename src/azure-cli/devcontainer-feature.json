@@ -14,9 +14,9 @@
       "description": "Select or enter an Azure CLI version. (Available versions may vary by Linux distribution.)"
     },
     "extensions": {
-      "type": "array",
-      "default": [],
-      "description": "Enter Azure CLI extension names you wish to include."
+      "type": "string",
+      "default": "",
+      "description": "Optional comma separated list of Azure CLI extensions to install in profile."
     }
   },
   "customizations": {
