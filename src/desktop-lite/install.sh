@@ -7,14 +7,13 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/desktop-lite.md
 # Maintainer: The VS Code and Codespaces Teams
 
-NOVNC_VERSION=${NOVNCVERSION:-"1.2.0"} # TODO: Add in a 'latest' auto-detect and swap name to 'version'
+NOVNC_VERSION="${NOVNCVERSION:-"1.2.0"}" # TODO: Add in a 'latest' auto-detect and swap name to 'version'
 VNC_PASSWORD=${PASSWORD:-"vscode"}
 NOVNC_PORT="${WEBPORT:-6080}"
 VNC_PORT="${VNCPORT:-5901}"
 
-INSTALL_NOVNC=${INSTALL_NOVNC:-"true"}
-USERNAME=${USERNAME:-"automatic"}
-
+INSTALL_NOVNC="${INSTALL_NOVNC:-"true"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
 WEBSOCKETIFY_VERSION=0.10.0
 

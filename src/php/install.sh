@@ -11,17 +11,17 @@ set -eux
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
-VERSION=${VERSION:-"latest"}
-INSTALL_COMPOSER=${INSTALLCOMPOSER:-"true"}
-OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
+VERSION="${VERSION:-"latest"}"
+INSTALL_COMPOSER="${INSTALLCOMPOSER:-"true"}"
+OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
-export PHP_DIR=${PHP_DIR:-"/usr/local/php"}
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
+export PHP_DIR="${PHP_DIR:-"/usr/local/php"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
 
 # Comma-separated list of php versions to be installed
 # alongside VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
+ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
 export DEBIAN_FRONTEND=noninteractive
 

@@ -7,24 +7,24 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/python.md
 # Maintainer: The VS Code and Codespaces Teams
 
-PYTHON_VERSION=${VERSION:-"latest"} # 'system' checks the base image first, else installs 'latest'
-INSTALL_PYTHON_TOOLS=${INSTALLTOOLS:-"true"}
-OPTIMIZE_BUILD_FROM_SOURCE=${OPTIMIZE:-"false"}
-PYTHON_INSTALL_PATH=${INSTALLPATH:-"/usr/local/python"}
-OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
+PYTHON_VERSION="${VERSION:-"latest"}" # 'system' or 'os-provided' checks the base image first, else installs 'latest'
+INSTALL_PYTHON_TOOLS="${INSTALLTOOLS:-"true"}"
+OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}
+PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}
+OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
-USE_ORYX_IF_AVAILABLE=${USE_ORYX_IF_AVAILABLE:-"true"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
+USE_ORYX_IF_AVAILABLE="${USE_ORYX_IF_AVAILABLE:-"true"}"
 
-INSTALL_JUPYTERLAB=${INSTALLJUPYTERLAB:-"false"}
-CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN=${CONFIGUREJUPYTERLABALLOWORIGIN:-""}
+INSTALL_JUPYTERLAB="${INSTALLJUPYTERLAB:-"false"}"
+CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN="${CONFIGUREJUPYTERLABALLOWORIGIN:-""}"
 
 # Comma-separated list of python versions to be installed
 # alongside PYTHON_VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
+ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
 DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5"
