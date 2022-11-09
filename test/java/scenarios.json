@@ -3,7 +3,7 @@
         "image": "ubuntu:focal",
         "features": {
             "java": {
-                "version": "18",
+                "version": "11",
                 "jdkDistro": "open"
             }
         }
@@ -12,8 +12,8 @@
         "image": "ubuntu:focal",
         "features": {
             "java": {
-                "version": "18",
-                "additionalVersions": "11,8"
+                "version": "11",
+                "additionalVersions": "17,8"
             }
         }
     },
