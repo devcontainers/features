@@ -16,11 +16,11 @@
             }
         }
     },
-    "install_dotnet_5": {
+    "install_dotnet_7": {
         "image": "ubuntu:focal",
         "features": {
             "dotnet": {
-                "version": "5"
+                "version": "7"
             }
         }
     }
