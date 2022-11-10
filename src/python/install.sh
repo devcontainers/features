@@ -344,13 +344,18 @@ install_python() {
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
         INSTALL_PATH="/usr"
 
-        ln -s "${INSTALL_PATH}/bin/python3" "${INSTALL_PATH}/bin/python"
-        ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
-        ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
+        local current_bin_path="${CURRENT_PATH}/bin"
+        if [ ! -d "${current_bin_path}" ]; then
+            mkdir -p "${current_bin_path}"
 
-        # Add the current symlink but point it to "/usr" since python is at /usr/bin/python
-        mkdir -p "${PYTHON_INSTALL_PATH}"
-        add_symlink
+            # Add an interpreter symlink but point it to "/usr" since python is at /usr/bin/python, add other alises
+            ln -s "${INSTALL_PATH}/bin/python3" "${current_bin_path}/python3"
+            ln -s "${INSTALL_PATH}/bin/python3" "${current_bin_path}/python"
+            ln -s "${INSTALL_PATH}/bin/pydoc3" "${current_bin_path}/pydoc3"
+            ln -s "${INSTALL_PATH}/bin/pydoc3" "${current_bin_path}/pydoc"
+            ln -s "${INSTALL_PATH}/bin/python3-config" "${current_bin_path}/python3-config"
+            ln -s "${INSTALL_PATH}/bin/python3-config" "${current_bin_path}/python-config"
+        fi
 
         should_install_from_source=false
     elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
