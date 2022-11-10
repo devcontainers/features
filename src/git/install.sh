@@ -151,7 +151,7 @@ echo "Downloading source for ${GIT_VERSION}..."
 curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
 echo "Building..."
 cd /tmp/git-${GIT_VERSION}
-make -s prefix=/usr/local all && make -s prefix=/usr/local install 2>&1
+make -s prefix=/usr all && make -s prefix=/usr install 2>&1
 rm -rf /tmp/git-${GIT_VERSION}
 rm -rf /var/lib/apt/lists/*
 echo "Done!"
