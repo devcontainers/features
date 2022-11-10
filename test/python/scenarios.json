@@ -1,43 +1,6 @@
 {
-    "install_additional_python": {
-        "image": "ubuntu:focal",
-        "features": {
-            "python": {
-                "version": "3.11",
-                "additionalVersions": "3.8,3.9.13,3.10.5"
-            }
-        }
-    },
-    "install_jupyterlab": {
-        "image": "mcr.microsoft.com/devcontainers/base:focal",
-        "remoteUser": "vscode",
-        "features": {
-            "python": {
-                "installJupyterlab": true,
-                "configureJupyterlabAllowOrigin": "*"
-            }
-        }
-    },
-    "install_additional_jupyterlab": {
-        "image": "mcr.microsoft.com/devcontainers/base:focal",
-        "remoteUser": "vscode",
-        "features": {
-            "python": {
-                "version": "latest",
-                "additionalVersions": "3.9",
-                "installJupyterlab": true,
-                "configureJupyterlabAllowOrigin": "*"
-            }
-        }
-    },
-    "install_os_provided_python": {
-        "image": "mcr.microsoft.com/devcontainers/base:0-bullseye",
-        "features": {
-            "python": "os-provided"
-        }
-    },
-    "install_via_oryx": {
-        "image": "mcr.microsoft.com/oryx/build:full-debian-bullseye",
+    "do_it": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "features": {
             "python": "3.10"
         }

@@ -236,6 +236,12 @@ install_from_source() {
     check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev libncurses5-dev \
                 libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
                 libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
+    
+    check_packages build-essential gdb lcov pkg-config \
+      libbz2-dev libffi-dev libgdbm-dev libgdbm-compat-dev liblzma-dev \
+      libncurses5-dev libreadline6-dev libsqlite3-dev libssl-dev \
+      lzma lzma-dev tk-dev uuid-dev zlib1g-dev
+
     if ! type git > /dev/null 2>&1; then
         check_packages git
     fi
