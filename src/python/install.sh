@@ -340,7 +340,7 @@ add_user_jupyter_config() {
 install_python() {
     version=$1
     # If the os-provided versions are "good enough", detect that and bail out.
-    if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
+    if [ ${version} = "os-provided" ] || [ ${version} = "system" ]; then
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
         INSTALL_PATH="/usr"
 
