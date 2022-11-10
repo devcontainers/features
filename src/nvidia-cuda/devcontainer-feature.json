@@ -15,7 +15,7 @@
       "default": false,
       "description": "Additionally install NVIDIA Tools Extension (NVTX)"
     },
-    "cudaVersion": {
+    "version": {
       "type": "string",
       "enum": [
         "11.7",

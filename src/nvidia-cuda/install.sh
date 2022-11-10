@@ -5,10 +5,10 @@ set -e
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
-INSTALL_CUDNN=${INSTALLCUDNN}
-INSTALL_NVTX=${INSTALLNVTX}
-CUDA_VERSION=${CUDAVERSION}
-CUDNN_VERSION=${CUDNNVERSION}
+INSTALL_CUDNN="${INSTALLCUDNN}"
+INSTALL_NVTX="${INSTALLNVTX}"
+CUDA_VERSION="${VERSION:-"${CUDAVERSION}"}"
+CUDNN_VERSION="${CUDNNVERSION}"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
