@@ -12,6 +12,9 @@ DOTNET_RUNTIME_ONLY=${RUNTIMEONLY:-"false"}
 OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
 INSTALL_USING_APT=${INSTALLUSINGAPT:-"true"}
 
+DOTNET_LATEST="7"
+DOTNET_LTS="6"
+
 USERNAME=${USERNAME:-"automatic"}
 UPDATE_RC=${UPDATE_RC:-"true"}
 TARGET_DOTNET_ROOT=${TARGET_DOTNET_ROOT:-"/usr/local/dotnet"}
@@ -208,9 +211,13 @@ install_using_apt_from_microsoft_repo() {
     echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
     apt-get update -y
 
-    if [ "${DOTNET_VERSION}" = "latest" ] || [ "${DOTNET_VERSION}" = "lts" ]; then
+    # .NET 7 is not a LTS version, so handle latest and LTS versions differently
+    if [ "${DOTNET_VERSION}" = "latest" ]; then 
         DOTNET_VERSION=""
-        DOTNET_PACKAGE="${DOTNET_PACKAGE}-6.0"
+        DOTNET_PACKAGE="${DOTNET_PACKAGE}-${DOTNET_LATEST}.0"
+    elif [ "${DOTNET_VERSION}" = "lts" ]; then
+        DOTNET_VERSION=""
+        DOTNET_PACKAGE="${DOTNET_PACKAGE}-${DOTNET_LTS}.0"
     else
         # Sets DOTNET_VERSION and DOTNET_PACKAGE if matches found. 
         apt_cache_package_and_version_soft_match DOTNET_VERSION DOTNET_PACKAGE false
@@ -223,7 +230,6 @@ install_using_apt_from_microsoft_repo() {
             echo "Dotnet version ${DOTNET_VERSION} is already installed"
             return 1
         fi
-
     fi
 
     echo "Installing '${DOTNET_PACKAGE}${DOTNET_VERSION}'..."
@@ -232,21 +238,41 @@ install_using_apt_from_microsoft_repo() {
         echo "Failed to complete apt install of ${DOTNET_PACKAGE}${DOTNET_VERSION}"
         return 1
     fi
+
+    # Add symlink for current
+    CURRENT_DIR="${TARGET_DOTNET_ROOT}/current"
+    if [[ ! -d "${CURRENT_DIR}" ]]; then
+        mkdir -p "${TARGET_DOTNET_ROOT}"
+        ln -s "/usr/share/dotnet" "${CURRENT_DIR}" 
+    fi
 }
 
 install_using_default_apt_repo() {
-    DOTNET_PACKAGE="dotnet6"
 
     apt_get_update
 
-    if [[ "${DOTNET_VERSION}" = "latest" ]] || [[ "${DOTNET_VERSION}" = "lts" ]] || [[ ${DOTNET_VERSION} = "6"* ]]; then
-        if ! (apt-get install -yq ${DOTNET_PACKAGE}); then
-            echo "Failed to install 'dotnet6' package from default apt repo."
-            return 1
-        fi
+    local target_dotnet_package_verison
+    
+    if [[ "${DOTNET_VERSION}" = "latest" ]] || [[ ${DOTNET_VERSION} = "${DOTNET_LATEST}"* ]]; then
+        target_dotnet_package_verison="${DOTNET_LATEST}"
+    elif [[ "${DOTNET_VERSION}" = "lts" ]] || [[ ${DOTNET_VERSION} = "${DOTNET_LTS}"* ]]; then
+        target_dotnet_package_verison="${DOTNET_LTS}"
     else
         echo "The provided dotnet version is not distributed in this distro's default apt repo."
         return 1
+    fi
+
+    local dotnet_package="dotnet${target_dotnet_package_verison}"
+    if ! (apt-get install -yq ${dotnet_package}); then
+        echo "Failed to install ${dotnet_package} package from default apt repo."
+        return 1
+    fi
+
+    # Add symlink for current
+    CURRENT_DIR="${TARGET_DOTNET_ROOT}/current"
+    if [[ ! -d "${CURRENT_DIR}" ]]; then
+        mkdir -p "${TARGET_DOTNET_ROOT}"
+        ln -s "/usr/lib/dotnet/dotnet${target_dotnet_package_verison}" "${CURRENT_DIR}" 
     fi
 }
 
@@ -336,7 +362,7 @@ install_using_dotnet_releases_url() {
     if [[  "${DOTNET_VERSION_CODENAMES_REQUIRE_OLDER_LIBSSL_1}" = *"${VERSION_CODENAME}"* ]]; then
         check_packages libssl1.1
     else
-        check_packages libssl3.0
+        check_packages libssl3
     fi
 
     get_full_version_details "${sdk_or_runtime}" "${VERSION}"
