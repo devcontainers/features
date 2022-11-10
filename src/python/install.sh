@@ -406,12 +406,13 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 
     if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ]; then
         updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
-        chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
-        chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
-        find "${PYTHON_INSTALL_PATH}" -type d -print0 | xargs -0 -n 1 chmod g+s
-
         PATH="${INSTALL_PATH}/bin:${PATH}"
     fi
+
+    # Updates the symlinks for os-provided, or the installed python version in other cases
+    chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
+    chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
+    find "${PYTHON_INSTALL_PATH}" -type d -print0 | xargs -0 -n 1 chmod g+s
 fi
 
 # Install Python tools if needed
