@@ -11,7 +11,6 @@ DOTNET_VERSION=${VERSION:-"latest"}
 DOTNET_RUNTIME_ONLY=${RUNTIMEONLY:-"false"}
 OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
 INSTALL_USING_APT=${INSTALLUSINGAPT:-"true"}
-USE_MICROSOFT_APT_REPO=${USEMICROSOFTAPTREPO:-"true"}
 
 DOTNET_LATEST="7"
 DOTNET_LTS="6"
@@ -440,7 +439,7 @@ CHANGE_OWNERSHIP="false"
 if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${INSTALL_USING_APT}" = "true" ]]; then
     echo "Detected ${VERSION_CODENAME} on ${architecture}. Attempting to install dotnet from apt"
 
-    install_using_apt "${DOTNET_SDK_OR_RUNTIME}" "${DOTNET_VERSION}" "${USE_MICROSOFT_APT_REPO}" || install_using_apt "${DOTNET_SDK_OR_RUNTIME}" "${DOTNET_VERSION}" true
+    install_using_apt "${DOTNET_SDK_OR_RUNTIME}" "${DOTNET_VERSION}" false || install_using_apt "${DOTNET_SDK_OR_RUNTIME}" "${DOTNET_VERSION}" true
     if [ "$?" != 0 ]; then
         echo "Could not install requested version from apt on current distribution."
         exit 1
