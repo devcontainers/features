@@ -17,7 +17,7 @@
     "customizations": {
         "vscode": {
             "extensions": [
-              "ms-vscode.azurecli"
+              "ms-azuretools.vscode-azurefunctions"
             ]
         }
     },
