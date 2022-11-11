@@ -23,6 +23,7 @@ check "pylint" pylint --version
 
 # Check paths in settings
 check "current symlink is correct" bash -c "which python | grep /usr/local/python/current/bin/python"
+check "current symlink works" /usr/local/python/current/bin/python --version
 check "which autopep8" bash -c "which autopep8 | grep /usr/local/py-utils/bin/autopep8"
 check "which black" bash -c "which black | grep /usr/local/py-utils/bin/black"
 check "which yapf" bash -c "which yapf | grep /usr/local/py-utils/bin/yapf"
