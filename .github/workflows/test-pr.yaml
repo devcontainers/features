@@ -15,6 +15,7 @@ jobs:
             anaconda: ./**/anaconda/**
             aws-cli: ./**/aws-cli/**
             azure-cli: ./**/azure-cli/**
+            azure-functions-core-tools: ./**/azure-functions-core-tools/**
             common-utils: ./**/common-utils/**
             conda: ./**/conda/**
             desktop-lite: ./**/desktop-lite/** 
