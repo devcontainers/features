@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "name": "Azure Functions Core Tools",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/azure-functions-core-tools",
-    "description": "Installs the Azure Functions Core Tools along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
+    "description": "Installs the Azure Functions Core Tools along with needed dependencies. Useful for developing Azure Functions inside codespaces.",
     "options": {
       "version": {
         "type": "string",
