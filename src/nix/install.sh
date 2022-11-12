@@ -9,6 +9,7 @@ VERSION="${VERSION:-"latest"}"
 MULTIUSER="${MULTIUSER:-"true"}"
 PACKAGES="${PACKAGES//,/ }"
 FLAKEURI="${FLAKEURI:-""}"
+EXTRANIXCONFIG="${EXTRANIXCONFIG:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
 # Nix keys for securly verifying installer download signature per https://nixos.org/download.html#nix-verify-installation
@@ -98,6 +99,16 @@ mkdir -p /etc/nix
 create_or_update_file /etc/nix/nix.conf 'sandbox = false' 
 if  [ ! -z "${FLAKEURI}" ] && [ "${FLAKEURI}" != "none" ]; then
     create_or_update_file /etc/nix/nix.conf 'experimental-features = nix-command flakes'
+fi
+# Extra nix config
+if [ ! -z "${EXTRANIXCONFIG}" ]; then
+    OLDIFS=$IFS
+    IFS=","
+        read -a extra_nix_config <<< "$EXTRANIXCONFIG"
+        for line in "${extra_nix_config[@]}"; do
+            create_or_update_file /etc/nix/nix.conf "$line"
+        done
+    IFS=$OLDIFS
 fi
 
 # Create entrypoint if needed

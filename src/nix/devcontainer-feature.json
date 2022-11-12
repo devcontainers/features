@@ -25,6 +25,11 @@
             "type": "string",
             "default": "",
             "description": "Optional URI to a Nix Flake to install in profile."
+        },
+        "extraNixConfig": {
+            "type": "string",
+            "default": "",
+            "description": "Optional comma separated list of extra lines to add to /etc/nix/nix.conf."
         }
     },
     "installsAfter": [
