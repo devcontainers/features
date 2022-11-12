@@ -89,5 +89,14 @@
                 "flakeUri": "github:nixos/nixpkgs/nixpkgs-unstable#hello"
             }
         }
+    },
+    "extra-config": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "nix": {
+                "extraNixConfig": "extra-substituters = https://foo.cachix.org,extra-trusted-public-keys = foo.cachix.org-1:bar="
+            }
+        }
     }
 }
