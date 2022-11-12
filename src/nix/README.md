@@ -21,6 +21,7 @@ Installs the Nix package manager and optionally a set of packages.
 | multiUser | Perform a multi-user install (instead of single user) | boolean | true |
 | packages | Optional comma separated list of Nix packages to install in profile. | string | - |
 | flakeUri | Optional URI to a Nix Flake to install in profile. | string | - |
+| extraNixConfig | Optional comma separated list of extra lines to add to /etc/nix/nix.conf. | string | - |
 
 ## OS Support
 
