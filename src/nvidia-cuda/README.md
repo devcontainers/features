@@ -7,9 +7,7 @@ Installs shared libraries for NVIDIA CUDA.
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/nvidia-cuda:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/nvidia-cuda:1": {}
 }
 ```
 

@@ -7,9 +7,7 @@ Installs the Azure CLI along with needed dependencies. Useful for base Dockerfil
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/azure-cli:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/azure-cli:1": {}
 }
 ```
 
