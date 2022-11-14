@@ -28,6 +28,7 @@
         }
     },
     "containerEnv": {
+        "DOTNET_ROOT": "/usr/local/dotnet/current",
         "PATH": "/usr/local/dotnet/current:${PATH}"
     },
     "customizations": {
