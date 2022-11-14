@@ -7,9 +7,7 @@ Installs the Nix package manager and optionally a set of packages.
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/nix:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/nix:1": {}
 }
 ```
 
