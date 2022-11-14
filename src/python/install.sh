@@ -299,6 +299,9 @@ install_using_oryx() {
         echo "(!) Python version ${VERSION} already exists."
         exit 1
     fi
+
+    # The python install root path may not exist, so create it
+    mkdir -p "${PYTHON_INSTALL_PATH}"
     oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
 
     ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
@@ -337,13 +340,24 @@ add_user_jupyter_config() {
 install_python() {
     version=$1
     # If the os-provided versions are "good enough", detect that and bail out.
-    if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
+    if [ ${version} = "os-provided" ] || [ ${version} = "system" ]; then
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
-        PYTHON_ROOT="/usr/bin"
+        INSTALL_PATH="/usr"
 
-        ln -s "${PYTHON_ROOT}/python3" "${PYTHON_ROOT}/python"
-        ln -s "${PYTHON_ROOT}/pydoc3" "${PYTHON_ROOT}/pydoc"
-        ln -s "${PYTHON_ROOT}/python3-config" "${PYTHON_ROOT}/python-config"
+        local current_bin_path="${CURRENT_PATH}/bin"
+        if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
+            rm -rf "${current_bin_path}"
+        fi
+        if [ ! -d "${current_bin_path}" ] ; then
+            mkdir -p "${current_bin_path}"
+            # Add an interpreter symlink but point it to "/usr" since python is at /usr/bin/python, add other alises
+            ln -s "${INSTALL_PATH}/bin/python3" "${current_bin_path}/python3"
+            ln -s "${INSTALL_PATH}/bin/python3" "${current_bin_path}/python"
+            ln -s "${INSTALL_PATH}/bin/pydoc3" "${current_bin_path}/pydoc3"
+            ln -s "${INSTALL_PATH}/bin/pydoc3" "${current_bin_path}/pydoc"
+            ln -s "${INSTALL_PATH}/bin/python3-config" "${current_bin_path}/python3-config"
+            ln -s "${INSTALL_PATH}/bin/python3-config" "${current_bin_path}/python-config"
+        fi
 
         should_install_from_source=false
     elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
@@ -392,13 +406,14 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 
     if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ]; then
         updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
-        chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
-        chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
-        find "${PYTHON_INSTALL_PATH}" -type d -print0 | xargs -0 -n 1 chmod g+s
-
         PATH="${INSTALL_PATH}/bin:${PATH}"
     fi
     
+    # Updates the symlinks for os-provided, or the installed python version in other cases
+    chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
+    chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
+    find "${PYTHON_INSTALL_PATH}" -type d -print0 | xargs -0 -n 1 chmod g+s
+
     PYTHON_SRC="${INSTALL_PATH}/bin/python3"
 else
     PYTHON_SRC=$(which python)
@@ -459,6 +474,7 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
     fi
 
     install_user_package jupyterlab
+    install_user_package jupyterlab-git
 
     # Configure JupyterLab if needed
     if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then

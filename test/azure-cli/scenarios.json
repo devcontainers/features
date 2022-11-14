@@ -1,0 +1,12 @@
+{
+  "install_extensions": {
+    "image": "ubuntu:focal",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "extensions": "aks-preview,amg,containerapp"
+      }
+    }
+  }
+}
