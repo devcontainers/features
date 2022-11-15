@@ -81,6 +81,12 @@ check_packages() {
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
+. /etc/os-release
+if [[ "bionic" = *"${VERSION_CODENAME}"* ]]; then
+    echo "(!) Unsupported distribution version '${VERSION_CODENAME}'. Details: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442"
+    exit 1
+fi
+
 # Install dependencies
 check_packages apt-transport-https curl ca-certificates tar gnupg2 dirmngr
 
