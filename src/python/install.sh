@@ -322,7 +322,7 @@ sudo_if() {
 
 install_user_package() {
     PACKAGE="$1"
-    sudo_if "$INSTALL_PATH/bin/python3" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+    sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
 }
 
 add_user_jupyter_config() {
@@ -408,11 +408,15 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
         PATH="${INSTALL_PATH}/bin:${PATH}"
     fi
-
+    
     # Updates the symlinks for os-provided, or the installed python version in other cases
     chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
     chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
     find "${PYTHON_INSTALL_PATH}" -type d -print0 | xargs -0 -n 1 chmod g+s
+
+    PYTHON_SRC="${INSTALL_PATH}/bin/python3"
+else
+    PYTHON_SRC=$(which python)
 fi
 
 # Install Python tools if needed
@@ -464,6 +468,11 @@ fi
 
 # Install JupyterLab if needed
 if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
+    if [ -z "${PYTHON_SRC}" ]; then
+        echo "(!) Could not install Jupyterlab. Python not found."
+        exit 1
+    fi
+
     install_user_package jupyterlab
     install_user_package jupyterlab-git
 
