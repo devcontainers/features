@@ -152,7 +152,7 @@ if [ ! -d "${NVM_DIR}" ]; then
 else
     echo "NVM already installed."
     if [ "${NODE_VERSION}" != "" ]; then
-        su ${USERNAME} -c "umask 0002 && . $NVM_DIR/nvm.sh && nvm install ${NODE_VERSION}"
+        su ${USERNAME} -c "umask 0002 && . $NVM_DIR/nvm.sh && nvm install ${NODE_VERSION} && nvm alias default ${NODE_VERSION}"
     fi
 fi
 
