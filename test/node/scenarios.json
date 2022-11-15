@@ -25,5 +25,14 @@
                 "version": "none"
             }
         }
+    },
+    "install_node_on_universal_image": {
+        "image": "mcr.microsoft.com/devcontainers/universal",
+        "remoteUser": "codespace",
+        "features": {
+            "node": {
+                "version": "19.1.0"
+            }
+        }
     }
 }
