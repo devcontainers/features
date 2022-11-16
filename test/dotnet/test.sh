@@ -17,5 +17,7 @@ check "some major version of dotnet 7 is installed" bash -c "dotnet --version | 
 check "current link dotnet" /usr/local/dotnet/current/dotnet --info
 check "current link sdk" ls -l /usr/local/dotnet/current/sdk
 
+./assert_run_project.sh
+
 # Report result
 reportResults

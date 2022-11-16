@@ -13,5 +13,7 @@ check "dotnet version 3 installed"  bash -c "ls -l /usr/share/dotnet/sdk | grep 
 check "current link dotnet" /usr/local/dotnet/current/dotnet --info
 check "current link sdk" ls -l /usr/local/dotnet/current/sdk
 
+./assert_run_project.sh
+
 # Report result
 reportResults

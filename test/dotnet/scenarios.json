@@ -72,5 +72,14 @@
                 "installUsingApt": false
             }
         }
+    },
+    "install_non_root_remoteUser": {
+        "image": "mcr.microsoft.com/devcontainers/universal:2",
+        "remoteUser": "codespace",
+        "features": {       
+            "dotnet": {
+                "version": "7"
+            }
+        }
     }
 }

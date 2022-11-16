@@ -15,7 +15,7 @@ INSTALL_USING_APT=${INSTALLUSINGAPT:-"true"}
 DOTNET_LATEST="7"
 DOTNET_LTS="6"
 
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC=${UPDATE_RC:-"true"}
 TARGET_DOTNET_ROOT=${TARGET_DOTNET_ROOT:-"/usr/local/dotnet"}
 ACCESS_GROUP=${ACCESS_GROUP:-"dotnet"}
@@ -187,6 +187,8 @@ install_using_apt() {
     local target_dotnet_version="$2"
     local use_msft_repo="$3"
 
+    echo "🚀 Starting install_using_apt  ('${sdk_or_runtime}' at version '${target_dotnet_version}' from msft repo '${use_msft_repo}')..."
+
     if [ "${use_msft_repo}" = "true" ]; then
         # Install dependencies
         check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr
@@ -316,6 +318,8 @@ install_using_dotnet_releases_url() {
     local sdk_or_runtime="$1"
     local version="$2"
 
+    echo "🚀 Starting install_using_dotnet_releases_url  (${sdk_or_runtime} version ${version})..."
+
     # Check listed package dependecies and install them if they are not already installed. 
     # NOTE: icu-devtools is a small package with similar dependecies to .NET. 
     #       It will install the appropriate dependencies based on the OS:
@@ -429,6 +433,7 @@ if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNE
         echo "Could not install requested version from apt on current distribution."
         exit 1
     fi
+    CHANGE_OWNERSHIP="true"
 else
     if [[ "${INSTALL_USING_APT}" = "false" ]]; then
         echo "Installing dotnet from releases url"
@@ -452,15 +457,20 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
 fi
 
 if [ "${CHANGE_OWNERSHIP}" = "true" ]; then
+    echo "Changing ownership ("${USERNAME}"  <-  "${TARGET_DOTNET_ROOT}")"
     if ! cat /etc/group | grep -e "^dotnet:" > /dev/null 2>&1; then
         groupadd -r dotnet
     fi
     usermod -a -G dotnet "${USERNAME}"
 
-    chown -R "${USERNAME}:dotnet" "${TARGET_DOTNET_ROOT}"
+    chown -H -R "${USERNAME}:dotnet" "${TARGET_DOTNET_ROOT}" # Recursively traverse (-R), also following symbolic links (-H)
     chmod -R g+r+w "${TARGET_DOTNET_ROOT}"
     find "${TARGET_DOTNET_ROOT}" -type d -print0 | xargs -n 1 -0 chmod g+s
+else
+    echo "Not changing ownership ("${USERNAME}"  <-  "${TARGET_DOTNET_ROOT}")"
 fi
+
+
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
