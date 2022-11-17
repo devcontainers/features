@@ -71,19 +71,23 @@ check_packages() {
 }
 
 install_dotnet_using_apt() {
-    local dotnet_installation_package="$1"
-    echo "Attempting to install dotnet ${dotnet_installation_package}..."
+    echo "Attempting to auto-install dotnet..."
     install_from_microsoft_feed=false
     apt_get_update
-    apt-get -yq install $dotnet_installation_package || install_from_microsoft_feed="true"
+    DOTNET_INSTALLATION_PACKAGE="dotnet6"
+    apt-get -yq install $DOTNET_INSTALLATION_PACKAGE || install_from_microsoft_feed="true"
 
     if [ "${install_from_microsoft_feed}" = "true" ]; then
         echo "Attempting install from microsoft apt feed..."
         curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
         echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
         apt-get update -y
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq $dotnet_installation_package
+        DOTNET_INSTALLATION_PACKAGE="dotnet-sdk-6.0"
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq $DOTNET_INSTALLATION_PACKAGE
     fi
+
+    echo -e "Finished attempt to install dotnet.  Sdks installed:\n"
+    dotnet --list-sdks
 
     # Clean up
     apt-get clean -y
@@ -123,20 +127,21 @@ usermod -a -G oryx "${USERNAME}"
 
 # Required to decide if we want to clean up dotnet later.
 DOTNET_INSTALLATION_PACKAGE=""
+DOTNET=""
 
-# Install dotnet unless available
-if ! dotnet --version > /dev/null ; then
-    echo "'dotnet' was not detected. Attempting to install the latest version of the dotnet sdk to build oryx."
-    DOTNET_INSTALLATION_PACKAGE="dotnet-sdk-3.1"
-    install_dotnet_using_apt "${DOTNET_INSTALLATION_PACKAGE}"
+# Oryx needs to be built with .NET 6
+if type dotnet > /dev/null 2>&1 && [[ "$(dotnet --version)" != *"6"* ]] ; then
+    echo "'dotnet 6' was not detected. Attempting to install the latest version of the dotnet sdk to build oryx."
+    install_dotnet_using_apt
 
     if ! dotnet --version > /dev/null ; then
         echo "(!) Please install Dotnet before installing Oryx"
         exit 1
     fi
+
+    DOTNET="/usr/bin/dotnet"
 else
-    # Additionally install dotnet3.1 runtime as the oryx tool is built with it 
-    install_dotnet_using_apt "dotnet-runtime-3.1"
+    DOTNET=$(which dotnet)
 fi
 
 BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
@@ -150,8 +155,8 @@ git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
 
 $GIT_ORYX/build/buildSln.sh
 
-dotnet publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
-dotnet publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
+${DOTNET} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
+${DOTNET} publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
 
 chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
