@@ -11,7 +11,9 @@
 
 JAVA_VERSION="${VERSION:-"lts"}"
 INSTALL_GRADLE="${INSTALLGRADLE:-"false"}"
+GRADLE_VERSION="${GRADLEVERSION:-"latest"}"
 INSTALL_MAVEN="${INSTALLMAVEN:-"false"}"
+MAVEN_VERSION="${MAVENVERSION:-"latest"}"
 JDK_DISTRO="${JDKDISTRO}"
 
 export SDKMAN_DIR="${SDKMAN_DIR:-"/usr/local/sdkman"}"
@@ -20,7 +22,7 @@ UPDATE_RC="${UPDATE_RC:-"true"}"
 
 # Comma-separated list of java versions to be installed
 # alongside JAVA_VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
+ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
 set -e
 
@@ -173,12 +175,12 @@ fi
 
 # Install Gradle
 if [[ "${INSTALL_GRADLE}" = "true" ]] && ! gradle --version > /dev/null; then
-    sdk_install gradle latest
+    sdk_install gradle ${GRADLE_VERSION}
 fi
 
 # Install Maven
 if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null; then
-    sdk_install maven latest
+    sdk_install maven ${MAVEN_VERSION}
 fi
 
 # Clean up

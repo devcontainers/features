@@ -1,6 +1,6 @@
 {
   "id": "hugo",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "name": "Hugo",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/hugo",
   "options": {
@@ -11,6 +11,11 @@
       ],
       "default": "latest",
       "description": "Select or enter a version."
+    },
+    "extended": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install Hugo extended for SASS/SCSS changes"
     }
   },
   "containerEnv": {

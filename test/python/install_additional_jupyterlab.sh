@@ -16,6 +16,9 @@ check "version" jupyter lab --version
 packages="$(python3 -m pip list)"
 check "location" grep jupyter <<< "$packages"
 
+# Check for git extension
+check "jupyterlab-git" grep jupyterlab-git <<< "$packages"
+
 # Check for correct JupyterLab configuration
 check "config" grep ".*.allow_origin = '*'" /home/vscode/.jupyter/jupyter_server_config.py
 

@@ -7,9 +7,7 @@ Installs Git Large File Support (Git LFS) along with needed dependencies. Useful
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/git-lfs:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/git-lfs:1": {}
 }
 ```
 

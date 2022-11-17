@@ -7,9 +7,7 @@ Installs the Nix package manager and optionally a set of packages.
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/nix:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/nix:1": {}
 }
 ```
 
@@ -21,6 +19,7 @@ Installs the Nix package manager and optionally a set of packages.
 | multiUser | Perform a multi-user install (instead of single user) | boolean | true |
 | packages | Optional comma separated list of Nix packages to install in profile. | string | - |
 | flakeUri | Optional URI to a Nix Flake to install in profile. | string | - |
+| extraNixConfig | Optional comma separated list of extra lines to add to /etc/nix/nix.conf. | string | - |
 
 ## OS Support
 
@@ -39,7 +38,7 @@ This Dev Container Feature supports two installation models for Nix: multi-user 
 | Installation Model | Pros | Cons |
 | --- | --- | --- |
 | *Multi-User* | Nix can be used with any user including root.<br /><br />Also still works if the UID or GID of any user is updated. | Only works with Nix 2.11 and up due to a Nix installer limitation.<br /><br />Container must run either: run as root (but `remoteUser` in devcontainer.json can be non-root), or includes `sudo` with the `remoteUser` being configured to use it. <br /><br />Note that automated start of the `nix-daemon` requires passwordless `sudo` if the container itself (e.g., `containerUser`) is not running as root. Manual startup using `sudo` can require a password, however (more next). |
-| *Single-User* | Does not require the container to run as root or `sudo` to be included in the image. | Only works with the user specified in the `userName` property or an auto-detected user. If this user's UID/GID is updated, that user will no longer be able to work with Nix. This is primarily a consideration when running on Linux where the UID/GID is sync'd to the local user. |
+| *Single-User* | Does not require the container to run as root or `sudo` to be included in the image. | Only works with the user specified in the `remoteUser` property or an auto-detected user. If this user's UID/GID is updated, that user will no longer be able to work with Nix. This is primarily a consideration when running on Linux where the UID/GID is sync'd to the local user. |
 
 ### Manually starting the Nix daemon
 
@@ -50,6 +49,7 @@ sudo /usr/local/share/nix-entrypoint.sh
 ```
 
 This same command can be used to restart the daemon if it has stopped for some reason. Logs are available at `/tmp/nix-daemon.log`.
+
 
 ---
 
