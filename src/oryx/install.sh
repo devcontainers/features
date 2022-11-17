@@ -116,7 +116,6 @@ echo "Installing Oryx..."
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
-
 # Install dependencies
 check_packages git sudo curl ca-certificates apt-transport-https gnupg2 dirmngr libc-bin moreutils
 
@@ -127,11 +126,15 @@ usermod -a -G oryx "${USERNAME}"
 
 # Required to decide if we want to clean up dotnet later.
 DOTNET_INSTALLATION_PACKAGE=""
-DOTNET=""
+DOTNET_BINARY=""
+
+if dotnet --version > /dev/null ; then
+    DOTNET_BINARY=$(which dotnet)
+fi
 
 # Oryx needs to be built with .NET 6
-if type dotnet > /dev/null 2>&1 && [[ "$(dotnet --version)" != *"6"* ]] ; then
-    echo "'dotnet 6' was not detected. Attempting to install the latest version of the dotnet sdk to build oryx."
+if [["${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --version)" != *"6"* ]] ; then
+    echo "'dotnet 6' was not detected. Attempting to install .NET 6 to build oryx."
     install_dotnet_using_apt
 
     if ! dotnet --version > /dev/null ; then
@@ -139,9 +142,7 @@ if type dotnet > /dev/null 2>&1 && [[ "$(dotnet --version)" != *"6"* ]] ; then
         exit 1
     fi
 
-    DOTNET="/usr/bin/dotnet"
-else
-    DOTNET=$(which dotnet)
+    DOTNET_BINARY="/usr/bin/dotnet"
 fi
 
 BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
@@ -155,8 +156,8 @@ git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
 
 $GIT_ORYX/build/buildSln.sh
 
-${DOTNET} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
-${DOTNET} publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
+${DOTNET_BINARY} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
+${DOTNET_BINARY} publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
 
 chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
