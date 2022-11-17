@@ -133,7 +133,7 @@ if dotnet --version > /dev/null ; then
 fi
 
 # Oryx needs to be built with .NET 6
-if [["${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --version)" != *"6"* ]] ; then
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --version)" != *"6"* ]] ; then
     echo "'dotnet 6' was not detected. Attempting to install .NET 6 to build oryx."
     install_dotnet_using_apt
 
