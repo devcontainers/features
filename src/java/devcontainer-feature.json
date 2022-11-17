@@ -1,6 +1,6 @@
 {
   "id": "java",
-  "version": "1.0.11",
+  "version": "1.1.0",
   "name": "Java (via SDKMAN!)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/java",
   "description": "Installs Java, SDKMAN! (if not installed), and needed dependencies.",
@@ -33,10 +33,32 @@
       "default": false,
       "description": "Install Gradle, a build automation tool for multi-language software development"
     },
+    "gradleVersion": {
+      "type": "string",
+      "proposals": [
+        "latest",
+        "7.5.1",
+        "6.9.3",
+        "5.6.4"
+      ],
+      "default": "latest",
+      "description": "Select or enter a Gradle version"
+    },
     "installMaven": {
       "type": "boolean",
       "default": false,
       "description": "Install Maven, a management tool for Java"
+    },
+    "mavenVersion": {
+      "type": "string",
+      "proposals": [
+        "latest",
+        "3.8.6",
+        "3.6.3",
+        "3.5.4"
+      ],
+      "default": "latest",
+      "description": "Select or enter a Maven version"
     }
   },
   "buildArg": "_VSC_INSTALL_JAVA",
