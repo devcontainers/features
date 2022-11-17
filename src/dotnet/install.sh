@@ -470,8 +470,6 @@ else
     echo "Not changing ownership ("${USERNAME}"  <-  "${TARGET_DOTNET_ROOT}")"
 fi
 
-
-
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
