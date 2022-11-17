@@ -118,7 +118,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 
 # Install dependencies
-check_packages git sudo curl ca-certificates apt-transport-https gnupg2 dirmngr libc-bin
+check_packages git sudo curl ca-certificates apt-transport-https gnupg2 dirmngr libc-bin moreutils
 
 if ! cat /etc/group | grep -e "^oryx:" > /dev/null 2>&1; then
     groupadd -r oryx

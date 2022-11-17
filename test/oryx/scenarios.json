@@ -8,5 +8,20 @@
             },
             "oryx": {}
         }
+    },
+    "test_python_project": {
+        "image": "ubuntu:focal",
+        "features": {
+            "python": {
+                "version": "3.10.4",
+                "additionalVersions": "3.9.7",
+                "useOryxIfAvailable": "false"
+            },
+            "dotnet": {
+                "version": "7",
+                "installUsingApt": "false"
+            },
+            "oryx": {}
+        }
     }
 }
