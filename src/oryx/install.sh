@@ -139,6 +139,10 @@ if ! dotnet --version > /dev/null ; then
     fi
 fi
 
+# Additionally install dotnet3.1 runtime as the oryx tool is made with it 
+apt_get_update
+apt-get -yq install dotnet-runtime-3.1
+
 BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
 ORYX=/usr/local/oryx
 GIT_ORYX=/opt/tmp/oryx-repo
