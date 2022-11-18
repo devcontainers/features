@@ -84,7 +84,6 @@ jobs:
 
 
   TEMPORARY:
-    needs: [detect-changes]
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:

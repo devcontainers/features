@@ -15,9 +15,7 @@ ls -la /home/codespace/.dotnet/
 
 check  "symlinked '/home/codespace/.dotnet' folder has the correct permissions"  bash -c "ls -la /home/codespace | grep -E 'lrwxrwxrwx 1 codespace codespace  (.*) .dotnet -> /usr/local/dotnet/current'"
 
-
-
-check "A file following the symlink has the correct permissions" bash -c ""
+# check "A file following the symlink has the correct permissions" bash -c ""
 
 ./install_dotnet_7_jammy.sh
 
