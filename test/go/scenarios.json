@@ -8,5 +8,13 @@
             }
         },
         "postCreateCommand": "go install filippo.io/mkcert@v1.4.2"
+    },
+    "install_go_twice": {
+        "image": "mcr.microsoft.com/devcontainers/go:1.18",
+        "features": {
+            "go": {
+                "version": "1.19"
+            }
+        }
     }
 }
