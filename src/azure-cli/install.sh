@@ -199,11 +199,13 @@ if [ ${#AZ_EXTENSIONS[@]} -gt 0 ]; then
 fi
 
 if [ "${AZ_INSTALLBICEP}" = "true" ]; then
+    # Install dependencies
+    check_packages apt-transport-https curl 
+    
     # Properly install Azure Bicep based on current architecture
     # The `az bicep install` command installs the linux-x64 binary even on arm64 devcontainers
     # The `az bicep install --target-platform` could be a solution; however, linux-arm64 is not an allowed value for this argument yet
     # Manually installing Bicep and moving to the appropriate directory where az expects it to be
-    apt-get install curl -y
     
     if [ "${architecture}" = "arm64" ]; then
         curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-arm64
@@ -214,7 +216,7 @@ if [ "${AZ_INSTALLBICEP}" = "true" ]; then
     chmod +x ./bicep
     mv ./bicep /usr/local/bin/bicep
 
-    # Add a synlink so bicep can be accessed as a standalone executable or as part of az
+    # Add a symlink so bicep can be accessed as a standalone executable or as part of az
     mkdir -p ${_REMOTE_USER_HOME}/.azure/bin
     chown -hR ${_REMOTE_USER}:${_REMOTE_USER} ${_REMOTE_USER_HOME}/.azure
     ln -s /usr/local/bin/bicep ${_REMOTE_USER_HOME}/.azure/bin/bicep
