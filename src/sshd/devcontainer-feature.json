@@ -1,6 +1,6 @@
 {
     "id": "sshd",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "name": "SSH server",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/sshd",
     "description": "Adds a SSH server into a container so that you can use an external terminal, sftp, or SSHFS to interact with it.",

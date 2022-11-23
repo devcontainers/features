@@ -9,7 +9,7 @@
 
 VERSION=${VERSION:-"latest"}
 
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC=${UPDATE_RC:-"true"}
 
 HUGO_DIR=${HUGO_DIR:-"/usr/local/hugo"}

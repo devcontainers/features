@@ -16,7 +16,7 @@ INSTALL_COMPOSER=${INSTALLCOMPOSER:-"true"}
 OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
 
 export PHP_DIR=${PHP_DIR:-"/usr/local/php"}
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC=${UPDATE_RC:-"true"}
 
 # Comma-separated list of php versions to be installed

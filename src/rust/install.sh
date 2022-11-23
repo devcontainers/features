@@ -12,7 +12,7 @@ RUSTUP_PROFILE=${PROFILE:-"minimal"}
 
 export CARGO_HOME=${CARGO_HOME:-"/usr/local/cargo"}
 export RUSTUP_HOME=${RUSTUP_HOME:-"/usr/local/rustup"}
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC=${UPDATE_RC:-"true"}
 UPDATE_RUST=${UPDATE_RUST:-"false"}
 

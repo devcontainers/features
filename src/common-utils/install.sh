@@ -15,7 +15,7 @@ rm -rf /var/lib/apt/lists/*
 INSTALL_ZSH=${INSTALLZSH:-"true"}
 INSTALL_OH_MY_ZSH=${INSTALLOHMYZSH:-"true"}
 UPGRADE_PACKAGES=${UPGRADEPACKAGES:-"true"}
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 USER_UID=${UID:-"automatic"}
 USER_GID=${GID:-"automatic"}
 ADD_NON_FREE_PACKAGES=${NONFREEPACKAGES:-"false"}

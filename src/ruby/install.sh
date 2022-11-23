@@ -9,7 +9,7 @@
 
 RUBY_VERSION=${VERSION:-"latest"}
 
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC=${UPDATE_RC:-"true"}
 INSTALL_RUBY_TOOLS=${INSTALL_RUBY_TOOLS:-"true"}
 

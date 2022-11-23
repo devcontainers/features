@@ -14,7 +14,7 @@ DOCKER_DASH_COMPOSE_VERSION=${DOCKERDASHCOMPOSEVERSION:-"v1"} # v1 or v2
 ENABLE_NONROOT_DOCKER=${ENABLE_NONROOT_DOCKER:-"true"}
 SOURCE_SOCKET=${SOURCE_SOCKET:-"/var/run/docker-host.sock"}
 TARGET_SOCKET=${TARGET_SOCKET:-"/var/run/docker.sock"}
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal jammy"

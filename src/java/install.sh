@@ -17,7 +17,7 @@ MAVEN_VERSION=${MAVENVERSION:-"latest"}
 JDK_DISTRO=${JDKDISTRO}
 
 export SDKMAN_DIR=${SDKMAN_DIR:-"/usr/local/sdkman"}
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC=${UPDATE_RC:-"true"}
 
 # Comma-separated list of java versions to be installed

@@ -16,7 +16,7 @@ INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 # alongside NODE_VERSION, but not set as default.
 ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
 
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC=${UPDATE_RC:-"true"}
 
 set -e

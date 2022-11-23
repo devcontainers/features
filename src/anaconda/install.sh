@@ -9,7 +9,7 @@
 
 
 VERSION=${VERSION:-"latest"}
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC=${UPDATE_RC:-"true"}
 CONDA_DIR=${CONDA_DIR:-"/usr/local/conda"}
 

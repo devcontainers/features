@@ -10,7 +10,7 @@
 # Note: You can change your user's password with "sudo passwd $(whoami)" (or just "passwd" if running as root).
 
 SSHD_PORT=${SSHD_PORT:-"2222"}
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 START_SSHD=${START_SSHD:-"false"}
 NEW_PASSWORD=${NEW_PASSWORD:-"skip"}
 FIX_ENVIRONMENT=${FIX_ENVIRONMENT:-"true"}
