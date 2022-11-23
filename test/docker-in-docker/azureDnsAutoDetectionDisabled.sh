@@ -6,7 +6,7 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-check "dns flag should not be present" test ! "$(ps -ax | grep -E 'dockerd.+\-\-dns')"
+check "dns flag should not be present" test ! "$(ps -ax | grep -v grep | grep -E 'dockerd.+\-\-dns')"
 
 # Report result
 reportResults
