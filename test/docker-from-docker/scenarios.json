@@ -1,0 +1,11 @@
+{
+    "docker_init": {
+        "image": "mcr.microsoft.com/devcontainers/base",
+        "remoteUser": "vscode",
+        "features": {
+            "docker-from-docker": {
+                "version": "latest"
+            }
+        }
+    }
+}
