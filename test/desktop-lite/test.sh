@@ -7,8 +7,10 @@ source dev-container-features-test-lib
 
 check "desktop-init-exists" bash -c "ls /usr/local/share | grep desktop-init.sh"
 check "log-exists" bash -c "ls /tmp | grep container-init.log"
-check "log-contents" bash -c "cat /tmp/container-init.log | grep 'Xtigervnc started'"
+
+cat /tmp/container-init.log
 check "fluxbox-exists" bash -c "ls -la ~ | grep .fluxbox"
+check "log-contents" bash -c "cat /tmp/container-init.log | grep 'Xtigervnc started'"
 
 # Report result
 reportResults
