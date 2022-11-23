@@ -5,12 +5,9 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-check "desktop-init-exists" bash -c "ls /usr/local/share | grep desktop-init.sh"
-check "log-exists" bash -c "ls /tmp | grep container-init.log"
-
-cat /tmp/container-init.log
-check "fluxbox-exists" bash -c "ls -la ~ | grep .fluxbox"
-check "log-contents" bash -c "cat /tmp/container-init.log | grep 'Xtigervnc started'"
+check "desktop-init-exists" bash -c "ls /usr/local/share/desktop-init.sh"
+check "log-exists" bash -c "ls /tmp/container-init.log"
+check "fluxbox-exists" bash -c "ls -la ~/.fluxbox"
 
 # Report result
 reportResults
