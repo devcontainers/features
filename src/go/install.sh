@@ -142,7 +142,8 @@ if ! cat /etc/group | grep -e "^golang:" > /dev/null 2>&1; then
 fi
 usermod -a -G golang "${USERNAME}"
 mkdir -p "${TARGET_GOROOT}" "${TARGET_GOPATH}"
-if [ "${TARGET_GO_VERSION}" != "none" ] && ! type go > /dev/null 2>&1; then
+
+if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version)" != *"${TARGET_GO_VERSION}"* ]]; then
     # Use a temporary locaiton for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
@@ -186,7 +187,7 @@ if [ "${TARGET_GO_VERSION}" != "none" ] && ! type go > /dev/null 2>&1; then
     tar -xzf /tmp/go.tar.gz -C "${TARGET_GOROOT}" --strip-components=1
     rm -rf /tmp/go.tar.gz /tmp/go.tar.gz.asc /tmp/tmp-gnupg
 else
-    echo "Go already installed. Skipping."
+    echo "(!) Go is already installed with version ${TARGET_GO_VERSION}. Skipping."
 fi
 
 # Install Go tools that are isImportant && !replacedByGopls based on
@@ -218,8 +219,10 @@ if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
     (echo "${GO_TOOLS}" | xargs -n 1 go ${go_install_command} -v )2>&1 | tee -a /usr/local/etc/vscode-dev-containers/go.log
 
     # Move Go tools into path and clean up
-    mv /tmp/gotools/bin/* ${TARGET_GOPATH}/bin/
-    rm -rf /tmp/gotools
+    if [ -d /tmp/gotools/bin ]; then
+        mv /tmp/gotools/bin/* ${TARGET_GOPATH}/bin/
+        rm -rf /tmp/gotools
+    fi
 
     # Install golangci-lint from precompiled binares
     if [ "$GOLANGCILINT_VERSION" = "latest" ] || [ "$GOLANGCILINT_VERSION" = "" ]; then
