@@ -116,9 +116,8 @@ echo "Installing Oryx..."
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
-
 # Install dependencies
-check_packages git sudo curl ca-certificates apt-transport-https gnupg2 dirmngr libc-bin
+check_packages git sudo curl ca-certificates apt-transport-https gnupg2 dirmngr libc-bin moreutils
 
 if ! cat /etc/group | grep -e "^oryx:" > /dev/null 2>&1; then
     groupadd -r oryx
@@ -127,16 +126,23 @@ usermod -a -G oryx "${USERNAME}"
 
 # Required to decide if we want to clean up dotnet later.
 DOTNET_INSTALLATION_PACKAGE=""
+DOTNET_BINARY=""
 
-# Install dotnet unless available
-if ! dotnet --version > /dev/null ; then
-    echo "'dotnet' was not detected. Attempting to install the latest version of the dotnet sdk to build oryx."
+if dotnet --version > /dev/null ; then
+    DOTNET_BINARY=$(which dotnet)
+fi
+
+# Oryx needs to be built with .NET 6
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --version)" != *"6"* ]] ; then
+    echo "'dotnet 6' was not detected. Attempting to install .NET 6 to build oryx."
     install_dotnet_using_apt
 
     if ! dotnet --version > /dev/null ; then
         echo "(!) Please install Dotnet before installing Oryx"
         exit 1
     fi
+
+    DOTNET_BINARY="/usr/bin/dotnet"
 fi
 
 BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
@@ -150,8 +156,8 @@ git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
 
 $GIT_ORYX/build/buildSln.sh
 
-dotnet publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
-dotnet publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
+${DOTNET_BINARY} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
+${DOTNET_BINARY} publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
 
 chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 

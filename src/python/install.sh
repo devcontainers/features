@@ -17,7 +17,7 @@ export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="${UPDATE_RC:-"true"}"
-USE_ORYX_IF_AVAILABLE="${USE_ORYX_IF_AVAILABLE:-"true"}"
+USE_ORYX_IF_AVAILABLE="${USEORYXIFAVAILABLE:-"true"}"
 
 INSTALL_JUPYTERLAB="${INSTALLJUPYTERLAB:-"false"}"
 CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN="${CONFIGUREJUPYTERLABALLOWORIGIN:-""}"
@@ -450,11 +450,11 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     if ! type pipx > /dev/null 2>&1; then
         pip3 install --disable-pip-version-check --no-cache-dir --user pipx 2>&1
         /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
-        PIPX_DIR="/tmp/pip-tmp/bin"
+        PIPX_DIR="/tmp/pip-tmp/bin/"
     fi
     for util in "${DEFAULT_UTILS[@]}"; do
         if ! type ${util} > /dev/null 2>&1; then
-            "${PIPX_DIR}/pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
+            "${PIPX_DIR}pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
         else
             echo "${util} already installed. Skipping."
         fi
