@@ -196,6 +196,8 @@ find_prev_version_from_git_tags() {
             declare -g ${variable_name}="${major}.${minor}.${breakfix}"
         fi
     fi
+
+    set -e
 }
 
 # Fall back on direct download if no apt package exists
