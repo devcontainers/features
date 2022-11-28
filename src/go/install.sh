@@ -7,13 +7,13 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/go.md
 # Maintainer: The VS Code and Codespaces Teams
 
-TARGET_GO_VERSION=${VERSION:-"latest"}
-GOLANGCILINT_VERSION=${GOLANGCILINTVERSION:-"latest"}
+TARGET_GO_VERSION="${VERSION:-"latest"}"
+GOLANGCILINT_VERSION="${GOLANGCILINTVERSION:-"latest"}"
 
-TARGET_GOROOT=${TARGET_GOROOT:-"/usr/local/go"}
-TARGET_GOPATH=${TARGET_GOPATH:-"/go"}
-USERNAME=${USERNAME:-"automatic"}
-INSTALL_GO_TOOLS=${INSTALL_GO_TOOLS:-"true"}
+TARGET_GOROOT="${TARGET_GOROOT:-"/usr/local/go"}"
+TARGET_GOPATH="${TARGET_GOPATH:-"/go"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+INSTALL_GO_TOOLS="${INSTALL_GO_TOOLS:-"true"}"
 
 # https://www.google.com/linuxrepositories/
 GO_GPG_KEY_URI="https://dl.google.com/linux/linux_signing_key.pub"

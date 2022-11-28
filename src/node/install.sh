@@ -7,17 +7,17 @@
 # Docs: https://github.com/devcontainers/features/tree/main/src/node
 # Maintainer: The Dev Container spec maintainers
 
-export NODE_VERSION=${VERSION:-"lts"}
+export NODE_VERSION="${VERSION:-"lts"}"
 export NVM_VERSION="${NVMVERSION:-"0.39.2"}"
 export NVM_DIR=${NVMINSTALLPATH:-"/usr/local/share/nvm"}
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 
 # Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
+ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
 
 set -e
 

@@ -7,12 +7,12 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/hugo.md
 # Maintainer: The VS Code and Codespaces Teams
 
-VERSION=${VERSION:-"latest"}
+VERSION="${VERSION:-"latest"}"
 
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
 
-HUGO_DIR=${HUGO_DIR:-"/usr/local/hugo"}
+HUGO_DIR="${HUGO_DIR:-"/usr/local/hugo"}"
 
 set -e
 

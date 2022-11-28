@@ -7,15 +7,15 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/ruby.md
 # Maintainer: The VS Code and Codespaces Teams
 
-RUBY_VERSION=${VERSION:-"latest"}
+RUBY_VERSION="${VERSION:-"latest"}"
 
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
-INSTALL_RUBY_TOOLS=${INSTALL_RUBY_TOOLS:-"true"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
+INSTALL_RUBY_TOOLS="${INSTALL_RUBY_TOOLS:-"true"}"
 
 # Comma-separated list of ruby versions to be installed (with rvm)
 # alongside RUBY_VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
+ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
 # Note: ruby-debug-ide will install the right version of debase if missing and
 # installing debase directly fails on Ruby 3.1.0 as of 1/7/2022, so omitting.
