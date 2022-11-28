@@ -450,11 +450,11 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     if ! type pipx > /dev/null 2>&1; then
         pip3 install --disable-pip-version-check --no-cache-dir --user pipx 2>&1
         /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
-        PIPX_DIR="/tmp/pip-tmp/bin"
+        PIPX_DIR="/tmp/pip-tmp/bin/"
     fi
     for util in "${DEFAULT_UTILS[@]}"; do
         if ! type ${util} > /dev/null 2>&1; then
-            "${PIPX_DIR}/pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
+            "${PIPX_DIR}pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
         else
             echo "${util} already installed. Skipping."
         fi
