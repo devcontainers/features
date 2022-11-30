@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "1.0.9",
+    "version": "2.0.0",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -55,7 +55,7 @@
     },
     "mounts": [
         {
-            "source": "dind-var-lib-docker",
+            "source": "dind-var-lib-docker-${devcontainerId}",
             "target": "/var/lib/docker",
             "type": "volume"
         }
