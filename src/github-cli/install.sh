@@ -173,30 +173,29 @@ find_prev_version_from_git_tags() {
     local version_suffix_regex=$6
     # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
     set +e
-    major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
-    minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
-    breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
 
-    if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
-        ((major=major-1))
-        declare -g ${variable_name}="${major}"
-        # Look for latest version from previous major release
-        find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
-    # Handle situations like Go's odd version pattern where "0" releases omit the last part
-    elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
-        ((minor=minor-1))
-        declare -g ${variable_name}="${major}.${minor}"
-        # Look for latest version from previous minor release
-        find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
-    else
-        ((breakfix=breakfix-1))
-        if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+            ((major=major-1))
+            declare -g ${variable_name}="${major}"
+            # Look for latest version from previous major release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        # Handle situations like Go's odd version pattern where "0" releases omit the last part
+        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+            ((minor=minor-1))
             declare -g ${variable_name}="${major}.${minor}"
-        else 
-            declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            # Look for latest version from previous minor release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        else
+            ((breakfix=breakfix-1))
+            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+                declare -g ${variable_name}="${major}.${minor}"
+            else 
+                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            fi
         fi
-    fi
-
     set -e
 }
 
