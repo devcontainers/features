@@ -8,10 +8,10 @@
 # Maintainer: The VS Code and Codespaces Teams
 
 
-VERSION=${VERSION:-"latest"}
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
-CONDA_DIR=${CONDA_DIR:-"/usr/local/conda"}
+VERSION="${VERSION:-"latest"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
+CONDA_DIR="${CONDA_DIR:-"/usr/local/conda"}"
 
 set -eux
 export DEBIAN_FRONTEND=noninteractive

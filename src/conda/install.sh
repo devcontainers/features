@@ -7,7 +7,7 @@
 VERSION=${VERSION:-"latest"}
 ADD_CONDA_FORGE=$ADDCONDAFORGE
 
-USERNAME="automatic"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="true"
 CONDA_DIR="/opt/conda"
 

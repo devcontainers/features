@@ -7,18 +7,18 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/dotnet.md
 # Maintainer: The VS Code and Codespaces Teams
 
-DOTNET_VERSION=${VERSION:-"latest"}
-DOTNET_RUNTIME_ONLY=${RUNTIMEONLY:-"false"}
-OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
-INSTALL_USING_APT=${INSTALLUSINGAPT:-"true"}
+DOTNET_VERSION="${VERSION:-"latest"}"
+DOTNET_RUNTIME_ONLY="${RUNTIMEONLY:-"false"}"
+OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
+INSTALL_USING_APT="${INSTALLUSINGAPT:-"true"}"
 
 DOTNET_LATEST="7"
 DOTNET_LTS="6"
 
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
-TARGET_DOTNET_ROOT=${TARGET_DOTNET_ROOT:-"/usr/local/dotnet"}
-ACCESS_GROUP=${ACCESS_GROUP:-"dotnet"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
+TARGET_DOTNET_ROOT="${TARGET_DOTNET_ROOT:-"/usr/local/dotnet"}"
+ACCESS_GROUP="${ACCESS_GROUP:-"dotnet"}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOTNET_ARCHIVE_ARCHITECTURES="amd64"

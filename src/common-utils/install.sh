@@ -12,13 +12,13 @@ set -e
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
-INSTALL_ZSH=${INSTALLZSH:-"true"}
-INSTALL_OH_MY_ZSH=${INSTALLOHMYZSH:-"true"}
-UPGRADE_PACKAGES=${UPGRADEPACKAGES:-"true"}
-USERNAME=${USERNAME:-"automatic"}
-USER_UID=${UID:-"automatic"}
-USER_GID=${GID:-"automatic"}
-ADD_NON_FREE_PACKAGES=${NONFREEPACKAGES:-"false"}
+INSTALL_ZSH="${INSTALLZSH:-"true"}"
+INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
+UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+USER_UID="${UID:-"automatic"}"
+USER_GID="${GID:-"automatic"}"
+ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
 
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
@@ -292,7 +292,7 @@ cat << 'EOF' > /usr/local/bin/systemctl
 #!/bin/sh
 set -e
 if [ -d "/run/systemd/system" ]; then
-    exec /bin/systemctl/systemctl "$@"
+    exec /bin/systemctl "$@"
 else
     echo '\n"systemd" is not running in this container due to its overhead.\nUse the "service" command to start services instead. e.g.: \n\nservice --status-all'
 fi
