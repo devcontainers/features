@@ -282,14 +282,19 @@ find_prev_version_from_git_tags() {
     major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
     minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
     breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
-    set -e
+
+    if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+        ((major=major-1))
+        declare -g ${variable_name}="${major}"
+        # Look for latest version from previous major release
+        find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
     # Handle situations like Go's odd version pattern where "0" releases omit the last part
-    if [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+    elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
         ((minor=minor-1))
         declare -g ${variable_name}="${major}.${minor}"
         # Look for latest version from previous minor release
         find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
-    else 
+    else
         ((breakfix=breakfix-1))
         if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
             declare -g ${variable_name}="${major}.${minor}"
@@ -297,4 +302,6 @@ find_prev_version_from_git_tags() {
             declare -g ${variable_name}="${major}.${minor}.${breakfix}"
         fi
     fi
+
+    set -e
 }
