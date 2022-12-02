@@ -83,8 +83,10 @@ export DEBIAN_FRONTEND=noninteractive
 
 . /etc/os-release
 if [[ "bionic" = *"${VERSION_CODENAME}"* ]]; then
-    echo "(!) Unsupported distribution version '${VERSION_CODENAME}'. Details: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442"
-    exit 1
+    if [[ "${NODE_VERSION}" =~ "18" ]] || [[ "${NODE_VERSION}" = "lts" ]]; then
+        echo "(!) Unsupported distribution version '${VERSION_CODENAME}' for Node 18. Details: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442"
+        exit 1
+    fi
 fi
 
 # Install dependencies
