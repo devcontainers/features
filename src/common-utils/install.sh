@@ -91,7 +91,6 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         bzip2 \
         zip \
         nano \
-        vim \
         vim-tiny \
         less \
         jq \
