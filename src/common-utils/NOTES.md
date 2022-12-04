@@ -6,13 +6,13 @@ This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise 
 
 By default, this script provides a custom command prompt that includes information about the git repository for the current folder. However, with certain large repositories, this can result in a slow command prompt due to the performance of needed git operations.
 
-The prompt can include a "dirty" indicator that tells you whether or not there are uncomitted changes, but this is off by default because of its performance impact in large repositories. However, you can opt to turn this on by entering the following in a terminal or adding it to your `postCreateCommand`:
+For performance reasons, a "dirty" indicator that tells you whether or not there are uncommitted changes is disabled by default. You can opt to turn this on for smaller repositories by entering the following in a terminal or adding it to your `postCreateCommand`:
 
 ```bash
 git config devcontainers-theme.show-dirty 1
 ```
 
-To entirely disable the git portion of the prompt for the current folder's repository, you can use this confiration setting insted:
+To completely disable the git portion of the prompt for the current folder's repository, you can use this configuration setting instead:
 
 ```bash
 git config devcontainers-theme.hide-status 1
