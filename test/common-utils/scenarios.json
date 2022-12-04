@@ -3,77 +3,111 @@
         "image": "ubuntu:bionic",
         "remoteUser": "devcontainer",
         "features": {
-            "common-utils": {}
+            "common-utils": {
+                "username": "devcontainer"
+            }
         }
     },
     "focal": {
         "image": "ubuntu:focal",
         "remoteUser": "devcontainer",
         "features": {
-            "common-utils": {}
+            "common-utils": {
+                "username": "devcontainer"
+            }
         }
     },
     "jammy": {
         "image": "ubuntu:jammy",
         "remoteUser": "devcontainer",
         "features": {
-            "common-utils": {}
+            "common-utils": {
+                "username": "devcontainer"
+            }
         }
     },
     "buster": {
         "image": "debian:buster",
         "remoteUser": "devcontainer",
         "features": {
-            "common-utils": {}
+            "common-utils": {
+                "username": "devcontainer"
+            }
         }
     },
     "bullseye": {
         "image": "debian:bullseye",
         "remoteUser": "devcontainer",
         "features": {
-            "common-utils": {}
+            "common-utils": {
+                "username": "devcontainer"
+            }
         }
     },
-    "rocky-7": {
-        "image": "rockylinux:7",
+    "centos-7": {
+        "image": "centos:7",
         "remoteUser": "devcontainer",
         "features": {
-            "common-utils": {}
+            "common-utils": {
+                "username": "devcontainer"
+            }
         }
     },
     "rocky-8": {
         "image": "rockylinux:8",
         "remoteUser": "devcontainer",
         "features": {
-            "common-utils": {}
+            "common-utils": {
+                "username": "devcontainer"
+            }
         }
     },
     "rocky-9": {
         "image": "rockylinux:9",
         "remoteUser": "devcontainer",
         "features": {
-            "common-utils": {}
+            "common-utils": {
+                "username": "devcontainer"
+            }
         }
     },
     "fedora": {
         "image": "fedora",
         "remoteUser": "devcontainer",
         "features": {
-            "common-utils": {}
+            "common-utils": {
+                "username": "devcontainer"
+            }
         }
     },
     "alpine": {
         "image": "alpine",
         "remoteUser": "devcontainer",
         "features": {
-            "common-utils": {}
+            "common-utils": {
+                "username": "devcontainer"
+            }
+        }
+    },
+    "alternate-values": {
+        "image": "debian:bullseye",
+        "username": "alternate",
+        "features": {
+            "common-utils": {
+                "username": "alternate",
+                "userUid": "1001",
+                "userGid": "1002",
+                "upgradePackages": false,
+                "installZsh": false,
+                "nonFreePackages": true
+            }
         }
     },
     "already-run": {
         "image": "mcr.microsoft.com/devcontainers/ubuntu:jammy",
-        "remoteUser": "devcontainer",
+        "remoteUser": "vscode",
         "features": {
             "common-utils": {}
         }
-    },
+    }
 }

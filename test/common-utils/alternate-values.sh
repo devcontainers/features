@@ -9,10 +9,9 @@ source dev-container-features-test-lib
 check "jq" jq  --version
 check "curl" curl  --version
 check "git" git  --version
-check "zsh" zsh --version
 check "ps" ps --version
-check "Oh My Zsh! theme" test -e $HOME/.oh-my-zsh/custom/themes/devcontainers.theme
-check "zsh theme symlink" test -e $HOME/.oh-my-zsh/custom/themes/codespaces.theme
+check "no zsh" ! zsh --version
+check "No Oh My Zsh!" test ! -e $HOME/.oh-my-zsh/custom/themes/devcontainers.theme
 
 # Report result
 reportResults
