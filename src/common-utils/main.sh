@@ -162,7 +162,6 @@ install_redhat_packages() {
         vim-minimal \
         less \
         jq \
-        redhat-lsb-core \
         openssl-libs \
         krb5-libs \
         libicu \
@@ -177,6 +176,11 @@ install_redhat_packages() {
     # Install OpenSSL 1.0 compat if needed
     if ${install_cmd} -q list compat-openssl10 >/dev/null 2>&1; then
         package_list="${package_list} compat-openssl10"
+    fi
+
+    # Install lsb_release if available
+    if ${install_cmd} -q list redhat-lsb-core >/dev/null 2>&1; then
+        package_list="${package_list} redhat-lsb-core"
     fi
 
     # Install git if not already installed (may be more recent than distro version)
