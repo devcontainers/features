@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
-#-------------------------------------------------------------------------------------------------------------
+#!/bin/bash
+#-------------------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
+# Licensed under the MIT License. See https://github.com/devcontainers/features/blob/main/LICENSE for license information.
+#-------------------------------------------------------------------------------------------------------------------------
 #
-# Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/common.md
-# Maintainer: The VS Code and Codespaces Teams
+# Docs: https://github.com/devcontainers/features/tree/main/src/common-utils
+# Maintainer: The Dev Container spec maintainers
 
 set -e
 
@@ -16,14 +16,37 @@ INSTALL_ZSH="${INSTALLZSH:-"true"}"
 INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
 UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
-USER_UID="${UID:-"automatic"}"
-USER_GID="${GID:-"automatic"}"
+USER_UID="${USERUID:-"automatic"}"
+USER_GID="${USERGID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
 
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
+    exit 1
+fi
+
+# Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
+. /etc/os-release
+
+# If we're using Alpine, and sh has been used, switch to bash right away
+if [ "${ID}" = "alpine" ] && [ -z "${BASH_SOURCE}" ] && [ "${SWITCHED_TO_BASH}" != "true" ]; then
+    apk add --no-cache bash
+    export SWITCHED_TO_BASH=true
+    exec /bin/bash "$0" "$@"
+    exit $?
+fi
+
+# Get an adjusted ID independant of distro variants
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+    ADJUSTED_ID="debian"
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* ]]; then
+    ADJUSTED_ID="rhel"
+elif [ "${ID}" = "alpine" ]; then
+    ADJUSTED_ID="alpine"
+else
+    echo "Linux distro ${ID} not supported."
     exit 1
 fi
 
@@ -69,10 +92,9 @@ apt_get_update()
     fi
 }
 
-# Run install apt-utils to avoid debconf warning then verify presence of other common developer tools and dependencies
-if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
-
-    package_list="apt-utils \
+# Debian / Ubuntu packages
+install_debian_packages() {
+    local package_list="apt-utils \
         openssh-client \
         gnupg2 \
         dirmngr \
@@ -117,7 +139,6 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
     # Needed for adding manpages-posix and manpages-posix-dev which are non-free packages in Debian
     if [ "${ADD_NON_FREE_PACKAGES}" = "true" ]; then
         # Bring in variables from /etc/os-release like VERSION_CODENAME
-        . /etc/os-release
         sed -i -E "s/deb http:\/\/(deb|httpredir)\.debian\.org\/debian ${VERSION_CODENAME} main/deb http:\/\/\1\.debian\.org\/debian ${VERSION_CODENAME} main contrib non-free/" /etc/apt/sources.list
         sed -i -E "s/deb-src http:\/\/(deb|httredir)\.debian\.org\/debian ${VERSION_CODENAME} main/deb http:\/\/\1\.debian\.org\/debian ${VERSION_CODENAME} main contrib non-free/" /etc/apt/sources.list
         sed -i -E "s/deb http:\/\/(deb|httpredir)\.debian\.org\/debian ${VERSION_CODENAME}-updates main/deb http:\/\/\1\.debian\.org\/debian ${VERSION_CODENAME}-updates main contrib non-free/" /etc/apt/sources.list
@@ -138,50 +159,185 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
 
     # Install libssl1.1 if available
     if [[ ! -z $(apt-cache --names-only search ^libssl1.1$) ]]; then
-        package_list="${package_list}       libssl1.1"
+        package_list="${package_list} libssl1.1"
     fi
 
     # Install libssl3 if available
     if [[ ! -z $(apt-cache --names-only search ^libssl3$) ]]; then
-        package_list="${package_list}       libssl3"
+        package_list="${package_list} libssl3"
     fi
 
     # Install appropriate version of libssl1.0.x if available
-    libssl_package=$(dpkg-query -f '${db:Status-Abbrev}\t${binary:Package}\n' -W 'libssl1\.0\.?' 2>&1 || echo '')
-    if [ "$(echo "$LIlibssl_packageBSSL" | grep -o 'libssl1\.0\.[0-9]:' | uniq | sort | wc -l)" -eq 0 ]; then
+    local libssl_package=$(dpkg-query -f '${db:Status-Abbrev}\t${binary:Package}\n' -W 'libssl1\.0\.?' 2>&1 || echo '')
+    if [ "$(echo "$libssl_package" | grep -o 'libssl1\.0\.[0-9]:' | uniq | sort | wc -l)" -eq 0 ]; then
         if [[ ! -z $(apt-cache --names-only search ^libssl1.0.2$) ]]; then
             # Debian 9
-            package_list="${package_list}       libssl1.0.2"
+            package_list="${package_list} libssl1.0.2"
         elif [[ ! -z $(apt-cache --names-only search ^libssl1.0.0$) ]]; then
-            # Ubuntu 18.04, 16.04, earlier
-            package_list="${package_list}       libssl1.0.0"
+            # Ubuntu 18.04
+            package_list="${package_list} libssl1.0.0"
         fi
+    fi
+
+    # Install git if not already installed (may be more recent than distro version)
+    if ! type git > /dev/null 2>&1; then
+        package_list="${package_list} git"
     fi
 
     echo "Packages to verify are installed: ${package_list}"
     apt-get -y install --no-install-recommends ${package_list} 2> >( grep -v 'debconf: delaying package configuration, since apt-utils is not installed' >&2 )
-        
-    # Install git if not already installed (may be more recent than distro version)
-    if ! type git > /dev/null 2>&1; then
-        apt-get -y install --no-install-recommends git
+
+    # Install zsh (and recommended packages) if needed
+    if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
+        apt-get install -y zsh
     fi
 
+    # Get to latest versions of all packages
+    if [ "${UPGRADE_PACKAGES}" = "true" ]; then
+        apt_get_update
+        apt-get -y upgrade --no-install-recommends
+        apt-get autoremove -y
+    fi
+
+    # Ensure at least the en_US.UTF-8 UTF-8 locale is available.
+    # Common need for both applications and things like the agnoster ZSH theme.
+    if [ "${LOCALE_ALREADY_SET}" != "true" ] && ! grep -o -E '^\s*en_US.UTF-8\s+UTF-8' /etc/locale.gen > /dev/null; then
+        echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen 
+        locale-gen
+        LOCALE_ALREADY_SET="true"
+    fi
+}
+
+# RedHat / RockyLinux / CentOS / Fedora packages
+install_redhat_packages() {
+    local package_list="\
+        openssh-clients \
+        gnupg2 \
+        iproute \
+        procps \
+        lsof \
+        net-tools \
+        psmisc \
+        curl \
+        wget \
+        ca-certificates \
+        rsync \
+        unzip \
+        zip \
+        nano \
+        vim-minimal \
+        less \
+        jq \
+        redhat-lsb-core \
+        openssl-libs \
+        krb5-libs \
+        libicu \
+        zlib \
+        sudo \
+        sed \
+        grep \
+        which \
+        man-db \
+        strace"
+
+    # Install OpenSSL 1.0 compat if needed
+    if ${install_cmd} -q list compat-openssl10 >/dev/null 2>&1; then
+        package_list="${package_list} compat-openssl10"
+    fi
+
+    # Install git if not already installed (may be more recent than distro version)
+    if ! type git > /dev/null 2>&1; then
+        package_list="${package_list} git"
+    fi
+
+    # Install zsh if needed
+    if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
+        package_list="${package_list} zsh"
+    fi
+
+    local install_cmd=dnf
+    if ! type dnf > /dev/null 2>&1; then
+        install_cmd=yum
+    fi
+    ${install_cmd} -y install ${package_list}
+
+    # Get to latest versions of all packages
+    if [ "${UPGRADE_PACKAGES}" = "true" ]; then
+        ${install_cmd} upgrade -y
+    fi
+}
+
+# Alpine Linux packages
+install_alpine_packages() {
+    apk update
+    apk add --no-cache \
+        openssh-client \
+        gnupg \
+        procps \
+        lsof \
+        htop \
+        net-tools \
+        psmisc \
+        curl \
+        wget \
+        rsync \
+        ca-certificates \
+        unzip \
+        zip \
+        nano \
+        vim \
+        less \
+        jq \
+        libgcc \
+        libstdc++ \
+        krb5-libs \
+        libintl \
+        libssl1.1 \
+        lttng-ust \
+        tzdata \
+        userspace-rcu \
+        zlib \
+        sudo \
+        coreutils \
+        sed \
+        grep \
+        which \
+        ncdu \
+        shadow \
+        strace
+
+    # Install man pages - package name varies between 3.12 and earlier versions
+    if apk info man > /dev/null 2>&1; then
+        apk add --no-cache man man-pages
+    else 
+        apk add --no-cache mandoc man-pages
+    fi
+
+    # Install git if not already installed (may be more recent than distro version)
+    if ! type git > /dev/null 2>&1; then
+        apk add --no-cache git
+    fi
+
+    # Install zsh if needed
+    if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
+        apk add --no-cache zsh
+    fi
+}
+
+# Install packages for appropriate OS
+if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
+    case "${ADJUSTED_ID}" in
+        "debian")
+            install_debian_packages
+            ;;
+        "rhel")
+            install_redhat_packages
+            ;;
+        "alpine")
+            install_alpine_packages
+            ;;
+    esac
     PACKAGES_ALREADY_INSTALLED="true"
-fi
-
-# Get to latest versions of all packages
-if [ "${UPGRADE_PACKAGES}" = "true" ]; then
-    apt_get_update
-    apt-get -y upgrade --no-install-recommends
-    apt-get autoremove -y
-fi
-
-# Ensure at least the en_US.UTF-8 UTF-8 locale is available.
-# Common need for both applications and things like the agnoster ZSH theme.
-if [ "${LOCALE_ALREADY_SET}" != "true" ] && ! grep -o -E '^\s*en_US.UTF-8\s+UTF-8' /etc/locale.gen > /dev/null; then
-    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen 
-    locale-gen
-    LOCALE_ALREADY_SET="true"
 fi
 
 # Create or update a non-root user to match UID/GID.
@@ -224,15 +380,16 @@ else
     user_rc_path="/home/${USERNAME}"
 fi
 
-# Restore user .bashrc defaults from skeleton file if it doesn't exist or is empty
-if [ ! -f "${user_rc_path}/.bashrc" ] || [ ! -s "${user_rc_path}/.bashrc" ] ; then
-    cp  /etc/skel/.bashrc "${user_rc_path}/.bashrc"
-fi
-
-# Restore user .profile defaults from skeleton file if it doesn't exist or is empty
-if  [ ! -f "${user_rc_path}/.profile" ] || [ ! -s "${user_rc_path}/.profile" ] ; then
-    cp  /etc/skel/.profile "${user_rc_path}/.profile"
-fi
+# Restore user .bashrc / .profile / .zshrc defaults from skeleton file if it doesn't exist or is empty
+possible_rc_files=( ".bashrc" ".profile" ".zshrc" )
+for rc_file in "${possible_rc_files[@]}"; do
+    if [ -f "/etc/skel/${rc_file}" ]; then
+        if [ ! -e "${user_rc_path}/${rc_file}" ] || [ -s "${user_rc_path}/${rc_file}" ]; then
+            cp "/etc/skel/${rc_file}" "${user_rc_path}/${rc_file}"
+            chown ${USERNAME}:${group_name} "${user_rc_path}/${rc_file}"
+        fi
+    fi
+done
 
 # .bashrc/.zshrc snippet
 rc_snippet="$(cat << 'EOF'
@@ -247,7 +404,7 @@ if [ -t 1 ] && [[ "${TERM_PROGRAM}" = "vscode" || "${TERM_PROGRAM}" = "codespace
     elif [ -f "/workspaces/.codespaces/shared/first-run-notice.txt" ]; then
         cat "/workspaces/.codespaces/shared/first-run-notice.txt"
     fi
-    mkdir -p "$HOME/.config/vscode-dev-containers"
+    mkdir -p "$HOME/.config/dev-containers"
     # Mark first run notice as displayed after 10s to avoid problems with fast terminal refreshes hiding it
     ((sleep 10s; touch "$HOME/.config/vscode-dev-containers/first-run-notice-already-displayed") &)
 fi
@@ -287,8 +444,8 @@ fi
 EOF
 chmod +x /usr/local/bin/code
 
-# systemctl shim - tells people to use 'service' if systemd is not running
-cat << 'EOF' > /usr/local/bin/systemctl
+# systemctl shim for Debian/Ubuntu - tells people to use 'service' if systemd is not running
+systemctl_snippet="$(cat << 'EOF'
 #!/bin/sh
 set -e
 if [ -d "/run/systemd/system" ]; then
@@ -297,23 +454,27 @@ else
     echo '\n"systemd" is not running in this container due to its overhead.\nUse the "service" command to start services instead. e.g.: \n\nservice --status-all'
 fi
 EOF
-chmod +x /usr/local/bin/systemctl
+)"
+if [ "${ADJUSTED_ID}" = "debian" ]; then
+    echo "${systemctl_snippet}" > /usr/local/bin/systemctl
+    chmod +x /usr/local/bin/systemctl
+fi
 
-# Codespaces bash and OMZ themes - partly inspired by https://github.com/ohmyzsh/ohmyzsh/blob/master/themes/robbyrussell.zsh-theme
-codespaces_bash="$(cat \
+# bash and OMZ themes - partly inspired by https://github.com/ohmyzsh/ohmyzsh/blob/master/themes/robbyrussell.zsh-theme
+devcontainers_bash="$(cat \
 <<'EOF'
-
-# Codespaces bash prompt theme
+# bash prompt theme
 __bash_prompt() {
     local userpart='`export XIT=$? \
         && [ ! -z "${GITHUB_USER}" ] && echo -n "\[\033[0;32m\]@${GITHUB_USER} " || echo -n "\[\033[0;32m\]\u " \
         && [ "$XIT" -ne "0" ] && echo -n "\[\033[1;31m\]➜" || echo -n "\[\033[0m\]➜"`'
     local gitbranch='`\
-        if [ "$(git config --get codespaces-theme.hide-status 2>/dev/null)" != 1 ]; then \
-            export BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null); \
+        if [ "$(git config --get devcontainers-theme.hide-status 2>/dev/null)" != 1 ] && [ "$(git config --get codespaces-theme.hide-status 2>/dev/null)" != 1 ]; then \
+            export BRANCH=$(git --no-optional-locks symbolic-ref --short HEAD 2>/dev/null || git --no-optional-locks rev-parse --short HEAD 2>/dev/null); \
             if [ "${BRANCH}" != "" ]; then \
                 echo -n "\[\033[0;36m\](\[\033[1;31m\]${BRANCH}" \
-                && if git ls-files --error-unmatch -m --directory --no-empty-directory -o --exclude-standard ":/*" > /dev/null 2>&1; then \
+                && if [ "$(git config --get devcontainers-theme.show-dirty 2>/dev/null)" = 1 ] && \
+                    git --no-optional-locks ls-files --error-unmatch -m --directory --no-empty-directory -o --exclude-standard ":/*" > /dev/null 2>&1; then \
                         echo -n " \[\033[1;33m\]✗"; \
                 fi \
                 && echo -n "\[\033[0;36m\]) "; \
@@ -325,13 +486,14 @@ __bash_prompt() {
     unset -f __bash_prompt
 }
 __bash_prompt
+export PROMPT_DIRTRIM=4
 
 EOF
 )"
 
-codespaces_zsh="$(cat \
+devcontainers_zsh="$(cat \
 <<'EOF'
-# Codespaces zsh prompt theme
+# Dev Containers zsh prompt theme
 __zsh_prompt() {
     local prompt_username
     if [ ! -z "${GITHUB_USER}" ]; then 
@@ -341,14 +503,21 @@ __zsh_prompt() {
     fi
     PROMPT="%{$fg[green]%}${prompt_username} %(?:%{$reset_color%}➜ :%{$fg_bold[red]%}➜ )" # User/exit code arrow
     PROMPT+='%{$fg_bold[blue]%}%(5~|%-1~/…/%3~|%4~)%{$reset_color%} ' # cwd
-    PROMPT+='$([ "$(git config --get codespaces-theme.hide-status 2>/dev/null)" != 1 ] && git_prompt_info)' # Git status
+    PROMPT+='`\
+        if [ "$(git config --get devcontainers-theme.hide-status 2>/dev/null)" != 1 ] && [ "$(git config --get codespaces-theme.hide-status 2>/dev/null)" != 1 ]; then \
+            export BRANCH=$(git --no-optional-locks symbolic-ref --short HEAD 2>/dev/null || git --no-optional-locks rev-parse --short HEAD 2>/dev/null); \
+            if [ "${BRANCH}" != "" ]; then \
+                echo -n "%{$fg_bold[cyan]%}(%{$fg_bold[red]%}${BRANCH}" \
+                && if [ "$(git config --get devcontainers-theme.show-dirty 2>/dev/null)" = 1 ] && \
+                    git --no-optional-locks ls-files --error-unmatch -m --directory --no-empty-directory -o --exclude-standard ":/*" > /dev/null 2>&1; then \
+                        echo -n " %{$fg_bold[yellow]%}✗"; \
+                fi \
+                && echo -n "%{$fg_bold[cyan]%})%{$reset_color%} "; \
+            fi; \
+        fi`'
     PROMPT+='%{$fg[white]%}$ %{$reset_color%}'
     unset -f __zsh_prompt
 }
-ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[cyan]%}(%{$fg_bold[red]%}"
-ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
-ZSH_THEME_GIT_PROMPT_DIRTY=" %{$fg_bold[yellow]%}✗%{$fg_bold[cyan]%})"
-ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg_bold[cyan]%})"
 __zsh_prompt
 
 EOF
@@ -356,25 +525,33 @@ EOF
 
 # Add RC snippet and custom bash prompt
 if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
-    echo "${rc_snippet}" >> /etc/bash.bashrc
-    echo "${codespaces_bash}" >> "${user_rc_path}/.bashrc"
-    echo 'export PROMPT_DIRTRIM=4' >> "${user_rc_path}/.bashrc"
+    case "${ADJUSTED_ID}" in
+        "debian")
+            echo "${rc_snippet}" >> /etc/bash.bashrc
+            ;;
+        "rhel")
+            echo "${rc_snippet}" >> /etc/bashrc
+            ;;
+        "alpine")
+            echo "${rc_snippet}" >> /etc/bash/bashrc
+            ;;
+    esac
+    echo "${devcontainers_bash}" >> "${user_rc_path}/.bashrc"
     if [ "${USERNAME}" != "root" ]; then
-        echo "${codespaces_bash}" >> "/root/.bashrc"
-        echo 'export PROMPT_DIRTRIM=4' >> "/root/.bashrc"
+        echo "${devcontainers_bash}" >> "/root/.bashrc"
+        chown ${USERNAME}:${group_name} "${user_rc_path}/.bashrc"
     fi
-    chown ${USERNAME}:${group_name} "${user_rc_path}/.bashrc"
     RC_SNIPPET_ALREADY_ADDED="true"
 fi
 
-# Optionally install and configure zsh and Oh My Zsh!
+# Optionally configure zsh and Oh My Zsh!
 if [ "${INSTALL_ZSH}" = "true" ]; then
-    if ! type zsh > /dev/null 2>&1; then
-        apt_get_update
-        apt-get install -y zsh
-    fi
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
-        echo "${rc_snippet}" >> /etc/zsh/zshrc
+        if [ "${ADJUSTED_ID}" = "rhel" ]; then
+            echo "${rc_snippet}" >> /etc/zshrc
+        else
+            echo "${rc_snippet}" >> /etc/zsh/zshrc
+        fi
         ZSH_ALREADY_INSTALLED="true"
     fi
 
@@ -394,17 +571,20 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             -c receive.fsck.zeroPaddedFilemode=ignore \
             "https://github.com/ohmyzsh/ohmyzsh" "${oh_my_install_dir}" 2>&1
         echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
-        sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="codespaces"/g' ${user_rc_file}
+        sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
 
+        # Add Dev Containers theme
         mkdir -p ${oh_my_install_dir}/custom/themes
-        echo "${codespaces_zsh}" > "${oh_my_install_dir}/custom/themes/codespaces.zsh-theme"
+        echo "${devcontainers_zsh}" > "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme"
+        ln -s "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/codespaces.zsh-theme"
+
         # Shrink git while still enabling updates
         cd "${oh_my_install_dir}"
         git repack -a -d -f --depth=1 --window=1
         # Copy to non-root user if one is specified
         if [ "${USERNAME}" != "root" ]; then
             cp -rf "${user_rc_file}" "${oh_my_install_dir}" /root
-            chown -R ${USERNAME}:${group_name} "${user_rc_path}"
+            chown -R ${USERNAME}:${group_name} "${oh_my_install_dir}" "${user_rc_file}"
         fi
     fi
 fi
