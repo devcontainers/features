@@ -258,6 +258,10 @@ install_alpine_packages() {
     fi
 }
 
+# ******************
+# ** Main section **
+# ******************
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -288,10 +292,6 @@ else
     echo "Linux distro ${ID} not supported."
     exit 1
 fi
-
-# *************************************
-# ** Install packages and setup user **
-# *************************************
 
 # Install packages for appropriate OS
 if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
