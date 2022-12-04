@@ -104,7 +104,7 @@
         }
     },
     "already-run": {
-        "image": "mcr.microsoft.com/devcontainers/ubuntu:jammy",
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "remoteUser": "vscode",
         "features": {
             "common-utils": {}

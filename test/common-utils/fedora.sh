@@ -7,7 +7,7 @@ source dev-container-features-test-lib
 
 # Definition specific tests
 . /etc/os-release
-check "distro" test "${PLATFORM_ID}" = "platform:el8"
+check "distro" test "${ID}" = "fedora"
 
 # Report result
 reportResults
