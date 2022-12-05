@@ -44,7 +44,7 @@ fi
 
 # Ensure that login shells get the correct path if the user updated the PATH using ENV.
 rm -f /etc/profile.d/00-restore-env.sh
-echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
+echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" >/etc/profile.d/00-restore-env.sh
 chmod +x /etc/profile.d/00-restore-env.sh
 
 # Determine the appropriate non-root user
@@ -52,7 +52,7 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
     for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+        if id -u ${CURRENT_USER} >/dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break
         fi
@@ -60,7 +60,7 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     if [ "${USERNAME}" = "" ]; then
         USERNAME=root
     fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
+elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} >/dev/null 2>&1; then
     USERNAME=root
 fi
 
@@ -68,10 +68,10 @@ updaterc() {
     if [ "${UPDATE_RC}" = "true" ]; then
         echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
         if [[ "$(cat /etc/bash.bashrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/bash.bashrc
+            echo -e "$1" >>/etc/bash.bashrc
         fi
         if [ -f "/etc/zsh/zshrc" ] && [[ "$(cat /etc/zsh/zshrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/zsh/zshrc
+            echo -e "$1" >>/etc/zsh/zshrc
         fi
     fi
 }
@@ -79,7 +79,7 @@ updaterc() {
 # Get central common setting
 get_common_setting() {
     if [ "${common_settings_file_loaded}" != "true" ]; then
-        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" 2>/dev/null -o /tmp/vsdc-settings.env || echo "Could not download settings file. Skipping."
+        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" -o /tmp/vsdc-settings.env 2>/dev/null || echo "Could not download settings file. Skipping."
         common_settings_file_loaded=true
     fi
     if [ -f "/tmp/vsdc-settings.env" ]; then
@@ -91,7 +91,7 @@ get_common_setting() {
     echo "$1=${!1}"
 }
 
-# Import the specified key in a variable name passed in as 
+# Import the specified key in a variable name passed in as
 receive_gpg_keys() {
     get_common_setting $1
     local keys=${!1}
@@ -106,18 +106,17 @@ receive_gpg_keys() {
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
-    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" >${GNUPGHOME}/dirmngr.conf
     # GPG key download sometimes fails for some reason and retrying fixes it.
     local retry_count=0
     local gpg_ok="false"
     set +e
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
-    do
+    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; do
         echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+        (echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
         if [ "${gpg_ok}" != "true" ]; then
             echo "(*) Failed getting key, retring in 10s..."
-            (( retry_count++ ))
+            ((retry_count++))
             sleep 10s
         fi
     done
@@ -136,7 +135,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -155,7 +154,7 @@ find_version_from_git_tags() {
             set -e
         fi
     fi
-    if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" > /dev/null 2>&1; then
+    if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" >/dev/null 2>&1; then
         echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
         exit 1
     fi
@@ -180,7 +179,7 @@ oryx_install() {
             requested_version="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
             set -e
         fi
-        if [ -z "${requested_version}" ] || ! echo "${version_list}" | grep "^${requested_version//./\\.}$" > /dev/null 2>&1; then
+        if [ -z "${requested_version}" ] || ! echo "${version_list}" | grep "^${requested_version//./\\.}$" >/dev/null 2>&1; then
             echo -e "(!) Oryx does not support ${platform} version $2\nValid values:\n${version_list}" >&2
             return 1
         fi
@@ -195,13 +194,12 @@ oryx_install() {
     fi
     # Update library path add to conf
     if [ "${ldconfig_folder}" != "none" ]; then
-        echo "/opt/${platform}/${requested_version}/lib" >> "/etc/ld.so.conf.d/${platform}.conf"
+        echo "/opt/${platform}/${requested_version}/lib" >>"/etc/ld.so.conf.d/${platform}.conf"
         ldconfig
     fi
 }
 
-apt_get_update()
-{
+apt_get_update() {
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
         echo "Running apt-get update..."
         apt-get update -y
@@ -210,7 +208,7 @@ apt_get_update()
 
 # Checks if packages are installed and installs them if not
 check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
+    if ! dpkg -s "$@" >/dev/null 2>&1; then
         apt_get_update
         apt-get -y install --no-install-recommends "$@"
     fi
@@ -218,25 +216,25 @@ check_packages() {
 
 add_symlink() {
     if [[ ! -d "${CURRENT_PATH}" ]]; then
-        ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}" 
+        ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"
     fi
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        if [[ $(ls -l ${CURRENT_PATH}) != *"-> ${INSTALL_PATH}"* ]] ; then
+        if [[ $(ls -l ${CURRENT_PATH}) != *"-> ${INSTALL_PATH}"* ]]; then
             rm "${CURRENT_PATH}"
-            ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}" 
+            ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"
         fi
     fi
 }
 
 install_from_source() {
-    VERSION=$1 
+    VERSION=$1
     echo "(*) Building Python ${VERSION} from source..."
     # Install prereqs if missing
     check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev libncurses5-dev \
-                libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
-                libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
-    if ! type git > /dev/null 2>&1; then
+        libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
+        libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev
+    if ! type git >/dev/null 2>&1; then
         check_packages git
     fi
 
@@ -244,7 +242,7 @@ install_from_source() {
     find_version_from_git_tags VERSION "https://github.com/python/cpython"
 
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
-    
+
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${VERSION} already exists."
         exit 1
@@ -292,9 +290,9 @@ install_from_source() {
 }
 
 install_using_oryx() {
-    VERSION=$1 
+    VERSION=$1
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
-    
+
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${VERSION} already exists."
         exit 1
@@ -334,7 +332,7 @@ add_user_jupyter_config() {
     test -f "$CONFIG_FILE" || sudo_if touch "$CONFIG_FILE"
 
     # Don't write the same config more than once
-    grep -q "$1" "$CONFIG_FILE" || echo "$1" >> "$CONFIG_FILE"
+    grep -q "$1" "$CONFIG_FILE" || echo "$1" >>"$CONFIG_FILE"
 }
 
 install_python() {
@@ -348,7 +346,7 @@ install_python() {
         if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
             rm -rf "${current_bin_path}"
         fi
-        if [ ! -d "${current_bin_path}" ] ; then
+        if [ ! -d "${current_bin_path}" ]; then
             mkdir -p "${current_bin_path}"
             # Add an interpreter symlink but point it to "/usr" since python is at /usr/bin/python, add other alises
             ln -s "${INSTALL_PATH}/bin/python3" "${current_bin_path}/python3"
@@ -360,7 +358,7 @@ install_python() {
         fi
 
         should_install_from_source=false
-    elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
+    elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx >/dev/null 2>&1; then
         install_using_oryx $version || should_install_from_source=true
     else
         should_install_from_source=true
@@ -375,19 +373,18 @@ export DEBIAN_FRONTEND=noninteractive
 
 # General requirements
 check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev libncurses5-dev \
-            libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
-            libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
-
+    libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
+    libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev
 
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
-    if ! cat /etc/group | grep -e "^python:" > /dev/null 2>&1; then
+    if ! cat /etc/group | grep -e "^python:" >/dev/null 2>&1; then
         groupadd -r python
     fi
     usermod -a -G python "${USERNAME}"
 
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
-    
+
     install_python ${PYTHON_VERSION}
 
     # Additional python versions to be installed but not be set as default.
@@ -395,11 +392,11 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         OLD_INSTALL_PATH="${INSTALL_PATH}"
         OLDIFS=$IFS
         IFS=","
-            read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-            for version in "${additional_versions[@]}"; do
-                OVERRIDE_DEFAULT_VERSION="false"
-                install_python $version
-            done
+        read -a additional_versions <<<"$ADDITIONAL_VERSIONS"
+        for version in "${additional_versions[@]}"; do
+            OVERRIDE_DEFAULT_VERSION="false"
+            install_python $version
+        done
         INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
     fi
@@ -408,7 +405,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
         PATH="${INSTALL_PATH}/bin:${PATH}"
     fi
-    
+
     # Updates the symlinks for os-provided, or the installed python version in other cases
     chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
     chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
@@ -426,14 +423,14 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     PATH="${PATH}:${PIPX_BIN_DIR}"
 
     # Create pipx group, dir, and set sticky bit
-    if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
+    if ! cat /etc/group | grep -e "^pipx:" >/dev/null 2>&1; then
         groupadd -r pipx
     fi
     usermod -a -G pipx ${USERNAME}
     umask 0002
     mkdir -p ${PIPX_BIN_DIR}
     chown -R "${USERNAME}:pipx" ${PIPX_HOME}
-    chmod -R g+r+w "${PIPX_HOME}" 
+    chmod -R g+r+w "${PIPX_HOME}"
     find "${PIPX_HOME}" -type d -print0 | xargs -0 -n 1 chmod g+s
 
     # Update pip if not using os provided python
@@ -447,13 +444,13 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     export PYTHONUSERBASE=/tmp/pip-tmp
     export PIP_CACHE_DIR=/tmp/pip-tmp/cache
     PIPX_DIR=""
-    if ! type pipx > /dev/null 2>&1; then
+    if ! type pipx >/dev/null 2>&1; then
         pip3 install --disable-pip-version-check --no-cache-dir --user pipx 2>&1
         /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
         PIPX_DIR="/tmp/pip-tmp/bin/"
     fi
     for util in "${DEFAULT_UTILS[@]}"; do
-        if ! type ${util} > /dev/null 2>&1; then
+        if ! type ${util} >/dev/null 2>&1; then
             "${PIPX_DIR}pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
         else
             echo "${util} already installed. Skipping."
@@ -475,6 +472,7 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
 
     install_user_package jupyterlab
     install_user_package jupyterlab-git
+    install_user_package nbdime
 
     # Configure JupyterLab if needed
     if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then

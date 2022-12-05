@@ -1,6 +1,6 @@
 {
   "id": "python",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "name": "Python",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python",
   "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab is conditionally installed with the python feature. Note: May require source code compilation.",
@@ -55,10 +55,7 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": [
-        "ms-python.python",
-        "ms-python.vscode-pylance"
-      ],
+      "extensions": ["ms-python.python", "ms-python.vscode-pylance"],
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
         "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
@@ -74,7 +71,7 @@
     }
   },
   "installsAfter": [
-      "ghcr.io/devcontainers/features/common-utils",
-      "ghcr.io/devcontainers/features/oryx"
+    "ghcr.io/devcontainers/features/common-utils",
+    "ghcr.io/devcontainers/features/oryx"
   ]
 }
