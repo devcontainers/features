@@ -1,0 +1,10 @@
+{
+  "configure_zsh_as_default_shell": {
+    "image": "ubuntu:focal",
+    "features": {
+      "common-utils": {
+        "configureZshAsDefaultShell": true
+      }
+    }
+  }
+}
