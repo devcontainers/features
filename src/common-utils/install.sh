@@ -13,6 +13,7 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 INSTALL_ZSH="${INSTALLZSH:-"true"}"
+CONFIGURE_ZSH_AS_DEFAULT_SHELL="${CONFIGUREZSHASDEFAULTSHELL:-"false"}"
 INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
 UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -377,6 +378,12 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         echo "${rc_snippet}" >> /etc/zsh/zshrc
         ZSH_ALREADY_INSTALLED="true"
     fi
+
+    # Change shell of determined user
+    if [[ "${CONFIGURE_ZSH_AS_DEFAULT_SHELL}" == "true" ]]; then
+      chsh --shell /bin/zsh ${USERNAME}
+    fi
+
 
     # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
