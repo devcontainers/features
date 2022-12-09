@@ -32,6 +32,22 @@
             ],
             "default": "latest",
             "description": "Terragrunt version"
+        },
+        "tfsec": {
+            "type": "string",
+            "proposals": [
+                "latest"
+            ],
+            "default": "latest",
+            "description": "TFSec version"
+        },
+        "terraform-docs": {
+            "type": "string",
+            "proposals": [
+                "latest"
+            ],
+            "default": "latest",
+            "description": "Terraform docs version"
         }
     },
     "customizations": {
