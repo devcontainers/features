@@ -6,7 +6,7 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-check "default-shell-is-zsh" getent passwd vscode | awk -F: '{ print $7 }' | grep "/bin/zsh"
+check "default-shell-is-zsh" bash -c "getent passwd $(whoami) | awk -F: '{ print $7 }' | grep '/bin/zsh'"
 
 # Report result
 reportResults
