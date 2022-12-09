@@ -16,6 +16,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | installZsh | Install ZSH? | boolean | true |
+| configureZshAsDefaultShell | Change default shell to ZSH? | boolean | false |
 | installOhMyZsh | Install Oh My Zsh!? | boolean | true |
 | upgradePackages | Upgrade OS packages? | boolean | true |
 | username | Enter name of non-root user to configure or none to skip | string | automatic |
