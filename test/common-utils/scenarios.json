@@ -1,6 +1,6 @@
 {
   "configure_zsh_as_default_shell": {
-    "image": "ubuntu:focal",
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
     "features": {
       "common-utils": {
         "configureZshAsDefaultShell": true
