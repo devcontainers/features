@@ -1,6 +1,6 @@
 {
     "id": "terraform",
-    "version": "1.0.7",
+    "version": "1.1.0",
     "name": "Terraform, tflint, and TFGrunt",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/terraform",
     "description": "Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects latest version and installs needed dependencies.",
@@ -33,21 +33,15 @@
             "default": "latest",
             "description": "Terragrunt version"
         },
-        "tfsec": {
-            "type": "string",
-            "proposals": [
-                "latest"
-            ],
-            "default": "latest",
-            "description": "TFSec version"
+        "installTFsec": {
+            "type": "boolean",
+            "default": false,
+            "description": "install TF Sec"
         },
-        "terraform-docs": {
-            "type": "string",
-            "proposals": [
-                "latest"
-            ],
-            "default": "latest",
-            "description": "Terraform docs version"
+        "installTerraformDocs": {
+            "type": "boolean",
+            "default": false,
+            "description": "install Terraform Docs"
         }
     },
     "customizations": {

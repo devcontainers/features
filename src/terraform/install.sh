@@ -15,8 +15,8 @@ rm -rf /var/lib/apt/lists/*
 TERRAFORM_VERSION="${VERSION:-"latest"}"
 TFLINT_VERSION="${TFLINT:-"latest"}"
 TERRAGRUNT_VERSION="${TERRAGRUNT:-"latest"}"
-TFSEC_VERSION="${TFSEC_VERSION:-"latest"}"
-TERRAFORM_DOCS_VERSION="${TERRAFORM_DOCS_VERSION:-"latest"}"
+INSTALL_TFSEC=${INSTALLTFSEC:-false}
+INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
 
 TERRAFORM_SHA256="${TERRAFORM_SHA256:-"automatic"}"
 TFLINT_SHA256="${TFLINT_SHA256:-"automatic"}"
@@ -158,8 +158,6 @@ fi
 find_version_from_git_tags TERRAFORM_VERSION 'https://github.com/hashicorp/terraform'
 find_version_from_git_tags TFLINT_VERSION 'https://github.com/terraform-linters/tflint'
 find_version_from_git_tags TERRAGRUNT_VERSION 'https://github.com/gruntwork-io/terragrunt'
-find_version_from_git_tags TFSEC_VERSION 'https://github.com/aquasecurity/tfsec'
-find_version_from_git_tags TERRAFORM_DOCS_VERSION 'https://github.com/terraform-docs/terraform-docs'
 
 mkdir -p /tmp/tf-downloads
 cd /tmp/tf-downloads
@@ -218,9 +216,11 @@ if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
     mv -f /tmp/tf-downloads/${terragrunt_filename} /usr/local/bin/terragrunt
 fi
 
-if [ "${TFSEC_VERSION}" != "none" ]; then
+if [ "${INSTALL_TFSEC}" = "true" ]; then
+    TFSEC_VERSION="latest"
+    find_version_from_git_tags TFSEC_VERSION 'https://github.com/aquasecurity/tfsec'
     tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
-    echo "Downloading TFSec... ${tfsec_filename}"
+    echo "(*) Downloading TFSec... ${tfsec_filename}"
     curl -sSL -o /tmp/tf-downloads/${tfsec_filename} https://github.com/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/${tfsec_filename}
     if [ "${TFSEC_SHA256}" != "dev-mode" ]; then
         if [ "${TFSEC_SHA256}" = "automatic" ]; then
@@ -236,9 +236,11 @@ if [ "${TFSEC_VERSION}" != "none" ]; then
     mv -f /tmp/tf-downloads/tfsec/tfsec /usr/local/bin/tfsec
 fi
 
-if [ "${TERRAFORM_DOCS_VERSION}" != "none" ]; then
+if [ "${INSTALL_TERRAFORM_DOCS}" = "true" ]; then
+    TERRAFORM_DOCS_VERSION="latest"
+    find_version_from_git_tags TERRAFORM_DOCS_VERSION 'https://github.com/terraform-docs/terraform-docs'
     tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
-    echo "Downloading Terraform docs... ${tfdocs_filename}"
+    echo "(*) Downloading Terraform docs... ${tfdocs_filename}"
     curl -sSL -o /tmp/tf-downloads/${tfdocs_filename} https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/${tfdocs_filename}
     if [ "${TERRAFORM_DOCS_SHA256}" != "dev-mode" ]; then
         if [ "${TERRAFORM_DOCS_SHA256}" = "automatic" ]; then

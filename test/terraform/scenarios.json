@@ -1,0 +1,20 @@
+{
+    "install_tfsec": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "user": "vscode",
+        "features": {
+            "terraform": {
+                "installTFsec": true
+            }
+        }
+    },
+    "install_terraform_docs": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "user": "vscode",
+        "features": {
+            "terraform": {
+                "installTerraformDocs": true
+            }
+        }
+    }
+}
