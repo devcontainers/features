@@ -36,12 +36,12 @@
         "installTFsec": {
             "type": "boolean",
             "default": false,
-            "description": "install TF Sec"
+            "description": "Install tfsec, a tool to spot potential misconfigurations for your terraform code"
         },
         "installTerraformDocs": {
             "type": "boolean",
             "default": false,
-            "description": "install Terraform Docs"
+            "description": "Install terraform-docs, a utility to generate documentation from Terraform modules"
         }
     },
     "customizations": {
