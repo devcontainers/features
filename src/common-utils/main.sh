@@ -419,6 +419,10 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         ZSH_ALREADY_INSTALLED="true"
     fi
 
+    if [ "${CONFIGURE_ZSH_AS_DEFAULT_SHELL}" == "true" ]; then
+        chsh --shell /bin/zsh ${USERNAME}
+    fi
+
     # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
     oh_my_install_dir="${user_rc_path}/.oh-my-zsh"

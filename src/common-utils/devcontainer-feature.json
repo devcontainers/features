@@ -10,6 +10,11 @@
             "default": true,
             "description": "Install ZSH?"
         },
+        "configureZshAsDefaultShell": {
+            "type": "boolean",
+            "default": false,
+            "description": "Change default shell to ZSH?"
+        },
         "installOhMyZsh": {
             "type": "boolean",
             "default": true,

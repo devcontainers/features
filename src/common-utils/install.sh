@@ -9,6 +9,20 @@
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
+INSTALL_ZSH="${INSTALLZSH:-"true"}"
+CONFIGURE_ZSH_AS_DEFAULT_SHELL="${CONFIGUREZSHASDEFAULTSHELL:-"false"}"
+INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
+UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+USER_UID="${UID:-"automatic"}"
+USER_GID="${GID:-"automatic"}"
+ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
+
+MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
