@@ -13,7 +13,7 @@ INSTALL_ZSH="${INSTALLZSH:-"true"}"
 CONFIGURE_ZSH_AS_DEFAULT_SHELL="${CONFIGUREZSHASDEFAULTSHELL:-"false"}"
 INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
 UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
-USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
@@ -316,16 +316,20 @@ fi
 
 # If in automatic mode, determine if a user already exists, if not use vscode
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-    USERNAME=""
-    POSSIBLE_USERS=("devcontainer" "vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
-            break
+    if [ "${_REMOTE_USER}" != "root" ]; then
+        USERNAME="${_REMOTE_USER}"
+    else 
+        USERNAME=""
+        POSSIBLE_USERS=("devcontainer" "vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
+        for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
+            if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+                USERNAME=${CURRENT_USER}
+                break
+            fi
+        done
+        if [ "${USERNAME}" = "" ]; then
+            USERNAME=vscode
         fi
-    done
-    if [ "${USERNAME}" = "" ]; then
-        USERNAME=vscode
     fi
 elif [ "${USERNAME}" = "none" ]; then
     USERNAME=root

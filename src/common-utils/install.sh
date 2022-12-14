@@ -9,14 +9,11 @@
 
 set -e
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
 INSTALL_ZSH="${INSTALLZSH:-"true"}"
 CONFIGURE_ZSH_AS_DEFAULT_SHELL="${CONFIGUREZSHASDEFAULTSHELL:-"false"}"
 INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
 UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
-USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${UID:-"automatic"}"
 USER_GID="${GID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
