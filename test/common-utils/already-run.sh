@@ -6,6 +6,7 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
+check "non-root user" test "$(whoami)" = "vscode"
 check "jq" jq  --version
 check "curl" curl  --version
 check "git" git  --version

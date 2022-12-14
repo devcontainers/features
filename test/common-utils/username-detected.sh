@@ -7,8 +7,8 @@ source dev-container-features-test-lib
 
 # Definition specific tests
 . /etc/os-release
-check "non-root user" test "$(whoami)" = "devcontainer"
-check "distro" test "${VERSION_CODENAME}" = "focal"
+# .oh-my-zsh folder would only exist if user detection worked
+check "non-root user" ls /home/node/.oh-my-zsh
 
 # Report result
 reportResults
