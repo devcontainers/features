@@ -9,7 +9,7 @@
 </tr></table>
 
 'Features' are self-contained units of installation code and development container configuration. Features are designed
-to install atop a wide-range of base container images (**this repo focuses on `debian` based images**).
+to install atop a wide-range of base container images.
 
 Missing a CLI or language in your otherwise _perfect_ container image? Add the relevant Feature to the `features`
 property of a [`devcontainer.json`](https://containers.dev/implementors/json_reference/#general-properties). A
