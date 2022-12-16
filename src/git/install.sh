@@ -147,7 +147,15 @@ if [ "$(echo "${GIT_VERSION}" | grep -o '\.' | wc -l)" != "2" ]; then
     fi
 fi
 
-check_packages libpcre2-posix2 libpcre2-dev
+check_packages libpcre2-dev
+
+if [ "${VERSION_CODENAME}" = "focal" ]; then
+    check_packages libpcre2-posix2
+elif [ "${VERSION_CODENAME}" = "bionic" ]; then
+    check_packages libpcre2-posix0
+else
+    check_packages libpcre2-posix3
+fi
 
 echo "Downloading source for ${GIT_VERSION}..."
 curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
