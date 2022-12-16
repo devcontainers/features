@@ -149,9 +149,9 @@ fi
 
 check_packages libpcre2-dev
 
-if [ "${VERSION_CODENAME}" = "focal" ]; then
+if [ "${VERSION_CODENAME}" = "focal" ] || [ "${VERSION_CODENAME}" = "bullseye" ]; then
     check_packages libpcre2-posix2
-elif [ "${VERSION_CODENAME}" = "bionic" ]; then
+elif [ "${VERSION_CODENAME}" = "bionic" ] || [ "${VERSION_CODENAME}" = "buster" ]; then
     check_packages libpcre2-posix0
 else
     check_packages libpcre2-posix3
