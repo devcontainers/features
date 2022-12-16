@@ -1,5 +1,5 @@
 
-# Common Debian Utilities (common-utils)
+# Common Utilities (common-utils)
 
 Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.
 
@@ -7,7 +7,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/common-utils:1": {}
+    "ghcr.io/devcontainers/features/common-utils:2": {}
 }
 ```
 
@@ -19,24 +19,32 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 | configureZshAsDefaultShell | Change default shell to ZSH? | boolean | false |
 | installOhMyZsh | Install Oh My Zsh!? | boolean | true |
 | upgradePackages | Upgrade OS packages? | boolean | true |
-| username | Enter name of non-root user to configure or none to skip | string | automatic |
-| uid | Enter uid for non-root user | string | automatic |
-| gid | Enter gid for non-root user | string | automatic |
-| nonFreePackages | Add packages from non-free Debian repository? | boolean | false |
+| username | Enter name of a non-root user to configure or none to skip | string | automatic |
+| userUid | Enter UID for non-root user | string | automatic |
+| userGid | Enter GID for non-root user | string | automatic |
+| nonFreePackages | Add packages from non-free Debian repository? (Debian only) | boolean | false |
 
-## Speeding up the command prompt in large repositories
+## OS Support
 
-This script provides a custom command prompt that includes information about the git repository for the current folder. However, with certain large repositories, this can result in a slow command prompt since the required git status command can be slow. To resolve this, you can update a git setting to remove the git portion of the command prompt.
+This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, RockyLinux, and Alpine Linux.
 
-To disable the prompt for the current folder's repository, enter the following in a terminal or add it to your `postCreateCommand` or dotfiles:
+## Customizing the command prompt
+
+By default, this script provides a custom command prompt that includes information about the git repository for the current folder. However, with certain large repositories, this can result in a slow command prompt due to the performance of needed git operations.
+
+For performance reasons, a "dirty" indicator that tells you whether or not there are uncommitted changes is disabled by default. You can opt to turn this on for smaller repositories by entering the following in a terminal or adding it to your `postCreateCommand`:
 
 ```bash
-git config codespaces-theme.hide-status 1
+git config devcontainers-theme.show-dirty 1
 ```
 
-This setting will survive a rebuild since it is applied to the repository rather than the container.
+To completely disable the git portion of the prompt for the current folder's repository, you can use this configuration setting instead:
 
+```bash
+git config devcontainers-theme.hide-status 1
+```
 
+For `zsh`, the default theme is a [standard Oh My Zsh! theme](https://ohmyz.sh/). You may pick a different one by modifying the `ZSH_THEME` variable in `~/.zshrc`.
 
 ---
 
