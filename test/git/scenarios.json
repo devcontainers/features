@@ -25,5 +25,23 @@
                 "ppa": "false"
             }
         }
+    },
+    "install_git_from_src_bullseye": {
+        "image": "debian:bullseye",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_src_buster": {
+        "image": "debian:buster",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
     }
 }
