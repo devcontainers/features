@@ -20,6 +20,7 @@
     "jdkDistro": {
       "type": "string",
       "proposals": [
+        "amzn",
         "ms",
         "open",
         "oracle",
