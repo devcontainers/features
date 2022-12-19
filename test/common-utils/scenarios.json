@@ -62,6 +62,13 @@
             "common-utils": {}
         }
     },
+    "mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
     "alpine": {
         "image": "alpine",
         "remoteUser": "devcontainer",
