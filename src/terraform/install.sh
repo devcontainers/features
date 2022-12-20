@@ -26,7 +26,7 @@ TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
 
 TERRAFORM_GPG_KEY="72D7468F"
 TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/master/8CE69160EB3F2FE9.key"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
+GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
@@ -44,26 +44,9 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Get central common setting
-get_common_setting() {
-    if [ "${common_settings_file_loaded}" != "true" ]; then
-        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" 2>/dev/null -o /tmp/vsdc-settings.env || echo "Could not download settings file. Skipping."
-        common_settings_file_loaded=true
-    fi
-    if [ -f "/tmp/vsdc-settings.env" ]; then
-        local multi_line=""
-        if [ "$2" = "true" ]; then multi_line="-z"; fi
-        local result="$(grep ${multi_line} -oP "$1=\"?\K[^\"]+" /tmp/vsdc-settings.env | tr -d '\0')"
-        if [ ! -z "${result}" ]; then declare -g $1="${result}"; fi
-    fi
-    echo "$1=${!1}"
-}
-
 # Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
-    get_common_setting $1
     local keys=${!1}
-    get_common_setting GPG_KEY_SERVERS true
     local keyring_args=""
     if [ ! -z "$2" ]; then
         keyring_args="--no-default-keyring --keyring $2"
@@ -186,7 +169,6 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
     curl -sSL -o /tmp/tf-downloads/${TFLINT_FILENAME} https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/${TFLINT_FILENAME}
     if [ "${TFLINT_SHA256}" != "dev-mode" ]; then
         if [ "${TFLINT_SHA256}" = "automatic" ]; then
-            get_common_setting TFLINT_GPG_KEY_URI
             curl -sSL -o tflint_key "${TFLINT_GPG_KEY_URI}"
             gpg -q --import tflint_key
             curl -sSL -o tflint_checksums.txt https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt
