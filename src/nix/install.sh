@@ -14,7 +14,7 @@ USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
 # Nix keys for securly verifying installer download signature per https://nixos.org/download.html#nix-verify-installation
 NIX_GPG_KEYS="B541D55301270E0BCF15CA5D8170B4726D7198DE"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
+GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 

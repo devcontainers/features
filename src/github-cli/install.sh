@@ -11,7 +11,7 @@ CLI_VERSION=${VERSION:-"latest"}
 INSTALL_DIRECTLY_FROM_GITHUB_RELEASE=${INSTALLDIRECTLYFROMGITHUBRELEASE:-"true"}
 
 GITHUB_CLI_ARCHIVE_GPG_KEY=23F3D4EA75716059
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
+GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
@@ -25,58 +25,10 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Get central common setting
-get_common_setting() {
-    if [ "${common_settings_file_loaded}" != "true" ]; then
-        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" 2>/dev/null -o /tmp/vsdc-settings.env || echo "Could not download settings file. Skipping."
-        common_settings_file_loaded=true
-    fi
-    if [ -f "/tmp/vsdc-settings.env" ]; then
-        local multi_line=""
-        if [ "$2" = "true" ]; then multi_line="-z"; fi
-        local result="$(grep ${multi_line} -oP "$1=\"?\K[^\"]+" /tmp/vsdc-settings.env | tr -d '\0')"
-        if [ ! -z "${result}" ]; then declare -g $1="${result}"; fi
-    fi
-    echo "$1=${!1}"
-}
 
 # Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
-    get_common_setting $1
     local keys=${!1}
-    get_common_setting GPG_KEY_SERVERS true
-
-    # Use a temporary locaiton for gpg keys to avoid polluting image
-    export GNUPGHOME="/tmp/tmp-gnupg"
-    mkdir -p ${GNUPGHOME}
-    chmod 700 ${GNUPGHOME}
-    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
-    # GPG key download sometimes fails for some reason and retrying fixes it.
-    local retry_count=0
-    local gpg_ok="false"
-    set +e
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
-    do
-        echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg --recv-keys) 2>&1 && gpg_ok="true"
-        if [ "${gpg_ok}" != "true" ]; then
-            echo "(*) Failed getting key, retring in 10s..."
-            (( retry_count++ ))
-            sleep 10s
-        fi
-    done
-    set -e
-    if [ "${gpg_ok}" = "false" ]; then
-        echo "(!) Failed to get gpg key."
-        exit 1
-    fi
-}
-
-# Import the specified key in a variable name passed in as 
-receive_gpg_keys() {
-    get_common_setting $1
-    local keys=${!1}
-    get_common_setting GPG_KEY_SERVERS true
     local keyring_args=""
     if [ ! -z "$2" ]; then
         keyring_args="--no-default-keyring --keyring $2"
