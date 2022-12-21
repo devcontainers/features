@@ -186,6 +186,7 @@ if [ $(rvm --version) != "" ]; then
     SKIP_RBENV_RBUILD="true"
 else
     # Install RVM
+    receive_gpg_keys RVM_GPG_KEYS
     # Determine appropriate settings for rvm installer
     if [ "${RUBY_VERSION}" = "none" ]; then
         RVM_INSTALL_ARGS=""
