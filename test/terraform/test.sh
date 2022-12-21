@@ -5,7 +5,7 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-echo 'NO TESTS FOR ME YET!'
+check "terraform" terraform -version
 
 # Report result
 reportResults
