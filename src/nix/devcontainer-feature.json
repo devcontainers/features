@@ -1,6 +1,6 @@
 {
     "id": "nix",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "name": "Nix Package Manager",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/nix",
     "description": "Installs the Nix package manager and optionally a set of packages.",  

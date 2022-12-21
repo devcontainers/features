@@ -1,0 +1,11 @@
+{
+    "install_git_cli_from_release": {
+        "image": "ubuntu:focal",
+        "features": {
+            "github-cli": {
+                "version": "latest",
+                "installDirectlyFromGitHubRelease": "false"
+            }
+        }
+    }
+}

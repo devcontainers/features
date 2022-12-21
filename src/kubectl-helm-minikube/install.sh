@@ -22,7 +22,7 @@ MINIKUBE_SHA256="${MINIKUBE_SHA256:-"automatic"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
 HELM_GPG_KEYS_URI="https://raw.githubusercontent.com/helm/helm/main/KEYS"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
+GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
@@ -52,22 +52,6 @@ USERHOME="/home/$USERNAME"
 if [ "$USERNAME" = "root" ]; then
     USERHOME="/root"
 fi
-
-
-# Get central common setting
-get_common_setting() {
-    if [ "${common_settings_file_loaded}" != "true" ]; then
-        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" 2>/dev/null -o /tmp/vsdc-settings.env || echo "Could not download settings file. Skipping."
-        common_settings_file_loaded=true
-    fi
-    if [ -f "/tmp/vsdc-settings.env" ]; then
-        local multi_line=""
-        if [ "$2" = "true" ]; then multi_line="-z"; fi
-        local result="$(grep ${multi_line} -oP "$1=\"?\K[^\"]+" /tmp/vsdc-settings.env | tr -d '\0')"
-        if [ ! -z "${result}" ]; then declare -g $1="${result}"; fi
-    fi
-    echo "$1=${!1}"
-}
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -182,8 +166,6 @@ curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm
 export GNUPGHOME="/tmp/helm/gnupg"
 mkdir -p "${GNUPGHOME}"
 chmod 700 ${GNUPGHOME}
-get_common_setting HELM_GPG_KEYS_URI
-get_common_setting GPG_KEY_SERVERS true
 curl -sSL "${HELM_GPG_KEYS_URI}" -o /tmp/helm/KEYS
 echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
 gpg -q --import "/tmp/helm/KEYS"
