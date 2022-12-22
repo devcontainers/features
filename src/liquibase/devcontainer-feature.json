@@ -15,7 +15,7 @@
         }
     },
     "containerEnv": {
-        "LIQUIBASE_HOME": "/usr/local/liquibase",
+        "LIQUIBASE_DIR": "/usr/local/liquibase",
         "PATH": "/usr/local/liquibase:${PATH}"
     },
     "installsAfter": [
