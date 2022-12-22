@@ -18,6 +18,11 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+# Ensure that login shells get the correct path if the user updated the PATH using ENV.
+rm -f /etc/profile.d/00-restore-env.sh
+echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
+chmod +x /etc/profile.d/00-restore-env.sh
+
 updaterc() {
     if [ "${UPDATE_RC}" = "true" ]; then
         echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
@@ -58,7 +63,7 @@ if [ "${LIQUIBASE_VERSION}" = "latest" ] || [ "${LIQUIBASE_VERSION}" = "lts" ]; 
 fi
 
 # Install Liquibase if it's missing
-if ! liquibase version &> /dev/null ; then
+if ! liquibase --version &> /dev/null ; then
     installation_dir="$LIQUIBASE_DIR"
     mkdir -p "$installation_dir"
     
@@ -74,7 +79,6 @@ if ! liquibase version &> /dev/null ; then
 
     tar -xzf "$liquibase_filename" -C "$installation_dir"
     rm "$liquibase_filename"
-    ln -s ${installation_dir}/liquibase /usr/local/bin/liquibase
     
     updaterc "export LIQUIBASE_HOME=${installation_dir}"
 fi

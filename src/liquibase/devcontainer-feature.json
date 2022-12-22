@@ -14,7 +14,11 @@
             "description": "Liquibase version"
         }
     },
+    "containerEnv": {
+        "LIQUIBASE_HOME": "/usr/local/liquibase",
+        "PATH": "/usr/local/liquibase:${PATH}"
+    },
     "installsAfter": [
-        "ghcr.io/devcontainers/features/java"
+        "ghcr.io/devcontainers/features/java:latest"
     ]
 }
