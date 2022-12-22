@@ -1,0 +1,20 @@
+{
+    "id": "liquibase",
+    "version" : "1.0.0",
+    "name": "Lquibase",
+    "documentationUrl": "https://docs.liquibase.com",
+    "description": "Install the Liquibase.",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest"
+            ],
+            "default": "latest",
+            "description": "Liquibase version"
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/java"
+    ]
+}
