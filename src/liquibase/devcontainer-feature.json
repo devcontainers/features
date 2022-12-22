@@ -1,7 +1,7 @@
 {
     "id": "liquibase",
     "version" : "1.0.0",
-    "name": "Lquibase",
+    "name": "Liquibase",
     "documentationUrl": "https://docs.liquibase.com",
     "description": "Install the Liquibase.",
     "options": {
@@ -12,6 +12,11 @@
             ],
             "default": "latest",
             "description": "Liquibase version"
+        },
+        "installMongoDriver": {
+            "type": "boolean",
+            "default": false,
+            "description": "Install Mongodb Driver"
         }
     },
     "containerEnv": {
