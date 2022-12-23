@@ -298,6 +298,45 @@ else
     update-alternatives --set docker-compose /usr/local/bin/compose-switch
 fi
 
+# Create service for starting and stopping docker daemon
+tee /etc/init.d/docker > /dev/null \
+<< 'EOF'
+PID=$(pidof dockerd)
+case "$1" in
+  start)
+    echo "Starting Docker Daemon..."
+    sudo /usr/bin/dockerd > /dev/null 2>&1 &
+  ;;
+stop)
+    if ! [ -n "$PID" ]; then
+        echo "Docker Daemon is not running"
+        exit 1
+    else
+        sudo kill $PID -15
+        echo "Stopping Docker Daemon..."
+    fi
+    echo "Docker Deamon successfully stopped"
+  ;;
+restart)
+    echo "Restarting Docker Daemon..."
+    if [ -n "$PID" ]; then
+        service docker stop
+    fi
+
+    if ! [ -n "$PID" ]; then
+        service docker start
+    fi
+  ;;
+*)
+  echo "Usage: service docker (start|stop|restart)"
+  exit 1
+;;
+esac
+exit 0
+EOF
+
+chmod +x /etc/init.d/docker
+
 # If init file already exists, exit
 if [ -f "/usr/local/share/docker-init.sh" ]; then
     echo "/usr/local/share/docker-init.sh already exists, so exiting."
