@@ -477,7 +477,7 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
 fi
 
 # Persist image metadata info, script if meta.env found in same directory
-if [ -f "/usr/local/etc/vscode-dev-containers/meta.env" ]; then
+if [ -f "/usr/local/etc/vscode-dev-containers/meta.env" ] || [ -f "/usr/local/etc/dev-containers/meta.env" ] ; then
     cp -f "${FEATURE_DIR}/bin/devcontainer-info" /usr/local/bin/devcontainer-info
     chmod +x /usr/local/bin/devcontainer-info
 fi

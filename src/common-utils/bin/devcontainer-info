@@ -1,5 +1,12 @@
 #!/bin/sh
-. /usr/local/etc/vscode-dev-containers/meta.env
+
+# Load meta.env
+if [ -f "/usr/local/etc/vscode-dev-containers/meta.env" ]; then
+    . /usr/local/etc/vscode-dev-containers/meta.env
+fi
+if [ -f "/usr/local/etc/dev-containers/meta.env" ]; then
+    . /usr/local/etc/dev-containers/meta.env
+fi
 
 # Minimal output
 if [ "$1" = "version" ] || [ "$1" = "image-version" ]; then
