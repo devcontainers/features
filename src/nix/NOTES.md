@@ -26,3 +26,10 @@ sudo /usr/local/share/nix-entrypoint.sh
 ```
 
 This same command can be used to restart the daemon if it has stopped for some reason. Logs are available at `/tmp/nix-daemon.log`.
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.

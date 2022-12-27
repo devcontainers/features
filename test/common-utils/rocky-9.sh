@@ -9,6 +9,7 @@ source dev-container-features-test-lib
 . /etc/os-release
 check "non-root user" test "$(whoami)" = "devcontainer"
 check "distro" test "${PLATFORM_ID}" = "platform:el9"
+check "curl" curl --version
 
 # Report result
 reportResults

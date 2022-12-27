@@ -153,7 +153,6 @@ install_redhat_packages() {
         lsof \
         net-tools \
         psmisc \
-        curl \
         wget \
         ca-certificates \
         rsync \
@@ -173,6 +172,12 @@ install_redhat_packages() {
         which \
         man-db \
         strace"
+
+    # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
+    # Install 'curl' for every OS except this rockylinux:9
+    if [[ "${ID}" = "rocky" ]] && [[ "${VERSION}" != *"9."* ]]; then
+        package_list="${package_list} curl"
+    fi
 
     # Install OpenSSL 1.0 compat if needed
     if ${install_cmd} -q list compat-openssl10 >/dev/null 2>&1; then

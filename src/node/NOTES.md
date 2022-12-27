@@ -16,3 +16,10 @@ Alternatively, you can start up an interactive shell which will in turn source `
 "postCreateCommand": "bash -i -c 'nvm install --lts'"
 ```
 
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
