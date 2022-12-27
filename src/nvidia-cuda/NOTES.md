@@ -17,3 +17,10 @@ Enable GPU passthrough to your devcontainer by adding `["--gpus", "all"]` to you
   "runArgs": ["--gpus", "all"]
 }
 ```
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
