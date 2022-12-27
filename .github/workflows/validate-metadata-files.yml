@@ -4,12 +4,12 @@ on:
   pull_request:
 
 jobs:
-  deploy:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       
-      - name: "Publish"
+      - name: "Validate devcontainer-feature.json files"
         uses: devcontainers/action@v1
         with:
           validate-only: "true"
