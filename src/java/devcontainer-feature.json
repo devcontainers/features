@@ -61,7 +61,6 @@
       "description": "Select or enter a Maven version"
     }
   },
-  "buildArg": "_VSC_INSTALL_JAVA",
   "customizations": {
     "vscode": {
       "extensions": [
