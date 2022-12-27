@@ -46,6 +46,7 @@ git config devcontainers-theme.hide-status 1
 
 For `zsh`, the default theme is a [standard Oh My Zsh! theme](https://ohmyz.sh/). You may pick a different one by modifying the `ZSH_THEME` variable in `~/.zshrc`.
 
+
 ---
 
 _Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/common-utils/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
