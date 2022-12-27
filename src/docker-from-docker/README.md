@@ -1,7 +1,7 @@
 
 # Docker (Docker-from-Docker) (docker-from-docker)
 
-
+Re-use the host docker socket, adding the Docker CLI to a container. Feature invokes a script to enable using a forwarded Docker socket within a container to run Docker commands.
 
 ## Example Usage
 
