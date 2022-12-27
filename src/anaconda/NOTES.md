@@ -11,3 +11,10 @@ As covered in the [user FAQ](https://docs.anaconda.com/anaconda/user-guide/faq) 
 ```bash
 conda install python=3.7
 ```
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.

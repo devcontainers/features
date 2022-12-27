@@ -52,3 +52,10 @@ services:
 4. Docker commands with bind mount should work as they did outside of the devcontainer
 
 > **Note:** There is no `${localWorkspaceFolder}` when using the **Clone Repository in Container Volume** command in the VS Code Dev Containers extension ([info](https://github.com/microsoft/vscode-remote-release/issues/6160#issuecomment-1014701007)).
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
