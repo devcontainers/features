@@ -2,7 +2,7 @@
   "id": "nvidia-cuda",
   "version": "1.0.5",
   "name": "NVIDIA CUDA",
-  "description": "Installs shared libraries for NVIDIA CUDA.",
+  "INTENTIONAL_TYPO": "Installs shared libraries for NVIDIA CUDA.",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/nvidia-cuda",
   "options": {
     "installCudnn": {
