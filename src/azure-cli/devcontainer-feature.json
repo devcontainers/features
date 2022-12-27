@@ -15,6 +15,7 @@
     },
     "extensions": {
       "type": "string",
+      "proposals": [],
       "default": "",
       "description": "Optional comma separated list of Azure CLI extensions to install in profile."
     },
