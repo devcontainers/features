@@ -21,14 +21,15 @@
         "image": "ubuntu:focal",
         "remoteUser": "vscode",
         "features": {
-            "common-utils": {
-                "username": "vscode"
-            },
             "java": {
                 "version": "latest",
                 "installGradle": true,
                 "installMaven": true
-            }
+            },
+            "ghcr.io/devcontainers/features/common-utils:latest": {
+                "username": "vscode"
+            },
+            "ghcr.io/rocker-org/devcontainer-features/r-apt:latest": {}
         }
     },
     "install_gradle_and_maven": {
