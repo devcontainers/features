@@ -3,7 +3,7 @@
         "image": "mcr.microsoft.com/devcontainers/base",
         "remoteUser": "vscode",
         "features": {
-            "docker-from-docker": {
+            "docker-outside-of-docker": {
                 "version": "latest"
             }
         }
