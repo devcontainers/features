@@ -11,7 +11,7 @@ set -eux
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
-VERSION="${VERSION:-"latest"}"
+PHP_VERSION="${VERSION:-"latest"}"
 INSTALL_COMPOSER="${INSTALLCOMPOSER:-"true"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
@@ -20,7 +20,7 @@ USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="${UPDATE_RC:-"true"}"
 
 # Comma-separated list of php versions to be installed
-# alongside VERSION, but not set as default.
+# alongside PHP_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
 export DEBIAN_FRONTEND=noninteractive
@@ -92,7 +92,7 @@ find_version_from_git_tags() {
     local last_part="${escaped_separator}[0-9]+"
     local regex="\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
     local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
-    VERSION="$(echo "${version_list}" | head -n 1)"
+    PHP_VERSION="$(echo "${version_list}" | head -n 1)"
 }
 
 # Install PHP Composer
@@ -113,7 +113,15 @@ addcomposer() {
 RUNTIME_DEPS="wget ca-certificates git build-essential xz-utils"
 
 # PHP dependencies
-PHP_DEPS="libssl-dev libcurl4-openssl-dev libedit-dev libsqlite3-dev libxml2-dev zlib1g-dev libsodium-dev libargon2-dev libonig-dev"
+PHP_DEPS="libssl-dev libcurl4-openssl-dev libedit-dev libsqlite3-dev libxml2-dev zlib1g-dev libsodium-dev libonig-dev"
+
+. /etc/os-release
+
+if [ "${VERSION_CODENAME}" = "bionic" ]; then
+    PHP_DEPS="${PHP_DEPS} libargon2-0-dev"
+else
+    PHP_DEPS="${PHP_DEPS} libargon2-dev"
+fi
 
 # Dependencies required for running "phpize"
 PHPIZE_DEPS="autoconf dpkg-dev file g++ gcc libc-dev make pkg-config re2c"
@@ -210,7 +218,7 @@ install_php() {
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=\"${CURRENT_DIR}/bin:\${PATH}\"; fi"
 }
 
-install_php "${VERSION}"
+install_php "${PHP_VERSION}"
 
 # Additional php versions to be installed but not be set as default.
 if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
