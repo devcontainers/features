@@ -1,6 +1,6 @@
 {
     "id": "php",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "name": "PHP",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/php",
     "options": {
