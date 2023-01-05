@@ -146,6 +146,7 @@ install_debian_packages() {
 # RedHat / RockyLinux / CentOS / Fedora packages
 install_redhat_packages() {
     local package_list="\
+        gawk \
         openssh-clients \
         gnupg2 \
         iproute \
