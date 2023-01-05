@@ -299,9 +299,9 @@ startInBackgroundIfNotRunning()
 {
     log "Starting \$1."
     echo -e "\n** \$(date) **" | sudoIf tee -a /tmp/\$1.log > /dev/null
-    if ! pidof \$1 > /dev/null; then
+    if ! pgrep -x \$1 > /dev/null; then
         keepRunningInBackground "\$@"
-        while ! pidof \$1 > /dev/null; do
+        while ! pgrep -x \$1 > /dev/null; do
             sleep 1
         done
         log "\$1 started."
@@ -347,16 +347,16 @@ log "** SCRIPT START **"
 
 # Start dbus.
 log 'Running "/etc/init.d/dbus start".'
-if [ -f "/var/run/dbus/pid" ] && ! pidof dbus-daemon  > /dev/null; then
+if [ -f "/var/run/dbus/pid" ] && ! pgrep -x dbus-daemon  > /dev/null; then
     sudoIf rm -f /var/run/dbus/pid
 fi
 sudoIf /etc/init.d/dbus start 2>&1 | sudoIf tee -a /tmp/dbus-daemon-system.log > /dev/null
-while ! pidof dbus-daemon > /dev/null; do
+while ! pgrep -x dbus-daemon > /dev/null; do
     sleep 1
 done
 
 # Startup tigervnc server and fluxbox
-sudo rm -rf /tmp/.X11-unix /tmp/.X*-lock
+sudoIf rm -rf /tmp/.X11-unix /tmp/.X*-lock
 mkdir -p /tmp/.X11-unix
 sudoIf chmod 1777 /tmp/.X11-unix
 sudoIf chown root:\${group_name} /tmp/.X11-unix
