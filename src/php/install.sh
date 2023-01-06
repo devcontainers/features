@@ -189,13 +189,15 @@ install_php() {
     cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
     # Install xdebug
-    "${PHP_INSTALL_DIR}/bin/pecl" install xdebug
-    XDEBUG_INI="${CONF_DIR}/xdebug.ini"
+    if (( $(($PHP_MAJOR_VERSION)) >= 8 )); then 
+        "${PHP_INSTALL_DIR}/bin/pecl" install xdebug
+        XDEBUG_INI="${CONF_DIR}/xdebug.ini"
 
-    echo "zend_extension=${PHP_EXT_DIR}/xdebug.so" > "${XDEBUG_INI}"
-    echo "xdebug.mode = debug" >> "${XDEBUG_INI}"
-    echo "xdebug.start_with_request = yes" >> "${XDEBUG_INI}"
-    echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
+        echo "zend_extension=${PHP_EXT_DIR}/xdebug.so" > "${XDEBUG_INI}"
+        echo "xdebug.mode = debug" >> "${XDEBUG_INI}"
+        echo "xdebug.start_with_request = yes" >> "${XDEBUG_INI}"
+        echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
+    fi
 
     # Install PHP Composer if needed
     if [[ "${INSTALL_COMPOSER}" = "true" ]] || [[ $(composer --version) = "" ]]; then
