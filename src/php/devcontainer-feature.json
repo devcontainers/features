@@ -11,7 +11,7 @@
                 "8.0.16"
             ],
             "default": "latest",
-            "description": "Select or enter a PHP version"
+            "description": "Select or enter an exact PHP version"
         },
         "installComposer": {
             "type": "boolean",
