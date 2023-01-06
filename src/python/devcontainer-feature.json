@@ -1,13 +1,13 @@
 {
   "id": "python",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "name": "Python",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python",
   "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab is conditionally installed with the python feature. Note: May require source code compilation.",
   "options": {
     "version": {
       "type": "string",
-      "enum": [
+      "proposals": [
         "latest",
         "os-provided",
         "none",
