@@ -1,6 +1,6 @@
 {
   "id": "nvidia-cuda",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "name": "NVIDIA CUDA",
   "description": "Installs shared libraries for NVIDIA CUDA.",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/nvidia-cuda",
@@ -17,7 +17,7 @@
     },
     "cudaVersion": {
       "type": "string",
-      "enum": [
+      "proposals": [
         "11.8",
         "11.7",
         "11.6",
@@ -31,7 +31,7 @@
     },
     "cudnnVersion": {
       "type": "string",
-      "enum": [
+      "proposals": [
         "8.6.0.163",
         "8.5.0.96",
         "8.4.1.50",
