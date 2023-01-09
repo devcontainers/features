@@ -274,6 +274,84 @@ install_from_source() {
 
 }
 
+install_from_build() {
+    PYTHON_VERSION=$1 
+    echo "(*) Installing Python ${PYTHON_VERSION} from prebuilt binaries..."
+    # # Install prereqs if missing
+    # check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev libncurses5-dev \
+    #             libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
+    #             libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
+
+
+    check_packages curl ca-certificates tar
+
+    if ! type git > /dev/null 2>&1; then
+        check_packages git
+    fi
+
+    # Find version using soft match
+    find_version_from_git_tags PYTHON_VERSION "https://github.com/python/cpython"
+
+    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${PYTHON_VERSION}"
+    
+    if [ -d "${INSTALL_PATH}" ]; then
+        echo "(!) Python version ${PYTHON_VERSION} already exists."
+        exit 1
+    fi
+
+    . /etc/os-release
+    echo $(curl -sSL https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json) >> /tmp/versions-manifest.json
+    jq '.[] | select(.version=="3.8.11")' /tmp/versions-manifest.json
+
+    BINARY_URL=$(jq -r '.[] | select(.version=="3.8.11") | .files[] | select(.filename=="python-3.8.11-linux-18.04-x64.tar.gz") | .download_url' versions-manifest.json)
+    curl -sSL $BINARY_URL | tar -xzC /tmp 2>&1
+    # Download tgz of source
+    mkdir -p /tmp/python-binary ${INSTALL_PATH}
+    cd /tmp/python-binary
+
+    # TODO read URL from https://github.com/actions/python-versions/blob/main/versions-manifest.json
+
+
+
+    local filename="python-${PYTHON_VERSION}-linux-${$VERSION_ID}-x64.tar.gz"
+    echo $(curl -sSL https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json) >> versions-manifest.json
+    # local tgz_url="https://www.python.org/ftp/python/${PYTHON_VERSION}/${tgz_filename}"
+    # echo "Downloading ${tgz_filename}..."
+    # curl -sSL -o "/tmp/python-src/${tgz_filename}" "${tgz_url}"
+curl -sSL https://github.com/actions/python-versions/releases/download/3.11.0-3730290910/python-3.11.0-linux-20.04-x64.tar.gz | tar -xzC /tmp 2>&1
+    # # Verify signature
+    # receive_gpg_keys PYTHON_SOURCE_GPG_KEYS
+    # echo "Downloading ${tgz_filename}.asc..."
+    # curl -sSL -o "/tmp/python-src/${tgz_filename}.asc" "${tgz_url}.asc"
+    # gpg --verify "${tgz_filename}.asc"
+
+    # # Update min protocol for testing only - https://bugs.python.org/issue41561
+    # cp /etc/ssl/openssl.cnf /tmp/python-src/
+    # sed -i -E 's/MinProtocol[=\ ]+.*/MinProtocol = TLSv1.0/g' /tmp/python-src/openssl.cnf
+    # export OPENSSL_CONF=/tmp/python-src/openssl.cnf
+
+    # # Untar and build
+    # tar -xzf "/tmp/python-src/${tgz_filename}" -C "/tmp/python-src" --strip-components=1
+    # local config_args=""
+    # if [ "${OPTIMIZE_BUILD_FROM_SOURCE}" = "true" ]; then
+    #     config_args="--enable-optimizations"
+    # fi
+    # ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
+    # make -j 8
+    # make install
+    # cd /tmp
+    # rm -rf /tmp/python-src ${GNUPGHOME} /tmp/vscdc-settings.env
+
+    # ln -s "${INSTALL_PATH}/bin/python3" "${INSTALL_PATH}/bin/python"
+    # ln -s "${INSTALL_PATH}/bin/pip3" "${INSTALL_PATH}/bin/pip"
+    # ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
+    # ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
+    # ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
+
+    add_symlink
+
+}
+
 install_using_oryx() {
     VERSION=$1 
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
