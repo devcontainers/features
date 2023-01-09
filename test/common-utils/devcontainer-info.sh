@@ -5,15 +5,20 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
+check_info() {
+    local info=$1
+    check "devcontainer-info ${info}" sh -c "devcontainer-info | grep test-${info}"
+}
+
 # Definition specific tests
-check "devcontainer-info version" sh -c "devcontainer-info | grep test-version"
-check "devcontainer-info id" sh -c "devcontainer-info | grep test-build"
-check "devcontainer-info variant" sh -c "devcontainer-info | grep test-variant"
-check "devcontainer-info repository" sh -c "devcontainer-info | grep test-repository"
-check "devcontainer-info release" sh -c "devcontainer-info | grep test-release"
-check "devcontainer-info revigion" sh -c "devcontainer-info | grep test-revision"
-check "devcontainer-info timestamp" sh -c "devcontainer-info | grep test-time"
-check "devcontainer-info url" sh -c "devcontainer-info | grep test-url"
+check_info "version"
+check_info "id"
+check_info "variant"
+check_info "repository"
+check_info "release"
+check_info "revision"
+check_info "time"
+check_info "url"
 
 # Report result
 reportResults
