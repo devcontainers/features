@@ -11,6 +11,7 @@ check_info() {
 }
 
 # Definition specific tests
+check "user" bash -c "whoami | grep vscode"
 check_info "version"
 check_info "id"
 check_info "variant"
