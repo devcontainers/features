@@ -114,5 +114,13 @@
                 "configureZshAsDefaultShell": true
             }
         }
+    },
+    "devcontainer-info": {
+        "build": {
+            "dockerfile": "Dockerfile"
+        },
+        "features": {
+            "common-utils": {}
+        }
     }
 }
