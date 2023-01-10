@@ -1,5 +1,4 @@
 
-
 # Go (go)
 
 Installs Go and common Go utilities. Auto-detects latest version and installs needed dependencies.
