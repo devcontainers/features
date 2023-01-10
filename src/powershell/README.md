@@ -1,5 +1,4 @@
 
-
 # PowerShell (powershell)
 
 Installs PowerShell along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.
