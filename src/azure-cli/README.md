@@ -1,5 +1,4 @@
 
-
 # Azure CLI (azure-cli)
 
 Installs the Azure CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.

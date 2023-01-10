@@ -1,5 +1,4 @@
 
-
 # GitHub CLI (github-cli)
 
 Installs the GitHub CLI. Auto-detects latest version and installs needed dependencies.

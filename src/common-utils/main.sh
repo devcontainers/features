@@ -476,18 +476,18 @@ fi
 
 # code shim, it fallbacks to code-insiders if code is not available
 cp -f "${FEATURE_DIR}/bin/code" /usr/local/bin/
-chmod +x /usr/local/bin/code
+chmod +rx /usr/local/bin/code
 
 # systemctl shim for Debian/Ubuntu - tells people to use 'service' if systemd is not running
 if [ "${ADJUSTED_ID}" = "debian" ]; then
     cp -f "${FEATURE_DIR}/bin/systemctl" /usr/local/bin/systemctl
-    chmod +x /usr/local/bin/systemctl
+    chmod +rx /usr/local/bin/systemctl
 fi
 
 # Persist image metadata info, script if meta.env found in same directory
 if [ -f "/usr/local/etc/vscode-dev-containers/meta.env" ] || [ -f "/usr/local/etc/dev-containers/meta.env" ]; then
     cp -f "${FEATURE_DIR}/bin/devcontainer-info" /usr/local/bin/devcontainer-info
-    chmod +x /usr/local/bin/devcontainer-info
+    chmod +rx /usr/local/bin/devcontainer-info
 fi
 
 # Write marker file

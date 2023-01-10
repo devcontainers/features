@@ -1,5 +1,4 @@
 
-
 # Nix Package Manager (nix)
 
 Installs the Nix package manager and optionally a set of packages.
