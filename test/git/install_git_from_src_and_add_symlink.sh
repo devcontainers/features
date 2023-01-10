@@ -18,7 +18,8 @@ check "set-git-config-user-name" bash -c "git config --system user.name devconta
 check "gitconfig-file-location" bash -c "ls /usr/local/etc/gitconfig"
 check "gitconfig-contains-name" bash -c "cat /usr/local/etc/gitconfig | grep 'name = devcontainers'"
 
-check "etc-config-does-not-exist" test ! -f "/etc/gitconfig"
+check "linked-gitconfig-file-location" bash -c "ls /etc/gitconfig"
+check "linked-gitconfig-contains-name" bash -c "cat /etc/gitconfig | grep 'name = devcontainers'"
 
 # Report result
 reportResults
