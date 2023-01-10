@@ -115,6 +115,20 @@
             }
         }
     },
+    "alpine-3-14": {
+        "image": "alpine:3.14",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "alpine-3-15": {
+        "image": "alpine:3.15",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
     "devcontainer-info": {
         "build": {
             "dockerfile": "Dockerfile"

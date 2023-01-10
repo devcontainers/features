@@ -407,6 +407,8 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
             ;;
         "alpine")
             global_rc_path="/etc/bash/bashrc"
+            # /etc/bash/bashrc does not exist in alpine 3.14 & 3.15
+            mkdir -p /etc/bash
             ;;
     esac
     cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${global_rc_path}
