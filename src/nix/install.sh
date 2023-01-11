@@ -12,7 +12,7 @@ FLAKEURI="${FLAKEURI:-""}"
 EXTRANIXCONFIG="${EXTRANIXCONFIG:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
-# Nix keys for securly verifying installer download signature per https://nixos.org/download.html#nix-verify-installation
+# Nix keys for securely verifying installer download signature per https://nixos.org/download.html#nix-verify-installation
 NIX_GPG_KEYS="B541D55301270E0BCF15CA5D8170B4726D7198DE"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org

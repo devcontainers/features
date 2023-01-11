@@ -137,7 +137,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Fetch host/container arch.
 architecture="$(dpkg --print-architecture)"
 
-# Check if distro is suppported
+# Check if distro is supported
 if [ "${USE_MOBY}" = "true" ]; then
     # 'get_common_setting' allows attribute to be updated remotely
     get_common_setting DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES
@@ -305,7 +305,7 @@ if [ -f "/usr/local/share/docker-init.sh" ]; then
     rm -rf /var/lib/apt/lists/*
     exit 0
 fi
-echo "docker-init doesnt exist, adding..."
+echo "docker-init doesn't exist, adding..."
 
 # Add user to the docker group
 if [ "${ENABLE_NONROOT_DOCKER}" = "true" ]; then

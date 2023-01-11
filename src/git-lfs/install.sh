@@ -65,7 +65,7 @@ find_version_from_git_tags() {
 receive_gpg_keys() {
     local keys=${!1}
 
-    # Use a temporary locaiton for gpg keys to avoid polluting image
+    # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}

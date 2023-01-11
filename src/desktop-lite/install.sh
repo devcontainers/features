@@ -176,7 +176,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt_get_update
 
-# On older Ubuntu, Tilix is in a PPA. on Debian strech its in backports.
+# On older Ubuntu, Tilix is in a PPA. on Debian stretch its in backports.
 if [[ -z $(apt-cache --names-only search ^tilix$) ]]; then
     . /etc/os-release
     if [ "${ID}" = "ubuntu" ]; then
@@ -365,7 +365,7 @@ screen_geometry="\${VNC_RESOLUTION%*x*}"
 screen_depth="\${VNC_RESOLUTION##*x}"
 startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -desktop fluxbox -fg -passwd /usr/local/etc/vscode-dev-containers/vnc-passwd"
 
-# Spin up noVNC if installed and not runnning.
+# Spin up noVNC if installed and not running.
 if [ -d "/usr/local/novnc" ] && [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/launch.sh | grep -v grep)" = "" ]; then
     keepRunningInBackground "noVNC" sudoIf "/usr/local/novnc/noVNC*/utils/launch.sh --listen ${NOVNC_PORT} --vnc localhost:${VNC_PORT}"
     log "noVNC started."
