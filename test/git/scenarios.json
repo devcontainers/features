@@ -43,15 +43,5 @@
                 "ppa": "false"
             }
         }
-    },
-    "install_git_from_src_and_add_symlink": {
-        "image": "ubuntu:focal",
-        "features": {
-            "git": {
-                "version": "latest",
-                "ppa": "false",
-                "addGitConfigSymlink": "true"
-            }
-        }
     }
 }

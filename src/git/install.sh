@@ -9,7 +9,6 @@
 
 GIT_VERSION=${VERSION} # 'system' checks the base image first, else installs 'latest'
 USE_PPA_IF_AVAILABLE=${PPA}
-ADD_GIT_CONFIG_SYMBOLIC_LINK=${ADDGITCONFIGSYMLINK}
 
 GIT_CORE_PPA_ARCHIVE_GPG_KEY=E1DD270288B4E6030699E45FA1715D88E1DF1F24
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
@@ -145,12 +144,7 @@ echo "Downloading source for ${GIT_VERSION}..."
 curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
 echo "Building..."
 cd /tmp/git-${GIT_VERSION}
-make -s USE_LIBPCRE=YesPlease prefix=/usr/local all && make -s USE_LIBPCRE=YesPlease prefix=/usr/local install 2>&1
+make -s USE_LIBPCRE=YesPlease prefix=/usr/local sysconfdir=/etc all && make -s USE_LIBPCRE=YesPlease prefix=/usr/local sysconfdir=/etc install 2>&1
 rm -rf /tmp/git-${GIT_VERSION}
 rm -rf /var/lib/apt/lists/*
-
-if [ "${ADD_GIT_CONFIG_SYMBOLIC_LINK}" = "true" ]; then
-    ln -s /usr/local/etc/gitconfig /etc/gitconfig
-fi
-
 echo "Done!"

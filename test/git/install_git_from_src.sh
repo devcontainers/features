@@ -15,10 +15,10 @@ check "perl" bash -c "git -c grep.patternType=perl grep -q 'a.+b'"
 check "git-location" bash -c "which git | grep /usr/local/bin/git"
 
 check "set-git-config-user-name" bash -c "git config --system user.name devcontainers"
-check "gitconfig-file-location" bash -c "ls /usr/local/etc/gitconfig"
-check "gitconfig-contains-name" bash -c "cat /usr/local/etc/gitconfig | grep 'name = devcontainers'"
+check "gitconfig-file-location" bash -c "ls /etc/gitconfig"
+check "gitconfig-contains-name" bash -c "cat /etc/gitconfig | grep 'name = devcontainers'"
 
-check "etc-config-does-not-exist" test ! -f "/etc/gitconfig"
+check "usr-local-etc-config-does-not-exist" test ! -f "/usr/local/etc/gitconfig"
 
 # Report result
 reportResults
