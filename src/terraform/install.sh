@@ -24,7 +24,7 @@ TERRAGRUNT_SHA256="${TERRAGRUNT_SHA256:-"automatic"}"
 TFSEC_SHA256="${TFSEC_SHA256:-"automatic"}"
 TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
 
-TERRAFORM_GPG_KEY="72D7468F"
+TERRAFORM_GPG_KEY="34365D9472D7468F"
 TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/master/8CE69160EB3F2FE9.key"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
@@ -153,7 +153,7 @@ if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
     if [ "${TERRAFORM_SHA256}" = "automatic" ]; then
         receive_gpg_keys TERRAFORM_GPG_KEY
         curl -sSL -o terraform_SHA256SUMS https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS 
-        curl -sSL -o terraform_SHA256SUMS.sig https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
+        curl -sSL -o terraform_SHA256SUMS.sig https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.sig
         gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS
     else
         echo "${TERRAFORM_SHA256} *${terraform_filename}" > terraform_SHA256SUMS
