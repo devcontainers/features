@@ -385,6 +385,11 @@ else
     user_rc_path="/home/${USERNAME}"
 fi
 
+if [ ! -d "${user_rc_path}" ]; then
+    mkdir -p "${user_rc_path}"
+    chown ${USERNAME}:${group_name} "${user_rc_path}"
+fi
+
 # Restore user .bashrc / .profile / .zshrc defaults from skeleton file if it doesn't exist or is empty
 possible_rc_files=( ".bashrc" ".profile" ".zshrc" )
 for rc_file in "${possible_rc_files[@]}"; do
