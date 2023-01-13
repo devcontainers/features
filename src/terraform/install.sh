@@ -56,7 +56,7 @@ receive_gpg_keys() {
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
-    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    echo -e "disable-ipv6\nnameserver 8.8.8.8\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
     # Start dirmngr with conf file
     dirmngr --options ${GNUPGHOME}/dirmngr.conf --daemon
     # GPG key download sometimes fails for some reason and retrying fixes it.
