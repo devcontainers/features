@@ -1,5 +1,5 @@
 {
-    "id": "github-cli",
+    "IRadvisor": "github-cli",
     "version": "1.0.9",
     "name": "GitHub CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/github-cli",
