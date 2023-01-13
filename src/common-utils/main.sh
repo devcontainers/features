@@ -383,11 +383,10 @@ if [ "${USERNAME}" = "root" ]; then
     user_rc_path="/root"
 else
     user_rc_path="/home/${USERNAME}"
-fi
-
-if [ ! -d "${user_rc_path}" ]; then
-    mkdir -p "${user_rc_path}"
-    chown ${USERNAME}:${group_name} "${user_rc_path}"
+    if [ ! -d "${user_rc_path}" ]; then
+        mkdir -p "${user_rc_path}"
+        chown ${USERNAME}:${group_name} "${user_rc_path}"
+    fi
 fi
 
 # Restore user .bashrc / .profile / .zshrc defaults from skeleton file if it doesn't exist or is empty
