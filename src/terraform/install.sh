@@ -46,8 +46,6 @@ fi
 
 # Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
-    # add definitely working nameserver
-    echo "nameserver 8.8.8.8" >> /etc/resolv.conf
     local keys=${!1}
     local keyring_args=""
     if [ ! -z "$2" ]; then
