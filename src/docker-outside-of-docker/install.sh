@@ -285,6 +285,7 @@ usermod -aG docker "${USERNAME}"
 DOCKER_GID="$(grep -oP '^docker:x:\K[^:]+' /etc/group)"
 
 # If enabling non-root access and specified user is found, setup socat and add script
+chown -h "${USERNAME}":root "${SOURCE_SOCKET}"
 chown -h "${USERNAME}":root "${TARGET_SOCKET}"
 check_packages socat
 tee /usr/local/share/docker-init.sh > /dev/null \
