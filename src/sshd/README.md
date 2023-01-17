@@ -76,7 +76,7 @@ While the some services automates SSH setup (e.g., when using the GitHub CLI for
         ```
         \\sshfs.r\vscode@localhost!2222\workspaces
         ```
-        ...where `vscode` above is the user you are running as in the container and `2222` after the `!` is the same local port you used in the `ssh` command in the previous seciton.
+        ...where `vscode` above is the user you are running as in the container and `2222` after the `!` is the same local port you used in the `ssh` command in the previous section.
 
 4. Your dev container's filesystem should now be available in the `~/sshfs/devcontainer` folder on macOS or Linux or in a new explorer window on Windows.
 
