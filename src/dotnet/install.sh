@@ -316,8 +316,8 @@ install_using_dotnet_releases_url() {
     local sdk_or_runtime="$1"
     local version="$2"
 
-    # Check listed package dependecies and install them if they are not already installed. 
-    # NOTE: icu-devtools is a small package with similar dependecies to .NET. 
+    # Check listed package dependencies and install them if they are not already installed. 
+    # NOTE: icu-devtools is a small package with similar dependencies to .NET. 
     #       It will install the appropriate dependencies based on the OS:
     #         - libgcc-s1 OR libgcc1 depending on OS
     #         - the latest libicuXX depending on OS (eg libicu57 for stretch)

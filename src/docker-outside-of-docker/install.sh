@@ -126,7 +126,7 @@ fi
 # Fetch host/container arch.
 architecture="$(dpkg --print-architecture)"
 
-# Check if distro is suppported
+# Check if distro is supported
 if [ "${USE_MOBY}" = "true" ]; then
     # 'get_common_setting' allows attribute to be updated remotely
     get_common_setting DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES
@@ -209,7 +209,7 @@ else
         TARGET_COMPOSE_ARCH="x86_64"
     fi
     if [ "${TARGET_COMPOSE_ARCH}" != "x86_64" ]; then
-        # Use pip to get a version that runns on this architecture
+        # Use pip to get a version that runs on this architecture
         check_packages python3-minimal python3-pip libffi-dev python3-venv
         export PIPX_HOME=/usr/local/pipx
         mkdir -p ${PIPX_HOME}
@@ -260,7 +260,7 @@ if [ -f "/usr/local/share/docker-init.sh" ]; then
     rm -rf /var/lib/apt/lists/*
     exit 0
 fi
-echo "docker-init doesnt exist, adding..."
+echo "docker-init doesn't exist, adding..."
 
 # By default, make the source and target sockets the same
 if [ "${SOURCE_SOCKET}" != "${TARGET_SOCKET}" ]; then
