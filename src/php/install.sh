@@ -84,15 +84,38 @@ check_packages() {
     fi
 }
 
-# Figure out correct version of PHP
+# Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
-    local repository="https://github.com/php/php-src"
-    local separator="."
-    local escaped_separator=${separator//./\\.}
-    local last_part="${escaped_separator}[0-9]+"
-    local regex="\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
-    local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
-    PHP_VERSION="$(echo "${version_list}" | head -n 1)"
+    local variable_name=$1
+    local requested_version=${!variable_name}
+    if [ "${requested_version}" = "none" ]; then return; fi
+    local repository=$2
+    local prefix=${3:-"tags/v"}
+    local separator=${4:-"."}
+    local last_part_optional=${5:-"false"}    
+    if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
+        local escaped_separator=${separator//./\\.}
+        local last_part
+        if [ "${last_part_optional}" = "true" ]; then
+            last_part="(${escaped_separator}[0-9]+)?"
+        else
+            last_part="${escaped_separator}[0-9]+"
+        fi
+        local regex="${prefix}\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
+        local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
+        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
+            declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
+        else
+            set +e
+            declare -g ${variable_name}="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
+            set -e
+        fi
+    fi
+    if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" > /dev/null 2>&1; then
+        echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
+        exit 1
+    fi
+    echo "${variable_name}=${!variable_name}"
 }
 
 # Install PHP Composer
@@ -131,11 +154,7 @@ check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
 
 install_php() {
     PHP_VERSION="$1"
-
-    # Fetch latest version of PHP if needed
-    if [ "${PHP_VERSION}" = "latest" ] || [ "${PHP_VERSION}" = "lts" ]; then
-        find_version_from_git_tags
-    fi
+    find_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
 
     PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
     if [ -d "${PHP_INSTALL_DIR}" ]; then
