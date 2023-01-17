@@ -58,7 +58,7 @@ jobs:
             "mcr.microsoft.com/devcontainers/base:debian",
           ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
@@ -74,7 +74,7 @@ jobs:
       matrix:
         features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
