@@ -73,7 +73,7 @@
         "1.9.15"
       ],
       "default": "latest",
-      "description": "Select or enter a Ant version"
+      "description": "Select or enter an Ant version"
     }
   },
   "customizations": {
