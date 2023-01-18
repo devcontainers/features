@@ -93,6 +93,8 @@ find_version_from_git_tags() {
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
     local last_part_optional=${5:-"false"}    
+    echo "${!variable_name}"
+    echo "$(echo "${requested_version}" | grep -o "." | wc -l)"
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -111,6 +113,7 @@ find_version_from_git_tags() {
             set -e
         fi
     fi
+    echo "${!variable_name}"
     if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" > /dev/null 2>&1; then
         echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
         exit 1
@@ -154,8 +157,6 @@ check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
 
 install_php() {
     PHP_VERSION="$1"
-    find_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
-
     PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
     if [ -d "${PHP_INSTALL_DIR}" ]; then
         echo "(!) PHP version ${PHP_VERSION} already exists."
@@ -237,6 +238,7 @@ install_php() {
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=\"${CURRENT_DIR}/bin:\${PATH}\"; fi"
 }
 
+find_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
 install_php "${PHP_VERSION}"
 
 # Additional php versions to be installed but not be set as default.
