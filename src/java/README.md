@@ -21,8 +21,6 @@ Installs Java, SDKMAN! (if not installed), and needed dependencies.
 | gradleVersion | Select or enter a Gradle version | string | latest |
 | installMaven | Install Maven, a management tool for Java | boolean | false |
 | mavenVersion | Select or enter a Maven version | string | latest |
-| installAnt | Install Ant, a software tool for automating software build processes | boolean | false |
-| antVersion | Select or enter a Ant version | string | latest |
 
 ## License
 
