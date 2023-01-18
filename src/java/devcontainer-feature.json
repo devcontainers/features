@@ -59,6 +59,21 @@
       ],
       "default": "latest",
       "description": "Select or enter a Maven version"
+    },
+    "installAnt": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install Ant, a software tool for automating software build processes"
+    },
+    "antVersion": {
+      "type": "string",
+      "proposals": [
+        "latest",
+        "1.10.12",
+        "1.9.15"
+      ],
+      "default": "latest",
+      "description": "Select or enter a Ant version"
     }
   },
   "customizations": {
@@ -74,7 +89,7 @@
   "containerEnv": {
     "SDKMAN_DIR": "/usr/local/sdkman",
     "JAVA_HOME": "/usr/local/sdkman/candidates/java/current",
-    "PATH": "/usr/local/sdkman/bin:/usr/local/sdkman/candidates/java/current/bin:/usr/local/sdkman/candidates/gradle/current/bin:/usr/local/sdkman/candidates/maven/current/bin:${PATH}"
+    "PATH": "/usr/local/sdkman/bin:/usr/local/sdkman/candidates/java/current/bin:/usr/local/sdkman/candidates/gradle/current/bin:/usr/local/sdkman/candidates/maven/current/bin:/usr/local/sdkman/candidates/ant/current/bin:${PATH}"
   },
   "installsAfter": [
       "ghcr.io/devcontainers/features/common-utils"
