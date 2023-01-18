@@ -14,6 +14,8 @@ INSTALL_GRADLE="${INSTALLGRADLE:-"false"}"
 GRADLE_VERSION="${GRADLEVERSION:-"latest"}"
 INSTALL_MAVEN="${INSTALLMAVEN:-"false"}"
 MAVEN_VERSION="${MAVENVERSION:-"latest"}"
+INSTALL_ANT="${INSTALLANT:-"false"}"
+ANT_VERSION="${ANTVERSION:-"latest"}"
 JDK_DISTRO="${JDKDISTRO}"
 
 export SDKMAN_DIR="${SDKMAN_DIR:-"/usr/local/sdkman"}"
@@ -171,6 +173,11 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         done
     IFS=$OLDIFS
     su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk default java ${JAVA_VERSION}"
+fi
+
+# Install Ant
+if [[ "${INSTALL_ANT}" = "true" ]] && ! ant -version > /dev/null; then
+    sdk_install ant ${ANT_VERSION}
 fi
 
 # Install Gradle
