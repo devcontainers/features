@@ -12,12 +12,6 @@ FLAKEURI="${FLAKEURI:-""}"
 EXTRANIXCONFIG="${EXTRANIXCONFIG:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
-# Nix keys for securely verifying installer download signature per https://nixos.org/download.html#nix-verify-installation
-NIX_GPG_KEYS="B541D55301270E0BCF15CA5D8170B4726D7198DE"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
-keyserver hkps://keys.openpgp.org
-keyserver hkp://keyserver.pgp.com"
-
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -61,10 +55,6 @@ else
         find_prev_version_from_git_tags VERSION https://github.com/NixOS/nix "tags/"
         curl -sSLf -o "${tmpdir}/install-nix" https://releases.nixos.org/nix/nix-${VERSION}/install
     fi
-    curl -sSLf -o "${tmpdir}/install-nix.asc" https://releases.nixos.org/nix/nix-${VERSION}/install.asc
-    cd "${tmpdir}"
-    receive_gpg_keys NIX_GPG_KEYS
-    gpg2 --verify ./install-nix.asc
     cd "${FEATURE_DIR}"
 
     # Do a multi or single-user setup based on feature config
