@@ -11,6 +11,6 @@ This docker-in-docker Dev Container Feature is roughly based on the [official do
 
 ## OS Support
 
-This feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
 
 `bash` is required to execute the `install.sh` script.
