@@ -393,7 +393,7 @@ fi
 possible_rc_files=( ".bashrc" ".profile" ".zshrc" )
 for rc_file in "${possible_rc_files[@]}"; do
     if [ -f "/etc/skel/${rc_file}" ]; then
-        if [ ! -e "${user_rc_path}/${rc_file}" ] || [ -s "${user_rc_path}/${rc_file}" ]; then
+        if [ ! -e "${user_rc_path}/${rc_file}" ] || [ ! -s "${user_rc_path}/${rc_file}" ]; then
             cp "/etc/skel/${rc_file}" "${user_rc_path}/${rc_file}"
             chown ${USERNAME}:${group_name} "${user_rc_path}/${rc_file}"
         fi
