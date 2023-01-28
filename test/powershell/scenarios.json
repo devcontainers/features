@@ -1,0 +1,10 @@
+{
+  "install_bicep": {
+    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "features": {
+      "powershell": {
+        "installBicep": true
+      }
+    }
+  }
+}
