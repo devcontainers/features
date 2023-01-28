@@ -16,6 +16,7 @@ Installs PowerShell along with needed dependencies. Useful for base Dockerfiles 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter a version of PowerShell. | string | latest |
+| installBicep | Optionally install Azure Bicep | boolean | false |
 
 
 

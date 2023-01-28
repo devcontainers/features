@@ -14,8 +14,13 @@
             ],
             "default": "latest",
             "description": "Select or enter a version of PowerShell."
-        }
-    },
+        },
+        "installBicep": {
+            "type": "boolean",
+            "description": "Optionally install Azure Bicep",
+            "default": false
+          }
+        },
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"
     ]

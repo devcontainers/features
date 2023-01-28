@@ -13,6 +13,7 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 POWERSHELL_VERSION=${VERSION:-"latest"}
+POWERSHELL_INSTALLBICEP=${INSTALLBICEP:-false}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 POWERSHELL_ARCHIVE_ARCHITECTURES="amd64"
@@ -147,6 +148,21 @@ fi
 if [ "${use_github}" = "true" ]; then
     echo "Attempting install from GitHub release..."
     install_using_github
+fi
+
+if [ "${POWERSHELL_INSTALLBICEP}" = "true" ]; then
+    # Install dependencies
+    check_packages apt-transport-https curl 
+    
+    # Properly install Azure Bicep based on current architecture
+    if [ "${architecture}" = "arm64" ]; then
+        curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-arm64
+    else 
+        curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+    fi
+    
+    chmod +x ./bicep
+    mv ./bicep /usr/local/bin/bicep
 fi
 
 # Clean up
