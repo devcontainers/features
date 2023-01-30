@@ -158,7 +158,7 @@ if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
     for i in "${modules[@]}"
     do
         echo "Installing ${i}"
-        pwsh -Command "Install-Module -Name ${i} -AllowClobber -Force -Scope AllUsers"|| continue
+        pwsh -Command "Install-Module -Name ${i} -AllowClobber -Force -Scope AllUsers" || continue
     done
 fi
 
