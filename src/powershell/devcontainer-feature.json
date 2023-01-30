@@ -19,11 +19,6 @@
             "type": "string",
             "default": "",
             "description": "Optional comma separated list of PowerShell modules to install."
-          },
-        "installBicep": {
-            "type": "boolean",
-            "description": "Optionally install Azure Bicep",
-            "default": false
           }
         },
     "installsAfter": [

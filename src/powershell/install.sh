@@ -14,7 +14,6 @@ rm -rf /var/lib/apt/lists/*
 
 POWERSHELL_VERSION=${VERSION:-"latest"}
 POWERSHELL_MODULES="${MODULES}"
-POWERSHELL_INSTALLBICEP=${INSTALLBICEP:-false}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 POWERSHELL_ARCHIVE_ARCHITECTURES="amd64"
@@ -160,21 +159,6 @@ if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
         echo "Installing ${i}"
         pwsh -Command "Install-Module -Name ${i} -AllowClobber -Force -Scope AllUsers" || continue
     done
-fi
-
-if [ "${POWERSHELL_INSTALLBICEP}" = "true" ]; then
-    # Install dependencies
-    check_packages apt-transport-https curl 
-    
-    # Properly install Azure Bicep based on current architecture
-    if [ "${architecture}" = "arm64" ]; then
-        curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-arm64
-    else 
-        curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
-    fi
-    
-    chmod +x ./bicep
-    mv ./bicep /usr/local/bin/bicep
 fi
 
 # Clean up
