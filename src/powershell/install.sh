@@ -13,6 +13,7 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 POWERSHELL_VERSION=${VERSION:-"latest"}
+POWERSHELL_MODULES="${MODULES}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 POWERSHELL_ARCHIVE_ARCHITECTURES="amd64"
@@ -147,6 +148,17 @@ fi
 if [ "${use_github}" = "true" ]; then
     echo "Attempting install from GitHub release..."
     install_using_github
+fi
+
+# If PowerShell modules are requested, loop through and install 
+if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
+    echo "Installing PowerShell Modules: ${POWERSHELL_MODULES}"
+    modules=(`echo ${POWERSHELL_MODULES} | tr ',' ' '`)
+    for i in "${modules[@]}"
+    do
+        echo "Installing ${i}"
+        pwsh -Command "Install-Module -Name ${i} -AllowClobber -Force -Scope AllUsers" || continue
+    done
 fi
 
 # Clean up
