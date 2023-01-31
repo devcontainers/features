@@ -78,6 +78,9 @@ check_packages() {
 
 export DEBIAN_FRONTEND=noninteractive
 
+# Required for git autocomplete 
+check_packages bash-completion
+
 # Source /etc/os-release to get OS info
 . /etc/os-release
 
