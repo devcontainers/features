@@ -36,7 +36,12 @@
                 "rust-lang.rust-analyzer",
                 "tamasfe.even-better-toml",
                 "serayuzgur.crates"
-            ]
+            ],
+            "settings": {
+                "files.watcherExclude": {
+                    "**/target/**": true
+                }
+            }
         }
     },
     "containerEnv": {
