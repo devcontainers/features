@@ -196,14 +196,14 @@ else
         apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx
         apt-get -y install --no-install-recommends moby-compose || echo "(*) Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
     else
-        apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix}
+        apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-buildx-plugin docker-compose-plugin
     fi
 fi
 
 # Install Docker Compose if not already installed  and is on a supported architecture
 if type docker-compose > /dev/null 2>&1; then
     echo "Docker Compose already installed."
-else
+elif [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
     TARGET_COMPOSE_ARCH="$(uname -m)"
     if [ "${TARGET_COMPOSE_ARCH}" = "amd64" ]; then
         TARGET_COMPOSE_ARCH="x86_64"
@@ -230,28 +230,13 @@ else
         curl -fsSL "https://github.com/docker/compose/releases/download/${compose_v1_version}/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
         chmod +x /usr/local/bin/docker-compose
     fi
-fi
-
-# Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
-current_v1_compose_path="$(which docker-compose)"
-target_v1_compose_path="$(dirname "${current_v1_compose_path}")/docker-compose-v1"
-if ! type compose-switch > /dev/null 2>&1; then
-    echo "(*) Installing compose-switch..."
+else
+    echo "(*) Installing compose-switch as docker-compose..."
     compose_switch_version="latest"
     find_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch"
-    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
-    chmod +x /usr/local/bin/compose-switch
+    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
     # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
-
-    # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
-    mv "${current_v1_compose_path}" "${target_v1_compose_path}"
-    update-alternatives --install /usr/local/bin/docker-compose docker-compose /usr/local/bin/compose-switch 99
-    update-alternatives --install /usr/local/bin/docker-compose docker-compose "${target_v1_compose_path}" 1
-fi
-if [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
-    update-alternatives --set docker-compose "${target_v1_compose_path}"
-else
-    update-alternatives --set docker-compose /usr/local/bin/compose-switch
 fi
 
 # If init file already exists, exit
