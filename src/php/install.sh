@@ -126,9 +126,10 @@ addcomposer() {
     "${PHP_SRC}" -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
     HASH="$(wget -q -O - https://composer.github.io/installer.sig)"
     "${PHP_SRC}" -r "if (hash_file('sha384', 'composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-    "${PHP_SRC}" composer-setup.php
+    "${PHP_SRC}" composer-setup.php --install-dir="/usr/local/bin" --filename=composer
     "${PHP_SRC}" -r "unlink('composer-setup.php');"
 }
+
 install_php() {
     PHP_VERSION="$1"
     PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
