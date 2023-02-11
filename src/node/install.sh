@@ -103,6 +103,13 @@ else
     apt-get -y install --no-install-recommends yarn
 fi
 
+# Install pnpm
+if type pnpm > /dev/null 2>&1; then
+    echo "pnpm already installed."
+else
+    curl -fsSL https://get.pnpm.io/install.sh | sh -
+fi
+
 # Adjust node version if required
 if [ "${NODE_VERSION}" = "none" ]; then
     export NODE_VERSION=
