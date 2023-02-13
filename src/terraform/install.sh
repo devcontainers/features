@@ -28,9 +28,11 @@ TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
 
 TERRAFORM_GPG_KEY="72D7468F"
 TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/master/8CE69160EB3F2FE9.key"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
+GPG_KEY_SERVERS="keyserver hkps://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
-keyserver hkp://keyserver.pgp.com"
+keyserver hkps://keyserver.pgp.com"
+GPG_OPTS=""
+if [ "${http_proxy}" != "" ]; then GPG_OPTS="--keyserver-options http-proxy=$http_proxy"; fi
 
 architecture="$(uname -m)"
 case ${architecture} in
@@ -52,6 +54,9 @@ receive_gpg_keys() {
     local keyring_args=""
     if [ ! -z "$2" ]; then
         keyring_args="--no-default-keyring --keyring $2"
+    fi
+    if [ "${http_proxy}" != "" ]; then
+	keyring_args="${keyring_args} --keyserver-options http-proxy=$http_proxy"
     fi
 
     # Use a temporary location for gpg keys to avoid polluting image
