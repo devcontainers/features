@@ -33,6 +33,11 @@
             "default": "latest",
             "description": "Terragrunt version"
         },
+        "installSentinel": {
+            "type": "boolean",
+            "default": false,
+            "description": "Install sentinel, a language and framework for policy built to be embedded in existing software to enable fine-grained, logic-based policy decisions"
+        },
         "installTFsec": {
             "type": "boolean",
             "default": false,
