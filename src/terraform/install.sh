@@ -235,7 +235,7 @@ if [ "${INSTALL_SENTINEL}" = "true" ]; then
         if [ "${SENTINEL_SHA256}" = "automatic" ]; then
             receive_gpg_keys TERRAFORM_GPG_KEY
             curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
-            curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.sig
+            curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
             gpg --verify sentinel_checksums.txt.sig sentinel_checksums.txt
             # Verify the SHASUM matches the archive
             shasum -a 256 --ignore-missing -c sentinel_checksums.txt
