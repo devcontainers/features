@@ -226,9 +226,9 @@ fi
 
 if [ "${INSTALL_SENTINEL}" = "true" ]; then
     SENTINEL_VERSION="latest"
-    find_sentinel_version_from_url SENTINEL_VERSION 'https://releases.hashicorp.com/sentinel'
-    sentinel_filename="sentinel_${SENTINEL_VERSION}_linux_${architecture}.zip"
     sentinel_releases_url='https://releases.hashicorp.com/sentinel'
+    find_sentinel_version_from_url SENTINEL_VERSION ${sentinel_releases_url}
+    sentinel_filename="sentinel_${SENTINEL_VERSION}_linux_${architecture}.zip"
     echo "(*) Downloading Sentinel... ${sentinel_filename}"
     curl -sSL -o /tmp/tf-downloads/${sentinel_filename} ${sentinel_releases_url}/${SENTINEL_VERSION}/${sentinel_filename}
     if [ "${SENTINEL_SHA256}" != "dev-mode" ]; then
