@@ -15,12 +15,14 @@ rm -rf /var/lib/apt/lists/*
 TERRAFORM_VERSION="${VERSION:-"latest"}"
 TFLINT_VERSION="${TFLINT:-"latest"}"
 TERRAGRUNT_VERSION="${TERRAGRUNT:-"latest"}"
+INSTALL_SENTINEL=${INSTALLSENTINEL:-false}
 INSTALL_TFSEC=${INSTALLTFSEC:-false}
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
 
 TERRAFORM_SHA256="${TERRAFORM_SHA256:-"automatic"}"
 TFLINT_SHA256="${TFLINT_SHA256:-"automatic"}"
 TERRAGRUNT_SHA256="${TERRAGRUNT_SHA256:-"automatic"}"
+SENTINEL_SHA256="${SENTINEL_SHA256:-"automatic"}"
 TFSEC_SHA256="${TFSEC_SHA256:-"automatic"}"
 TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
 
@@ -112,6 +114,30 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+find_sentinel_version_from_url() {
+    local variable_name=$1
+    local requested_version=${!variable_name}
+    if [ "${requested_version}" = "none" ]; then return; fi
+    local repository=$2
+    if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
+        local prefix='sentinel_'
+        local regex="${prefix}\d.\d{2}.\d(?:-\w*)?"
+        local version_list="$(wget -q $2 -O - | grep -oP ${regex} | tr -d ${prefix} | sort -rV)"
+        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
+            declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
+        else
+            set +e
+            declare -g ${variable_name}="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
+            set -e
+        fi
+    fi
+    if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" >/dev/null 2>&1; then
+        echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
+        exit 1
+    fi
+    echo "${variable_name}=${!variable_name}"
+}
+
 apt_get_update()
 {
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
@@ -196,6 +222,31 @@ if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
     fi
     chmod a+x /tmp/tf-downloads/${terragrunt_filename}
     mv -f /tmp/tf-downloads/${terragrunt_filename} /usr/local/bin/terragrunt
+fi
+
+if [ "${INSTALL_SENTINEL}" = "true" ]; then
+    SENTINEL_VERSION="latest"
+    sentinel_releases_url='https://releases.hashicorp.com/sentinel'
+    find_sentinel_version_from_url SENTINEL_VERSION ${sentinel_releases_url}
+    sentinel_filename="sentinel_${SENTINEL_VERSION}_linux_${architecture}.zip"
+    echo "(*) Downloading Sentinel... ${sentinel_filename}"
+    curl -sSL -o /tmp/tf-downloads/${sentinel_filename} ${sentinel_releases_url}/${SENTINEL_VERSION}/${sentinel_filename}
+    if [ "${SENTINEL_SHA256}" != "dev-mode" ]; then
+        if [ "${SENTINEL_SHA256}" = "automatic" ]; then
+            receive_gpg_keys TERRAFORM_GPG_KEY
+            curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
+            curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
+            gpg --verify sentinel_checksums.txt.sig sentinel_checksums.txt
+            # Verify the SHASUM matches the archive
+            shasum -a 256 --ignore-missing -c sentinel_checksums.txt
+        else
+            echo "${SENTINEL_SHA256} *${SENTINEL_FILENAME}" >sentinel_checksums.txt
+        fi
+        sha256sum --ignore-missing -c sentinel_checksums.txt
+    fi
+    unzip /tmp/tf-downloads/${sentinel_filename}
+    chmod a+x /tmp/tf-downloads/sentinel
+    mv -f /tmp/tf-downloads/sentinel /usr/local/bin/sentinel
 fi
 
 if [ "${INSTALL_TFSEC}" = "true" ]; then
