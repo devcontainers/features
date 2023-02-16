@@ -103,13 +103,6 @@ else
     apt-get -y install --no-install-recommends yarn
 fi
 
-# Install pnpm
-if type pnpm > /dev/null 2>&1; then
-    echo "pnpm already installed."
-else
-    curl -fsSL https://get.pnpm.io/install.sh | sh -
-fi
-
 # Adjust node version if required
 if [ "${NODE_VERSION}" = "none" ]; then
     export NODE_VERSION=
@@ -169,6 +162,13 @@ else
     if [ "${NODE_VERSION}" != "" ]; then
         su ${USERNAME} -c "umask 0002 && . $NVM_DIR/nvm.sh && nvm install ${NODE_VERSION} && nvm alias default ${NODE_VERSION}"
     fi
+fi
+
+# Install pnpm
+if type pnpm > /dev/null 2>&1; then
+    echo "pnpm already installed."
+else
+    npm install -g pnpm
 fi
 
 # Additional node versions to be installed but not be set as 
