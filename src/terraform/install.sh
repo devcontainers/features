@@ -31,8 +31,6 @@ TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/m
 GPG_KEY_SERVERS="keyserver hkps://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkps://keyserver.pgp.com"
-GPG_OPTS=""
-if [ "${http_proxy}" != "" ]; then GPG_OPTS="--keyserver-options http-proxy=$http_proxy"; fi
 
 architecture="$(uname -m)"
 case ${architecture} in
