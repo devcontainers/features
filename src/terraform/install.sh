@@ -53,7 +53,7 @@ receive_gpg_keys() {
     if [ ! -z "$2" ]; then
         keyring_args="--no-default-keyring --keyring $2"
     fi
-    if [ "${http_proxy}" != "" ]; then
+    if [ ! -z "${http_proxy}" ]; then
 	keyring_args="${keyring_args} --keyserver-options http-proxy=$http_proxy"
     fi
 
