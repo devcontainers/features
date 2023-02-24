@@ -47,6 +47,11 @@
             "type": "boolean",
             "default": false,
             "description": "Install terraform-docs, a utility to generate documentation from Terraform modules"
+        },
+        "http_proxy": {
+            "type": "string",
+            "default": "",
+            "description": "Set proxy for gpg keyserver option"
         }
     },
     "customizations": {
