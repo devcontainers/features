@@ -164,13 +164,6 @@ else
     fi
 fi
 
-# Install pnpm
-if type pnpm > /dev/null 2>&1; then
-    echo "pnpm already installed."
-else
-    npm install -g pnpm
-fi
-
 # Additional node versions to be installed but not be set as 
 # default we can assume the nvm is the group owner of the nvm
 # directory and the sticky bit on directories so any installed
@@ -188,6 +181,17 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
                 su ${USERNAME} -c "umask 0002 && . $NVM_DIR/nvm.sh && nvm use default"
         fi
     IFS=$OLDIFS
+fi
+
+# Install pnpm
+if type pnpm > /dev/null 2>&1; then
+    echo "pnpm already installed."
+else
+    if type npm > /dev/null 2>&1; then
+        npm install -g pnpm
+    else
+        echo "Skip installing pnpm because npm is missing"
+    fi
 fi
 
 # If enabled, verify "python3", "make", "gcc", "g++" commands are available so node-gyp works - https://github.com/nodejs/node-gyp
