@@ -51,7 +51,7 @@
         "http_proxy": {
             "type": "string",
             "default": "",
-            "description": "Set proxy for gpg keyserver option"
+            "description": "Connect to a keyserver using a proxy by configuring this option"
         }
     },
     "customizations": {
