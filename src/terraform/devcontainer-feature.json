@@ -48,7 +48,7 @@
             "default": false,
             "description": "Install terraform-docs, a utility to generate documentation from Terraform modules"
         },
-        "http_proxy": {
+        "httpProxy": {
             "type": "string",
             "default": "",
             "description": "Connect to a keyserver using a proxy by configuring this option"
