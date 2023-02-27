@@ -31,7 +31,7 @@ TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/m
 GPG_KEY_SERVERS="keyserver hkps://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkps://keyserver.pgp.com"
-HTTP_PROXY=${HTTPPROXY:-""}
+KEYSERVER_PROXY=${HTTPPROXY:-$HTTP_PROXY}
 
 architecture="$(uname -m)"
 case ${architecture} in
@@ -54,8 +54,8 @@ receive_gpg_keys() {
     if [ ! -z "$2" ]; then
         keyring_args="--no-default-keyring --keyring $2"
     fi
-    if [ ! -z "${HTTP_PROXY}" ]; then
-	keyring_args="${keyring_args} --keyserver-options http-proxy=${HTTP_PROXY}"
+    if [ ! -z "${KEYSERVER_PROXY}" ]; then
+	keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
     fi
 
     # Use a temporary location for gpg keys to avoid polluting image
