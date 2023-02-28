@@ -63,14 +63,5 @@
                 "version": "lts"
             }
         }
-    },
-    "install_wo_apt": {
-        "image": "ubuntu:jammy",
-        "features": {
-            "dotnet": {
-                "version": "7",
-                "installUsingApt": false
-            }
-        }
     }
 }
