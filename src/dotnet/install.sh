@@ -7,16 +7,14 @@
 # Docs: https://github.com/devcontainers/features/tree/main/src/dotnet
 # Maintainer: The VS Code and Codespaces Teams
 
-VERSION="${VERSION:-"latest"}"
-ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
-RUNTIME_ONLY="${RUNTIMEONLY:-"false"}"
-
-INSTALL_DIR="/usr/local/dotnet/current"
+DOTNET_VERSION="${VERSION:-'latest'}"
+DOTNET_ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-''}"
+DOTNET_RUNTIME_ONLY="${RUNTIMEONLY:-'false'}"
+DOTNET_INSTALL_DIR='/usr/local/dotnet/current'
 
 set -e
 
-apt_get_update()
-{
+apt_get_update() {
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
         echo "Running apt-get update..."
         apt-get update -y
@@ -36,20 +34,19 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Install dependencies
+# icu-devtools includes dependencies for .NET
 check_packages wget ca-certificates icu-devtools
 
-# apt-transport-https curl  gnupg2 dirmngr
-
-# Download installer
 installer_script="/tmp/dotnet-install.sh"
-
 wget -O "$installer_script" https://dot.net/v1/dotnet-install.sh
+
 chmod +x "$installer_script"
 
-# Install primary version
-"$installer_script" --install-dir "$INSTALL_DIR"
+# TODO: Install the version specified by DOTNET_VERSION option
+"$installer_script" --install-dir "$DOTNET_INSTALL_DIR"
 
-# ./dotnet-install.sh  -v "$DOTNET_3_LIVESHARE_VERSION" --install-dir /home/codespace/.dotnet
+# TODO: Install additional versions
+
+rm "$installer_script"
 
 echo "Done!"
