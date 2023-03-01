@@ -56,5 +56,21 @@
                 "runtimeOnly": true
             }
         }
+    },
+    "build_dotnet_7": {
+        "image": "ubuntu:jammy",
+        "features": {
+            "dotnet": {
+                "version": "7"
+            }
+        }
+    },
+    "run_dotnet_7": {
+        "image": "ubuntu:jammy",
+        "features": {
+            "dotnet": {
+                "version": "7"
+            }
+        }
     }
 }
