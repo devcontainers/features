@@ -47,5 +47,14 @@
                 "version": "7"
             }
         }
+    },
+    "install_dotnet_runtime": {
+        "image": "ubuntu:jammy",
+        "features": {
+            "dotnet": {
+                "version": "6.0.14",
+                "runtimeOnly": true
+            }
+        }
     }
 }

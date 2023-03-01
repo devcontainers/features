@@ -55,7 +55,7 @@ install_version() {
 
     if [ "$DOTNET_RUNTIME_ONLY" = 'true' ]; then
         echo "Installing runtime only..."
-        runtime_arg = '--runtime dotnet'
+        runtime_arg='--runtime dotnet'
     fi
 
     "$DOTNET_INSTALL_SCRIPT" \
