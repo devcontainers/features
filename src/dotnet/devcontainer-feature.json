@@ -1,6 +1,6 @@
 {
     "id": "dotnet",
-    "version": "2.0",
+    "version": "2.0.0",
     "name": ".NET",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
     "description": "Installs .NET and its CLI. Offers options to install a specific version of .NET, additional versions of .NET, or just the .NET runtime.",
