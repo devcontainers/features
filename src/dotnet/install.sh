@@ -10,6 +10,9 @@
 DOTNET_VERSION="${VERSION:-'latest'}"
 DOTNET_ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-''}"
 DOTNET_RUNTIME_ONLY="${RUNTIMEONLY:-'false'}"
+
+DOTNET_INSTALL_SCRIPT_URL='https://dot.net/v1/dotnet-install.sh'
+DOTNET_INSTALL_SCRIPT='/tmp/dotnet-install.sh'
 DOTNET_INSTALL_DIR='/usr/local/dotnet/current'
 
 set -e
@@ -29,6 +32,33 @@ check_packages() {
     fi
 }
 
+install_version() {
+    local version="$1"
+    local channel="LTS"
+    local runtimeArg=""
+
+    # If version is just a major value, assume it is a channel
+    if [[ "$version" =~ ^[0-9]+$ ]]; then
+        channel="$version.0"
+        version='latest'
+    fi
+
+    if ! [[ "$version" = 'latest' || "$version" =~ ^[0-9]+.[0-9]+.[0-9]+$ ]]; then
+        echo "version must be 'latest' or use the form 'N.M.O'"
+        return 1
+    fi
+
+    if [ "$DOTNET_RUNTIME_ONLY" = 'true' ]; then
+        runtimeArg = '--runtime dotnet'
+    fi
+
+    "$DOTNET_INSTALL_SCRIPT" \
+        --install-dir "$DOTNET_INSTALL_DIR" \
+        --version "$version" \
+        --channel "$channel" \
+        $runtimeArg
+}
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -37,16 +67,14 @@ fi
 # icu-devtools includes dependencies for .NET
 check_packages wget ca-certificates icu-devtools
 
-installer_script="/tmp/dotnet-install.sh"
-wget -O "$installer_script" https://dot.net/v1/dotnet-install.sh
+wget -O "$DOTNET_INSTALL_SCRIPT" "$DOTNET_INSTALL_SCRIPT_URL"
+chmod +x "$DOTNET_INSTALL_SCRIPT"
 
-chmod +x "$installer_script"
-
-# TODO: Install the version specified by DOTNET_VERSION option
-"$installer_script" --install-dir "$DOTNET_INSTALL_DIR"
+# Install primary version
+install_version "$DOTNET_VERSION"
 
 # TODO: Install additional versions
 
-rm "$installer_script"
+rm "$DOTNET_INSTALL_SCRIPT"
 
 echo "Done!"
