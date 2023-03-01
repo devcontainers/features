@@ -79,7 +79,18 @@ chmod +x "$DOTNET_INSTALL_SCRIPT"
 # Install primary version
 install_version "$DOTNET_VERSION"
 
-# TODO: Install additional versions
+# Install additional versions
+if [ -n "$DOTNET_ADDITIONAL_VERSIONS" ]; then
+    OLD_IFS=$IFS
+    IFS=","
+        read -a additional_versions <<< "$DOTNET_ADDITIONAL_VERSIONS"
+        for version in "${additional_versions[@]}"; do
+            # Trim whitespace from version
+            version="$(echo -e "$version" | tr -d '[:space:]')"
+            install_version "$version"
+        done
+    IFS=$OLD_IFS
+fi
 
 rm "$DOTNET_INSTALL_SCRIPT"
 
