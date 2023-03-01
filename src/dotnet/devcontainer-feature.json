@@ -31,6 +31,13 @@
         "DOTNET_ROOT": "/usr/local/dotnet/current",
         "PATH": "/usr/local/dotnet/current:${PATH}"
     },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csharp"
+            ]
+        }
+    },
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"
     ]
