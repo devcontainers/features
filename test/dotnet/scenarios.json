@@ -55,13 +55,5 @@
                 "version": "latest"
             }
         }
-    },
-    "install_dotnet_lts": {
-        "image": "ubuntu:focal",
-        "features": {
-            "dotnet": {
-                "version": "lts"
-            }
-        }
     }
 }
