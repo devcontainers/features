@@ -39,6 +39,8 @@ install_version() {
     local channel="LTS"
     local runtime_arg=""
 
+    echo "Installing version '$version'..."
+
     # If version is just a major value (form 'N'), assume it is a channel
     if [[ "$version" =~ ^[0-9]+$ ]]; then
         channel="$version.0"
@@ -52,6 +54,7 @@ install_version() {
     fi
 
     if [ "$DOTNET_RUNTIME_ONLY" = 'true' ]; then
+        echo "Installing runtime only..."
         runtime_arg = '--runtime dotnet'
     fi
 
