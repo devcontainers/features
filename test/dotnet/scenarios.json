@@ -47,13 +47,5 @@
                 "version": "7"
             }
         }
-    },
-    "install_dotnet_latest": {
-        "image": "ubuntu:jammy",
-        "features": {
-            "dotnet": {
-                "version": "latest"
-            }
-        }
     }
 }
