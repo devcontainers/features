@@ -1,9 +1,9 @@
 {
     "id": "dotnet",
     "version": "2.0",
-    "name": ".NET CLI",
+    "name": ".NET",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
-    "description": "Installs the .NET CLI. Offers options to install a specific version of the .NET CLI, additional versions of the CLI, or just the .NET runtime.",
+    "description": "Installs .NET and its CLI. Offers options to install a specific version of .NET, additional versions of .NET, or just the .NET runtime.",
     "options": {
         "version": {
             "type": "string",
@@ -11,15 +11,15 @@
                 "latest",
                 "7",
                 "6",
-                "3.1"
+                "3"
             ],
             "default": "latest",
-            "description": "Version of the .NET CLI to install. Use 'latest' to install the latest LTS version."
+            "description": "Version of .NET to install. Use 'latest' to install the latest LTS version."
         },
         "additionalVersions": {
             "type": "string",
             "default": "",
-            "description": "Comma-separated list of additional .NET CLI versions to install."
+            "description": "Comma-separated list of additional .NET versions to install."
         },
         "runtimeOnly": {
             "type": "boolean",
