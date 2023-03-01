@@ -37,7 +37,7 @@ check_packages() {
 install_version() {
     local version="$1"
     local channel="LTS"
-    local runtimeArg=""
+    local runtime_arg=""
 
     # If version is just a major value (form 'N'), assume it is a channel
     if [[ "$version" =~ ^[0-9]+$ ]]; then
@@ -52,14 +52,14 @@ install_version() {
     fi
 
     if [ "$DOTNET_RUNTIME_ONLY" = 'true' ]; then
-        runtimeArg = '--runtime dotnet'
+        runtime_arg = '--runtime dotnet'
     fi
 
     "$DOTNET_INSTALL_SCRIPT" \
         --install-dir "$DOTNET_INSTALL_DIR" \
         --version "$version" \
         --channel "$channel" \
-        $runtimeArg
+        $runtime_arg
 }
 
 if [ "$(id -u)" -ne 0 ]; then
