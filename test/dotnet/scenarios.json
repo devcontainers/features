@@ -58,7 +58,8 @@
         }
     },
     "build_dotnet_7": {
-        "image": "ubuntu:jammy",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
         "features": {
             "dotnet": {
                 "version": "7"
@@ -66,7 +67,8 @@
         }
     },
     "run_dotnet_7": {
-        "image": "ubuntu:jammy",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
         "features": {
             "dotnet": {
                 "version": "7"
