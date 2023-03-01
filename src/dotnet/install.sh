@@ -7,9 +7,9 @@
 # Docs: https://github.com/devcontainers/features/tree/main/src/dotnet
 # Maintainer: The VS Code and Codespaces Teams
 
-DOTNET_VERSION="${VERSION:-'latest'}"
-DOTNET_ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-''}"
-DOTNET_RUNTIME_ONLY="${RUNTIMEONLY:-'false'}"
+DOTNET_VERSION="${VERSION:-"latest"}"
+DOTNET_ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
+DOTNET_RUNTIME_ONLY="${RUNTIMEONLY:-"false"}"
 
 DOTNET_INSTALL_SCRIPT_URL='https://dot.net/v1/dotnet-install.sh'
 DOTNET_INSTALL_SCRIPT='/tmp/dotnet-install.sh'
@@ -44,11 +44,11 @@ install_version() {
     # If version is just a major value (form 'N'), assume it is a channel
     if [[ "$version" =~ ^[0-9]+$ ]]; then
         channel="$version.0"
-        version='latest'
+        version="latest"
     fi
 
     # Make sure the version is formatted correctly (form 'N' is handled before this)
-    if ! [[ "$version" = 'latest' || "$version" =~ ^[0-9]+.[0-9]+.[0-9]+$ ]]; then
+    if ! [[ "$version" = "latest" || "$version" =~ ^[0-9]+.[0-9]+.[0-9]+$ ]]; then
         echo "Invalid version '$version': version must be 'latest' or use the form 'N.M.O'"
         return 1
     fi
