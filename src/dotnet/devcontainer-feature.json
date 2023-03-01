@@ -14,7 +14,7 @@
                 "3.1"
             ],
             "default": "latest",
-            "description": "Version of the .NET CLI to install."
+            "description": "Version of the .NET CLI to install. Use 'latest' to install the latest LTS version."
         },
         "additionalVersions": {
             "type": "string",
