@@ -47,7 +47,7 @@ install_version() {
 
     # Make sure the version is formatted correctly (form 'N' is handled before this)
     if ! [[ "$version" = 'latest' || "$version" =~ ^[0-9]+.[0-9]+.[0-9]+$ ]]; then
-        echo "version must be 'latest' or use the form 'N.M.O'"
+        echo "Invalid version '$version': version must be 'latest' or use the form 'N.M.O'"
         return 1
     fi
 
