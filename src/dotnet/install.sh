@@ -32,6 +32,7 @@ check_packages() {
     fi
 }
 
+# Installs a version of .NET using the DOTNET_INSTALLER_SCRIPT
 install_version() {
     local version="$1"
     local channel="LTS"
@@ -43,6 +44,7 @@ install_version() {
         version='latest'
     fi
 
+    # Make sure the version is formatted correctly
     if ! [[ "$version" = 'latest' || "$version" =~ ^[0-9]+.[0-9]+.[0-9]+$ ]]; then
         echo "version must be 'latest' or use the form 'N.M.O'"
         return 1
