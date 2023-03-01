@@ -17,5 +17,8 @@ check "current link dotnet" /usr/local/dotnet/current/dotnet --info
 check "current link sdks" /usr/local/dotnet/current/dotnet --list-sdks
 check "current link version" /usr/local/dotnet/current/dotnet --version
 
+./assert_build_project.sh
+./assert_run_project.sh
+
 # Report result
 reportResults
