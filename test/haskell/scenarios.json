@@ -1,0 +1,17 @@
+{
+    "custom_version": {
+        "image": "ubuntu:focal",
+        "features": {
+            "haskell": {
+                "version": "9.2.6"
+            }
+        }
+    },
+    "default_version": {
+        "image": "ubuntu:jammy",
+        "features": {
+            "haskell": {
+            }
+        }
+    }
+}
