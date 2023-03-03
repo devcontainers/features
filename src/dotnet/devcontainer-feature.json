@@ -9,17 +9,18 @@
             "type": "string",
             "proposals": [
                 "latest",
+                "lts",
                 "7",
                 "6",
                 "3"
             ],
             "default": "latest",
-            "description": "Version of .NET to install. Use 'latest' for the latest LTS version, 'X' for the latest of a major version, or 'X.Y.Z' for a specific version."
+            "description": "Version of .NET to install. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X' for the latest of a major version, or 'X.Y.Z' for a specific version."
         },
         "additionalVersions": {
             "type": "string",
             "default": "",
-            "description": "Comma-separated list of additional .NET versions to install. Use 'latest' for the latest LTS version, 'X' for the latest of a major version, or 'X.Y.Z' for a specific version."
+            "description": "Comma-separated list of additional .NET versions to install. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X' for the latest of a major version, or 'X.Y.Z' for a specific version."
         },
         "runtimeOnly": {
             "type": "boolean",

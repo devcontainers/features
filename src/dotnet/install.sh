@@ -36,7 +36,7 @@ check_packages() {
 # The version must be 'latest', use the form 'X', or use the form 'X.Y.Z'
 install_version() {
     local version="$1"
-    local channel="LTS"
+    local channel="STS"
     local runtime_arg=""
 
     echo "Installing version '$version'..."
@@ -44,6 +44,12 @@ install_version() {
     # If version is just a major value (form 'X'), assume it is a channel
     if [[ "$version" =~ ^[0-9]+$ ]]; then
         channel="$version.0"
+        version="latest"
+    fi
+
+    # If version is 'lts', then update the channel
+    if [ "$version" = "lts" ]; then
+        channel="LTS"
         version="latest"
     fi
 
