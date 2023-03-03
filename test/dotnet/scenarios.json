@@ -8,6 +8,14 @@
             }
         }
     },
+    "install_dotnet_lts": {
+        "image": "ubuntu:focal",
+        "features": {
+            "dotnet": {
+                "version": "latest"
+            }
+        }
+    },
     "install_dotnet_3": {
         "image": "ubuntu:focal",
         "features": {
