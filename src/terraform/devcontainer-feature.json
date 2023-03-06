@@ -1,6 +1,6 @@
 {
     "id": "terraform",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "name": "Terraform, tflint, and TFGrunt",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/terraform",
     "description": "Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects latest version and installs needed dependencies.",
@@ -47,6 +47,11 @@
             "type": "boolean",
             "default": false,
             "description": "Install terraform-docs, a utility to generate documentation from Terraform modules"
+        },
+        "httpProxy": {
+            "type": "string",
+            "default": "",
+            "description": "Connect to a keyserver using a proxy by configuring this option"
         }
     },
     "customizations": {
