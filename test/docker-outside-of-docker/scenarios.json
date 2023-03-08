@@ -30,7 +30,7 @@
             }
         }
     },
-    "docker-outside-of-docker": {
+    "docker_build_older": {
         "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
         "features": {
             "docker-outside-of-docker": {
