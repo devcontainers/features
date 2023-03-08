@@ -20,6 +20,7 @@ Create child containers *inside* a container, independent from the host's docker
 | dockerDashComposeVersion | Default version of Docker Compose (v1 or v2) | string | v1 |
 | azureDnsAutoDetection | Allow automatically setting the dockerd DNS server when the installation script detects it is running in Azure | boolean | true |
 | dockerDefaultAddressPool | Define default address pools for Docker networks. e.g. base=192.168.0.0/16,size=24 | string | - |
+| installDockerBuildx | Install Docker Buildx | boolean | true |
 
 ## Limitations
 
