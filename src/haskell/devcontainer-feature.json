@@ -1,8 +1,8 @@
 {
     "id": "haskell",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "name": "Glasgow Haskell Compiler",
-    "documentationURL": "https://github.com/brendandburns/ghc-feature",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/haskell",
     "description": "Installs the Glasgow Haskell Compiler",
     "options": {
         "version": {
@@ -16,7 +16,7 @@
             "default": "recommended",
             "description": "Select or enter a GHC Version to install"
         },
-        "cabal_version": {
+        "cabalVersion": {
             "type": "string",
             "proposals": [
                 "latest",
@@ -26,7 +26,7 @@
             "default": "recommended",
             "description": "Select or enter a Cabal Version to install"
         },
-        "hls_version": {
+        "hlsVersion": {
             "type": "string",
             "proposals": [
                 "latest",
@@ -36,7 +36,7 @@
             "default": "recommended",
             "description": "Select or enter a Haskell Language Server Version to install"
         },
-        "stack_version": {
+        "stackVersion": {
             "type": "string",
             "proposals": [
                 "latest",
@@ -47,7 +47,6 @@
             "description": "Select or enter a Stack Version to install"
         }
     },
-    "mounts": [],
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"
     ]
