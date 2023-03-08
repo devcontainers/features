@@ -15,6 +15,7 @@ ENABLE_NONROOT_DOCKER="${ENABLE_NONROOT_DOCKER:-"true"}"
 SOURCE_SOCKET="${SOURCE_SOCKET:-"/var/run/docker-host.sock"}"
 TARGET_SOCKET="${TARGET_SOCKET:-"/var/run/docker.sock"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal jammy"
@@ -254,6 +255,29 @@ else
     update-alternatives --set docker-compose /usr/local/bin/compose-switch
 fi
 
+# Setup a docker group in the event the docker socket's group is not root
+if ! grep -qE '^docker:' /etc/group; then
+    groupadd --system docker
+fi
+usermod -aG docker "${USERNAME}"
+
+if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
+    buildx_version="latest"
+    find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
+
+    echo "(*) Installing buildx ${buildx_version}..."
+    buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
+    cd /tmp && wget "https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}"
+
+    mkdir -p ${_REMOTE_USER_HOME}/.docker/cli-plugins
+    mv ${buildx_file_name} ${_REMOTE_USER_HOME}/.docker/cli-plugins/docker-buildx
+    chmod +x ${_REMOTE_USER_HOME}/.docker/cli-plugins/docker-buildx
+
+    chown -R "${USERNAME}:docker" "${_REMOTE_USER_HOME}/.docker"
+    chmod -R g+r+w "${_REMOTE_USER_HOME}/.docker"
+    find "${_REMOTE_USER_HOME}/.docker" -type d -print0 | xargs -n 1 -0 chmod g+s
+fi
+
 # If init file already exists, exit
 if [ -f "/usr/local/share/docker-init.sh" ]; then
     # Clean up
@@ -277,11 +301,6 @@ if [ "${ENABLE_NONROOT_DOCKER}" = "false" ] || [ "${USERNAME}" = "root" ]; then
     exit 0
 fi
 
-# Setup a docker group in the event the docker socket's group is not root
-if ! grep -qE '^docker:' /etc/group; then
-    groupadd --system docker
-fi
-usermod -aG docker "${USERNAME}"
 DOCKER_GID="$(grep -oP '^docker:x:\K[^:]+' /etc/group)"
 
 # If enabling non-root access and specified user is found, setup socat and add script
