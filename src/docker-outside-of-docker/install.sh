@@ -117,7 +117,7 @@ find_version_from_git_tags() {
 export DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr
+check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr wget
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
