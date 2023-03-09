@@ -93,35 +93,6 @@ sed -i -E "s/#*\s*Port\s+.+/Port ${SSHD_PORT}/g" /etc/ssh/sshd_config
 # Need to UsePAM so /etc/environment is processed
 sed -i -E "s/#?\s*UsePAM\s+.+/UsePAM yes/g" /etc/ssh/sshd_config
 
-# Script to store variables that exist at the time the ENTRYPOINT is fired
-store_env_script="$(cat << 'EOF'
-# Wire in codespaces secret processing to zsh if present (since may have been added to image after script was run)
-if [ -f  /etc/zsh/zlogin ] && ! grep '/etc/profile.d/00-restore-secrets.sh' /etc/zsh/zlogin > /dev/null 2>&1; then
-    echo -e "if [ -f /etc/profile.d/00-restore-secrets.sh ]; then . /etc/profile.d/00-restore-secrets.sh; fi\n$(cat /etc/zsh/zlogin 2>/dev/null || echo '')" | sudoIf tee /etc/zsh/zlogin > /dev/null
-fi
-EOF
-)"
-
-# Script to ensure login shells get the latest Codespaces secrets
-restore_secrets_script="$(cat << 'EOF'
-#!/bin/sh
-if [ "${CODESPACES}" != "true" ] || [ "${VSCDC_FIXED_SECRETS}" = "true" ] || [ ! -z "${GITHUB_CODESPACES_TOKEN}" ]; then
-    # Not codespaces, already run, or secrets already in environment, so return
-    return
-fi
-if [ -f /workspaces/.codespaces/shared/.env-secrets ]; then
-    while read line
-    do
-        key=$(echo $line | sed "s/=.*//")
-        value=$(echo $line | sed "s/$key=//1")
-        decodedValue=$(echo $value | base64 -d)
-        export $key="$decodedValue"
-    done < /workspaces/.codespaces/shared/.env-secrets
-fi
-export VSCDC_FIXED_SECRETS=true
-EOF
-)"
-
 # Write out a scripts that can be referenced as an ENTRYPOINT to auto-start sshd and fix login environments
 tee /usr/local/share/ssh-init.sh > /dev/null \
 << 'EOF'
@@ -141,15 +112,6 @@ sudoIf()
 }
 
 EOF
-if [ "${FIX_ENVIRONMENT}" = "true" ]; then
-    echo "${store_env_script}" >> /usr/local/share/ssh-init.sh
-    echo "${restore_secrets_script}" > /etc/profile.d/00-restore-secrets.sh
-    chmod +x /etc/profile.d/00-restore-secrets.sh
-    # Wire in zsh if present
-    if type zsh > /dev/null 2>&1; then
-        echo -e "if [ -f /etc/profile.d/00-restore-secrets.sh ]; then . /etc/profile.d/00-restore-secrets.sh; fi\n$(cat /etc/zsh/zlogin 2>/dev/null || echo '')" > /etc/zsh/zlogin
-    fi
-fi
 tee -a /usr/local/share/ssh-init.sh > /dev/null \
 << 'EOF'
 
