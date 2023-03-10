@@ -1,0 +1,40 @@
+{
+  "id": "python",
+  "version": "1.0.21",
+  "name": "Python",
+  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python-dev",
+  "description": "Installs developer tools for Python",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.flake8",
+        "ms-python.black-formatter",
+        "ms-python.pylint",
+      ],
+      "settings": {
+        "python.formatting.provider": "black",
+        "pylint.args": [
+            "--rcfile=pyproject.toml"
+        ],
+        "pylint.path": [
+            "/usr/local/py-utils/bin/pylint"
+        ],
+        "black-formatter.args": [
+            "--config=pyproject.toml"
+        ],
+        "black-formatter.path": [
+            "/usr/local/py-utils/bin/black"
+        ],
+        "flake8.args": [
+            "--config=.flake8"
+        ],
+        "flake8.path": [
+            "/usr/local/py-utils/bin/flake8"
+        ]
+      }
+    }
+  },
+  "installsAfter": [
+      "ghcr.io/devcontainers/features/python"
+  ]
+}
