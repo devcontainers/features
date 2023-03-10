@@ -13,20 +13,11 @@
       ],
       "settings": {
         "python.formatting.provider": "black",
-        "pylint.args": [
-            "--rcfile=pyproject.toml"
-        ],
         "pylint.path": [
             "/usr/local/py-utils/bin/pylint"
         ],
-        "black-formatter.args": [
-            "--config=pyproject.toml"
-        ],
         "black-formatter.path": [
             "/usr/local/py-utils/bin/black"
-        ],
-        "flake8.args": [
-            "--config=.flake8"
         ],
         "flake8.path": [
             "/usr/local/py-utils/bin/flake8"
