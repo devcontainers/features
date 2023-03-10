@@ -13,11 +13,11 @@
       ],
       "settings": {
         "python.formatting.provider": "black",
-        "pylint.path": [
-            "/usr/local/py-utils/bin/pylint"
-        ],
         "black-formatter.path": [
             "/usr/local/py-utils/bin/black"
+        ],
+        "pylint.path": [
+            "/usr/local/py-utils/bin/pylint"
         ],
         "flake8.path": [
             "/usr/local/py-utils/bin/flake8"
