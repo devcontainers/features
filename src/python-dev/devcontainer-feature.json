@@ -1,9 +1,9 @@
 {
-  "id": "python",
+  "id": "python-dev",
   "version": "1.0.21",
-  "name": "Python",
+  "name": "Python Developer Tools",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python-dev",
-  "description": "Installs developer tools for Python",
+  "description": "Installs additional developer tools for Python",
   "customizations": {
     "vscode": {
       "extensions": [
