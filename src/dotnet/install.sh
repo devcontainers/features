@@ -12,6 +12,7 @@ DOTNET_ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 DOTNET_RUNTIME_ONLY="${RUNTIMEONLY:-"false"}"
 
 DOTNET_INSTALL_SCRIPT_URL='https://dot.net/v1/dotnet-install.sh'
+DOTNET_INSTALL_SCRIPT_SHA256='3d5a87bc29fb96e8dac8c2f88d95ff619c3a921903b4c9ff720e07ca0906d55e  /tmp/dotnet-install.sh'
 DOTNET_INSTALL_SCRIPT='/tmp/dotnet-install.sh'
 DOTNET_INSTALL_DIR='/usr/local/dotnet/current'
 
@@ -80,6 +81,7 @@ fi
 check_packages wget ca-certificates icu-devtools
 
 wget -O "$DOTNET_INSTALL_SCRIPT" "$DOTNET_INSTALL_SCRIPT_URL"
+sha256sum --check <<< $DOTNET_INSTALL_SCRIPT_SHA256
 chmod +x "$DOTNET_INSTALL_SCRIPT"
 
 # Install primary version
