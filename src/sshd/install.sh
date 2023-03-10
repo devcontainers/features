@@ -13,7 +13,6 @@ SSHD_PORT="${SSHD_PORT:-"2222"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 START_SSHD="${START_SSHD:-"false"}"
 NEW_PASSWORD="${NEW_PASSWORD:-"skip"}"
-FIX_ENVIRONMENT="${FIX_ENVIRONMENT:-"true"}"
 
 set -e
 
