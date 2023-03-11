@@ -12,5 +12,13 @@
         "features": {
             "haskell": {}
         }
+    },
+    "mcr_version": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "haskell": {
+                "version": "9.2.6"
+            }
+        }
     }
 }
