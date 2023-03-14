@@ -19,9 +19,9 @@ read more about our security policy in [`SECURITY.md`].
 
 ## Contributing code
 
-👨‍💼 This repository is a collection of dev container Features managed by
-dev container spec maintainers. Even though **we do not accept new Features in
-this repository**, we welcome contributions to [our existing Features]!
+👨‍💼 This repository is a collection of dev container Features managed by dev
+container spec maintainers. Even though **we do not accept new Features in this
+repository**, we welcome contributions to [our existing Features]!
 
 🚀 If you're looking to create a new Feature, we encourage you to [create your
 own Feature repository] and add it to the index in [`collection-index.yml`].
