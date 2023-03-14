@@ -19,12 +19,12 @@ read more about our security policy in [`SECURITY.md`].
 
 ## Contributing code
 
-👨‍💼 This repository is a collection of devcontainer features managed by
-devcontainer spec maintainers. Even though **we do not accept new features in
-this repository**, we welcome contributions to [our existing features]!
+👨‍💼 This repository is a collection of dev container Features managed by
+dev container spec maintainers. Even though **we do not accept new Features in
+this repository**, we welcome contributions to [our existing Features]!
 
-🚀 If you're looking to create a new feature, we encourage you to [create your
-own feature repository] and add it to the index in [`collection-index.yml`].
+🚀 If you're looking to create a new Feature, we encourage you to [create your
+own Feature repository] and add it to the index in [`collection-index.yml`].
 
 👷‍ If you've identified an issue and you want to fix it, here's how you can get
 started:
