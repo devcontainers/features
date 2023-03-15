@@ -1,6 +1,6 @@
 {
-  "id": "python-dev",
-  "version": "1.0.21",
+  "id": "python-extra",
+  "version": "1.0.1",
   "name": "Python Developer Tools",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python-extra",
   "description": "Installs additional developer tools for Python",
