@@ -7,8 +7,9 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-python.flake8",
         "ms-python.black-formatter",
+        "ms-python.flake8",        
+        "ms-python.isort",
         "ms-python.pylint",
       ],
       "settings": {
@@ -16,11 +17,14 @@
         "black-formatter.path": [
             "/usr/local/py-utils/bin/black"
         ],
-        "pylint.path": [
-            "/usr/local/py-utils/bin/pylint"
-        ],
         "flake8.path": [
             "/usr/local/py-utils/bin/flake8"
+        ],
+        "isort.path": [
+            "/usr/local/py-utils/bin/isort"
+        ],
+        "pylint.path": [
+            "/usr/local/py-utils/bin/pylint"
         ]
       }
     }
