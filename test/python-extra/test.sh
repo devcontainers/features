@@ -14,6 +14,7 @@ check "pip is installed" pip3 --version
 check "black" black --version
 check "flake8" flake8 --version
 check "pylint" pylint --version
+check "isort" isort --version
 
 # Check paths in settings
 check "current symlink is correct" bash -c "which python | grep /usr/local/python/current/bin/python"
@@ -21,6 +22,7 @@ check "current symlink works" /usr/local/python/current/bin/python --version
 check "which black" bash -c "which black | grep /usr/local/py-utils/bin/black"
 check "which flake8" bash -c "which flake8 | grep /usr/local/py-utils/bin/flake8"
 check "which pylint" bash -c "which pylint | grep /usr/local/py-utils/bin/pylint"
+check "which isort" bash -c "which isort | grep /usr/local/py-utils/bin/isort"
 
 # Report result
 reportResults
