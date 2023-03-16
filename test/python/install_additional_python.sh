@@ -22,6 +22,7 @@ check "pycodestyle" pycodestyle --version
 check "pydocstyle" pydocstyle --version
 check "pylint" pylint --version
 check "pytest" pytest --version
+check "isort" isort --version
 
 # Check paths in settings
 check "current symlink is correct" bash -c "which python | grep /usr/local/python/current/bin/python"
