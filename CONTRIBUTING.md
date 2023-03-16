@@ -38,9 +38,10 @@ started:
 3. 👨‍💻 Add your changes to your workspace
 4. ✨ [Test your changes using `devcontainer features test`] to make sure
    everything still works
-5. 🔖 Commit & push your changes
-6. 🔁 Open a PR to get your changes merged
-7. 🚀 Profit!
+5. 🆚 Bump the version of the feature you changed according to [semver]
+6. 🔖 Commit & push your changes
+7. 🔁 Open a PR to get your changes merged
+8. 🚀 Profit!
 
 👩‍⚖️ When contributing code to this project, you may be asked to agree to our
 [Contributor License Agreement].
@@ -55,4 +56,5 @@ started:
 [`SECURITY.md`]: https://github.com/devcontainers/spec/blob/main/SECURITY.md
 [contributor license agreement]: https://opensource.microsoft.com/cla/
 [Test your changes using `devcontainer features test`]: https://github.com/devcontainers/cli/blob/main/docs/features/test.md
+[semver]: https://semver.org/
 <!-- prettier-ignore-end -->
