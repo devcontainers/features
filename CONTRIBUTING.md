@@ -36,7 +36,8 @@ started:
 1. 🔀 Fork the repo
 2. 💻 Open the repo in your editor
 3. 👨‍💻 Add your changes to your workspace
-4. ✨ Run the tests to make sure everything works
+4. ✨ [Test your changes using `devcontainer features test`] to make sure
+   everything still works
 5. 🔖 Commit & push your changes
 6. 🔁 Open a PR to get your changes merged
 7. 🚀 Profit!
@@ -53,4 +54,5 @@ started:
 [report them to the Microsoft Security Response Center]: https://msrc.microsoft.com/create-report
 [`SECURITY.md`]: https://github.com/devcontainers/spec/blob/main/SECURITY.md
 [contributor license agreement]: https://opensource.microsoft.com/cla/
+[Test your changes using `devcontainer features test`]: https://github.com/devcontainers/cli/blob/main/docs/features/test.md
 <!-- prettier-ignore-end -->
