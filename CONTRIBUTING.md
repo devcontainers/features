@@ -3,7 +3,7 @@
 All types of contributions are encouraged and valued, no matter if it's a bug
 report 🐛, a feature request 💡, or a Pull Request 🚀.
 
-- **❓ I have a question:** Ask in [our Slack channel]
+- **❓ I have a question:** Ask in [our dev container community Slack channel]
 - **🐛 I found a bug:** [Open an Issue]
 - **💡 I have an idea:** [Open an Issue]
 - **💻 I want to code:** See below
@@ -47,7 +47,7 @@ started:
 [Contributor License Agreement].
 
 <!-- prettier-ignore-start -->
-[our Slack channel]: https://aka.ms/devcontainer_community
+[our dev container community Slack channel]: https://aka.ms/devcontainer_community
 [open an issue]: https://github.com/devcontainers/features/issues/new
 [current set of maintained Features]: https://github.com/devcontainers/features/tree/main/src
 [devcontainers/feature-starter]: https://github.com/devcontainers/feature-starter#readme
