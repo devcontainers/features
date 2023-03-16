@@ -20,8 +20,8 @@ read more about our security policy in [`SECURITY.md`].
 ## Contributing code
 
 👨‍💼 This repository is a collection of dev container Features managed by dev
-container spec maintainers. Even though **we do not accept new Features in this
-repository**, we welcome contributions to [our existing Features]!
+container spec maintainers. This repository will **only accept improvements and
+bug fixes** for the [current set of maintained Features].
 
 🚀 If you're looking to create a new Feature, we encourage you to [create your
 own Feature repository] and add it to the index in [`collection-index.yml`].
@@ -43,8 +43,7 @@ started:
 <!-- prettier-ignore-start -->
 [our Slack channel]: https://aka.ms/devcontainer_community
 [open an issue]: https://github.com/devcontainers/features/issues/new
-[GitHub Issues]: https://github.com/devcontainers/features/issues
-[our existing features]: https://github.com/devcontainers/features/tree/main/src
+[current set of maintained Features]: https://github.com/devcontainers/features/tree/main/src
 [create your own feature repository]: https://github.com/devcontainers/feature-starter#readme
 [`collection-index.yml`]: https://github.com/devcontainers/devcontainers.github.io/blob/gh-pages/_data/collection-index.yml
 [report them to the Microsoft Security Response Center]: https://msrc.microsoft.com/create-report
