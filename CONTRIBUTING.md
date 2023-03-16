@@ -23,8 +23,12 @@ read more about our security policy in [`SECURITY.md`].
 container spec maintainers. This repository will **only accept improvements and
 bug fixes** for the [current set of maintained Features].
 
-🚀 If you're looking to create a new Feature, we encourage you to [create your
-own Feature repository] and add it to the index in [`collection-index.yml`].
+🚀 If you're looking to create a new Feature, then we encourage adding it to a
+separate repository of your control. The [devcontainers/feature-starter]
+repository has more guidance on self authoring Features.
+
+💡 Once you've self authored the Features and if you'd like to share them with
+the community, then we'd recommend [adding it to the index].
 
 👷‍ If you've identified an issue and you want to fix it, here's how you can get
 started:
@@ -44,8 +48,8 @@ started:
 [our Slack channel]: https://aka.ms/devcontainer_community
 [open an issue]: https://github.com/devcontainers/features/issues/new
 [current set of maintained Features]: https://github.com/devcontainers/features/tree/main/src
-[create your own feature repository]: https://github.com/devcontainers/feature-starter#readme
-[`collection-index.yml`]: https://github.com/devcontainers/devcontainers.github.io/blob/gh-pages/_data/collection-index.yml
+[devcontainers/feature-starter]: https://github.com/devcontainers/feature-starter#readme
+[adding it to the index]: https://github.com/devcontainers/feature-starter#adding-features-to-the-index
 [report them to the Microsoft Security Response Center]: https://msrc.microsoft.com/create-report
 [`SECURITY.md`]: https://github.com/devcontainers/spec/blob/main/SECURITY.md
 [contributor license agreement]: https://opensource.microsoft.com/cla/
