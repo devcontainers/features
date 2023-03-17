@@ -74,19 +74,7 @@
         "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
         "python.linting.pylintEnabled": false,
         "python.testing.unittestEnabled": false,
-        "python.testing.pytestEnabled": true,
-        "black-formatter.path": [
-            "/usr/local/py-utils/bin/black"
-        ],
-        "flake8.path": [
-            "/usr/local/py-utils/bin/flake8"
-        ],
-        "isort.path": [
-            "/usr/local/py-utils/bin/isort"
-        ],
-        "pylint.path": [
-            "/usr/local/py-utils/bin/pylint"
-        ]
+        "python.testing.pytestEnabled": true
       }
     }
   },
