@@ -17,8 +17,29 @@ keyserver hkp://keyserver.pgp.com"
 
 set -e
 
+# Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
+. /etc/os-release
+# Get an adjusted ID independent of distro variants
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+    ADJUSTED_ID="debian"
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+    ADJUSTED_ID="rhel"
+else
+    echo "Linux distro ${ID} not supported."
+    exit 1
+fi
+
+if [ "${ADJUSTED_ID}" = "rhel" ]; then
+    local install_cmd=dnf
+    if ! type dnf > /dev/null 2>&1; then
+        install_cmd=yum
+    fi
+fi
+
 # Clean up
-rm -rf /var/lib/apt/lists/*
+if [ "${ADJUSTED_ID}" = "debian" ]; then
+    rm -rf /var/lib/apt/lists/*
+fi
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -68,32 +89,46 @@ apt_get_update()
     fi
 }
 
+rhel_update()
+{
+    echo "Running ${install_cmd} update..."
+    ${install_cmd} update -y
+}
+
 # Checks if packages are installed and installs them if not
 check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
+    if [ "${ADJUSTED_ID}" = "rhel" ]; then
+        if ! rpm -q "$@" >/dev/null 2>&1; then
+            rhel_update
+            ${install_cmd} -y install "$@"
+        fi
+    else
+        if ! dpkg -s "$@" > /dev/null 2>&1; then
+            apt_get_update
+            apt-get -y install --no-install-recommends "$@"
+        fi
     fi
 }
 
 export DEBIAN_FRONTEND=noninteractive
-
-# Source /etc/os-release to get OS info
-. /etc/os-release
 
 # If the os provided version is "good enough", just install that.
 if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
     if type git > /dev/null 2>&1; then
         echo "Detected existing system install: $(git version)"
         # Clean up
-        rm -rf /var/lib/apt/lists/*
+        if [ "${ADJUSTED_ID}" = "debian" ]; then
+            rm -rf /var/lib/apt/lists/*
+        fi
         exit 0
     fi
 
     echo "Installing git from OS apt repository"
     check_packages git
     # Clean up
-    rm -rf /var/lib/apt/lists/*
+    if [ "${ADJUSTED_ID}" = "debian" ]; then
+        rm -rf /var/lib/apt/lists/*
+    fi
     exit 0
 fi
 

@@ -22,7 +22,7 @@ Install an up-to-date version of Git, built from source as needed. Useful for wh
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+This Feature should work on recent versions of Debian/Ubuntu and Fedora.
 
 `bash` is required to execute the `install.sh` script.
 
