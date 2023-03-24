@@ -7,9 +7,7 @@ Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/aws-cli:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/aws-cli:1": {}
 }
 ```
 
@@ -20,6 +18,13 @@ Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles
 | version | Select or enter an AWS CLI version. | string | latest |
 
 Available versions of the AWS CLI can be found here: https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst.
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
+
 
 ---
 

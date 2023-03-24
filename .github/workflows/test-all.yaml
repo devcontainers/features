@@ -18,7 +18,7 @@ jobs:
             "common-utils",
             "conda",
             "desktop-lite",
-            "docker-from-docker",
+            "docker-outside-of-docker",
             "docker-in-docker",
             "dotnet",
             "git",
@@ -38,17 +38,20 @@ jobs:
             "rust",
             "sshd",
             "terraform",
+            "nix",
         ]
         baseImage:
           [
             "ubuntu:focal",
             "ubuntu:jammy",
+            "ubuntu:bionic",
             "debian:11",
+            "debian:10",
             "mcr.microsoft.com/devcontainers/base:ubuntu",
             "mcr.microsoft.com/devcontainers/base:debian",
           ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
@@ -68,7 +71,7 @@ jobs:
             "common-utils",
             "conda",
             "desktop-lite",
-            "docker-from-docker",
+            "docker-outside-of-docker",
             "docker-in-docker",
             "dotnet",
             "git",
@@ -88,9 +91,10 @@ jobs:
             "rust",
             "sshd",
             "terraform",
+            "nix",
         ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
@@ -102,7 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli

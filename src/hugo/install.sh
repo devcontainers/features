@@ -7,12 +7,12 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/hugo.md
 # Maintainer: The VS Code and Codespaces Teams
 
-VERSION=${VERSION:-"latest"}
+VERSION="${VERSION:-"latest"}"
 
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
 
-HUGO_DIR=${HUGO_DIR:-"/usr/local/hugo"}
+HUGO_DIR="${HUGO_DIR:-"/usr/local/hugo"}"
 
 set -e
 
@@ -106,7 +106,14 @@ if ! hugo version &> /dev/null ; then
         arch="64bit"
     fi
 
-    hugo_filename="hugo_${VERSION}_Linux-${arch}.tar.gz"
+    # Install extended version of hugo if desired
+    if [ "${EXTENDED}" = "true" ]; then
+        extended="extended_"
+    else
+        extended=""
+    fi
+
+    hugo_filename="hugo_${extended}${VERSION}_Linux-${arch}.tar.gz"
 
     curl -fsSLO --compressed "https://github.com/gohugoio/hugo/releases/download/v${VERSION}/${hugo_filename}"
     tar -xzf "$hugo_filename" -C "$installation_dir"

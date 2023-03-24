@@ -7,14 +7,13 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/desktop-lite.md
 # Maintainer: The VS Code and Codespaces Teams
 
-NOVNC_VERSION=${NOVNCVERSION:-"1.2.0"} # TODO: Add in a 'latest' auto-detect and swap name to 'version'
+NOVNC_VERSION="${NOVNCVERSION:-"1.2.0"}" # TODO: Add in a 'latest' auto-detect and swap name to 'version'
 VNC_PASSWORD=${PASSWORD:-"vscode"}
 NOVNC_PORT="${WEBPORT:-6080}"
 VNC_PORT="${VNCPORT:-5901}"
 
-INSTALL_NOVNC=${INSTALL_NOVNC:-"true"}
-USERNAME=${USERNAME:-"automatic"}
-
+INSTALL_NOVNC="${INSTALL_NOVNC:-"true"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
 WEBSOCKETIFY_VERSION=0.10.0
 
@@ -177,7 +176,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt_get_update
 
-# On older Ubuntu, Tilix is in a PPA. on Debian strech its in backports.
+# On older Ubuntu, Tilix is in a PPA. on Debian stretch its in backports.
 if [[ -z $(apt-cache --names-only search ^tilix$) ]]; then
     . /etc/os-release
     if [ "${ID}" = "ubuntu" ]; then
@@ -300,9 +299,9 @@ startInBackgroundIfNotRunning()
 {
     log "Starting \$1."
     echo -e "\n** \$(date) **" | sudoIf tee -a /tmp/\$1.log > /dev/null
-    if ! pidof \$1 > /dev/null; then
+    if ! pgrep -x \$1 > /dev/null; then
         keepRunningInBackground "\$@"
-        while ! pidof \$1 > /dev/null; do
+        while ! pgrep -x \$1 > /dev/null; do
             sleep 1
         done
         log "\$1 started."
@@ -348,16 +347,16 @@ log "** SCRIPT START **"
 
 # Start dbus.
 log 'Running "/etc/init.d/dbus start".'
-if [ -f "/var/run/dbus/pid" ] && ! pidof dbus-daemon  > /dev/null; then
+if [ -f "/var/run/dbus/pid" ] && ! pgrep -x dbus-daemon  > /dev/null; then
     sudoIf rm -f /var/run/dbus/pid
 fi
 sudoIf /etc/init.d/dbus start 2>&1 | sudoIf tee -a /tmp/dbus-daemon-system.log > /dev/null
-while ! pidof dbus-daemon > /dev/null; do
+while ! pgrep -x dbus-daemon > /dev/null; do
     sleep 1
 done
 
 # Startup tigervnc server and fluxbox
-sudo rm -rf /tmp/.X11-unix /tmp/.X*-lock
+sudoIf rm -rf /tmp/.X11-unix /tmp/.X*-lock
 mkdir -p /tmp/.X11-unix
 sudoIf chmod 1777 /tmp/.X11-unix
 sudoIf chown root:\${group_name} /tmp/.X11-unix
@@ -366,7 +365,7 @@ screen_geometry="\${VNC_RESOLUTION%*x*}"
 screen_depth="\${VNC_RESOLUTION##*x}"
 startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -desktop fluxbox -fg -passwd /usr/local/etc/vscode-dev-containers/vnc-passwd"
 
-# Spin up noVNC if installed and not runnning.
+# Spin up noVNC if installed and not running.
 if [ -d "/usr/local/novnc" ] && [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/launch.sh | grep -v grep)" = "" ]; then
     keepRunningInBackground "noVNC" sudoIf "/usr/local/novnc/noVNC*/utils/launch.sh --listen ${NOVNC_PORT} --vnc localhost:${VNC_PORT}"
     log "noVNC started."

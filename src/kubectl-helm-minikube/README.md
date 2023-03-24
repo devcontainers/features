@@ -7,9 +7,7 @@ Installs latest version of kubectl, Helm, and optionally minikube. Auto-detects 
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {}
 }
 ```
 
@@ -33,6 +31,13 @@ minikube addons enable ingress
 # Run this to forward to localhost in the background
 nohup kubectl port-forward --pod-running-timeout=24h -n ingress-nginx service/ingress-nginx-controller :80 &
 ```
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

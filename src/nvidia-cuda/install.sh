@@ -52,17 +52,17 @@ if ! apt-cache show "$cuda_pkg"; then
     exit 1
 fi
 
-# Ensure that the requested version of cuDNN is available AND compatible
-cudnn_pkg_version="libcudnn8=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
-if ! apt-cache show "$cudnn_pkg_version"; then
-    echo "The requested version of cuDNN is not available: cuDNN $CUDNN_VERSION for CUDA $CUDA_VERSION"
-    exit 1
-fi
-
 echo "Installing CUDA libraries..."
 apt-get install -yq "$cuda_pkg"
 
 if [ "$INSTALL_CUDNN" = "true" ]; then
+    # Ensure that the requested version of cuDNN is available AND compatible
+    cudnn_pkg_version="libcudnn8=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+    if ! apt-cache show "$cudnn_pkg_version"; then
+        echo "The requested version of cuDNN is not available: cuDNN $CUDNN_VERSION for CUDA $CUDA_VERSION"
+        exit 1
+    fi
+
     echo "Installing cuDNN libraries..."
     apt-get install -yq "$cudnn_pkg_version"
 fi

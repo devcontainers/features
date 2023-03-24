@@ -1,0 +1,147 @@
+{
+    "bionic": {
+        "image": "ubuntu:bionic",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "focal": {
+        "image": "ubuntu:focal",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "jammy": {
+        "image": "ubuntu:jammy",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "buster": {
+        "image": "debian:buster",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "bullseye": {
+        "image": "debian:bullseye",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "centos-7": {
+        "image": "centos:7",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "rocky-8": {
+        "image": "rockylinux:8",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "rocky-9": {
+        "image": "rockylinux:9",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "fedora": {
+        "image": "fedora",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "alpine": {
+        "image": "alpine",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "alternate-values": {
+        "image": "debian:bullseye",
+        "features": {
+            "common-utils": {
+                "username": "alternate",
+                "userUid": "1001",
+                "userGid": "1002",
+                "upgradePackages": false,
+                "installZsh": false,
+                "nonFreePackages": true
+            }
+        }
+    },
+    "username-default": {
+        "image": "debian:bullseye",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "username-detected": {
+        "image": "node",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "already-run": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "configure_zsh_as_default_shell": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "common-utils": {
+                "configureZshAsDefaultShell": true
+            }
+        }
+    },
+    "alpine-3-14": {
+        "image": "alpine:3.14",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "alpine-3-15": {
+        "image": "alpine:3.15",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "devcontainer-info": {
+        "build": {
+            "dockerfile": "Dockerfile"
+        },
+        "features": {
+            "common-utils": {
+                "username": "vscode",
+                "userUid": "1000",
+                "userGid": "1000",
+                "upgradePackages": true,
+                "installZsh": true
+            }
+        },
+        "remoteUser": "vscode"
+    }
+}

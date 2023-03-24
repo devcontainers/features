@@ -8,9 +8,10 @@ on:
 jobs:
   generate:
     runs-on: ubuntu-latest
+    environment: documentation
     if: "github.ref == 'refs/heads/main'"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Generate Documentation
         uses: devcontainers/action@v1
@@ -18,10 +19,10 @@ jobs:
           generate-docs: "true"
           base-path-to-features: "./src"
 
-      - name: Add and Commit Documentation
+      - name: Create a PR for Documentation
         id: push_image_info
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
           set -e
           echo "Start."
@@ -42,5 +43,12 @@ jobs:
           # Push
           if [ "$NO_UPDATES" != "true" ] ; then
               git push origin "$branch"
-              gh pr create --title "$message" --body "$message"
+              gh api \
+                --method POST \
+                -H "Accept: application/vnd.github+json" \
+                /repos/${GITHUB_REPOSITORY}/pulls \
+                -f title="$message" \
+              -f body="$message" \
+              -f head="$branch" \
+              -f base='main'
           fi

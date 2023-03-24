@@ -1,7 +1,7 @@
 {
     "id": "common-utils",
-    "version": "1.1.3",
-    "name": "Common Debian Utilities",
+    "version": "2.0.8",
+    "name": "Common Utilities",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/common-utils",
     "description": "Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.",
     "options": {
@@ -9,6 +9,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install ZSH?"
+        },
+        "configureZshAsDefaultShell": {
+            "type": "boolean",
+            "default": false,
+            "description": "Change default shell to ZSH?"
         },
         "installOhMyZsh": {
             "type": "boolean",
@@ -23,36 +28,37 @@
         "username": {
             "type": "string",
             "proposals": [
+                "devcontainer",
                 "vscode",
                 "codespace",
                 "none",
                 "automatic"
             ],
             "default": "automatic",
-            "description": "Enter name of non-root user to configure or none to skip"
+            "description": "Enter name of a non-root user to configure or none to skip"
         },
-        "uid": {
+        "userUid": {
             "type": "string",
             "proposals": [
                 "1000",
                 "automatic"
             ],
             "default": "automatic",
-            "description": "Enter uid for non-root user"
+            "description": "Enter UID for non-root user"
         },
-        "gid": {
+        "userGid": {
             "type": "string",
             "proposals": [
                 "1000",
                 "automatic"
             ],
             "default": "automatic",
-            "description": "Enter gid for non-root user"
+            "description": "Enter GID for non-root user"
         },
         "nonFreePackages": {
             "type": "boolean",
             "default": false,
-            "description": "Add packages from non-free Debian repository?"
+            "description": "Add packages from non-free Debian repository? (Debian only)"
         }
     }
 }

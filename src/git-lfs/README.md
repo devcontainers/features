@@ -7,9 +7,7 @@ Installs Git Large File Support (Git LFS) along with needed dependencies. Useful
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/git-lfs:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/git-lfs:1": {}
 }
 ```
 
@@ -19,6 +17,13 @@ Installs Git Large File Support (Git LFS) along with needed dependencies. Useful
 |-----|-----|-----|-----|
 | version | Select version of Git LFS to install | string | latest |
 
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

@@ -7,9 +7,7 @@ Installs PowerShell along with needed dependencies. Useful for base Dockerfiles 
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/powershell:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/powershell:1": {}
 }
 ```
 
@@ -18,7 +16,15 @@ Installs PowerShell along with needed dependencies. Useful for base Dockerfiles 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter a version of PowerShell. | string | latest |
+| modules | Optional comma separated list of PowerShell modules to install. | string | - |
 
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

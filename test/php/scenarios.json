@@ -7,5 +7,30 @@
                 "additionalVersions": "8.0.17,8.0.3"
             }
         }
+    },
+    "install_php_8": {
+        "image": "ubuntu:focal",
+        "features": {
+            "php": {
+                "version": "8"
+            }
+        }
+    },
+    "install_php_8_2": {
+        "image": "ubuntu:focal",
+        "features": {
+            "php": {
+                "version": "8.2"
+            }
+        }
+    },
+    "install_only_composer": {
+        "image": "mcr.microsoft.com/devcontainers/php:latest",
+        "features": {
+            "php": {
+                "version": "none",
+                "installComposer": true
+            }
+        }
     }
 }

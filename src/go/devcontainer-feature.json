@@ -1,6 +1,6 @@
 {
     "id": "go",
-    "version": "1.0.9",
+    "version": "1.1.3",
     "name": "Go",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/go",
     "description": "Installs Go and common Go utilities. Auto-detects latest version and installs needed dependencies.",
@@ -15,6 +15,11 @@
             ],
             "default": "latest",
             "description": "Select or enter a Go version to install"
+        },
+        "golangciLintVersion": {
+            "type": "string",
+            "default": "latest",
+            "description": "Version of golangci-lint to install"
         }
     },
     "init": true,

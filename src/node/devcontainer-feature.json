@@ -1,9 +1,9 @@
 {
     "id": "node",
-    "version": "1.0.8",
-    "name": "Node.js (via nvm) and yarn",
+    "version": "1.2.0",
+    "name": "Node.js (via nvm), yarn and pnpm",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/node",
-    "description": "Installs Node.js, nvm, yarn, and needed dependencies.",
+    "description": "Installs Node.js, nvm, yarn, pnpm, and needed dependencies.",
     "options": {
         "version": {
             "type": "string",
@@ -27,6 +27,11 @@
             "type": "string",
             "default": "/usr/local/share/nvm",
             "description": "The path where NVM will be installed."
+        },
+        "nvmVersion": {
+            "type": "string",
+            "default": "0.39.2",
+            "description": "Version of NVM to install."
         }
     },
     "customizations": {

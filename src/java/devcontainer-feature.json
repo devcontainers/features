@@ -1,6 +1,6 @@
 {
   "id": "java",
-  "version": "0.0.4",
+  "version": "1.2.1",
   "name": "Java (via SDKMAN!)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/java",
   "description": "Installs Java, SDKMAN! (if not installed), and needed dependencies.",
@@ -36,13 +36,49 @@
       "default": false,
       "description": "Install Gradle, a build automation tool for multi-language software development"
     },
+    "gradleVersion": {
+      "type": "string",
+      "proposals": [
+        "latest",
+        "7.5.1",
+        "6.9.3",
+        "5.6.4"
+      ],
+      "default": "latest",
+      "description": "Select or enter a Gradle version"
+    },
     "installMaven": {
       "type": "boolean",
       "default": false,
       "description": "Install Maven, a management tool for Java"
+    },
+    "mavenVersion": {
+      "type": "string",
+      "proposals": [
+        "latest",
+        "3.8.6",
+        "3.6.3",
+        "3.5.4"
+      ],
+      "default": "latest",
+      "description": "Select or enter a Maven version"
+    },
+    "installAnt": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install Ant, a software tool for automating software build processes"
+    },
+    "antVersion": {
+      "type": "string",
+      "proposals": [
+        "latest",
+        "1.10.12",
+        "1.9.15"
+      ],
+      "default": "latest",
+      "description": "Select or enter an Ant version"
     }
   },
-  "buildArg": "_VSC_INSTALL_JAVA",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -56,7 +92,7 @@
   "containerEnv": {
     "SDKMAN_DIR": "/usr/local/sdkman",
     "JAVA_HOME": "/usr/local/sdkman/candidates/java/current",
-    "PATH": "/usr/local/sdkman/bin:/usr/local/sdkman/candidates/java/current/bin:/usr/local/sdkman/candidates/gradle/current/bin:/usr/local/sdkman/candidates/maven/current/bin:${PATH}"
+    "PATH": "/usr/local/sdkman/bin:/usr/local/sdkman/candidates/java/current/bin:/usr/local/sdkman/candidates/gradle/current/bin:/usr/local/sdkman/candidates/maven/current/bin:/usr/local/sdkman/candidates/ant/current/bin:${PATH}"
   },
   "installsAfter": [
       "ghcr.io/devcontainers/features/common-utils"

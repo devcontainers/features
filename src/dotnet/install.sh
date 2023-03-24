@@ -7,15 +7,18 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/dotnet.md
 # Maintainer: The VS Code and Codespaces Teams
 
-DOTNET_VERSION=${VERSION:-"latest"}
-DOTNET_RUNTIME_ONLY=${RUNTIMEONLY:-"false"}
-OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
-INSTALL_USING_APT=${INSTALLUSINGAPT:-"true"}
+DOTNET_VERSION="${VERSION:-"latest"}"
+DOTNET_RUNTIME_ONLY="${RUNTIMEONLY:-"false"}"
+OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
+INSTALL_USING_APT="${INSTALLUSINGAPT:-"true"}"
 
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
-TARGET_DOTNET_ROOT=${TARGET_DOTNET_ROOT:-"/usr/local/dotnet"}
-ACCESS_GROUP=${ACCESS_GROUP:-"dotnet"}
+DOTNET_LATEST="7"
+DOTNET_LTS="6"
+
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
+TARGET_DOTNET_ROOT="${TARGET_DOTNET_ROOT:-"/usr/local/dotnet"}"
+ACCESS_GROUP="${ACCESS_GROUP:-"dotnet"}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOTNET_ARCHIVE_ARCHITECTURES="amd64"
@@ -83,21 +86,6 @@ cleanup() {
     exit $EXIT_CODE
 }
 trap cleanup EXIT
-
-# Get central common setting
-get_common_setting() {
-    if [ "${common_settings_file_loaded}" != "true" ]; then
-        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" 2>/dev/null -o /tmp/vsdc-settings.env || echo "Could not download settings file. Skipping."
-        common_settings_file_loaded=true
-    fi
-    if [ -f "/tmp/vsdc-settings.env" ]; then
-        local multi_line=""
-        if [ "$2" = "true" ]; then multi_line="-z"; fi
-        local result="$(grep ${multi_line} -oP "$1=\"?\K[^\"]+" /tmp/vsdc-settings.env | tr -d '\0')"
-        if [ ! -z "${result}" ]; then declare -g $1="${result}"; fi
-    fi
-    echo "$1=${!1}"
-}
 
 # Add dotnet directory to PATH in bashrc/zshrc files if OVERRIDE_DEFAULT_VERSION=true.
 updaterc() {
@@ -194,72 +182,75 @@ apt_cache_package_and_version_soft_match() {
 }
 
 # Install .NET CLI using apt-get package installer
-install_using_apt_from_microsoft_repo() {
+install_using_apt() {
     local sdk_or_runtime="$1"
-    local dotnet_major_minor_version
-    export DOTNET_PACKAGE="dotnet-${sdk_or_runtime}"
+    local target_dotnet_version="$2"
+    local use_msft_repo="$3"
 
-    # Install dependencies
-    check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr
-
-    # Import key safely and import Microsoft apt repo
-    get_common_setting MICROSOFT_GPG_KEYS_URI
-    curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
-    echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
-    apt-get update -y
-
-    if [ "${DOTNET_VERSION}" = "latest" ] || [ "${DOTNET_VERSION}" = "lts" ]; then
-        DOTNET_VERSION=""
-        DOTNET_PACKAGE="${DOTNET_PACKAGE}-6.0"
-    else
-        # Sets DOTNET_VERSION and DOTNET_PACKAGE if matches found. 
-        apt_cache_package_and_version_soft_match DOTNET_VERSION DOTNET_PACKAGE false
-        if [ "$?" != 0 ]; then
-            echo "Failed to find requested version."
-            return 1
-        fi
-
-        if [[ $(dotnet --version) == *"${DOTNET_VERSION}"* ]] ; then
-            echo "Dotnet version ${DOTNET_VERSION} is already installed"
-            return 1
-        fi
-
+    if [ "${use_msft_repo}" = "true" ]; then
+        # Install dependencies
+        check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr
+        # Import key safely and import Microsoft apt repo
+        curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
+        echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+        apt-get update -y
     fi
 
-    echo "Installing '${DOTNET_PACKAGE}${DOTNET_VERSION}'..."
-    apt-get install -yq ${DOTNET_PACKAGE}${DOTNET_VERSION}
+    # .NET 7 is not a LTS version, so handle latest and LTS versions differently
+    export APT_DOTNET_VERSION="$target_dotnet_version"
+    if [ "${APT_DOTNET_VERSION}" = "latest" ]; then 
+        APT_DOTNET_VERSION="${DOTNET_LATEST}.0"
+    elif [ "${APT_DOTNET_VERSION}" = "lts" ]; then
+        APT_DOTNET_VERSION="${DOTNET_LTS}.0"
+    fi
+
+    # Sets target_dotnet_version and dotnet_package if matches found.
+    local base_dotnet_package="dotnet-${sdk_or_runtime}"
+    export DOTNET_PACKAGE="${base_dotnet_package}"
+    apt_cache_package_and_version_soft_match APT_DOTNET_VERSION DOTNET_PACKAGE false
+    if [ "$?" != 0 ] || [ ${DOTNET_PACKAGE} == "${base_dotnet_package}" ]; then
+        echo "Failed to find requested version."
+        return 1
+    fi
+
+    if type dotnet > /dev/null 2>&1 && [[ "$(dotnet --version)" == *"${APT_DOTNET_VERSION}"* ]] ; then
+        echo "dotnet version ${APT_DOTNET_VERSION} is already installed"
+        return 1
+    fi
+
+    echo "Installing '${DOTNET_PACKAGE}${APT_DOTNET_VERSION}'..."
+    apt-get install -yq ${DOTNET_PACKAGE}${APT_DOTNET_VERSION}
     if [ "$?" != 0 ]; then
-        echo "Failed to complete apt install of ${DOTNET_PACKAGE}${DOTNET_VERSION}"
+        echo "Failed to complete apt install of ${DOTNET_PACKAGE}${TARGET_DOTNET_VERSION}"
         return 1
     fi
-}
 
-install_using_default_apt_repo() {
-    DOTNET_PACKAGE="dotnet6"
-
-    apt_get_update
-
-    if [[ "${DOTNET_VERSION}" = "latest" ]] || [[ "${DOTNET_VERSION}" = "lts" ]] || [[ ${DOTNET_VERSION} = "6"* ]]; then
-        if ! (apt-get install -yq ${DOTNET_PACKAGE}); then
-            echo "Failed to install 'dotnet6' package from default apt repo."
-            return 1
-        fi
+    # Add symlink for current
+    CURRENT_DIR="${TARGET_DOTNET_ROOT}/current"
+    if [[ -d "${CURRENT_DIR}" ]]; then
+        rm -rf "${CURRENT_DIR}"
+    fi
+    mkdir -p "${TARGET_DOTNET_ROOT}"
+    local dotnet_installed_version="$(dotnet --version)"
+    # See if its the distro version
+    if [[ "$(dotnet --info)" == *"Base Path:   /usr/lib/dotnet/dotnet${dotnet_installed_version:0:1}-${dotnet_installed_version}"* ]]; then
+        ln -s "/usr/lib/dotnet/dotnet${dotnet_installed_version:0:1}" "${CURRENT_DIR}"
     else
-        echo "The provided dotnet version is not distributed in this distro's default apt repo."
-        return 1
+        # Location used by MS repo versions
+        ln -s "/usr/share/dotnet" "${CURRENT_DIR}" 
     fi
 }
 
 # Find and extract .NET binary download details based on user-requested version
 # args:
 # sdk_or_runtime $1
+# dotnet_version_to_download $2
 # exports:
 # DOTNET_DOWNLOAD_URL
 # DOTNET_DOWNLOAD_HASH
 # DOTNET_DOWNLOAD_NAME
 get_full_version_details() {
     local sdk_or_runtime="$1"
-    local VERSION="$2"
     local architecture
     local dotnet_channel_version
     local dotnet_releases_url
@@ -267,6 +258,7 @@ get_full_version_details() {
     local dotnet_latest_version
     local dotnet_download_details
 
+    export DOTNET_DOWNLOAD_VERSION="$2"
     export DOTNET_DOWNLOAD_URL
     export DOTNET_DOWNLOAD_HASH
     export DOTNET_DOWNLOAD_NAME
@@ -275,11 +267,11 @@ get_full_version_details() {
     architecture="$(get_architecture_name_for_target_os)"
 
     # Set VERSION to empty string to ensure jq includes all .NET versions in reverse sort below 
-    if [ "${VERSION}" = "latest" ]; then
-        VERSION=""
+    if [ "${DOTNET_DOWNLOAD_VERSION}" = "latest" ]; then
+        DOTNET_DOWNLOAD_VERSION=""
     fi
 
-    dotnet_patchless_version="$(echo "${VERSION}" | cut -d "." --field=1,2)"
+    dotnet_patchless_version="$(echo "${DOTNET_DOWNLOAD_VERSION}" | cut -d "." --field=1,2)"
 
     set +e
     dotnet_channel_version="$(curl -s "${DOTNET_CDN_FEED_URI}/dotnet/release-metadata/releases-index.json" | jq -r --arg channel_version "${dotnet_patchless_version}" '[."releases-index"[]] | sort_by(."channel-version") | reverse | map( select(."channel-version" | startswith($channel_version))) | first | ."channel-version"')"
@@ -299,22 +291,22 @@ get_full_version_details() {
     if [ -n "${dotnet_releases_json}" ] && [[ ! "${dotnet_releases_json}" = *"Error"* ]]; then
         dotnet_latest_version="$(echo "${dotnet_releases_json}" | jq -r --arg sdk_or_runtime "${sdk_or_runtime}" '."latest-\($sdk_or_runtime)"')"
         # If user-specified version has 2 or more dots, use it as is.  Otherwise use latest version.
-        if [ "$(echo "${VERSION}" | grep -o "\." | wc -l)" -lt "2" ]; then
-            VERSION="${dotnet_latest_version}"
+        if [ "$(echo "${DOTNET_DOWNLOAD_VERSION}" | grep -o "\." | wc -l)" -lt "2" ]; then
+            DOTNET_DOWNLOAD_VERSION="${dotnet_latest_version}"
         fi
 
-        dotnet_download_details="$(echo "${dotnet_releases_json}" |  jq -r --arg sdk_or_runtime "${sdk_or_runtime}" --arg dotnet_version "${VERSION}" --arg arch "${architecture}" '.releases[]."\($sdk_or_runtime)" | select(.version==$dotnet_version) | .files[] | select(.name=="dotnet-\($sdk_or_runtime)-linux-\($arch).tar.gz")')"
+        dotnet_download_details="$(echo "${dotnet_releases_json}" |  jq -r --arg sdk_or_runtime "${sdk_or_runtime}" --arg dotnet_version "${DOTNET_DOWNLOAD_VERSION}" --arg arch "${architecture}" '.releases[]."\($sdk_or_runtime)" | select(.version==$dotnet_version) | .files[] | select(.name=="dotnet-\($sdk_or_runtime)-linux-\($arch).tar.gz")')"
         if [ -n "${dotnet_download_details}" ]; then
-            echo "Found .NET binary version ${VERSION}"
+            echo "Found .NET binary version ${DOTNET_DOWNLOAD_VERSION}"
             DOTNET_DOWNLOAD_URL="$(echo "${dotnet_download_details}" | jq -r '.url')"
             DOTNET_DOWNLOAD_HASH="$(echo "${dotnet_download_details}" | jq -r '.hash')"
             DOTNET_DOWNLOAD_NAME="$(echo "${dotnet_download_details}" | jq -r '.name')"
         else
-            err "Unable to find .NET binary for version ${VERSION}"
+            err "Unable to find .NET binary for version ${DOTNET_DOWNLOAD_VERSION}"
             exit 1
         fi
     else
-        err "Unable to find .NET release details for version ${VERSION} at ${dotnet_releases_url}"
+        err "Unable to find .NET release details for version ${DOTNET_DOWNLOAD_VERSION} at ${dotnet_releases_url}"
         exit 1
     fi
 }
@@ -322,10 +314,10 @@ get_full_version_details() {
 # Install .NET CLI using the .NET releases url
 install_using_dotnet_releases_url() {
     local sdk_or_runtime="$1"
-    local VERSION="$2"
+    local version="$2"
 
-    # Check listed package dependecies and install them if they are not already installed. 
-    # NOTE: icu-devtools is a small package with similar dependecies to .NET. 
+    # Check listed package dependencies and install them if they are not already installed. 
+    # NOTE: icu-devtools is a small package with similar dependencies to .NET. 
     #       It will install the appropriate dependencies based on the OS:
     #         - libgcc-s1 OR libgcc1 depending on OS
     #         - the latest libicuXX depending on OS (eg libicu57 for stretch)
@@ -336,14 +328,14 @@ install_using_dotnet_releases_url() {
     if [[  "${DOTNET_VERSION_CODENAMES_REQUIRE_OLDER_LIBSSL_1}" = *"${VERSION_CODENAME}"* ]]; then
         check_packages libssl1.1
     else
-        check_packages libssl3.0
+        check_packages libssl3
     fi
 
-    get_full_version_details "${sdk_or_runtime}" "${VERSION}"
+    get_full_version_details "${sdk_or_runtime}" "${version}"
 
-    DOTNET_INSTALL_PATH="${TARGET_DOTNET_ROOT}/${VERSION}"
+    DOTNET_INSTALL_PATH="${TARGET_DOTNET_ROOT}/${DOTNET_DOWNLOAD_VERSION}"
     if [ -d "${DOTNET_INSTALL_PATH}" ]; then
-        echo "(!) Dotnet version ${VERSION} already exists."
+        echo "(!) Dotnet version ${DOTNET_DOWNLOAD_VERSION} already exists."
         exit 1
     fi
     # exports DOTNET_DOWNLOAD_URL, DOTNET_DOWNLOAD_HASH, DOTNET_DOWNLOAD_NAME
@@ -432,7 +424,7 @@ CHANGE_OWNERSHIP="false"
 if [[ "${DOTNET_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${DOTNET_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${INSTALL_USING_APT}" = "true" ]]; then
     echo "Detected ${VERSION_CODENAME} on ${architecture}. Attempting to install dotnet from apt"
 
-    install_using_default_apt_repo || install_using_apt_from_microsoft_repo "${DOTNET_SDK_OR_RUNTIME}"
+    install_using_apt "${DOTNET_SDK_OR_RUNTIME}" "${DOTNET_VERSION}" false || install_using_apt "${DOTNET_SDK_OR_RUNTIME}" "${DOTNET_VERSION}" true
     if [ "$?" != 0 ]; then
         echo "Could not install requested version from apt on current distribution."
         exit 1

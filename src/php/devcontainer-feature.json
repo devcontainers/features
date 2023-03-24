@@ -1,6 +1,6 @@
 {
     "id": "php",
-    "version": "1.0.8",
+    "version": "1.1.2",
     "name": "PHP",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/php",
     "options": {
@@ -8,7 +8,10 @@
             "type": "string",
             "proposals": [
                 "latest",
-                "8.0.16"
+                "8",
+                "8.2",
+                "8.2.0",
+                "none"
             ],
             "default": "latest",
             "description": "Select or enter a PHP version"

@@ -5,6 +5,8 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
+check "cuda version" test -d /usr/local/cuda-11.8
+
 # Check installation of cuda-libraries-11-<version>
 check "libcudart.so.11.0" test 1 -eq "$(find /usr -name 'libcudart.so.11.0' | wc -l)"
 check "libcublas.so.11" test 1 -eq "$(find /usr -name 'libcublas.so.11' | wc -l)"

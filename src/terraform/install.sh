@@ -15,16 +15,23 @@ rm -rf /var/lib/apt/lists/*
 TERRAFORM_VERSION="${VERSION:-"latest"}"
 TFLINT_VERSION="${TFLINT:-"latest"}"
 TERRAGRUNT_VERSION="${TERRAGRUNT:-"latest"}"
+INSTALL_SENTINEL=${INSTALLSENTINEL:-false}
+INSTALL_TFSEC=${INSTALLTFSEC:-false}
+INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
 
 TERRAFORM_SHA256="${TERRAFORM_SHA256:-"automatic"}"
 TFLINT_SHA256="${TFLINT_SHA256:-"automatic"}"
 TERRAGRUNT_SHA256="${TERRAGRUNT_SHA256:-"automatic"}"
+SENTINEL_SHA256="${SENTINEL_SHA256:-"automatic"}"
+TFSEC_SHA256="${TFSEC_SHA256:-"automatic"}"
+TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
 
 TERRAFORM_GPG_KEY="72D7468F"
 TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/master/8CE69160EB3F2FE9.key"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
+GPG_KEY_SERVERS="keyserver hkps://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
-keyserver hkp://keyserver.pgp.com"
+keyserver hkps://keyserver.pgp.com"
+KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
 
 architecture="$(uname -m)"
 case ${architecture} in
@@ -40,32 +47,18 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Get central common setting
-get_common_setting() {
-    if [ "${common_settings_file_loaded}" != "true" ]; then
-        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" 2>/dev/null -o /tmp/vsdc-settings.env || echo "Could not download settings file. Skipping."
-        common_settings_file_loaded=true
-    fi
-    if [ -f "/tmp/vsdc-settings.env" ]; then
-        local multi_line=""
-        if [ "$2" = "true" ]; then multi_line="-z"; fi
-        local result="$(grep ${multi_line} -oP "$1=\"?\K[^\"]+" /tmp/vsdc-settings.env | tr -d '\0')"
-        if [ ! -z "${result}" ]; then declare -g $1="${result}"; fi
-    fi
-    echo "$1=${!1}"
-}
-
 # Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
-    get_common_setting $1
     local keys=${!1}
-    get_common_setting GPG_KEY_SERVERS true
     local keyring_args=""
     if [ ! -z "$2" ]; then
         keyring_args="--no-default-keyring --keyring $2"
     fi
+    if [ ! -z "${KEYSERVER_PROXY}" ]; then
+	keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
+    fi
 
-    # Use a temporary locaiton for gpg keys to avoid polluting image
+    # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
@@ -119,6 +112,30 @@ find_version_from_git_tags() {
         fi
     fi
     if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" > /dev/null 2>&1; then
+        echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
+        exit 1
+    fi
+    echo "${variable_name}=${!variable_name}"
+}
+
+find_sentinel_version_from_url() {
+    local variable_name=$1
+    local requested_version=${!variable_name}
+    if [ "${requested_version}" = "none" ]; then return; fi
+    local repository=$2
+    if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
+        local prefix='sentinel_'
+        local regex="${prefix}\d.\d{2}.\d(?:-\w*)?"
+        local version_list="$(wget -q $2 -O - | grep -oP ${regex} | tr -d ${prefix} | sort -rV)"
+        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
+            declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
+        else
+            set +e
+            declare -g ${variable_name}="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
+            set -e
+        fi
+    fi
+    if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" >/dev/null 2>&1; then
         echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
         exit 1
     fi
@@ -182,7 +199,6 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
     curl -sSL -o /tmp/tf-downloads/${TFLINT_FILENAME} https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/${TFLINT_FILENAME}
     if [ "${TFLINT_SHA256}" != "dev-mode" ]; then
         if [ "${TFLINT_SHA256}" = "automatic" ]; then
-            get_common_setting TFLINT_GPG_KEY_URI
             curl -sSL -o tflint_key "${TFLINT_GPG_KEY_URI}"
             gpg -q --import tflint_key
             curl -sSL -o tflint_checksums.txt https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt
@@ -210,6 +226,71 @@ if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
     fi
     chmod a+x /tmp/tf-downloads/${terragrunt_filename}
     mv -f /tmp/tf-downloads/${terragrunt_filename} /usr/local/bin/terragrunt
+fi
+
+if [ "${INSTALL_SENTINEL}" = "true" ]; then
+    SENTINEL_VERSION="latest"
+    sentinel_releases_url='https://releases.hashicorp.com/sentinel'
+    find_sentinel_version_from_url SENTINEL_VERSION ${sentinel_releases_url}
+    sentinel_filename="sentinel_${SENTINEL_VERSION}_linux_${architecture}.zip"
+    echo "(*) Downloading Sentinel... ${sentinel_filename}"
+    curl -sSL -o /tmp/tf-downloads/${sentinel_filename} ${sentinel_releases_url}/${SENTINEL_VERSION}/${sentinel_filename}
+    if [ "${SENTINEL_SHA256}" != "dev-mode" ]; then
+        if [ "${SENTINEL_SHA256}" = "automatic" ]; then
+            receive_gpg_keys TERRAFORM_GPG_KEY
+            curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
+            curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
+            gpg --verify sentinel_checksums.txt.sig sentinel_checksums.txt
+            # Verify the SHASUM matches the archive
+            shasum -a 256 --ignore-missing -c sentinel_checksums.txt
+        else
+            echo "${SENTINEL_SHA256} *${SENTINEL_FILENAME}" >sentinel_checksums.txt
+        fi
+        sha256sum --ignore-missing -c sentinel_checksums.txt
+    fi
+    unzip /tmp/tf-downloads/${sentinel_filename}
+    chmod a+x /tmp/tf-downloads/sentinel
+    mv -f /tmp/tf-downloads/sentinel /usr/local/bin/sentinel
+fi
+
+if [ "${INSTALL_TFSEC}" = "true" ]; then
+    TFSEC_VERSION="latest"
+    find_version_from_git_tags TFSEC_VERSION 'https://github.com/aquasecurity/tfsec'
+    tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
+    echo "(*) Downloading TFSec... ${tfsec_filename}"
+    curl -sSL -o /tmp/tf-downloads/${tfsec_filename} https://github.com/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/${tfsec_filename}
+    if [ "${TFSEC_SHA256}" != "dev-mode" ]; then
+        if [ "${TFSEC_SHA256}" = "automatic" ]; then
+            curl -sSL -o tfsec_SHA256SUMS https://github.com/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/tfsec_${TFSEC_VERSION}_checksums.txt
+        else
+            echo "${TFSEC_SHA256} *${tfsec_filename}" > tfsec_SHA256SUMS
+        fi
+        sha256sum --ignore-missing -c tfsec_SHA256SUMS
+    fi
+    mkdir -p /tmp/tf-downloads/tfsec
+    tar -xzf /tmp/tf-downloads/${tfsec_filename} -C /tmp/tf-downloads/tfsec
+    chmod a+x /tmp/tf-downloads/tfsec/tfsec
+    mv -f /tmp/tf-downloads/tfsec/tfsec /usr/local/bin/tfsec
+fi
+
+if [ "${INSTALL_TERRAFORM_DOCS}" = "true" ]; then
+    TERRAFORM_DOCS_VERSION="latest"
+    find_version_from_git_tags TERRAFORM_DOCS_VERSION 'https://github.com/terraform-docs/terraform-docs'
+    tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
+    echo "(*) Downloading Terraform docs... ${tfdocs_filename}"
+    curl -sSL -o /tmp/tf-downloads/${tfdocs_filename} https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/${tfdocs_filename}
+    if [ "${TERRAFORM_DOCS_SHA256}" != "dev-mode" ]; then
+        if [ "${TERRAFORM_DOCS_SHA256}" = "automatic" ]; then
+            curl -sSL -o tfdocs_SHA256SUMS https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}.sha256sum
+        else
+            echo "${TERRAFORM_DOCS_SHA256} *${tfsec_filename}" > tfdocs_SHA256SUMS
+        fi
+        sha256sum --ignore-missing -c tfdocs_SHA256SUMS
+    fi
+    mkdir -p /tmp/tf-downloads/tfdocs
+    tar -xzf /tmp/tf-downloads/${tfdocs_filename} -C /tmp/tf-downloads/tfdocs
+    chmod a+x /tmp/tf-downloads/tfdocs/terraform-docs
+    mv -f /tmp/tf-downloads/tfdocs/terraform-docs /usr/local/bin/terraform-docs
 fi
 
 rm -rf /tmp/tf-downloads ${GNUPGHOME}

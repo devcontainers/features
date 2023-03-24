@@ -1,13 +1,13 @@
 {
   "id": "python",
-  "version": "1.0.10",
+  "version": "1.0.22",
   "name": "Python",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python",
   "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab is conditionally installed with the python feature. Note: May require source code compilation.",
   "options": {
     "version": {
       "type": "string",
-      "enum": [
+      "proposals": [
         "latest",
         "os-provided",
         "none",
@@ -60,20 +60,20 @@
         "ms-python.vscode-pylance"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
         "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
         "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
-        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
         "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+        "python.linting.flake8Enabled": false,
         "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
-        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
-        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
+        "python.linting.mypyEnabled": false,
+        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
+        "python.linting.pylintEnabled": false
       }
     }
   },
   "installsAfter": [
-      "ghcr.io/devcontainers/features/common-utils"
+      "ghcr.io/devcontainers/features/common-utils",
+      "ghcr.io/devcontainers/features/oryx"
   ]
 }

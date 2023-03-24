@@ -7,7 +7,7 @@
 VERSION=${VERSION:-"latest"}
 ADD_CONDA_FORGE=$ADDCONDAFORGE
 
-USERNAME="automatic"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="true"
 CONDA_DIR="/opt/conda"
 
@@ -61,6 +61,20 @@ check_packages() {
     fi
 }
 
+sudo_if() {
+    COMMAND="$*"
+    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
+        su - "$USERNAME" -c "$COMMAND"
+    else
+        $COMMAND
+    fi
+}
+
+install_user_package() {
+    PACKAGE="$1"
+    sudo_if "${CONDA_DIR}/bin/python3" -m pip install --user --upgrade "$PACKAGE"
+}
+
 # Install Conda if it's missing
 if ! conda --version &> /dev/null ; then
     if ! cat /etc/group | grep -e "^conda:" > /dev/null 2>&1; then
@@ -99,6 +113,9 @@ if ! conda --version &> /dev/null ; then
     chmod -R g+r+w "${CONDA_DIR}"
     
     find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
+
+    # Temporary due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23491
+    install_user_package certifi
 fi
 
 # Display a notice on conda when not running in GitHub Codespaces

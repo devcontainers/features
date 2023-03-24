@@ -9,18 +9,22 @@
 #
 # Syntax: ./java-debian.sh [JDK version] [SDKMAN_DIR] [non-root user] [Add to rc files flag]
 
-JAVA_VERSION=${VERSION:-"lts"}
-INSTALL_GRADLE=${INSTALLGRADLE:-"false"}
-INSTALL_MAVEN=${INSTALLMAVEN:-"false"}
-JDK_DISTRO=${JDKDISTRO}
+JAVA_VERSION="${VERSION:-"lts"}"
+INSTALL_GRADLE="${INSTALLGRADLE:-"false"}"
+GRADLE_VERSION="${GRADLEVERSION:-"latest"}"
+INSTALL_MAVEN="${INSTALLMAVEN:-"false"}"
+MAVEN_VERSION="${MAVENVERSION:-"latest"}"
+INSTALL_ANT="${INSTALLANT:-"false"}"
+ANT_VERSION="${ANTVERSION:-"latest"}"
+JDK_DISTRO="${JDKDISTRO}"
 
-export SDKMAN_DIR=${SDKMAN_DIR:-"/usr/local/sdkman"}
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
+export SDKMAN_DIR="${SDKMAN_DIR:-"/usr/local/sdkman"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
 
 # Comma-separated list of java versions to be installed
 # alongside JAVA_VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
+ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
 set -e
 
@@ -176,14 +180,19 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk default java ${JAVA_VERSION}"
 fi
 
+# Install Ant
+if [[ "${INSTALL_ANT}" = "true" ]] && ! ant -version > /dev/null; then
+    sdk_install ant ${ANT_VERSION}
+fi
+
 # Install Gradle
 if [[ "${INSTALL_GRADLE}" = "true" ]] && ! gradle --version > /dev/null; then
-    sdk_install gradle latest
+    sdk_install gradle ${GRADLE_VERSION}
 fi
 
 # Install Maven
 if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null; then
-    sdk_install maven latest
+    sdk_install maven ${MAVEN_VERSION}
 fi
 
 # Clean up

@@ -4,36 +4,28 @@
 <td style="width: 140px; text-align: center;"><a href="https://github.com/devcontainers"><img width="128px" src="https://raw.githubusercontent.com/microsoft/fluentui-system-icons/78c9587b995299d5bfc007a0077773556ecb0994/assets/Cube/SVG/ic_fluent_cube_32_filled.svg" alt="devcontainers organization logo"/></a></td>
 <td>
 <strong>Development Container 'Features'</strong><br />
-<i>A set of simple and reusable 'features'. Quickly add a language/tool/CLI to a development container.
+<i>A set of simple and reusable Features. Quickly add a language/tool/CLI to a development container.
 </td>
 </tr></table>
 
 'Features' are self-contained units of installation code and development container configuration. Features are designed
-to install atop a wide-range of base container images (**this repo focuses on `debian` based images**).
+to install atop a wide-range of base container images.
 
-Missing a CLI or language in your otherwise _perfect_ container image? Add the relevant 'feature' to the `features`
+Missing a CLI or language in your otherwise _perfect_ container image? Add the relevant Feature to the `features`
 property of a [`devcontainer.json`](https://containers.dev/implementors/json_reference/#general-properties). A
 [tool supporting the dev container specification](https://containers.dev/supporting) is required to build a development
 container.
 
-⚠️ Development container 'features' are a
-[**proposed**](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md) addition to the
-[development container specification](https://containers.dev/implementors/spec/). **Please note that 'features' are in
-preview and subject to breaking changes**.
-
-Once the [**proposed**](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features.md)
-specification is accepted, implementation details will be published at
-[https://containers.dev](https://containers.dev/).
-
+You may learn about Features at [containers.dev](https://containers.dev/implementors/features/), which is the website for the dev container specification.
 
 ## Usage
 
-To reference a feature from this repository, add the desired features to a `devcontainer.json`. Each feature has a `README.md` that shows how to reference the feature and which options are available for that feature.
+To reference a Feature from this repository, add the desired Features to a `devcontainer.json`. Each Feature has a `README.md` that shows how to reference the Feature and which options are available for that Feature.
 
 The example below installs the `go` and `docker-in-docker` declared in the [`./src`](./src) directory of this
 repository.
 
-See the relevant feature's README for supported options.
+See the relevant Feature's README for supported options.
 
 ```jsonc
 "name": "my-project-devcontainer",
@@ -51,7 +43,7 @@ See the relevant feature's README for supported options.
 
 The `:latest` version annotation is added implicitly if omitted. To pin to a specific package version
 ([example](https://github.com/devcontainers/features/pkgs/container/features/go/versions)), append it to the end of the
-feature. Features follow semantic versioning conventions, so you can pin to a major version `:1`, minor version `:1.0`, or patch version `:1.0.0` by specifying the appropriate label.
+Feature. Features follow semantic versioning conventions, so you can pin to a major version `:1`, minor version `:1.0`, or patch version `:1.0.0` by specifying the appropriate label.
 
 ```jsonc
 "features": {
@@ -63,7 +55,7 @@ feature. Features follow semantic versioning conventions, so you can pin to a ma
 
 The [devcontainer CLI reference implementation](https://github.com/devcontainers/cli) (or a
 [supporting tool](https://containers.dev/supporting)) can be used to build a project's dev container declaring
-'features'.
+Features.
 
 ```bash
 git clone <my-project-with-devcontainer>
@@ -97,7 +89,7 @@ devcontainer build --workspace-folder <path-to-my-project-with-devcontainer>
 ...
 ```
 
--   [`src`](src) - A collection of subfolders, each declaring a feature. Each subfolder contains at least a
+-   [`src`](src) - A collection of subfolders, each declaring a Feature. Each subfolder contains at least a
     `devcontainer-feature.json` and an `install.sh` script.
 -   [`test`](test) - Mirroring `src`, a folder-per-feature with at least a `test.sh` script. The
     [`devcontainer` CLI](https://github.com/devcontainers/cli) will execute
@@ -105,15 +97,19 @@ devcontainer build --workspace-folder <path-to-my-project-with-devcontainer>
 
 ## Contributions
 
-### Creating your own collection of features
+### Creating your own collection of Features
 
-The [feature distribution specification](https://github.com/devcontainers/spec/blob/main/proposals/devcontainer-features-distribution.md) outlines a pattern for community members and organizations to self-author features in repositories they control.
+The [Feature distribution specification](https://containers.dev/implementors/features-distribution/) outlines a pattern for community members and organizations to self-author Features in repositories they control.
 
-A template repo [`devcontainers/feature-template`](https://github.com/devcontainers/feature-template) and [GitHub Action](https://github.com/devcontainers/action) are available to help bootstrap self-authored features.
+A template repo [`devcontainers/feature-template`](https://github.com/devcontainers/feature-template) and [GitHub Action](https://github.com/devcontainers/action) are available to help bootstrap self-authored Features.
 
 We are eager to hear your feedback on self-authoring!  Please provide comments and feedback on [spec issue #70](https://github.com/devcontainers/spec/issues/70).
 
 ### Contributing to this repository
 
 This repository will accept improvement and bug fix contributions related to the
-[current set of maintained features](./src).
+[current set of maintained Features](./src).
+
+🤝 You can read more about how to contribute in [`CONTRIBUTING.md`]. ❤️
+
+[`CONTRIBUTING.md`]: CONTRIBUTING.md

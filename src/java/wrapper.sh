@@ -3,11 +3,11 @@
 
 set -e
 
-JAVA_VERSION=${1:-"default"}
-SDKMAN_DIR=${2:-"/usr/local/sdkman"}
-USERNAME=${3:-"automatic"}
-UPDATE_RC=${4:-"true"}
-ADDITIONAL_JAVA_VERSION=11
+JAVA_VERSION="${1:-"default"}"
+SDKMAN_DIR="${2:-"/usr/local/sdkman"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${4:-"true"}"
+ADDITIONAL_JAVA_VERSION="11"
 
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 chmod +x install.sh

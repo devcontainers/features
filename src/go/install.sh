@@ -7,12 +7,13 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/go.md
 # Maintainer: The VS Code and Codespaces Teams
 
-TARGET_GO_VERSION=${VERSION:-"latest"}
+TARGET_GO_VERSION="${VERSION:-"latest"}"
+GOLANGCILINT_VERSION="${GOLANGCILINTVERSION:-"latest"}"
 
-TARGET_GOROOT=${TARGET_GOROOT:-"/usr/local/go"}
-TARGET_GOPATH=${TARGET_GOPATH:-"/go"}
-USERNAME=${USERNAME:-"automatic"}
-INSTALL_GO_TOOLS=${INSTALL_GO_TOOLS:-"true"}
+TARGET_GOROOT="${TARGET_GOROOT:-"/usr/local/go"}"
+TARGET_GOPATH="${TARGET_GOPATH:-"/go"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+INSTALL_GO_TOOLS="${INSTALL_GO_TOOLS:-"true"}"
 
 # https://www.google.com/linuxrepositories/
 GO_GPG_KEY_URI="https://dl.google.com/linux/linux_signing_key.pub"
@@ -141,8 +142,9 @@ if ! cat /etc/group | grep -e "^golang:" > /dev/null 2>&1; then
 fi
 usermod -a -G golang "${USERNAME}"
 mkdir -p "${TARGET_GOROOT}" "${TARGET_GOPATH}"
-if [ "${TARGET_GO_VERSION}" != "none" ] && ! type go > /dev/null 2>&1; then
-    # Use a temporary locaiton for gpg keys to avoid polluting image
+
+if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version)" != *"${TARGET_GO_VERSION}"* ]]; then
+    # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
@@ -185,7 +187,7 @@ if [ "${TARGET_GO_VERSION}" != "none" ] && ! type go > /dev/null 2>&1; then
     tar -xzf /tmp/go.tar.gz -C "${TARGET_GOROOT}" --strip-components=1
     rm -rf /tmp/go.tar.gz /tmp/go.tar.gz.asc /tmp/tmp-gnupg
 else
-    echo "Go already installed. Skipping."
+    echo "(!) Go is already installed with version ${TARGET_GO_VERSION}. Skipping."
 fi
 
 # Install Go tools that are isImportant && !replacedByGopls based on
@@ -197,8 +199,7 @@ GO_TOOLS="\
     github.com/mgechev/revive@latest \
     github.com/uudashr/gopkgs/v2/cmd/gopkgs@latest \
     github.com/ramya-rao-a/go-outline@latest \
-    github.com/go-delve/delve/cmd/dlv@latest \
-    github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
+    github.com/go-delve/delve/cmd/dlv@latest"
 if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
     echo "Installing common Go tools..."
     export PATH=${TARGET_GOROOT}/bin:${PATH}
@@ -218,9 +219,21 @@ if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
     (echo "${GO_TOOLS}" | xargs -n 1 go ${go_install_command} -v )2>&1 | tee -a /usr/local/etc/vscode-dev-containers/go.log
 
     # Move Go tools into path and clean up
-    mv /tmp/gotools/bin/* ${TARGET_GOPATH}/bin/
+    if [ -d /tmp/gotools/bin ]; then
+        mv /tmp/gotools/bin/* ${TARGET_GOPATH}/bin/
+        rm -rf /tmp/gotools
+    fi
 
-    rm -rf /tmp/gotools
+    # Install golangci-lint from precompiled binares
+    if [ "$GOLANGCILINT_VERSION" = "latest" ] || [ "$GOLANGCILINT_VERSION" = "" ]; then
+        echo "Installing golangci-lint latest..."
+        curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+            sh -s -- -b "${TARGET_GOPATH}/bin"
+    else
+        echo "Installing golangci-lint ${GOLANGCILINT_VERSION}..."
+        curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+            sh -s -- -b "${TARGET_GOPATH}/bin" "v${GOLANGCILINT_VERSION}"
+    fi
 fi
 
 

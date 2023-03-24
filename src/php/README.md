@@ -7,9 +7,7 @@
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/php:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/php:1": {}
 }
 ```
 
@@ -20,6 +18,13 @@
 | version | Select or enter a PHP version | string | latest |
 | installComposer | Install PHP Composer? | boolean | true |
 
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

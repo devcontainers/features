@@ -7,9 +7,7 @@ Installs shared libraries for NVIDIA CUDA.
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/nvidia-cuda:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/nvidia-cuda:1": {}
 }
 ```
 
@@ -17,10 +15,10 @@ Installs shared libraries for NVIDIA CUDA.
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| installCudnn | Additionally install CUDA Deep Neural Network (cuDNN) shared library | boolean | - |
-| installNvtx | Additionally install NVIDIA Tools Extension (NVTX) | boolean | - |
-| cudaVersion | Version of CUDA to install | string | 11.7 |
-| cudnnVersion | Version of cuDNN to install | string | 8.5.0.96 |
+| installCudnn | Additionally install CUDA Deep Neural Network (cuDNN) shared library | boolean | false |
+| installNvtx | Additionally install NVIDIA Tools Extension (NVTX) | boolean | false |
+| cudaVersion | Version of CUDA to install | string | 11.8 |
+| cudnnVersion | Version of cuDNN to install | string | 8.6.0.163 |
 
 ## Compatibility
 
@@ -41,6 +39,13 @@ Enable GPU passthrough to your devcontainer by adding `["--gpus", "all"]` to you
   "runArgs": ["--gpus", "all"]
 }
 ```
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

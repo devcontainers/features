@@ -1,0 +1,12 @@
+{
+    "install_only_kubectl": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "kubectl-helm-minikube": {
+                "version": "none",
+                "helm": "none",
+                "minikube": "none"
+            }
+        }
+    }
+}

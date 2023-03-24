@@ -7,9 +7,7 @@ Install an up-to-date version of Git, built from source as needed. Useful for wh
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/git:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/git:1": {}
 }
 ```
 
@@ -20,6 +18,13 @@ Install an up-to-date version of Git, built from source as needed. Useful for wh
 | version | Select or enter a Git version. | string | os-provided |
 | ppa | Install from PPA if available | boolean | true |
 
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

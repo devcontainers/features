@@ -7,9 +7,7 @@
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/hugo:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/hugo:1": {}
 }
 ```
 
@@ -18,7 +16,15 @@
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter a version. | string | latest |
+| extended | Install Hugo extended for SASS/SCSS changes | boolean | false |
 
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

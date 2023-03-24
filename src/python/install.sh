@@ -7,28 +7,28 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/python.md
 # Maintainer: The VS Code and Codespaces Teams
 
-PYTHON_VERSION=${VERSION:-"latest"} # 'system' checks the base image first, else installs 'latest'
-INSTALL_PYTHON_TOOLS=${INSTALLTOOLS:-"true"}
-OPTIMIZE_BUILD_FROM_SOURCE=${OPTIMIZE:-"false"}
-PYTHON_INSTALL_PATH=${INSTALLPATH:-"/usr/local/python"}
-OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
+PYTHON_VERSION="${VERSION:-"latest"}" # 'system' or 'os-provided' checks the base image first, else installs 'latest'
+INSTALL_PYTHON_TOOLS="${INSTALLTOOLS:-"true"}"
+OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
+PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
+OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
-USE_ORYX_IF_AVAILABLE=${USE_ORYX_IF_AVAILABLE:-"true"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
+USE_ORYX_IF_AVAILABLE="${USEORYXIFAVAILABLE:-"true"}"
 
-INSTALL_JUPYTERLAB=${INSTALLJUPYTERLAB:-"false"}
-CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN=${CONFIGUREJUPYTERLABALLOWORIGIN:-""}
+INSTALL_JUPYTERLAB="${INSTALLJUPYTERLAB:-"false"}"
+CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN="${CONFIGUREJUPYTERLABALLOWORIGIN:-""}"
 
 # Comma-separated list of python versions to be installed
 # alongside PYTHON_VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
+ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
-DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv")
+DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv" "pytest")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
+GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
@@ -76,33 +76,16 @@ updaterc() {
     fi
 }
 
-# Get central common setting
-get_common_setting() {
-    if [ "${common_settings_file_loaded}" != "true" ]; then
-        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" 2>/dev/null -o /tmp/vsdc-settings.env || echo "Could not download settings file. Skipping."
-        common_settings_file_loaded=true
-    fi
-    if [ -f "/tmp/vsdc-settings.env" ]; then
-        local multi_line=""
-        if [ "$2" = "true" ]; then multi_line="-z"; fi
-        local result="$(grep ${multi_line} -oP "$1=\"?\K[^\"]+" /tmp/vsdc-settings.env | tr -d '\0')"
-        if [ ! -z "${result}" ]; then declare -g $1="${result}"; fi
-    fi
-    echo "$1=${!1}"
-}
-
 # Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
-    get_common_setting $1
     local keys=${!1}
-    get_common_setting GPG_KEY_SERVERS true
     local keyring_args=""
     if [ ! -z "$2" ]; then
         mkdir -p "$(dirname \"$2\")"
         keyring_args="--no-default-keyring --keyring $2"
     fi
 
-    # Use a temporary locaiton for gpg keys to avoid polluting image
+    # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
@@ -299,6 +282,9 @@ install_using_oryx() {
         echo "(!) Python version ${VERSION} already exists."
         exit 1
     fi
+
+    # The python install root path may not exist, so create it
+    mkdir -p "${PYTHON_INSTALL_PATH}"
     oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
 
     ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
@@ -319,7 +305,7 @@ sudo_if() {
 
 install_user_package() {
     PACKAGE="$1"
-    sudo_if "$INSTALL_PATH/bin/python3" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+    sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
 }
 
 add_user_jupyter_config() {
@@ -337,13 +323,24 @@ add_user_jupyter_config() {
 install_python() {
     version=$1
     # If the os-provided versions are "good enough", detect that and bail out.
-    if [ ${PYTHON_VERSION} = "os-provided" ] || [ ${PYTHON_VERSION} = "system" ]; then
+    if [ ${version} = "os-provided" ] || [ ${version} = "system" ]; then
         check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
-        PYTHON_ROOT="/usr/bin"
+        INSTALL_PATH="/usr"
 
-        ln -s "${PYTHON_ROOT}/python3" "${PYTHON_ROOT}/python"
-        ln -s "${PYTHON_ROOT}/pydoc3" "${PYTHON_ROOT}/pydoc"
-        ln -s "${PYTHON_ROOT}/python3-config" "${PYTHON_ROOT}/python-config"
+        local current_bin_path="${CURRENT_PATH}/bin"
+        if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
+            rm -rf "${current_bin_path}"
+        fi
+        if [ ! -d "${current_bin_path}" ] ; then
+            mkdir -p "${current_bin_path}"
+            # Add an interpreter symlink but point it to "/usr" since python is at /usr/bin/python, add other alises
+            ln -s "${INSTALL_PATH}/bin/python3" "${current_bin_path}/python3"
+            ln -s "${INSTALL_PATH}/bin/python3" "${current_bin_path}/python"
+            ln -s "${INSTALL_PATH}/bin/pydoc3" "${current_bin_path}/pydoc3"
+            ln -s "${INSTALL_PATH}/bin/pydoc3" "${current_bin_path}/pydoc"
+            ln -s "${INSTALL_PATH}/bin/python3-config" "${current_bin_path}/python3-config"
+            ln -s "${INSTALL_PATH}/bin/python3-config" "${current_bin_path}/python-config"
+        fi
 
         should_install_from_source=false
     elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
@@ -392,12 +389,17 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 
     if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ]; then
         updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_PATH}/bin\"* ]]; then export PATH=${CURRENT_PATH}/bin:\${PATH}; fi"
-        chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
-        chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
-        find "${PYTHON_INSTALL_PATH}" -type d -print0 | xargs -0 -n 1 chmod g+s
-
         PATH="${INSTALL_PATH}/bin:${PATH}"
     fi
+    
+    # Updates the symlinks for os-provided, or the installed python version in other cases
+    chown -R "${USERNAME}:python" "${PYTHON_INSTALL_PATH}"
+    chmod -R g+r+w "${PYTHON_INSTALL_PATH}"
+    find "${PYTHON_INSTALL_PATH}" -type d -print0 | xargs -0 -n 1 chmod g+s
+
+    PYTHON_SRC="${INSTALL_PATH}/bin/python3"
+else
+    PYTHON_SRC=$(which python)
 fi
 
 # Install Python tools if needed
@@ -431,11 +433,11 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     if ! type pipx > /dev/null 2>&1; then
         pip3 install --disable-pip-version-check --no-cache-dir --user pipx 2>&1
         /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
-        PIPX_DIR="/tmp/pip-tmp/bin"
+        PIPX_DIR="/tmp/pip-tmp/bin/"
     fi
     for util in "${DEFAULT_UTILS[@]}"; do
         if ! type ${util} > /dev/null 2>&1; then
-            "${PIPX_DIR}/pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
+            "${PIPX_DIR}pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
         else
             echo "${util} already installed. Skipping."
         fi
@@ -449,7 +451,13 @@ fi
 
 # Install JupyterLab if needed
 if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
+    if [ -z "${PYTHON_SRC}" ]; then
+        echo "(!) Could not install Jupyterlab. Python not found."
+        exit 1
+    fi
+
     install_user_package jupyterlab
+    install_user_package jupyterlab-git
 
     # Configure JupyterLab if needed
     if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then

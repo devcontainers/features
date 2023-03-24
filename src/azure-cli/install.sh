@@ -13,6 +13,8 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 AZ_VERSION=${VERSION:-"latest"}
+AZ_EXTENSIONS=${EXTENSIONS}
+AZ_INSTALLBICEP=${INSTALLBICEP:-false}
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64"
@@ -183,6 +185,41 @@ if [ "${use_pip}" = "true" ]; then
         apt-cache madison azure-cli | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
         exit 1
     fi
+fi
+
+# If Azure CLI extensions are requested, loop through and install 
+if [ ${#AZ_EXTENSIONS[@]} -gt 0 ]; then
+    echo "Installing Azure CLI extensions: ${AZ_EXTENSIONS}"
+    extensions=(`echo ${AZ_EXTENSIONS} | tr ',' ' '`)
+    for i in "${extensions[@]}"
+    do
+        echo "Installing ${i}"
+        su ${_REMOTE_USER} -c "az extension add --name ${i} -y" || continue
+    done
+fi
+
+if [ "${AZ_INSTALLBICEP}" = "true" ]; then
+    # Install dependencies
+    check_packages apt-transport-https curl 
+    
+    # Properly install Azure Bicep based on current architecture
+    # The `az bicep install` command installs the linux-x64 binary even on arm64 devcontainers
+    # The `az bicep install --target-platform` could be a solution; however, linux-arm64 is not an allowed value for this argument yet
+    # Manually installing Bicep and moving to the appropriate directory where az expects it to be
+    
+    if [ "${architecture}" = "arm64" ]; then
+        curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-arm64
+    else 
+        curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+    fi
+    
+    chmod +x ./bicep
+    mv ./bicep /usr/local/bin/bicep
+
+    # Add a symlink so bicep can be accessed as a standalone executable or as part of az
+    mkdir -p ${_REMOTE_USER_HOME}/.azure/bin
+    chown -hR ${_REMOTE_USER}:${_REMOTE_USER} ${_REMOTE_USER_HOME}/.azure
+    ln -s /usr/local/bin/bicep ${_REMOTE_USER_HOME}/.azure/bin/bicep
 fi
 
 # Clean up

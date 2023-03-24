@@ -14,15 +14,15 @@ rm -rf /var/lib/apt/lists/*
 
 KUBECTL_VERSION="${VERSION:-"latest"}"
 HELM_VERSION="${HELM:-"latest"}"
-MINIKUBE_VERSION="${MINIKUBE:-"none"}" # latest is also valid
+MINIKUBE_VERSION="${MINIKUBE:-"latest"}" # latest is also valid
 
 KUBECTL_SHA256="${KUBECTL_SHA256:-"automatic"}"
 HELM_SHA256="${HELM_SHA256:-"automatic"}"
 MINIKUBE_SHA256="${MINIKUBE_SHA256:-"automatic"}"
-USERNAME=${USERNAME:-"automatic"}
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
 HELM_GPG_KEYS_URI="https://raw.githubusercontent.com/helm/helm/main/KEYS"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com:80
+GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
@@ -52,22 +52,6 @@ USERHOME="/home/$USERNAME"
 if [ "$USERNAME" = "root" ]; then
     USERHOME="/root"
 fi
-
-
-# Get central common setting
-get_common_setting() {
-    if [ "${common_settings_file_loaded}" != "true" ]; then
-        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" 2>/dev/null -o /tmp/vsdc-settings.env || echo "Could not download settings file. Skipping."
-        common_settings_file_loaded=true
-    fi
-    if [ -f "/tmp/vsdc-settings.env" ]; then
-        local multi_line=""
-        if [ "$2" = "true" ]; then multi_line="-z"; fi
-        local result="$(grep ${multi_line} -oP "$1=\"?\K[^\"]+" /tmp/vsdc-settings.env | tr -d '\0')"
-        if [ ! -z "${result}" ]; then declare -g $1="${result}"; fi
-    fi
-    echo "$1=${!1}"
-}
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -137,79 +121,83 @@ case $architecture in
     *) echo "(!) Architecture $architecture unsupported"; exit 1 ;;
 esac
 
-# Install the kubectl, verify checksum
-echo "Downloading kubectl..."
-if [ "${KUBECTL_VERSION}" = "latest" ] || [ "${KUBECTL_VERSION}" = "lts" ] || [ "${KUBECTL_VERSION}" = "current" ] || [ "${KUBECTL_VERSION}" = "stable" ]; then
-    KUBECTL_VERSION="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
-else
-    find_version_from_git_tags KUBECTL_VERSION https://github.com/kubernetes/kubernetes
-fi
-if [ "${KUBECTL_VERSION::1}" != 'v' ]; then
-    KUBECTL_VERSION="v${KUBECTL_VERSION}"
-fi
-curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl"
-chmod 0755 /usr/local/bin/kubectl
-if [ "$KUBECTL_SHA256" = "automatic" ]; then
-    KUBECTL_SHA256="$(curl -sSL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
-fi
-([ "${KUBECTL_SHA256}" = "dev-mode" ] || (echo "${KUBECTL_SHA256} */usr/local/bin/kubectl" | sha256sum -c -))
-if ! type kubectl > /dev/null 2>&1; then
-    echo '(!) kubectl installation failed!'
-    exit 1
+if [ ${KUBECTL_VERSION} != "none" ]; then
+    # Install the kubectl, verify checksum
+    echo "Downloading kubectl..."
+    if [ "${KUBECTL_VERSION}" = "latest" ] || [ "${KUBECTL_VERSION}" = "lts" ] || [ "${KUBECTL_VERSION}" = "current" ] || [ "${KUBECTL_VERSION}" = "stable" ]; then
+        KUBECTL_VERSION="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
+    else
+        find_version_from_git_tags KUBECTL_VERSION https://github.com/kubernetes/kubernetes
+    fi
+    if [ "${KUBECTL_VERSION::1}" != 'v' ]; then
+        KUBECTL_VERSION="v${KUBECTL_VERSION}"
+    fi
+    curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl"
+    chmod 0755 /usr/local/bin/kubectl
+    if [ "$KUBECTL_SHA256" = "automatic" ]; then
+        KUBECTL_SHA256="$(curl -sSL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
+    fi
+    ([ "${KUBECTL_SHA256}" = "dev-mode" ] || (echo "${KUBECTL_SHA256} */usr/local/bin/kubectl" | sha256sum -c -))
+    if ! type kubectl > /dev/null 2>&1; then
+        echo '(!) kubectl installation failed!'
+        exit 1
+    fi
+
+    # kubectl bash completion
+    kubectl completion bash > /etc/bash_completion.d/kubectl
+
+    # kubectl zsh completion
+    if [ -e "${USERHOME}}/.oh-my-zsh" ]; then
+        mkdir -p "${USERHOME}/.oh-my-zsh/completions"
+        kubectl completion zsh > "${USERHOME}/.oh-my-zsh/completions/_kubectl"
+        chown -R "${USERNAME}" "${USERHOME}/.oh-my-zsh"
+    fi
 fi
 
-# kubectl bash completion
-kubectl completion bash > /etc/bash_completion.d/kubectl
-
-# kubectl zsh completion
-if [ -e "${USERHOME}}/.oh-my-zsh" ]; then
-    mkdir -p "${USERHOME}/.oh-my-zsh/completions"
-    kubectl completion zsh > "${USERHOME}/.oh-my-zsh/completions/_kubectl"
-    chown -R "${USERNAME}" "${USERHOME}/.oh-my-zsh"
-fi
-
-# Install Helm, verify signature and checksum
-echo "Downloading Helm..."
-find_version_from_git_tags HELM_VERSION "https://github.com/helm/helm"
-if [ "${HELM_VERSION::1}" != 'v' ]; then
-    HELM_VERSION="v${HELM_VERSION}"
-fi
-mkdir -p /tmp/helm
-helm_filename="helm-${HELM_VERSION}-linux-${architecture}.tar.gz"
-tmp_helm_filename="/tmp/helm/${helm_filename}"
-curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
-curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
-export GNUPGHOME="/tmp/helm/gnupg"
-mkdir -p "${GNUPGHOME}"
-chmod 700 ${GNUPGHOME}
-get_common_setting HELM_GPG_KEYS_URI
-get_common_setting GPG_KEY_SERVERS true
-curl -sSL "${HELM_GPG_KEYS_URI}" -o /tmp/helm/KEYS
-echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
-gpg -q --import "/tmp/helm/KEYS"
-if ! gpg --verify "${tmp_helm_filename}.asc" > ${GNUPGHOME}/verify.log 2>&1; then
-    echo "Verification failed!"
-    cat /tmp/helm/gnupg/verify.log
-    exit 1
-fi
-if [ "${HELM_SHA256}" = "automatic" ]; then
-    curl -sSL "https://get.helm.sh/${helm_filename}.sha256" -o "${tmp_helm_filename}.sha256"
-    curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.sha256.asc" -o "${tmp_helm_filename}.sha256.asc"
-    if ! gpg --verify "${tmp_helm_filename}.sha256.asc" > /tmp/helm/gnupg/verify.log 2>&1; then
+if [ ${HELM_VERSION} != "none" ]; then
+    # Install Helm, verify signature and checksum
+    echo "Downloading Helm..."
+    find_version_from_git_tags HELM_VERSION "https://github.com/helm/helm"
+    if [ "${HELM_VERSION::1}" != 'v' ]; then
+        HELM_VERSION="v${HELM_VERSION}"
+    fi
+    mkdir -p /tmp/helm
+    helm_filename="helm-${HELM_VERSION}-linux-${architecture}.tar.gz"
+    tmp_helm_filename="/tmp/helm/${helm_filename}"
+    curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
+    curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
+    export GNUPGHOME="/tmp/helm/gnupg"
+    mkdir -p "${GNUPGHOME}"
+    chmod 700 ${GNUPGHOME}
+    curl -sSL "${HELM_GPG_KEYS_URI}" -o /tmp/helm/KEYS
+    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    gpg -q --import "/tmp/helm/KEYS"
+    if ! gpg --verify "${tmp_helm_filename}.asc" > ${GNUPGHOME}/verify.log 2>&1; then
         echo "Verification failed!"
         cat /tmp/helm/gnupg/verify.log
         exit 1
     fi
-    HELM_SHA256="$(cat "${tmp_helm_filename}.sha256")"
-fi
-([ "${HELM_SHA256}" = "dev-mode" ] || (echo "${HELM_SHA256} *${tmp_helm_filename}" | sha256sum -c -))
-tar xf "${tmp_helm_filename}" -C /tmp/helm
-mv -f "/tmp/helm/linux-${architecture}/helm" /usr/local/bin/
-chmod 0755 /usr/local/bin/helm
-rm -rf /tmp/helm
-if ! type helm > /dev/null 2>&1; then
-    echo '(!) Helm installation failed!'
-    exit 1
+
+    if [ "${HELM_SHA256}" = "automatic" ]; then
+        curl -sSL "https://get.helm.sh/${helm_filename}.sha256" -o "${tmp_helm_filename}.sha256"
+        curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.sha256.asc" -o "${tmp_helm_filename}.sha256.asc"
+        if ! gpg --verify "${tmp_helm_filename}.sha256.asc" > /tmp/helm/gnupg/verify.log 2>&1; then
+            echo "Verification failed!"
+            cat /tmp/helm/gnupg/verify.log
+            exit 1
+        fi
+        HELM_SHA256="$(cat "${tmp_helm_filename}.sha256")"
+    fi
+
+    ([ "${HELM_SHA256}" = "dev-mode" ] || (echo "${HELM_SHA256} *${tmp_helm_filename}" | sha256sum -c -))
+    tar xf "${tmp_helm_filename}" -C /tmp/helm
+    mv -f "/tmp/helm/linux-${architecture}/helm" /usr/local/bin/
+    chmod 0755 /usr/local/bin/helm
+    rm -rf /tmp/helm
+    if ! type helm > /dev/null 2>&1; then
+        echo '(!) Helm installation failed!'
+        exit 1
+    fi
 fi
 
 # Install Minikube, verify checksum

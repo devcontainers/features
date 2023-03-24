@@ -7,9 +7,7 @@ Installs the Azure CLI along with needed dependencies. Useful for base Dockerfil
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/azure-cli:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/azure-cli:1": {}
 }
 ```
 
@@ -18,7 +16,16 @@ Installs the Azure CLI along with needed dependencies. Useful for base Dockerfil
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter an Azure CLI version. (Available versions may vary by Linux distribution.) | string | latest |
+| extensions | Optional comma separated list of Azure CLI extensions to install in profile. | string | - |
+| installBicep | Optionally install Azure Bicep | boolean | false |
 
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

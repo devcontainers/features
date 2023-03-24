@@ -1,6 +1,6 @@
 {
   "id": "azure-cli",
-  "version": "1.0.5",
+  "version": "1.0.8",
   "name": "Azure CLI",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/azure-cli",
   "description": "Installs the Azure CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
@@ -12,14 +12,24 @@
       ],
       "default": "latest",
       "description": "Select or enter an Azure CLI version. (Available versions may vary by Linux distribution.)"
+    },
+    "extensions": {
+      "type": "string",
+      "default": "",
+      "description": "Optional comma separated list of Azure CLI extensions to install in profile."
+    },
+    "installBicep": {
+      "type": "boolean",
+      "description": "Optionally install Azure Bicep",
+      "default": false
     }
   },
   "customizations": {
-      "vscode": {
-          "extensions": [
-            "ms-vscode.azurecli"
-          ]
-      }
+    "vscode": {
+      "extensions": [
+        "ms-vscode.azurecli"
+      ]
+    }
   },
   "installsAfter": [
     "ghcr.io/devcontainers/features/common-utils"

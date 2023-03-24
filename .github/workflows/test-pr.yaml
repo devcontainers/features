@@ -18,7 +18,7 @@ jobs:
             common-utils: ./**/common-utils/**
             conda: ./**/conda/**
             desktop-lite: ./**/desktop-lite/** 
-            docker-from-docker: ./**/docker-from-docker/**
+            docker-outside-of-docker: ./**/docker-outside-of-docker/**
             docker-in-docker: ./**/docker-in-docker/**
             dotnet: ./**/dotnet/**
             git: ./**/git/**
@@ -38,6 +38,7 @@ jobs:
             rust: ./**/rust/**
             sshd: ./**/sshd/**
             terraform: ./**/terraform/**
+            nix: ./**/nix/**
 
   test:
     needs: [detect-changes]
@@ -50,12 +51,14 @@ jobs:
           [
             "ubuntu:focal",
             "ubuntu:jammy",
+            "ubuntu:bionic",
             "debian:11",
+            "debian:10",
             "mcr.microsoft.com/devcontainers/base:ubuntu",
             "mcr.microsoft.com/devcontainers/base:debian",
           ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
@@ -71,7 +74,7 @@ jobs:
       matrix:
         features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli

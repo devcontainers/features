@@ -62,3 +62,10 @@ If you want the full version of **Google Chrome** in the desktop:
 2. Chrome sandbox support requires you set up and run as a non-root user. The [`common-utils`](https://github.com/devcontainers/features/tree/main/src/common-utils) script can do this for you, or you [set one up yourself](https://aka.ms/vscode-remote/containers/non-root). Alternatively, you can start Chrome using `google-chrome --no-sandbox`
 
 That's it!
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.

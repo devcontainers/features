@@ -7,9 +7,7 @@ A cross-platform, language-agnostic binary package manager
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/conda:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/conda:1": {}
 }
 ```
 
@@ -18,7 +16,7 @@ A cross-platform, language-agnostic binary package manager
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter a conda version. | string | latest |
-| addCondaForge | Add conda-forge channel to the config? | boolean | - |
+| addCondaForge | Add conda-forge channel to the config? | boolean | false |
 
 ## Using Conda
 
@@ -33,6 +31,13 @@ As covered in the [user FAQ](https://docs.anaconda.com/anaconda/user-guide/faq) 
 ```bash
 conda install python=3.7
 ```
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

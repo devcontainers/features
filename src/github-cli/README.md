@@ -7,9 +7,7 @@ Installs the GitHub CLI. Auto-detects latest version and installs needed depende
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/github-cli:1": {}
 }
 ```
 
@@ -20,6 +18,13 @@ Installs the GitHub CLI. Auto-detects latest version and installs needed depende
 | version | Select version of the GitHub CLI, if not latest. | string | latest |
 | installDirectlyFromGitHubRelease | - | boolean | true |
 
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

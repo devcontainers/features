@@ -7,9 +7,7 @@ Installs Go and common Go utilities. Auto-detects latest version and installs ne
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/go:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/go:1": {}
 }
 ```
 
@@ -18,7 +16,15 @@ Installs Go and common Go utilities. Auto-detects latest version and installs ne
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter a Go version to install | string | latest |
+| golangciLintVersion | Version of golangci-lint to install | string | latest |
 
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

@@ -7,9 +7,7 @@ Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/ruby:1": {
-        "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/ruby:1": {}
 }
 ```
 
@@ -19,6 +17,13 @@ Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.
 |-----|-----|-----|-----|
 | version | Select or enter a Ruby version to install | string | latest |
 
+
+
+## OS Support
+
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+
+`bash` is required to execute the `install.sh` script.
 
 
 ---

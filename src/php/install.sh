@@ -11,17 +11,17 @@ set -eux
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
-VERSION=${VERSION:-"latest"}
-INSTALL_COMPOSER=${INSTALLCOMPOSER:-"true"}
-OVERRIDE_DEFAULT_VERSION=${OVERRIDEDEFAULTVERSION:-"true"}
+PHP_VERSION="${VERSION:-"latest"}"
+INSTALL_COMPOSER="${INSTALLCOMPOSER:-"true"}"
+OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
-export PHP_DIR=${PHP_DIR:-"/usr/local/php"}
-USERNAME=${USERNAME:-"automatic"}
-UPDATE_RC=${UPDATE_RC:-"true"}
+export PHP_DIR="${PHP_DIR:-"/usr/local/php"}"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
 
 # Comma-separated list of php versions to be installed
-# alongside VERSION, but not set as default.
-ADDITIONAL_VERSIONS=${ADDITIONALVERSIONS:-""}
+# alongside PHP_VERSION, but not set as default.
+ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -84,54 +84,57 @@ check_packages() {
     fi
 }
 
-# Figure out correct version of PHP
+# Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
-    local repository="https://github.com/php/php-src"
-    local separator="."
-    local escaped_separator=${separator//./\\.}
-    local last_part="${escaped_separator}[0-9]+"
-    local regex="\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
-    local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
-    VERSION="$(echo "${version_list}" | head -n 1)"
+    local variable_name=$1
+    local requested_version=${!variable_name}
+    if [ "${requested_version}" = "none" ]; then return; fi
+    local repository=$2
+    local prefix=${3:-"tags/v"}
+    local separator=${4:-"."}
+    local last_part_optional=${5:-"false"}    
+    echo "${!variable_name}"
+    echo "$(echo "${requested_version}" | grep -o "." | wc -l)"
+    if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
+        local escaped_separator=${separator//./\\.}
+        local last_part
+        if [ "${last_part_optional}" = "true" ]; then
+            last_part="(${escaped_separator}[0-9]+)?"
+        else
+            last_part="${escaped_separator}[0-9]+"
+        fi
+        local regex="${prefix}\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
+        local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
+        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
+            declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
+        else
+            set +e
+            declare -g ${variable_name}="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
+            set -e
+        fi
+    fi
+    echo "${!variable_name}"
+    if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" > /dev/null 2>&1; then
+        echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
+        exit 1
+    fi
+    echo "${variable_name}=${!variable_name}"
 }
 
 # Install PHP Composer
 addcomposer() {
-    "${PHP_INSTALL_DIR}/bin/php" -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    "${PHP_SRC}" -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
     HASH="$(wget -q -O - https://composer.github.io/installer.sig)"
-    "${PHP_INSTALL_DIR}/bin/php" -r "if (hash_file('sha384', 'composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-    "${PHP_INSTALL_DIR}/bin/php" composer-setup.php
-    "${PHP_INSTALL_DIR}/bin/php" -r "unlink('composer-setup.php');"
-
-    mv composer.phar "${PHP_INSTALL_DIR}/bin/composer"
+    "${PHP_SRC}" -r "if (hash_file('sha384', 'composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+    "${PHP_SRC}" composer-setup.php --install-dir="/usr/local/bin" --filename=composer
+    "${PHP_SRC}" -r "unlink('composer-setup.php');"
 }
 
-# Install PHP if it's missing
-
-
-# Persistent / runtime dependencies
-RUNTIME_DEPS="wget ca-certificates git build-essential xz-utils"
-
-# PHP dependencies
-PHP_DEPS="libssl-dev libcurl4-openssl-dev libedit-dev libsqlite3-dev libxml2-dev zlib1g-dev libsodium-dev libargon2-dev libonig-dev"
-
-# Dependencies required for running "phpize"
-PHPIZE_DEPS="autoconf dpkg-dev file g++ gcc libc-dev make pkg-config re2c"
-
-# Install dependencies
-check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
-
 install_php() {
-    VERSION="$1"
-
-    # Fetch latest version of PHP if needed
-    if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
-        find_version_from_git_tags
-    fi
-
-    PHP_INSTALL_DIR="${PHP_DIR}/${VERSION}"
+    PHP_VERSION="$1"
+    PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
     if [ -d "${PHP_INSTALL_DIR}" ]; then
-        echo "(!) PHP version ${VERSION} already exists."
+        echo "(!) PHP version ${PHP_VERSION} already exists."
         exit 1
     fi
 
@@ -140,7 +143,7 @@ install_php() {
     fi
     usermod -a -G php "${USERNAME}"
 
-    PHP_URL="https://www.php.net/distributions/php-${VERSION}.tar.gz"
+    PHP_URL="https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz"
 
     PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
     CONF_DIR="${PHP_INI_DIR}/conf.d"
@@ -160,7 +163,7 @@ install_php() {
     # PHP 7.4+, the pecl/pear installers are officially deprecated and are removed in PHP 8+
     # Thus, requiring an explicit "--with-pear"
     IFS="."
-    read -a versions <<< "${VERSION}"
+    read -a versions <<< "${PHP_VERSION}"
     PHP_MAJOR_VERSION=${versions[0]}
     PHP_MINOR_VERSION=${versions[1]}
 
@@ -169,7 +172,7 @@ install_php() {
         VERSION_CONFIG="--with-pear"
     fi
 
-    ./configure --prefix="${PHP_INSTALL_DIR}" --with-config-file-path="$PHP_INI_DIR" --with-config-file-scan-dir="$CONF_DIR" --enable-option-checking=fatal --with-curl --with-libedit --with-openssl --with-zlib --with-password-argon2 --with-sodium=shared "$VERSION_CONFIG" EXTENSION_DIR="$PHP_EXT_DIR";
+    ./configure --prefix="${PHP_INSTALL_DIR}" --with-config-file-path="$PHP_INI_DIR" --with-config-file-scan-dir="$CONF_DIR" --enable-option-checking=fatal --with-curl --with-libedit --enable-mbstring --with-openssl --with-zlib --with-password-argon2 --with-sodium=shared "$VERSION_CONFIG" EXTENSION_DIR="$PHP_EXT_DIR";
 
     make -j "$(nproc)"
     find -type f -name '*.a' -delete
@@ -188,12 +191,62 @@ install_php() {
     echo "xdebug.mode = debug" >> "${XDEBUG_INI}"
     echo "xdebug.start_with_request = yes" >> "${XDEBUG_INI}"
     echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
+}
 
-    # Install PHP Composer if needed
-    if [[ "${INSTALL_COMPOSER}" = "true" ]] || [[ $(composer --version) = "" ]]; then
-        addcomposer
+if [ "${PHP_VERSION}" != "none" ]; then
+    # Persistent / runtime dependencies
+    RUNTIME_DEPS="wget ca-certificates git build-essential xz-utils"
+
+    # PHP dependencies
+    PHP_DEPS="libssl-dev libcurl4-openssl-dev libedit-dev libsqlite3-dev libxml2-dev zlib1g-dev libsodium-dev libonig-dev"
+
+    . /etc/os-release
+
+    if [ "${VERSION_CODENAME}" = "bionic" ]; then
+        PHP_DEPS="${PHP_DEPS} libargon2-0-dev"
+    else
+        PHP_DEPS="${PHP_DEPS} libargon2-dev"
     fi
 
+    # Dependencies required for running "phpize"
+    PHPIZE_DEPS="autoconf dpkg-dev file g++ gcc libc-dev make pkg-config re2c"
+
+    # Install dependencies
+    check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
+
+    find_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+    install_php "${PHP_VERSION}"
+
+    PHP_SRC="${PHP_INSTALL_DIR}/bin/php"
+else
+    set +e
+        PHP_SRC=$(which php)
+    set -e
+fi
+
+# Install PHP Composer if needed
+if [[ "${INSTALL_COMPOSER}" = "true" ]]; then
+    if [ -z "${PHP_SRC}" ]; then
+        echo "(!) Could not install Composer. PHP not found."
+        exit 1
+    fi
+
+    addcomposer
+fi
+
+# Additional php versions to be installed but not be set as default.
+if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
+    OLDIFS=$IFS
+    IFS=","
+        read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+        for version in "${additional_versions[@]}"; do
+            OVERRIDE_DEFAULT_VERSION="false"
+            install_php "${version}"
+        done
+    IFS=$OLDIFS
+fi
+
+if [ "${PHP_VERSION}" != "none" ]; then
     CURRENT_DIR="${PHP_DIR}/current"
     if [[ ! -d "${CURRENT_DIR}" ]]; then
         ln -s -r "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
@@ -208,25 +261,11 @@ install_php() {
 
     rm -rf "${PHP_SRC_DIR}"
     updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=\"${CURRENT_DIR}/bin:\${PATH}\"; fi"
-}
 
-install_php "${VERSION}"
-
-# Additional php versions to be installed but not be set as default.
-if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
-    OLDIFS=$IFS
-    IFS=","
-        read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-        for version in "${additional_versions[@]}"; do
-            OVERRIDE_DEFAULT_VERSION="false"
-            install_php "${version}"
-        done
-    IFS=$OLDIFS
+    chown -R "${USERNAME}:php" "${PHP_DIR}"
+    chmod -R g+r+w "${PHP_DIR}"
+    find "${PHP_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
-
-chown -R "${USERNAME}:php" "${PHP_DIR}"
-chmod -R g+r+w "${PHP_DIR}"
-find "${PHP_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
