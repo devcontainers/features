@@ -5,8 +5,9 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-check "php-version-8-is-installed" bash -c "php --version | grep '8.'"
-check "composer-version" composer --version
+# Definition specific tests
+check "docker-buildx" docker buildx version
+check "docker-build" docker build ./
 
 # Report result
 reportResults

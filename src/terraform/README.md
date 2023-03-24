@@ -18,8 +18,10 @@ Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects la
 | version | Terraform version | string | latest |
 | tflint | Tflint version | string | latest |
 | terragrunt | Terragrunt version | string | latest |
+| installSentinel | Install sentinel, a language and framework for policy built to be embedded in existing software to enable fine-grained, logic-based policy decisions | boolean | false |
 | installTFsec | Install tfsec, a tool to spot potential misconfigurations for your terraform code | boolean | false |
 | installTerraformDocs | Install terraform-docs, a utility to generate documentation from Terraform modules | boolean | false |
+| httpProxy | Connect to a keyserver using a proxy by configuring this option | string | - |
 
 
 

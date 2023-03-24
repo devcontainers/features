@@ -20,6 +20,7 @@ check "mypy" mypy --version
 check "pycodestyle" pycodestyle --version
 check "pydocstyle" pydocstyle --version
 check "pylint" pylint --version
+check "pytest" pytest --version
 
 # Check paths in settings
 check "current symlink is correct" bash -c "which python | grep /usr/local/python/current/bin/python"
@@ -33,6 +34,7 @@ check "which mypy" bash -c "which mypy | grep /usr/local/py-utils/bin/mypy"
 check "which pycodestyle" bash -c "which pycodestyle | grep /usr/local/py-utils/bin/pycodestyle"
 check "which pydocstyle" bash -c "which pydocstyle | grep /usr/local/py-utils/bin/pydocstyle"
 check "which pylint" bash -c "which pylint | grep /usr/local/py-utils/bin/pylint"
+check "which pytest" bash -c "which pytest | grep /usr/local/py-utils/bin/pytest"
 
 # Report result
 reportResults

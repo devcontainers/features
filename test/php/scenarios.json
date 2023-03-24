@@ -23,5 +23,14 @@
                 "version": "8.2"
             }
         }
+    },
+    "install_only_composer": {
+        "image": "mcr.microsoft.com/devcontainers/php:latest",
+        "features": {
+            "php": {
+                "version": "none",
+                "installComposer": true
+            }
+        }
     }
 }
