@@ -7,7 +7,7 @@
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/anaconda:1": {}
+    "ghcr.io/braechnov/features/anaconda:1": {}
 }
 ```
 
@@ -41,4 +41,4 @@ This Feature should work on recent versions of Debian/Ubuntu-based distributions
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/anaconda/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/braechnov/features/blob/main/src/anaconda/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._

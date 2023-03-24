@@ -7,7 +7,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {}
+    "ghcr.io/braechnov/features/common-utils:2": {}
 }
 ```
 
@@ -49,4 +49,4 @@ For `zsh`, the default theme is a [standard Oh My Zsh! theme](https://ohmyz.sh/)
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/common-utils/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/braechnov/features/blob/main/src/common-utils/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
