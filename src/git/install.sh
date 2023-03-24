@@ -7,15 +7,17 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/git-from-src.md
 # Maintainer: The VS Code and Codespaces Teams
 
-GIT_VERSION=${VERSION} # 'system' checks the base image first, else installs 'latest'
-USE_PPA_IF_AVAILABLE=${PPA}
+set -o errexit -o pipefail -o nounset
 
+GIT_VERSION=${VERSION:-} # 'system' checks the base image first, else installs 'latest'
+USE_PPA_IF_AVAILABLE=${PPA:-}
+
+# shellcheck disable=SC2034
 GIT_CORE_PPA_ARCHIVE_GPG_KEY=E1DD270288B4E6030699E45FA1715D88E1DF1F24
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
-set -e
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
@@ -29,8 +31,8 @@ fi
 receive_gpg_keys() {
     local keys=${!1}
     local keyring_args=""
-    if [ ! -z "$2" ]; then
-        mkdir -p "$(dirname \"$2\")"
+    if [ -n "$2" ]; then
+        mkdir -p "$(dirname \""$2"\")"
         keyring_args="--no-default-keyring --keyring $2"
     fi
 
@@ -46,7 +48,7 @@ receive_gpg_keys() {
     until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
     do
         echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+        ( echo "${keys}" | xargs -n 1 gpg -q "${keyring_args}" --recv-keys) 2>&1 && gpg_ok="true"
         if [ "${gpg_ok}" != "true" ]; then
             echo "(*) Failed getting key, retring in 10s..."
             (( retry_count++ ))
@@ -82,7 +84,7 @@ export DEBIAN_FRONTEND=noninteractive
 . /etc/os-release
 
 # If the os provided version is "good enough", just install that.
-if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
+if [[ ${GIT_VERSION} = "os-provided" ]] || [[ ${GIT_VERSION} = "system" ]]; then
     if type git > /dev/null 2>&1; then
         echo "Detected existing system install: $(git version)"
         # Clean up
@@ -98,7 +100,7 @@ if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
 fi
 
 # If ubuntu, PPAs allowed, and latest - install from there
-if ([ "${GIT_VERSION}" = "latest" ] || [ "${GIT_VERSION}" = "lts" ] || [ "${GIT_VERSION}" = "current" ]) && [ "${ID}" = "ubuntu" ] && [ "${USE_PPA_IF_AVAILABLE}" = "true" ]; then
+if { [ "${GIT_VERSION}" = "latest" ] || [ "${GIT_VERSION}" = "lts" ] || [ "${GIT_VERSION}" = "current" ]; } && [ "${ID}" = "ubuntu" ] && [ "${USE_PPA_IF_AVAILABLE}" = "true" ]; then
     echo "Using PPA to install latest git..."
     check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr
     receive_gpg_keys GIT_CORE_PPA_ARCHIVE_GPG_KEY /usr/share/keyrings/gitcoreppa-archive-keyring.gpg
@@ -120,9 +122,7 @@ if [ "$(echo "${GIT_VERSION}" | grep -o '\.' | wc -l)" != "2" ]; then
     if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "current" ]; then
         GIT_VERSION="$(echo "${version_list}" | head -n 1)"
     else
-        set +e
         GIT_VERSION="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
-        set -e
     fi
     if [ -z "${GIT_VERSION}" ] || ! echo "${version_list}" | grep "^${GIT_VERSION//./\\.}$" > /dev/null 2>&1; then
         echo "Invalid git version: ${requested_version}" >&2
@@ -141,10 +141,9 @@ else
 fi
 
 echo "Downloading source for ${GIT_VERSION}..."
-curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
+curl -sL "https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz" | tar -xzC /tmp 2>&1
 echo "Building..."
-cd /tmp/git-${GIT_VERSION}
+cd "/tmp/git-${GIT_VERSION}"
 make -s USE_LIBPCRE=YesPlease prefix=/usr/local sysconfdir=/etc all && make -s USE_LIBPCRE=YesPlease prefix=/usr/local sysconfdir=/etc install 2>&1
-rm -rf /tmp/git-${GIT_VERSION}
-rm -rf /var/lib/apt/lists/*
+rm -rf "/tmp/git-${GIT_VERSION}"
 echo "Done!"
