@@ -17,9 +17,16 @@ INSTALL_RUBY_TOOLS="${INSTALL_RUBY_TOOLS:-"true"}"
 # alongside RUBY_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
+. /etc/os-release
+
 # Note: ruby-debug-ide will install the right version of debase if missing and
 # installing debase directly fails on Ruby 3.1.0 as of 1/7/2022, so omitting.
-DEFAULT_GEMS="rake ruby-debug-ide"
+# installing ruby-debug-ide on debian fails, so omitting.
+if [ "${ID}" = "debian" ]; then
+    DEFAULT_GEMS="rake"
+else
+    DEFAULT_GEMS="rake ruby-debug-ide"
+fi
 
 RVM_GPG_KEYS="409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
