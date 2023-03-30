@@ -60,5 +60,25 @@
                 "dockerDashComposeVersion": "v2"
             }
         }
+    },
+    "docker_dash_compose_v1_moby": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-outside-of-docker": {
+                "version": "latest",
+                "moby": true,
+                "dockerDashComposeVersion": "v1"
+            }
+        }
+    },
+    "docker_dash_compose_v2_moby": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-outside-of-docker": {
+                "version": "latest",
+                "moby": true,
+                "dockerDashComposeVersion": "v2"
+            }
+        }
     }
 }
