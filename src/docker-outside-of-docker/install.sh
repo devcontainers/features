@@ -194,11 +194,20 @@ if type docker > /dev/null 2>&1; then
     echo "Docker / Moby CLI already installed."
 else
     if [ "${USE_MOBY}" = "true" ]; then
-        apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx
+        packages=(moby-cli${cli_version_suffix})
+        if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
+            packages+=(moby-buildx)
+        fi
+        apt-get -y install --no-install-recommends "${packages[@]}"
         apt-get -y install --no-install-recommends moby-compose || echo "(*) Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
     else
-        apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-buildx-plugin docker-compose-plugin
+        packages=(docker-ce-cli${cli_version_suffix} docker-compose-plugin)
+        if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
+            packages+=(docker-buildx-plugin)
+        fi
+        apt-get -y install --no-install-recommends "${packages[@]}"
     fi
+    unset packages
 fi
 
 # Install Docker Compose if not already installed  and is on a supported architecture
@@ -245,23 +254,6 @@ if ! grep -qE '^docker:' /etc/group; then
     groupadd --system docker
 fi
 usermod -aG docker "${USERNAME}"
-
-if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
-    buildx_version="latest"
-    find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
-
-    echo "(*) Installing buildx ${buildx_version}..."
-    buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
-    cd /tmp && wget "https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}"
-
-    mkdir -p ${_REMOTE_USER_HOME}/.docker/cli-plugins
-    mv ${buildx_file_name} ${_REMOTE_USER_HOME}/.docker/cli-plugins/docker-buildx
-    chmod +x ${_REMOTE_USER_HOME}/.docker/cli-plugins/docker-buildx
-
-    chown -R "${USERNAME}:docker" "${_REMOTE_USER_HOME}/.docker"
-    chmod -R g+r+w "${_REMOTE_USER_HOME}/.docker"
-    find "${_REMOTE_USER_HOME}/.docker" -type d -print0 | xargs -n 1 -0 chmod g+s
-fi
 
 # If init file already exists, exit
 if [ -f "/usr/local/share/docker-init.sh" ]; then
