@@ -5,8 +5,8 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-check "version_on_path" bash -c "node -v | grep 'v19.1.0'"
-check "pnpm" pnpm -v
+check "ruby" ruby -v
+check "rake" bash -c "gem list | grep rake"
 
 # Report result
 reportResults

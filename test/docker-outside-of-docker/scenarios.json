@@ -8,13 +8,37 @@
             }
         }
     },
-    "moby_false": {
-        "image": "mcr.microsoft.com/devcontainers/base",
-        "remoteUser": "vscode",
+    "docker_build": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
         "features": {
             "docker-outside-of-docker": {
-                "moby": false
+                "version": "latest",
+                "installDockerBuildx": true,
+                "moby": "false",
+                "dockerDashComposeVersion": "v2"
+            }
+        },
+        "remoteUser": "node"
+    },
+    "docker_build_2": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-outside-of-docker": {
+                "version": "latest",
+                "moby": "false",
+                "dockerDashComposeVersion": "v2"
             }
         }
+    },
+    "docker_build_older": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "features": {
+            "docker-outside-of-docker": {
+                "version": "20",
+                "moby": "false",
+                "dockerDashComposeVersion": "v2"
+            }
+        },
+        "remoteUser": "node"
     }
 }

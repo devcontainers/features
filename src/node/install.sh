@@ -183,6 +183,17 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     IFS=$OLDIFS
 fi
 
+# Install pnpm
+if type pnpm > /dev/null 2>&1; then
+    echo "pnpm already installed."
+else
+    if type npm > /dev/null 2>&1; then
+        npm install -g pnpm
+    else
+        echo "Skip installing pnpm because npm is missing"
+    fi
+fi
+
 # If enabled, verify "python3", "make", "gcc", "g++" commands are available so node-gyp works - https://github.com/nodejs/node-gyp
 if [ "${INSTALL_TOOLS_FOR_NODE_GYP}" = "true" ]; then
     echo "Verifying node-gyp OS requirements..."

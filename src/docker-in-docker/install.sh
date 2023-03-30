@@ -13,10 +13,8 @@ USE_MOBY="${MOBY:-"true"}"
 DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v1"}" # v1 or v2
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL}"
-
-ENABLE_NONROOT_DOCKER="${ENABLE_NONROOT_DOCKER:-"true"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
-
+INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal jammy"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal hirsute impish jammy"
@@ -158,7 +156,7 @@ else
 fi
 
 # Install dependencies
-check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr
+check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
@@ -307,13 +305,27 @@ if [ -f "/usr/local/share/docker-init.sh" ]; then
 fi
 echo "docker-init doesn't exist, adding..."
 
-# Add user to the docker group
-if [ "${ENABLE_NONROOT_DOCKER}" = "true" ]; then
-    if ! getent group docker > /dev/null 2>&1; then
-        groupadd docker
-    fi
+if ! cat /etc/group | grep -e "^docker:" > /dev/null 2>&1; then
+        groupadd -r docker
+fi
 
-    usermod -aG docker ${USERNAME}
+usermod -aG docker ${USERNAME}
+
+if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
+    buildx_version="latest"
+    find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
+
+    echo "(*) Installing buildx ${buildx_version}..."
+    buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
+    cd /tmp && wget "https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}"
+
+    mkdir -p ${_REMOTE_USER_HOME}/.docker/cli-plugins
+    mv ${buildx_file_name} ${_REMOTE_USER_HOME}/.docker/cli-plugins/docker-buildx
+    chmod +x ${_REMOTE_USER_HOME}/.docker/cli-plugins/docker-buildx
+
+    chown -R "${USERNAME}:docker" "${_REMOTE_USER_HOME}/.docker"
+    chmod -R g+r+w "${_REMOTE_USER_HOME}/.docker"
+    find "${_REMOTE_USER_HOME}/.docker" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
 
 tee /usr/local/share/docker-init.sh > /dev/null \

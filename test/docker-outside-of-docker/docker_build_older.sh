@@ -5,8 +5,9 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-check "version_on_path" bash -c "node -v | grep 'v19.1.0'"
-check "pnpm" pnpm -v
+# Definition specific tests
+check "docker-buildx" docker buildx version
+check "docker-build" docker build ./
 
 # Report result
 reportResults

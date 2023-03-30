@@ -7,6 +7,7 @@ source dev-container-features-test-lib
 
 # 'lts' is some version of node 18 for a while.
 check "version_on_path"  node -v | grep 18
+check "pnpm" pnpm -v
 
 check "v18_installed" ls -1 /usr/local/share/nvm/versions/node | grep 18
 check "v14_installed" ls -1 /usr/local/share/nvm/versions/node | grep 14.19.3

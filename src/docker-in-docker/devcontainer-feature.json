@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -39,6 +39,11 @@
             "default": "",
             "proposals": [],
             "description": "Define default address pools for Docker networks. e.g. base=192.168.0.0/16,size=24"
+        },
+        "installDockerBuildx": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install Docker Buildx"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",

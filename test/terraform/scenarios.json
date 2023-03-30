@@ -1,4 +1,12 @@
 {
+    "install_sentinel": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "installSentinel": true
+            }
+        }
+    },
     "install_tfsec": {
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
