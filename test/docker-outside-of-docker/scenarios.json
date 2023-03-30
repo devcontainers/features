@@ -40,5 +40,25 @@
             }
         },
         "remoteUser": "node"
+    },
+    "docker_dash_compose_v1": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-outside-of-docker": {
+                "version": "latest",
+                "moby": "false",
+                "dockerDashComposeVersion": "v1"
+            }
+        }
+    },
+    "docker_dash_compose_v2": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-outside-of-docker": {
+                "version": "latest",
+                "moby": "false",
+                "dockerDashComposeVersion": "v2"
+            }
+        }
     }
 }
