@@ -62,7 +62,9 @@ receive_gpg_keys() {
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
-    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    echo -e "disable-ipv6\nnameserver 8.8.8.8\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    # Start dirmngr with conf file
+    dirmngr --options ${GNUPGHOME}/dirmngr.conf --daemon
     # GPG key download sometimes fails for some reason and retrying fixes it.
     local retry_count=0
     local gpg_ok="false"
@@ -70,9 +72,9 @@ receive_gpg_keys() {
     until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
     do
         echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys ) 2>&1 && gpg_ok="true"
         if [ "${gpg_ok}" != "true" ]; then
-            echo "(*) Failed getting key, retring in 10s..."
+            echo "(*) Failed getting key, retrying in 10s..."
             (( retry_count++ ))
             sleep 10s
         fi
