@@ -36,9 +36,6 @@
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",
-    "containerEnv": {
-        "DOCKER_BUILDKIT": "1"
-    },
     "customizations": {
         "vscode": {
             "extensions": [

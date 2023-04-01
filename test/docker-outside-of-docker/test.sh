@@ -5,10 +5,11 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-# Definition specific tests
-check "version" docker  --version
-check "docker-init-exists" bash -c "ls /usr/local/share/docker-init.sh"
-check "docker-ps" bash -c "docker ps"
+check "docker buildx" bash -c "docker buildx version"
+check "docker compose" bash -c "docker compose version"
+check "docker-compose" bash -c "docker-compose --version"
+
+check "docker-ps" bash -c "docker ps >/dev/null"
 
 # Report result
 reportResults

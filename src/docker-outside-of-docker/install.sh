@@ -87,7 +87,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -172,7 +172,7 @@ apt-get update
 if [ "${DOCKER_VERSION}" = "latest" ] || [ "${DOCKER_VERSION}" = "lts" ] || [ "${DOCKER_VERSION}" = "stable" ]; then
     # Empty, meaning grab whatever "latest" is in apt repo
     cli_version_suffix=""
-else    
+else
     # Fetch a valid version from the apt-cache (eg: the Microsoft repo appends +azure, breakfix, etc...)
     docker_version_dot_escaped="${DOCKER_VERSION//./\\.}"
     docker_version_dot_plus_escaped="${docker_version_dot_escaped//+/\\+}"
@@ -194,20 +194,26 @@ if type docker > /dev/null 2>&1; then
     echo "Docker / Moby CLI already installed."
 else
     if [ "${USE_MOBY}" = "true" ]; then
-        packages=(moby-cli${cli_version_suffix})
+        buildx=()
         if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
-            packages+=(moby-buildx)
+            buildx=(moby-buildx)
         fi
-        apt-get -y install --no-install-recommends "${packages[@]}"
+        apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}"
         apt-get -y install --no-install-recommends moby-compose || echo "(*) Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
     else
-        packages=(docker-ce-cli${cli_version_suffix} docker-compose-plugin)
+        buildx=()
         if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
-            packages+=(docker-buildx-plugin)
+            buildx=(docker-buildx-plugin)
         fi
-        apt-get -y install --no-install-recommends "${packages[@]}"
+        apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}" docker-compose-plugin
+        buildx_path="/usr/libexec/docker/cli-plugins/docker-buildx"
+        # Older versions of Docker CE installs buildx as part of the CLI package
+        if [ "${INSTALL_DOCKER_BUILDX}" = "false" ] && [ -f "${buildx_path}" ]; then
+            echo "(*) Removing docker-buildx installed from docker-ce-cli since installDockerBuildx is disabled..."
+            rm -f "${buildx_path}"
+        fi
     fi
-    unset packages
+    unset buildx buildx_path
 fi
 
 # Install Docker Compose if not already installed  and is on a supported architecture
@@ -233,7 +239,7 @@ elif [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
         fi
         ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
         rm -rf /tmp/pip-tmp
-    else 
+    else
         compose_v1_version="1"
         find_version_from_git_tags compose_v1_version "https://github.com/docker/compose" "tags/"
         echo "(*) Installing docker-compose ${compose_v1_version}..."
@@ -251,8 +257,16 @@ fi
 
 # Setup a docker group in the event the docker socket's group is not root
 if ! grep -qE '^docker:' /etc/group; then
+    echo "(*) Creating missing docker group..."
     groupadd --system docker
 fi
+
+# Ensure docker group gid is 999
+if [ "$(getent group docker | cut -d: -f3)" != "999" ]; then
+    echo "(*) Updating docker group gid to 999..."
+    groupmod -g 999 docker
+fi
+
 usermod -aG docker "${USERNAME}"
 
 # If init file already exists, exit
@@ -281,10 +295,10 @@ fi
 DOCKER_GID="$(grep -oP '^docker:x:\K[^:]+' /etc/group)"
 
 # If enabling non-root access and specified user is found, setup socat and add script
-chown -h "${USERNAME}":root "${TARGET_SOCKET}"        
+chown -h "${USERNAME}":root "${TARGET_SOCKET}"
 check_packages socat
 tee /usr/local/share/docker-init.sh > /dev/null \
-<< EOF 
+<< EOF
 #!/usr/bin/env bash
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -316,8 +330,8 @@ log()
 echo -e "\n** \$(date) **" | sudoIf tee -a \${SOCAT_LOG} > /dev/null
 log "Ensuring ${USERNAME} has access to ${SOURCE_SOCKET} via ${TARGET_SOCKET}"
 
-# If enabled, try to update the docker group with the right GID. If the group is root, 
-# fall back on using socat to forward the docker socket to another unix socket so 
+# If enabled, try to update the docker group with the right GID. If the group is root,
+# fall back on using socat to forward the docker socket to another unix socket so
 # that we can set permissions on it without affecting the host.
 if [ "${ENABLE_NONROOT_DOCKER}" = "true" ] && [ "${SOURCE_SOCKET}" != "${TARGET_SOCKET}" ] && [ "${USERNAME}" != "root" ] && [ "${USERNAME}" != "0" ]; then
     SOCKET_GID=\$(stat -c '%g' ${SOURCE_SOCKET})
@@ -337,7 +351,7 @@ if [ "${ENABLE_NONROOT_DOCKER}" = "true" ] && [ "${SOURCE_SOCKET}" != "${TARGET_
     log "Success"
 fi
 
-# Execute whatever commands were passed in (if any). This allows us 
+# Execute whatever commands were passed in (if any). This allows us
 # to set this script to ENTRYPOINT while still executing the default CMD.
 set +e
 exec "\$@"
