@@ -5,7 +5,7 @@
         "remoteUser": "vscode",
         "features": {
             "git-lfs": {
-                "autoPull": "true"
+                "autoPull": true
             }
         }
     },
@@ -15,7 +15,7 @@
         "remoteUser": "vscode",
         "features": {
             "git-lfs": {
-                "autoPull": "false"
+                "autoPull": false
             }
         }
     }
