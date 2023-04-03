@@ -1,7 +1,7 @@
 {
     "autoPullEnabled": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "initializeCommand": "(git clone https://github.com/codspace/git-lfs-example /tmp/testRepo || true) && (cp -r /tmp/testRepo/.git* . && cp -r /tmp/testRepo/* .)",
+        "initializeCommand": "(git clone https://github.com/codspace/git-lfs-example /tmp/testRepo-1 || true) && (cp -r /tmp/testRepo-1/.git* . && cp -r /tmp/testRepo-1/* .)",
         "features": {
             "git-lfs": {
                 "autoPull": "true"
@@ -10,7 +10,7 @@
     },
     "autoPullDisabled": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "initializeCommand": "(git clone https://github.com/codspace/git-lfs-example /tmp/testRepo || true) && (cp -r /tmp/testRepo/.git* . && cp -r /tmp/testRepo/* .)",
+        "initializeCommand": "(git clone https://github.com/codspace/git-lfs-example /tmp/testRepo-2 || true) && (cp -r /tmp/testRepo-2/.git* . && cp -r /tmp/testRepo-2/* .)",
         "features": {
             "git-lfs": {
                 "autoPull": "false"
