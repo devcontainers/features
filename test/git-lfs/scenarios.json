@@ -1,7 +1,7 @@
 {
     "autoPullEnabled": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "initializeCommand": "(GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/codspace/git-lfs-example /tmp/testRepo-1 || true) && (cp -r /tmp/testRepo-1/.git* . && cp -r /tmp/testRepo-1/* .)",
+        "initializeCommand": "(GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/devcontainers/git-lfs-example /tmp/testRepo-1 || true) && (cp -r /tmp/testRepo-1/.git* . && cp -r /tmp/testRepo-1/* .)",
         "remoteUser": "vscode",
         "features": {
             "git-lfs": {
@@ -11,7 +11,7 @@
     },
     "autoPullDisabled": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "initializeCommand": "(GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/codspace/git-lfs-example /tmp/testRepo-2 || true) && (cp -r /tmp/testRepo-2/.git* . && cp -r /tmp/testRepo-2/* .)",
+        "initializeCommand": "(GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/devcontainers/git-lfs-example /tmp/testRepo-2 || true) && (cp -r /tmp/testRepo-2/.git* . && cp -r /tmp/testRepo-2/* .)",
         "remoteUser": "vscode",
         "features": {
             "git-lfs": {
