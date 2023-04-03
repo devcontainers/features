@@ -1,6 +1,6 @@
 {
     "id": "git-lfs",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "name": "Git Large File Support (LFS)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/git-lfs",
     "description": "Installs Git Large File Support (Git LFS) along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like git and curl.",
@@ -13,8 +13,14 @@
             ],
             "default": "latest",
             "description": "Select version of Git LFS to install"
+        },
+        "autoPull": {
+            "type": "boolean",
+            "default": true,
+            "description": "Automatically pull LFS files when creating the container. If false, manually running 'git lfs pull' will pull lfs files."
         }
     },
+    "postCreateCommand": "/tmp/pull-git-lfs-artifacts.sh",
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"
     ]
