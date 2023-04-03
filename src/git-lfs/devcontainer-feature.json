@@ -20,7 +20,7 @@
             "description": "Automatically pull LFS files when creating the container.  When false, running 'git lfs pull' in the container will have the same effect."
         }
     },
-    "postCreateCommand": "/tmp/pull-git-lfs-artifacts.sh",
+    "postCreateCommand": "/usr/local/share/pull-git-lfs-artifacts.sh",
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"
     ]

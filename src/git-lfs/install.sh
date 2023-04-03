@@ -187,15 +187,16 @@ if [ "${use_github}" = "true" ]; then
 fi
 
 # --- Generate a 'pull-git-lfs-artifacts.sh' script to be executed by the 'postCreateCommand' lifecycle hook
+PULL_GIT_LFS_SCRIPT_PATH="/usr/local/share/pull-git-lfs-artifacts.sh"
 
-tee /tmp/pull-git-lfs-artifacts.sh > /dev/null \
+tee "$PULL_GIT_LFS_SCRIPT_PATH" > /dev/null \
 << EOF
 #!/bin/sh
 set -e
 AUTO_PULL=${AUTO_PULL}
 EOF
 
-tee -a /tmp/pull-git-lfs-artifacts.sh > /dev/null \
+tee -a "$PULL_GIT_LFS_SCRIPT_PATH" > /dev/null \
 << 'EOF'
 
 echo "Fetching git lfs artifacts..."
@@ -214,7 +215,7 @@ fi
 git lfs pull
 EOF
 
-chmod 755 /tmp/pull-git-lfs-artifacts.sh
+chmod 755 "$PULL_GIT_LFS_SCRIPT_PATH"
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
