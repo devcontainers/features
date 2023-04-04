@@ -8,6 +8,7 @@
 # Maintainer: The VS Code and Codespaces Teams
 
 GIT_LFS_VERSION=${VERSION:-"latest"}
+AUTO_PULL=${AUTOPULL:="true"}
 
 GIT_LFS_ARCHIVE_GPG_KEY_URI="https://packagecloud.io/github/git-lfs/gpgkey"
 GIT_LFS_ARCHIVE_ARCHITECTURES="amd64 arm64"
@@ -184,6 +185,37 @@ fi
 if [ "${use_github}" = "true" ]; then
     install_using_github
 fi
+
+# --- Generate a 'pull-git-lfs-artifacts.sh' script to be executed by the 'postCreateCommand' lifecycle hook
+PULL_GIT_LFS_SCRIPT_PATH="/usr/local/share/pull-git-lfs-artifacts.sh"
+
+tee "$PULL_GIT_LFS_SCRIPT_PATH" > /dev/null \
+<< EOF
+#!/bin/sh
+set -e
+AUTO_PULL=${AUTO_PULL}
+EOF
+
+tee -a "$PULL_GIT_LFS_SCRIPT_PATH" > /dev/null \
+<< 'EOF'
+
+echo "Fetching git lfs artifacts..."
+
+if [ "${AUTO_PULL}" != "true" ]; then
+    echo "(!) Skipping 'git lfs pull' because 'autoPull' is not set to 'true'"
+    exit 0
+fi
+
+# Check if repo is a git lfs repo.
+if ! git lfs ls-files > /dev/null 2>&1; then
+    echo "(!) Skipping automatic 'git lfs pull' because no git lfs files were detected"
+    exit 0
+fi
+
+git lfs pull
+EOF
+
+chmod 755 "$PULL_GIT_LFS_SCRIPT_PATH"
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
