@@ -3,8 +3,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "features": {
             "docker-outside-of-docker": {
-                "moby": true,
-                "dockerDashComposeVersion": "v2"
+                "moby": true
             }
         },
         "containerUser": "vscode"
@@ -13,8 +12,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "features": {
             "docker-outside-of-docker": {
-                "moby": false,
-                "dockerDashComposeVersion": "v2"
+                "moby": false
             }
         },
         "containerUser": "vscode"
@@ -23,8 +21,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
         "features": {
             "docker-outside-of-docker": {
-                "moby": false,
-                "dockerDashComposeVersion": "v2"
+                "moby": false
             }
         },
         "containerUser": "vscode"
@@ -33,8 +30,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
             "docker-outside-of-docker": {
-                "moby": false,
-                "dockerDashComposeVersion": "v2"
+                "moby": false
             }
         },
         "containerUser": "vscode"
@@ -53,8 +49,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "features": {
             "docker-outside-of-docker": {
-                "moby": true,
-                "dockerDashComposeVersion": "v2"
+                "moby": true
             }
         },
         "containerUser": "vscode"
@@ -65,8 +60,7 @@
             "docker-outside-of-docker": {
                 "version": "20",
                 "moby": false,
-                "installDockerBuildx": false,
-                "dockerDashComposeVersion": "v2"
+                "installDockerBuildx": false
             }
         },
         "containerUser": "vscode"
@@ -77,8 +71,7 @@
             "docker-outside-of-docker": {
                 "version": "20",
                 "moby": true,
-                "installDockerBuildx": false,
-                "dockerDashComposeVersion": "v2"
+                "installDockerBuildx": false
             }
         },
         "containerUser": "vscode"
