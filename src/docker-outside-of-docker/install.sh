@@ -261,11 +261,13 @@ if ! grep -qE '^docker:' /etc/group; then
     groupadd --system docker
 fi
 
+# Remarking this out to restore functionality in Azure VMs.  ID 999 is a reserved group ID
 # Ensure docker group gid is 999
-if [ "$(getent group docker | cut -d: -f3)" != "999" ]; then
-    echo "(*) Updating docker group gid to 999..."
-    groupmod -g 999 docker
-fi
+# if [ "$(getent group docker | cut -d: -f3)" != "999" ]; then
+#     echo "(*) Updating docker group gid to 999..."
+#     groupmod -g 999 docker
+# fi
+
 
 usermod -aG docker "${USERNAME}"
 
