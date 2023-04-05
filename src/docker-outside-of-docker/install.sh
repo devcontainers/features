@@ -9,7 +9,7 @@
 
 DOCKER_VERSION="${VERSION:-"latest"}"
 USE_MOBY="${MOBY:-"true"}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v1"}" # v1 or v2
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v2"}" # v1 or v2
 
 ENABLE_NONROOT_DOCKER="${ENABLE_NONROOT_DOCKER:-"true"}"
 SOURCE_SOCKET="${SOURCE_SOCKET:-"/var/run/docker-host.sock"}"
@@ -87,7 +87,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -172,7 +172,7 @@ apt-get update
 if [ "${DOCKER_VERSION}" = "latest" ] || [ "${DOCKER_VERSION}" = "lts" ] || [ "${DOCKER_VERSION}" = "stable" ]; then
     # Empty, meaning grab whatever "latest" is in apt repo
     cli_version_suffix=""
-else    
+else
     # Fetch a valid version from the apt-cache (eg: the Microsoft repo appends +azure, breakfix, etc...)
     docker_version_dot_escaped="${DOCKER_VERSION//./\\.}"
     docker_version_dot_plus_escaped="${docker_version_dot_escaped//+/\\+}"
@@ -194,17 +194,32 @@ if type docker > /dev/null 2>&1; then
     echo "Docker / Moby CLI already installed."
 else
     if [ "${USE_MOBY}" = "true" ]; then
-        apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx
+        buildx=()
+        if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
+            buildx=(moby-buildx)
+        fi
+        apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}"
         apt-get -y install --no-install-recommends moby-compose || echo "(*) Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
     else
-        apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix}
+        buildx=()
+        if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
+            buildx=(docker-buildx-plugin)
+        fi
+        apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}" docker-compose-plugin
+        buildx_path="/usr/libexec/docker/cli-plugins/docker-buildx"
+        # Older versions of Docker CE installs buildx as part of the CLI package
+        if [ "${INSTALL_DOCKER_BUILDX}" = "false" ] && [ -f "${buildx_path}" ]; then
+            echo "(*) Removing docker-buildx installed from docker-ce-cli since installDockerBuildx is disabled..."
+            rm -f "${buildx_path}"
+        fi
     fi
+    unset buildx buildx_path
 fi
 
 # Install Docker Compose if not already installed  and is on a supported architecture
 if type docker-compose > /dev/null 2>&1; then
     echo "Docker Compose already installed."
-else
+elif [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
     TARGET_COMPOSE_ARCH="$(uname -m)"
     if [ "${TARGET_COMPOSE_ARCH}" = "amd64" ]; then
         TARGET_COMPOSE_ARCH="x86_64"
@@ -224,59 +239,35 @@ else
         fi
         ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
         rm -rf /tmp/pip-tmp
-    else 
+    else
         compose_v1_version="1"
         find_version_from_git_tags compose_v1_version "https://github.com/docker/compose" "tags/"
         echo "(*) Installing docker-compose ${compose_v1_version}..."
         curl -fsSL "https://github.com/docker/compose/releases/download/${compose_v1_version}/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
         chmod +x /usr/local/bin/docker-compose
     fi
-fi
-
-# Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
-current_v1_compose_path="$(which docker-compose)"
-target_v1_compose_path="$(dirname "${current_v1_compose_path}")/docker-compose-v1"
-if ! type compose-switch > /dev/null 2>&1; then
-    echo "(*) Installing compose-switch..."
+else
+    echo "(*) Installing compose-switch as docker-compose..."
     compose_switch_version="latest"
     find_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch"
-    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
-    chmod +x /usr/local/bin/compose-switch
+    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
     # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
-
-    # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
-    mv "${current_v1_compose_path}" "${target_v1_compose_path}"
-    update-alternatives --install /usr/local/bin/docker-compose docker-compose /usr/local/bin/compose-switch 99
-    update-alternatives --install /usr/local/bin/docker-compose docker-compose "${target_v1_compose_path}" 1
-fi
-if [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
-    update-alternatives --set docker-compose "${target_v1_compose_path}"
-else
-    update-alternatives --set docker-compose /usr/local/bin/compose-switch
 fi
 
 # Setup a docker group in the event the docker socket's group is not root
 if ! grep -qE '^docker:' /etc/group; then
+    echo "(*) Creating missing docker group..."
     groupadd --system docker
 fi
-usermod -aG docker "${USERNAME}"
 
-if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
-    buildx_version="latest"
-    find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
-
-    echo "(*) Installing buildx ${buildx_version}..."
-    buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
-    cd /tmp && wget "https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}"
-
-    mkdir -p ${_REMOTE_USER_HOME}/.docker/cli-plugins
-    mv ${buildx_file_name} ${_REMOTE_USER_HOME}/.docker/cli-plugins/docker-buildx
-    chmod +x ${_REMOTE_USER_HOME}/.docker/cli-plugins/docker-buildx
-
-    chown -R "${USERNAME}:docker" "${_REMOTE_USER_HOME}/.docker"
-    chmod -R g+r+w "${_REMOTE_USER_HOME}/.docker"
-    find "${_REMOTE_USER_HOME}/.docker" -type d -print0 | xargs -n 1 -0 chmod g+s
+# Ensure docker group gid is 999
+if [ "$(getent group docker | cut -d: -f3)" != "999" ]; then
+    echo "(*) Updating docker group gid to 999..."
+    groupmod -g 999 docker
 fi
+
+usermod -aG docker "${USERNAME}"
 
 # If init file already exists, exit
 if [ -f "/usr/local/share/docker-init.sh" ]; then
@@ -304,10 +295,10 @@ fi
 DOCKER_GID="$(grep -oP '^docker:x:\K[^:]+' /etc/group)"
 
 # If enabling non-root access and specified user is found, setup socat and add script
-chown -h "${USERNAME}":root "${TARGET_SOCKET}"        
+chown -h "${USERNAME}":root "${TARGET_SOCKET}"
 check_packages socat
 tee /usr/local/share/docker-init.sh > /dev/null \
-<< EOF 
+<< EOF
 #!/usr/bin/env bash
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -339,8 +330,8 @@ log()
 echo -e "\n** \$(date) **" | sudoIf tee -a \${SOCAT_LOG} > /dev/null
 log "Ensuring ${USERNAME} has access to ${SOURCE_SOCKET} via ${TARGET_SOCKET}"
 
-# If enabled, try to update the docker group with the right GID. If the group is root, 
-# fall back on using socat to forward the docker socket to another unix socket so 
+# If enabled, try to update the docker group with the right GID. If the group is root,
+# fall back on using socat to forward the docker socket to another unix socket so
 # that we can set permissions on it without affecting the host.
 if [ "${ENABLE_NONROOT_DOCKER}" = "true" ] && [ "${SOURCE_SOCKET}" != "${TARGET_SOCKET}" ] && [ "${USERNAME}" != "root" ] && [ "${USERNAME}" != "0" ]; then
     SOCKET_GID=\$(stat -c '%g' ${SOURCE_SOCKET})
@@ -360,7 +351,7 @@ if [ "${ENABLE_NONROOT_DOCKER}" = "true" ] && [ "${SOURCE_SOCKET}" != "${TARGET_
     log "Success"
 fi
 
-# Execute whatever commands were passed in (if any). This allows us 
+# Execute whatever commands were passed in (if any). This allows us
 # to set this script to ENTRYPOINT while still executing the default CMD.
 set +e
 exec "\$@"

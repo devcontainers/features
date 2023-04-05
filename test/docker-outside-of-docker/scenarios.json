@@ -1,44 +1,119 @@
 {
-    "docker_init": {
-        "image": "mcr.microsoft.com/devcontainers/base",
-        "remoteUser": "vscode",
+    "docker_init_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "features": {
             "docker-outside-of-docker": {
-                "version": "latest"
+                "moby": true
             }
-        }
+        },
+        "containerUser": "vscode"
+    },
+    "docker_init": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false
+            }
+        },
+        "containerUser": "vscode"
+    },
+    "docker_init_ubuntu_22": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false
+            }
+        },
+        "containerUser": "vscode"
+    },
+    "docker_init_debian": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false
+            }
+        },
+        "containerUser": "vscode"
     },
     "docker_build": {
-        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "features": {
             "docker-outside-of-docker": {
-                "version": "latest",
-                "installDockerBuildx": true,
-                "moby": "false",
+                "moby": false,
                 "dockerDashComposeVersion": "v2"
             }
         },
-        "remoteUser": "node"
+        "containerUser": "vscode"
     },
-    "docker_build_2": {
-        "image": "ubuntu:focal",
+    "docker_build_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "features": {
             "docker-outside-of-docker": {
-                "version": "latest",
-                "moby": "false",
-                "dockerDashComposeVersion": "v2"
+                "moby": true
             }
-        }
+        },
+        "containerUser": "vscode"
     },
-    "docker_build_older": {
-        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+    "docker_build_no_buildx": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "features": {
             "docker-outside-of-docker": {
                 "version": "20",
-                "moby": "false",
+                "moby": false,
+                "installDockerBuildx": false
+            }
+        },
+        "containerUser": "vscode"
+    },
+    "docker_build_no_buildx_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "version": "20",
+                "moby": true,
+                "installDockerBuildx": false
+            }
+        },
+        "containerUser": "vscode"
+    },
+    "docker_dash_compose_v1": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false,
+                "dockerDashComposeVersion": "v1"
+            }
+        },
+        "containerUser": "vscode"
+    },
+    "docker_dash_compose_v1_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": true,
+                "dockerDashComposeVersion": "v1"
+            }
+        },
+        "containerUser": "vscode"
+    },
+    "docker_dash_compose_v2": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false,
                 "dockerDashComposeVersion": "v2"
             }
         },
-        "remoteUser": "node"
+        "containerUser": "vscode"
+    },
+    "docker_dash_compose_v2_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": true,
+                "dockerDashComposeVersion": "v2"
+            }
+        },
+        "containerUser": "vscode"
     }
 }
