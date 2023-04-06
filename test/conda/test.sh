@@ -32,5 +32,11 @@ check-version-ge() {
 certifiVersion=$(python -c "import certifi; print(certifi.__version__)")
 check-version-ge "certifi" "${certifiVersion}" "2022.12.07"
 
+cryptographyVersion=$(python -c "import cryptography; print(cryptography.__version__)")
+check-version-ge "cryptography" "${cryptographyVersion}" "39.0.1"
+
+setuptoolsVersion=$(python -c "import setuptools; print(setuptools.__version__)")
+check-version-ge "setuptools" "${setuptoolsVersion}" "65.5.1"
+
 # Report result
 reportResults
