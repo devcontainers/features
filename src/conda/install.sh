@@ -114,8 +114,13 @@ if ! conda --version &> /dev/null ; then
     
     find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
-    # Temporary due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23491
+    # Temporary fixes
+    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23491
     install_user_package certifi
+    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-0286 and https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-23931
+    install_user_package cryptography
+    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-40897
+    install_user_package setuptools
 fi
 
 # Display a notice on conda when not running in GitHub Codespaces
