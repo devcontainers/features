@@ -221,10 +221,4 @@ fi
 su ${USERNAME} -c "umask 0002 && . $NVM_DIR/nvm.sh && nvm clear-cache"
 rm -rf /var/lib/apt/lists/*
 
-# Ensure privs are correct for installed node versions. Unfortunately the
-# way nvm installs node versions pulls privs from the tar which does not
-# have group write set. We need this when the gid/uid is updated.
-mkdir -p "${NVM_DIR}/versions"
-chmod -R g+rw "${NVM_DIR}/versions"
-
 echo "Done!"
