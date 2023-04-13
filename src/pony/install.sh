@@ -45,21 +45,48 @@ check_packages() {
     fi
 }
 
+check_cmake_version() {
+    REQUIRED_CMAKE_VERSION="3.18"
+    set +e
+    INSTALLED_CMAKE_VERSION=$(cmake --version | head -n1 | cut -d " " -f3)
+    set -e
+
+    if [ -z "${INSTALLED_CMAKE_VERSION}" ]; then
+        echo "CMake not found. Installing CMake ${REQUIRED_CMAKE_VERSION}..."
+        install_cmake "${REQUIRED_CMAKE_VERSION}"
+    else
+        if ! printf '%s\n%s\n' "${REQUIRED_CMAKE_VERSION}" "${INSTALLED_CMAKE_VERSION}" | sort -V -C; then
+            echo "CMake version ${INSTALLED_CMAKE_VERSION} is too old. Installing CMake ${REQUIRED_CMAKE_VERSION}..."
+            install_cmake "${REQUIRED_CMAKE_VERSION}"
+        else
+            echo "CMake version ${INSTALLED_CMAKE_VERSION} meets the requirement."
+        fi
+    fi
+}
+
+install_pony() {
+    # Install Pony
+    git clone https://github.com/ponylang/ponyc.git
+    cd ponyc
+    make config=release
+    make install config=release
+    cd ..
+    rm -rf ponyc
+
+    # Update PATH
+    updaterc "if [[ \"\${PATH}\" != *\"/usr/local/bin\"* ]]; then export PATH=\"/usr/local/bin:\${PATH}\"; fi"
+}
+
 # Install Pony dependencies
-PONY_DEPS="build-essential git zlib1g-dev libncurses5-dev libssl-dev llvm-3.9-dev"
+PONY_DEPS="build-essential cmake git zlib1g-dev libncurses5-dev libssl-dev llvm-3.9-dev"
 
 # Install dependencies
 check_packages $PONY_DEPS
 
-# Install Pony
-git clone https://github.com/ponylang/ponyc.git
-cd ponyc
-make config=release
-make install config=release
-cd ..
-rm -rf ponyc
+# Check and install CMake if needed
+check_cmake_version
 
-# Update PATH
-updaterc "if [[ \"\${PATH}\" != *\"/usr/local/bin\"* ]]; then export PATH=\"/usr/local/bin:\${PATH}\"; fi"
+# Install Pony language
+install_pony
 
 echo "Done!"
