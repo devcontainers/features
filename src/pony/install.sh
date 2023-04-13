@@ -14,6 +14,7 @@ rm -rf /var/lib/apt/lists/*
 # Configuration
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="${UPDATE_RC:-"true"}"
+VERSION="${VERSION:-"0.54.1"}"
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -68,6 +69,7 @@ install_pony() {
     # Install Pony
     git clone https://github.com/ponylang/ponyc.git
     cd ponyc
+    git checkout "${VERSION}"
     make config=release
     make install config=release
     cd ..
