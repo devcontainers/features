@@ -1,0 +1,36 @@
+{
+    "id": "vsc-pony",
+    "version": "1.0.9",
+    "name": "Pony",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/pony",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest",
+                "0.54.1",
+                "none"
+            ],
+            "default": "latest",
+            "description": "Select or enter a Pony version"
+        },
+        "cmakeVersion": {
+            "type": "string",
+            "default": "3.26.3",
+            "description": "Cmake version to download"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+            ]
+        }
+    },
+    "containerEnv": {
+        "PONY_PATH": "/usr/local/pony/current",
+        "PATH": "/usr/local/pony/current/bin:${PATH}"
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
+}

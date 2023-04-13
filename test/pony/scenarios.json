@@ -1,0 +1,35 @@
+{
+    "install_pony_0": {
+        "image": "ubuntu:focal",
+        "features": {
+            "pony": {
+                "version": "0"
+            }
+        }
+    },
+    "install_pony_0_54": {
+        "image": "ubuntu:focal",
+        "features": {
+            "pony": {
+                "version": "0.54"
+            }
+        }
+    },
+    "install_pony_0_54_1": {
+        "image": "ubuntu:focal",
+        "features": {
+            "pony": {
+                "version": "0.54.1"
+            }
+        }
+    },
+    "install_only_composer": {
+        "image": "mcr.microsoft.com/devcontainers/php:latest",
+        "features": {
+            "php": {
+                "version": "none",
+                "installComposer": true
+            }
+        }
+    }
+}
