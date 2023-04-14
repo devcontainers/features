@@ -19,6 +19,12 @@ Installs the Azure CLI along with needed dependencies. Useful for base Dockerfil
 | extensions | Optional comma separated list of Azure CLI extensions to install in profile. | string | - |
 | installBicep | Optionally install Azure Bicep | boolean | false |
 
+## Customizations
+
+### VS Code Extensions
+
+- `ms-vscode.azurecli`
+
 
 
 ## OS Support

@@ -17,6 +17,12 @@ Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.
 |-----|-----|-----|-----|
 | version | Select or enter a Ruby version to install | string | latest |
 
+## Customizations
+
+### VS Code Extensions
+
+- `rebornix.Ruby`
+
 
 
 ## OS Support

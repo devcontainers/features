@@ -22,6 +22,12 @@ Create child containers *inside* a container, independent from the host's docker
 | dockerDefaultAddressPool | Define default address pools for Docker networks. e.g. base=192.168.0.0/16,size=24 | string | - |
 | installDockerBuildx | Install Docker Buildx | boolean | true |
 
+## Customizations
+
+### VS Code Extensions
+
+- `ms-azuretools.vscode-docker`
+
 ## Limitations
 
 This docker-in-docker Dev Container Feature is roughly based on the [official docker-in-docker wrapper script](https://github.com/moby/moby/blob/master/hack/dind) that is part of the [Moby project](https://mobyproject.org/). With this in mind:

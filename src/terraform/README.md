@@ -23,6 +23,13 @@ Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects la
 | installTerraformDocs | Install terraform-docs, a utility to generate documentation from Terraform modules | boolean | false |
 | httpProxy | Connect to a keyserver using a proxy by configuring this option | string | - |
 
+## Customizations
+
+### VS Code Extensions
+
+- `HashiCorp.terraform`
+- `ms-azuretools.vscode-azureterraform`
+
 
 
 ## OS Support

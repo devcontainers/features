@@ -17,6 +17,12 @@ Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles
 |-----|-----|-----|-----|
 | version | Select or enter an AWS CLI version. | string | latest |
 
+## Customizations
+
+### VS Code Extensions
+
+- `AmazonWebServices.aws-toolkit-vscode`
+
 Available versions of the AWS CLI can be found here: https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst.
 
 ## OS Support

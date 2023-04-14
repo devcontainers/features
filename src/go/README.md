@@ -18,6 +18,12 @@ Installs Go and common Go utilities. Auto-detects latest version and installs ne
 | version | Select or enter a Go version to install | string | latest |
 | golangciLintVersion | Version of golangci-lint to install | string | latest |
 
+## Customizations
+
+### VS Code Extensions
+
+- `golang.Go`
+
 
 
 ## OS Support
