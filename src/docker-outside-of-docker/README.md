@@ -22,6 +22,12 @@ Re-use the host docker socket, adding the Docker CLI to a container. Feature inv
 | dockerDashComposeVersion | Compose version to use for docker-compose (v1 or v2) | string | v2 |
 | installDockerBuildx | Install Docker Buildx | boolean | true |
 
+## Customizations
+
+### VS Code Extensions
+
+- `ms-azuretools.vscode-docker`
+
 ## Limitations
 
 - As the name implies, the Feature is expected to work when the host is running Docker (or the OSS Moby container engine it is built on). It may be possible to get running in other container engines, but it has not been tested with them.

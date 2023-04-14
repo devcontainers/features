@@ -18,6 +18,16 @@ Installs Rust, common Rust utilities, and their required dependencies
 | version | Select or enter a version of Rust to install. | string | latest |
 | profile | Select a rustup install profile. | string | minimal |
 
+## Customizations
+
+### VS Code Extensions
+
+- `vadimcn.vscode-lldb`
+- `mutantdino.resourcemonitor`
+- `rust-lang.rust-analyzer`
+- `tamasfe.even-better-toml`
+- `serayuzgur.crates`
+
 
 
 ## OS Support

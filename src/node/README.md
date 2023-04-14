@@ -20,6 +20,12 @@ Installs Node.js, nvm, yarn, pnpm, and needed dependencies.
 | nvmInstallPath | The path where NVM will be installed. | string | /usr/local/share/nvm |
 | nvmVersion | Version of NVM to install. | string | 0.39.2 |
 
+## Customizations
+
+### VS Code Extensions
+
+- `dbaeumer.vscode-eslint`
+
 ## Using nvm from postCreateCommand or another lifecycle command
 
 Certain operations like `postCreateCommand` run non-interactive, non-login shells. Unfortunately, `nvm` is really particular that it needs to be "sourced" before it is used, which can only happen automatically with interactive and/or login shells. Fortunately, this is easy to work around:

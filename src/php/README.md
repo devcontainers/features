@@ -18,6 +18,15 @@
 | version | Select or enter a PHP version | string | latest |
 | installComposer | Install PHP Composer? | boolean | true |
 
+## Customizations
+
+### VS Code Extensions
+
+- `xdebug.php-debug`
+- `bmewburn.vscode-intelephense-client`
+- `xdebug.php-pack`
+- `devsense.phptools-vscode`
+
 
 
 ## OS Support

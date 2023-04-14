@@ -24,6 +24,12 @@ Installs Java, SDKMAN! (if not installed), and needed dependencies.
 | installAnt | Install Ant, a software tool for automating software build processes | boolean | false |
 | antVersion | Select or enter an Ant version | string | latest |
 
+## Customizations
+
+### VS Code Extensions
+
+- `vscjava.vscode-java-pack`
+
 ## License
 
 For the Java Feature from this repository, see [NOTICE.txt](https://github.com/devcontainers/features/tree/main/src/java/NOTICE.txt) for licensing information on JDK distributions.

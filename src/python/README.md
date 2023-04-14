@@ -22,6 +22,13 @@ Installs the provided version of Python, as well as PIPX, and other common Pytho
 | installJupyterlab | Install JupyterLab, a web-based interactive development environment for notebooks | boolean | false |
 | configureJupyterlabAllowOrigin | Configure JupyterLab to accept HTTP requests from the specified origin | string | - |
 
+## Customizations
+
+### VS Code Extensions
+
+- `ms-python.python`
+- `ms-python.vscode-pylance`
+
 
 
 ## OS Support
