@@ -74,7 +74,7 @@ install_dotnet_using_apt() {
     echo "Attempting to auto-install dotnet..."
     install_from_microsoft_feed=false
     apt_get_update
-    DOTNET_INSTALLATION_PACKAGE="dotnet6"
+    DOTNET_INSTALLATION_PACKAGE="dotnet7"
     apt-get -yq install $DOTNET_INSTALLATION_PACKAGE || install_from_microsoft_feed="true"
 
     if [ "${install_from_microsoft_feed}" = "true" ]; then
@@ -82,7 +82,7 @@ install_dotnet_using_apt() {
         curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
         echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
         apt-get update -y
-        DOTNET_INSTALLATION_PACKAGE="dotnet-sdk-6.0"
+        DOTNET_INSTALLATION_PACKAGE="dotnet-sdk-7.0"
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq $DOTNET_INSTALLATION_PACKAGE
     fi
 
@@ -132,9 +132,9 @@ if dotnet --version > /dev/null ; then
     DOTNET_BINARY=$(which dotnet)
 fi
 
-# Oryx needs to be built with .NET 6
-if [[ "${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --version)" != *"6"* ]] ; then
-    echo "'dotnet 6' was not detected. Attempting to install .NET 6 to build oryx."
+# Oryx needs to be built with .NET 7
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --version)" != *"7"* ]] ; then
+    echo "'dotnet 7' was not detected. Attempting to install .NET 7 to build oryx."
     install_dotnet_using_apt
 
     if ! dotnet --version > /dev/null ; then
@@ -154,7 +154,11 @@ mkdir -p ${ORYX}
 
 git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
 
-$GIT_ORYX/build/buildSln.sh
+SOLUTION_FILE_NAME="Oryx.sln"
+echo "Building solution '$SOLUTION_FILE_NAME'..."
+
+cd $GIT_ORYX
+${DOTNET_BINARY} build "$SOLUTION_FILE_NAME" -c Debug
 
 ${DOTNET_BINARY} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
 ${DOTNET_BINARY} publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
