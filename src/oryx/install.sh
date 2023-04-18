@@ -86,9 +86,6 @@ install_dotnet_using_apt() {
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq $DOTNET_INSTALLATION_PACKAGE
     fi
 
-    echo -e "Finished attempt to install dotnet.  Sdks installed:\n"
-    dotnet --list-sdks
-
     # Clean up
     apt-get clean -y
     rm -rf /var/lib/apt/lists/*
@@ -143,6 +140,9 @@ if [[ "${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --version)" != *"7"* ]] ; then
     fi
 
     DOTNET_BINARY="/usr/bin/dotnet"
+
+    PATH="${DOTNET_BINARY}:${PATH}" echo -e "Finished attempt to install dotnet.  Sdks installed:\n"
+    dotnet --list-sdks
 fi
 
 BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
@@ -154,7 +154,7 @@ mkdir -p ${ORYX}
 
 git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
 
-$GIT_ORYX/build/buildSln.sh
+PATH="${DOTNET_BINARY}:${PATH}" $GIT_ORYX/build/buildSln.sh
 
 ${DOTNET_BINARY} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
 ${DOTNET_BINARY} publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
