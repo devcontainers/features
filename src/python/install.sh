@@ -32,6 +32,8 @@ GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
+KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
+
 set -e
 
 # Clean up
@@ -83,6 +85,9 @@ receive_gpg_keys() {
     if [ ! -z "$2" ]; then
         mkdir -p "$(dirname \"$2\")"
         keyring_args="--no-default-keyring --keyring $2"
+    fi
+    if [ ! -z "${KEYSERVER_PROXY}" ]; then
+	    keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
     fi
 
     # Use a temporary location for gpg keys to avoid polluting image
