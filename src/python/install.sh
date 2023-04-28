@@ -87,7 +87,7 @@ receive_gpg_keys() {
         keyring_args="--no-default-keyring --keyring $2"
     fi
     if [ ! -z "${KEYSERVER_PROXY}" ]; then
-	    keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
+        keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
     fi
 
     # Use a temporary location for gpg keys to avoid polluting image
