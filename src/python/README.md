@@ -21,6 +21,7 @@ Installs the provided version of Python, as well as PIPX, and other common Pytho
 | installPath | The path where python will be installed. | string | /usr/local/python |
 | installJupyterlab | Install JupyterLab, a web-based interactive development environment for notebooks | boolean | false |
 | configureJupyterlabAllowOrigin | Configure JupyterLab to accept HTTP requests from the specified origin | string | - |
+| httpProxy | Connect to GPG keyservers using a proxy for fetching source code signatures by configuring this option | string | - |
 
 ## Customizations
 
