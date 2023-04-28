@@ -2,6 +2,12 @@
 
 This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, RockyLinux, and Alpine Linux.
 
+## Base Images
+
+This feature is used in many of the devcontainer [base images](https://github.com/devcontainers/images), as a result
+those base images have already allocated UID & GID 1000. Attempting to add this feature on a new configuration utilizing
+a devcontainer base image may result in an error when building if adding a new user and assiging UID or GID to 1000. 
+
 ## Customizing the command prompt
 
 By default, this script provides a custom command prompt that includes information about the git repository for the current folder. However, with certain large repositories, this can result in a slow command prompt due to the performance of needed git operations.
