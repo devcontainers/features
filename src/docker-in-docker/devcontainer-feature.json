@@ -23,6 +23,7 @@
         "dockerDashComposeVersion": {
             "type": "string",
             "enum": [
+                "none",
                 "v1",
                 "v2"
             ],
