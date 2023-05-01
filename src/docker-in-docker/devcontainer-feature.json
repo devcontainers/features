@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -28,7 +28,7 @@
                 "v2"
             ],
             "default": "v1",
-            "description": "Default version of Docker Compose (v1 or v2)"
+            "description": "Default version of Docker Compose (v1 or v2 or none)"
         },
         "azureDnsAutoDetection": {
             "type": "boolean",
