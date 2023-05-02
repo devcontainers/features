@@ -9,7 +9,7 @@
 
 DOCKER_VERSION="${VERSION:-"latest"}"
 USE_MOBY="${MOBY:-"true"}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v2"}" # v1 or v2
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v1"}" # v1 or v2 or none
 
 ENABLE_NONROOT_DOCKER="${ENABLE_NONROOT_DOCKER:-"true"}"
 SOURCE_SOCKET="${SOURCE_SOCKET:-"/var/run/docker-host.sock"}"
@@ -216,43 +216,46 @@ else
     unset buildx buildx_path
 fi
 
-# Install Docker Compose if not already installed  and is on a supported architecture
-if type docker-compose > /dev/null 2>&1; then
-    echo "Docker Compose already installed."
-elif [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
-    TARGET_COMPOSE_ARCH="$(uname -m)"
-    if [ "${TARGET_COMPOSE_ARCH}" = "amd64" ]; then
-        TARGET_COMPOSE_ARCH="x86_64"
-    fi
-    if [ "${TARGET_COMPOSE_ARCH}" != "x86_64" ]; then
-        # Use pip to get a version that runs on this architecture
-        check_packages python3-minimal python3-pip libffi-dev python3-venv
-        export PIPX_HOME=/usr/local/pipx
-        mkdir -p ${PIPX_HOME}
-        export PIPX_BIN_DIR=/usr/local/bin
-        export PYTHONUSERBASE=/tmp/pip-tmp
-        export PIP_CACHE_DIR=/tmp/pip-tmp/cache
-        pipx_bin=pipx
-        if ! type pipx > /dev/null 2>&1; then
-            pip3 install --disable-pip-version-check --no-cache-dir --user pipx
-            pipx_bin=/tmp/pip-tmp/bin/pipx
+# If 'docker-compose' command is to be included
+if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
+    # Install Docker Compose if not already installed  and is on a supported architecture
+    if type docker-compose > /dev/null 2>&1; then
+        echo "Docker Compose already installed."
+    elif [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
+        TARGET_COMPOSE_ARCH="$(uname -m)"
+        if [ "${TARGET_COMPOSE_ARCH}" = "amd64" ]; then
+            TARGET_COMPOSE_ARCH="x86_64"
         fi
-        ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
-        rm -rf /tmp/pip-tmp
+        if [ "${TARGET_COMPOSE_ARCH}" != "x86_64" ]; then
+            # Use pip to get a version that runs on this architecture
+            check_packages python3-minimal python3-pip libffi-dev python3-venv
+            export PIPX_HOME=/usr/local/pipx
+            mkdir -p ${PIPX_HOME}
+            export PIPX_BIN_DIR=/usr/local/bin
+            export PYTHONUSERBASE=/tmp/pip-tmp
+            export PIP_CACHE_DIR=/tmp/pip-tmp/cache
+            pipx_bin=pipx
+            if ! type pipx > /dev/null 2>&1; then
+                pip3 install --disable-pip-version-check --no-cache-dir --user pipx
+                pipx_bin=/tmp/pip-tmp/bin/pipx
+            fi
+            ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
+            rm -rf /tmp/pip-tmp
+        else
+            compose_v1_version="1"
+            find_version_from_git_tags compose_v1_version "https://github.com/docker/compose" "tags/"
+            echo "(*) Installing docker-compose ${compose_v1_version}..."
+            curl -fsSL "https://github.com/docker/compose/releases/download/${compose_v1_version}/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
+            chmod +x /usr/local/bin/docker-compose
+        fi
     else
-        compose_v1_version="1"
-        find_version_from_git_tags compose_v1_version "https://github.com/docker/compose" "tags/"
-        echo "(*) Installing docker-compose ${compose_v1_version}..."
-        curl -fsSL "https://github.com/docker/compose/releases/download/${compose_v1_version}/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
+        echo "(*) Installing compose-switch as docker-compose..."
+        compose_switch_version="latest"
+        find_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch"
+        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose
         chmod +x /usr/local/bin/docker-compose
+        # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
     fi
-else
-    echo "(*) Installing compose-switch as docker-compose..."
-    compose_switch_version="latest"
-    find_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch"
-    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-    # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
 fi
 
 # Setup a docker group in the event the docker socket's group is not root

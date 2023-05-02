@@ -115,5 +115,14 @@
             }
         },
         "containerUser": "vscode"
+    },
+    "docker_build_no_compose": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "features": {
+            "docker-in-docker": {
+                "dockerDashComposeVersion": "none"
+            }
+        },
+        "remoteUser": "node"
     }
 }
