@@ -474,6 +474,15 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     fi
 fi
 
+# *********************************
+# ** Ensure config directory **
+# *********************************
+user_config_dir="${user_home}/.config"
+if [ ! -d "${user_config_dir}" ]; then
+    mkdir -p "${user_config_dir}"
+    chown ${USERNAME}:${group_name} "${user_config_dir}"
+fi
+
 # ****************************
 # ** Utilities and commands **
 # ****************************
