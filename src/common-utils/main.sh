@@ -380,12 +380,12 @@ fi
 # *********************************
 
 if [ "${USERNAME}" = "root" ]; then
-    user_rc_path="/root"
+    user_home="/root"
 else
-    user_rc_path="/home/${USERNAME}"
-    if [ ! -d "${user_rc_path}" ]; then
-        mkdir -p "${user_rc_path}"
-        chown ${USERNAME}:${group_name} "${user_rc_path}"
+    user_home="/home/${USERNAME}"
+    if [ ! -d "${user_home}" ]; then
+        mkdir -p "${user_home}"
+        chown ${USERNAME}:${group_name} "${user_home}"
     fi
 fi
 
@@ -393,9 +393,9 @@ fi
 possible_rc_files=( ".bashrc" ".profile" ".zshrc" )
 for rc_file in "${possible_rc_files[@]}"; do
     if [ -f "/etc/skel/${rc_file}" ]; then
-        if [ ! -e "${user_rc_path}/${rc_file}" ] || [ ! -s "${user_rc_path}/${rc_file}" ]; then
-            cp "/etc/skel/${rc_file}" "${user_rc_path}/${rc_file}"
-            chown ${USERNAME}:${group_name} "${user_rc_path}/${rc_file}"
+        if [ ! -e "${user_home}/${rc_file}" ] || [ ! -s "${user_home}/${rc_file}" ]; then
+            cp "/etc/skel/${rc_file}" "${user_home}/${rc_file}"
+            chown ${USERNAME}:${group_name} "${user_home}/${rc_file}"
         fi
     fi
 done
@@ -416,10 +416,10 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
             ;;
     esac
     cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${global_rc_path}
-    cat "${FEATURE_DIR}/scripts/bash_theme_snippet.sh" >> "${user_rc_path}/.bashrc"
+    cat "${FEATURE_DIR}/scripts/bash_theme_snippet.sh" >> "${user_home}/.bashrc"
     if [ "${USERNAME}" != "root" ]; then
         cat "${FEATURE_DIR}/scripts/bash_theme_snippet.sh" >> "/root/.bashrc"
-        chown ${USERNAME}:${group_name} "${user_rc_path}/.bashrc"
+        chown ${USERNAME}:${group_name} "${user_home}/.bashrc"
     fi
     RC_SNIPPET_ALREADY_ADDED="true"
 fi
@@ -442,10 +442,10 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
 
     # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
-    oh_my_install_dir="${user_rc_path}/.oh-my-zsh"
+    oh_my_install_dir="${user_home}/.oh-my-zsh"
     if [ ! -d "${oh_my_install_dir}" ] && [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
         template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
-        user_rc_file="${user_rc_path}/.zshrc"
+        user_rc_file="${user_home}/.zshrc"
         umask g-w,o-w
         mkdir -p ${oh_my_install_dir}
         git clone --depth=1 \
