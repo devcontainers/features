@@ -122,7 +122,7 @@
             "common-utils": {}
         },
         "mounts": [
-            "source=/workspaces/features,target=/home/devcontainer/.config/subdirectory,type=bind,readonly"
+            "source=${localEnv:HOME},target=/home/devcontainer/.config/subdirectory,type=bind,readonly"
         ]
     },
     "alpine-3-14": {
