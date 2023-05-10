@@ -115,6 +115,16 @@
             }
         }
     },
+    "config-subdirectory": {
+        "image": "alpine",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        },
+        "mounts": [
+            "source=${localEnv:HOME},target=/home/devcontainer/.config/subdirectory,type=bind,readonly"
+        ]
+    },
     "alpine-3-14": {
         "image": "alpine:3.14",
         "remoteUser": "devcontainer",

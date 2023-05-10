@@ -68,7 +68,7 @@ install_debian_packages() {
         manpages \
         manpages-dev \
         init-system-helpers"
-        
+
     # Needed for adding manpages-posix and manpages-posix-dev which are non-free packages in Debian
     if [ "${ADD_NON_FREE_PACKAGES}" = "true" ]; then
         # Bring in variables from /etc/os-release like VERSION_CODENAME
@@ -78,7 +78,7 @@ install_debian_packages() {
         sed -i -E "s/deb-src http:\/\/(deb|httpredir)\.debian\.org\/debian ${VERSION_CODENAME}-updates main/deb http:\/\/\1\.debian\.org\/debian ${VERSION_CODENAME}-updates main contrib non-free/" /etc/apt/sources.list
         sed -i "s/deb http:\/\/security\.debian\.org\/debian-security ${VERSION_CODENAME}\/updates main/deb http:\/\/security\.debian\.org\/debian-security ${VERSION_CODENAME}\/updates main contrib non-free/" /etc/apt/sources.list
         sed -i "s/deb-src http:\/\/security\.debian\.org\/debian-security ${VERSION_CODENAME}\/updates main/deb http:\/\/security\.debian\.org\/debian-security ${VERSION_CODENAME}\/updates main contrib non-free/" /etc/apt/sources.list
-        sed -i "s/deb http:\/\/deb\.debian\.org\/debian ${VERSION_CODENAME}-backports main/deb http:\/\/deb\.debian\.org\/debian ${VERSION_CODENAME}-backports main contrib non-free/" /etc/apt/sources.list 
+        sed -i "s/deb http:\/\/deb\.debian\.org\/debian ${VERSION_CODENAME}-backports main/deb http:\/\/deb\.debian\.org\/debian ${VERSION_CODENAME}-backports main contrib non-free/" /etc/apt/sources.list
         sed -i "s/deb-src http:\/\/deb\.debian\.org\/debian ${VERSION_CODENAME}-backports main/deb http:\/\/deb\.debian\.org\/debian ${VERSION_CODENAME}-backports main contrib non-free/" /etc/apt/sources.list
         # Handle bullseye location for security https://www.debian.org/releases/bullseye/amd64/release-notes/ch-information.en.html
         sed -i "s/deb http:\/\/security\.debian\.org\/debian-security ${VERSION_CODENAME}-security main/deb http:\/\/security\.debian\.org\/debian-security ${VERSION_CODENAME}-security main contrib non-free/" /etc/apt/sources.list
@@ -133,13 +133,13 @@ install_debian_packages() {
 
     # Ensure at least the en_US.UTF-8 UTF-8 locale is available = common need for both applications and things like the agnoster ZSH theme.
     if [ "${LOCALE_ALREADY_SET}" != "true" ] && ! grep -o -E '^\s*en_US.UTF-8\s+UTF-8' /etc/locale.gen > /dev/null; then
-        echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen 
+        echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
         locale-gen
         LOCALE_ALREADY_SET="true"
     fi
 
     # Clean up
-    apt-get -y clean 
+    apt-get -y clean
     rm -rf /var/lib/apt/lists/*
 }
 
@@ -254,7 +254,7 @@ install_alpine_packages() {
     # Install man pages - package name varies between 3.12 and earlier versions
     if apk info man > /dev/null 2>&1; then
         apk add --no-cache man man-pages
-    else 
+    else
         apk add --no-cache mandoc man-pages
     fi
 
@@ -324,7 +324,7 @@ fi
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     if [ "${_REMOTE_USER}" != "root" ]; then
         USERNAME="${_REMOTE_USER}"
-    else 
+    else
         USERNAME=""
         POSSIBLE_USERS=("devcontainer" "vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
         for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
@@ -346,12 +346,12 @@ fi
 group_name="${USERNAME}"
 if id -u ${USERNAME} > /dev/null 2>&1; then
     # User exists, update if needed
-    if [ "${USER_GID}" != "automatic" ] && [ "$USER_GID" != "$(id -g $USERNAME)" ]; then 
+    if [ "${USER_GID}" != "automatic" ] && [ "$USER_GID" != "$(id -g $USERNAME)" ]; then
         group_name="$(id -gn $USERNAME)"
         groupmod --gid $USER_GID ${group_name}
         usermod --gid $USER_GID $USERNAME
     fi
-    if [ "${USER_UID}" != "automatic" ] && [ "$USER_UID" != "$(id -u $USERNAME)" ]; then 
+    if [ "${USER_UID}" != "automatic" ] && [ "$USER_UID" != "$(id -u $USERNAME)" ]; then
         usermod --uid $USER_UID $USERNAME
     fi
 else
@@ -361,7 +361,7 @@ else
     else
         groupadd --gid $USER_GID $USERNAME
     fi
-    if [ "${USER_UID}" = "automatic" ]; then 
+    if [ "${USER_UID}" = "automatic" ]; then
         useradd -s /bin/bash --gid $USERNAME -m $USERNAME
     else
         useradd -s /bin/bash --uid $USER_UID --gid $USERNAME -m $USERNAME
@@ -379,13 +379,13 @@ fi
 # ** Shell customization section **
 # *********************************
 
-if [ "${USERNAME}" = "root" ]; then 
-    user_rc_path="/root"
+if [ "${USERNAME}" = "root" ]; then
+    user_home="/root"
 else
-    user_rc_path="/home/${USERNAME}"
-    if [ ! -d "${user_rc_path}" ]; then
-        mkdir -p "${user_rc_path}"
-        chown ${USERNAME}:${group_name} "${user_rc_path}"
+    user_home="/home/${USERNAME}"
+    if [ ! -d "${user_home}" ]; then
+        mkdir -p "${user_home}"
+        chown ${USERNAME}:${group_name} "${user_home}"
     fi
 fi
 
@@ -393,9 +393,9 @@ fi
 possible_rc_files=( ".bashrc" ".profile" ".zshrc" )
 for rc_file in "${possible_rc_files[@]}"; do
     if [ -f "/etc/skel/${rc_file}" ]; then
-        if [ ! -e "${user_rc_path}/${rc_file}" ] || [ ! -s "${user_rc_path}/${rc_file}" ]; then
-            cp "/etc/skel/${rc_file}" "${user_rc_path}/${rc_file}"
-            chown ${USERNAME}:${group_name} "${user_rc_path}/${rc_file}"
+        if [ ! -e "${user_home}/${rc_file}" ] || [ ! -s "${user_home}/${rc_file}" ]; then
+            cp "/etc/skel/${rc_file}" "${user_home}/${rc_file}"
+            chown ${USERNAME}:${group_name} "${user_home}/${rc_file}"
         fi
     fi
 done
@@ -416,10 +416,10 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
             ;;
     esac
     cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${global_rc_path}
-    cat "${FEATURE_DIR}/scripts/bash_theme_snippet.sh" >> "${user_rc_path}/.bashrc"
+    cat "${FEATURE_DIR}/scripts/bash_theme_snippet.sh" >> "${user_home}/.bashrc"
     if [ "${USERNAME}" != "root" ]; then
         cat "${FEATURE_DIR}/scripts/bash_theme_snippet.sh" >> "/root/.bashrc"
-        chown ${USERNAME}:${group_name} "${user_rc_path}/.bashrc"
+        chown ${USERNAME}:${group_name} "${user_home}/.bashrc"
     fi
     RC_SNIPPET_ALREADY_ADDED="true"
 fi
@@ -442,10 +442,10 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
 
     # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
-    oh_my_install_dir="${user_rc_path}/.oh-my-zsh"
+    oh_my_install_dir="${user_home}/.oh-my-zsh"
     if [ ! -d "${oh_my_install_dir}" ] && [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
         template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
-        user_rc_file="${user_rc_path}/.zshrc"
+        user_rc_file="${user_home}/.zshrc"
         umask g-w,o-w
         mkdir -p ${oh_my_install_dir}
         git clone --depth=1 \
@@ -472,6 +472,15 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             chown -R ${USERNAME}:${group_name} "${oh_my_install_dir}" "${user_rc_file}"
         fi
     fi
+fi
+
+# *********************************
+# ** Ensure config directory **
+# *********************************
+user_config_dir="${user_home}/.config"
+if [ ! -d "${user_config_dir}" ]; then
+    mkdir -p "${user_config_dir}"
+    chown ${USERNAME}:${group_name} "${user_config_dir}"
 fi
 
 # ****************************
