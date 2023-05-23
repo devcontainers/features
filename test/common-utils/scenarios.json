@@ -143,6 +143,7 @@
         "build": {
             "dockerfile": "Dockerfile"
         },
+        "remoteUser": "vscode",
         "features": {
             "common-utils": {
                 "username": "vscode",
@@ -151,7 +152,15 @@
                 "upgradePackages": true,
                 "installZsh": true
             }
-        },
-        "remoteUser": "vscode"
+        }
+    },
+    "alpine-base-zsh-default": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "configureZshAsDefaultShell": true
+            }
+        }
     }
 }
