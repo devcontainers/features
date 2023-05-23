@@ -191,7 +191,7 @@ else
 fi
 
 # Install Go tools that are isImportant && !replacedByGopls based on
-# https://github.com/golang/vscode-go/blob/v0.31.1/src/goToolsInformation.ts
+# https://github.com/golang/vscode-go/blob/v0.38.0/src/goToolsInformation.ts
 GO_TOOLS="\
     golang.org/x/tools/gopls@latest \
     honnef.co/go/tools/cmd/staticcheck@latest \
