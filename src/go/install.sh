@@ -200,7 +200,7 @@ GO_TOOLS="\
     github.com/go-delve/delve/cmd/dlv@latest \
     github.com/fatih/gomodifytags@latest \
     github.com/haya14busa/goplay/cmd/goplay@latest \
-    github.com/cweill/gotests/... \ 
+    github.com/cweill/gotests/gotests@latest \ 
     github.com/josharian/impl@latest"
 
 if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
