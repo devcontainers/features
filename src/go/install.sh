@@ -191,15 +191,18 @@ else
 fi
 
 # Install Go tools that are isImportant && !replacedByGopls based on
-# https://github.com/golang/vscode-go/blob/v0.31.1/src/goToolsInformation.ts
+# https://github.com/golang/vscode-go/blob/v0.38.0/src/goToolsInformation.ts
 GO_TOOLS="\
     golang.org/x/tools/gopls@latest \
     honnef.co/go/tools/cmd/staticcheck@latest \
     golang.org/x/lint/golint@latest \
     github.com/mgechev/revive@latest \
-    github.com/uudashr/gopkgs/v2/cmd/gopkgs@latest \
-    github.com/ramya-rao-a/go-outline@latest \
-    github.com/go-delve/delve/cmd/dlv@latest"
+    github.com/go-delve/delve/cmd/dlv@latest \
+    github.com/fatih/gomodifytags@latest \
+    github.com/haya14busa/goplay/cmd/goplay@latest \
+    github.com/cweill/gotests/gotests@latest \ 
+    github.com/josharian/impl@latest"
+
 if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
     echo "Installing common Go tools..."
     export PATH=${TARGET_GOROOT}/bin:${PATH}
