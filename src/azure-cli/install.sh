@@ -140,7 +140,8 @@ install_using_pip() {
     export PIP_CACHE_DIR=/tmp/pip-tmp/cache
     pipx_bin=pipx
     if ! type pipx > /dev/null 2>&1; then
-        pip3 install --disable-pip-version-check --no-cache-dir --user pipx
+        # TODO: Revisit if --break-system-packages is the best choice here.  Added to support debian bookworm.
+        pip3 install --disable-pip-version-check --no-cache-dir --user pipx --break-system-packages
         pipx_bin=/tmp/pip-tmp/bin/pipx
     fi
 
