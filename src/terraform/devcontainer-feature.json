@@ -20,10 +20,12 @@
         "tflint": {
             "type": "string",
             "proposals": [
-                "latest"
+                "latest",
+                "0.47.0",
+                "0.46.1"
             ],
-            "default": "latest",
-            "description": "Tflint version"
+            "default": "0.46.1",
+            "description": "Tflint version (Default value temporarily pinned to version 0.46.1: https://github.com/devcontainers/features/issues/581)"
         },
         "terragrunt": {
             "type": "string",
