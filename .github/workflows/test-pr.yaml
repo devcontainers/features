@@ -49,11 +49,11 @@ jobs:
         features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
         baseImage:
           [
+            "ubuntu:bionic",
             "ubuntu:focal",
             "ubuntu:jammy",
-            "ubuntu:bionic",
             "debian:11",
-            "debian:10",
+            "debian:12",
             "mcr.microsoft.com/devcontainers/base:ubuntu",
             "mcr.microsoft.com/devcontainers/base:debian",
           ]
