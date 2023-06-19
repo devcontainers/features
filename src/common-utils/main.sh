@@ -439,7 +439,11 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     if [ "${CONFIGURE_ZSH_AS_DEFAULT_SHELL}" == "true" ]; then
         # Fixing chsh always asking for a password on alpine linux
         # ref: https://askubuntu.com/questions/812420/chsh-always-asking-a-password-and-get-pam-authentication-failure.
-        echo "auth sufficient pam_shells.so" > /etc/pam.d/chsh
+        if [ -f "/etc/pam.d/chsh" ] && grep -Eq "^auth(.*)pam_rootok\.so$" /etc/pam.d/chsh; then
+            awk '/^auth(.*)pam_rootok\.so$/ { $2 = "sufficient" } { print }' /etc/pam.d/chsh > /tmp/chsh.tmp && mv /tmp/chsh.tmp /etc/pam.d/chsh
+        else
+            echo "auth sufficient pam_rootok.so" > /etc/pam.d/chsh
+        fi
 
         chsh --shell /bin/zsh ${USERNAME}
     fi
