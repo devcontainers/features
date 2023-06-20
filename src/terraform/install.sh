@@ -27,7 +27,6 @@ TFSEC_SHA256="${TFSEC_SHA256:-"automatic"}"
 TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
 
 TERRAFORM_GPG_KEY="72D7468F"
-TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/master/8CE69160EB3F2FE9.key"
 GPG_KEY_SERVERS="keyserver hkps://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkps://keyserver.pgp.com"
@@ -158,6 +157,26 @@ check_packages() {
     fi
 }
 
+# Install 'cosign' for validating signatures
+# https://docs.sigstore.dev/cosign/overview/
+ensure_cosign() {
+    check_packages curl ca-certificates gnupg2
+
+    if ! type cosign > /dev/null 2>&1; then
+        echo "Installing cosign..."
+        local LATEST_COSIGN_VERSION=$(curl https://api.github.com/repos/sigstore/cosign/releases/latest | grep tag_name | cut -d : -f2 | tr -d "v\", ")
+        curl -L "https://github.com/sigstore/cosign/releases/latest/download/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb" -o /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
+        
+        dpkg -i /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
+        rm /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
+    fi
+    if ! type cosign > /dev/null 2>&1; then
+        echo "(!) Failed to install cosign."
+        exit 1
+    fi
+    cosign version
+}
+
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
@@ -197,18 +216,25 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
     echo "Downloading tflint..."
     TFLINT_FILENAME="tflint_linux_${architecture}.zip"
     curl -sSL -o /tmp/tf-downloads/${TFLINT_FILENAME} https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/${TFLINT_FILENAME}
-    if [ "${TFLINT_SHA256}" != "dev-mode" ]; then
-        if [ "${TFLINT_SHA256}" = "automatic" ]; then
-            curl -sSL -o tflint_key "${TFLINT_GPG_KEY_URI}"
-            gpg -q --import tflint_key
-            curl -sSL -o tflint_checksums.txt https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt
-            curl -sSL -o tflint_checksums.txt.sig https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.sig
-            gpg --verify tflint_checksums.txt.sig tflint_checksums.txt
-        else
-            echo "${TFLINT_SHA256} *${TFLINT_FILENAME}" > tflint_checksums.txt
-        fi
-        sha256sum --ignore-missing -c tflint_checksums.txt
-    fi
+
+    # Checksums
+    curl -sSL -o /tmp/tf-downloads/checksums.txt https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt
+    curl -sSL -o /tmp/tf-downloads/checksums.txt.keyless.sig https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.keyless.sig
+    curl -sSL -o /tmp/tf-downloads/checksums.txt.pem https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.pem
+
+    # Validate checksums with cosign
+    ensure_cosign
+    cosign verify-blob \
+        --certificate=/tmp/tf-downloads/checksums.txt.pem \
+        --signature=/tmp/tf-downloads/checksums.txt.keyless.sig \
+        --certificate-identity-regexp="^https://github.com/terraform-linters/tflint"  \
+        --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+        /tmp/tf-downloads/checksums.txt
+    # Ensure that checksums.txt has $TFLINT_FILENAME
+    grep ${TFLINT_FILENAME} /tmp/tf-downloads/checksums.txt
+    # Validate downloaded file
+    sha256sum --ignore-missing -c checksums.txt
+
     unzip /tmp/tf-downloads/${TFLINT_FILENAME}
     mv -f tflint /usr/local/bin/
 fi
