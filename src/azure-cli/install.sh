@@ -127,7 +127,31 @@ install_using_apt() {
     fi
 }
 
-install_using_pip() {
+install_using_pip_strategy() {
+    local ver=""
+    if [ "${AZ_VERSION}" = "latest" ] || [ "${AZ_VERSION}" = "lts" ] || [ "${AZ_VERSION}" = "stable" ]; then
+        # Empty, meaning grab the "latest" in the apt repo
+        ver=""
+    else
+        ver="==${AZ_VERSION}"
+    fi
+
+    install_with_pipx "${ver}" || install_with_complete_python_installation "${ver}" || return 1
+}
+
+install_with_pipx() {
+    local ver="$1"
+    if ! type pipx > /dev/null 2>&1; then
+        echo "(*) Installing pipx..."
+        check_packages pipx
+        pipx ensurepath
+    fi
+
+    pipx install azure-cli${ver}
+}
+
+install_with_complete_python_installation() {
+    local ver="$1"
     echo "(*) No pre-built binaries available in apt-cache. Installing via pip3."
     if ! dpkg -s python3-minimal python3-pip libffi-dev python3-venv > /dev/null 2>&1; then
         apt_get_update
@@ -140,16 +164,8 @@ install_using_pip() {
     export PIP_CACHE_DIR=/tmp/pip-tmp/cache
     pipx_bin=pipx
     if ! type pipx > /dev/null 2>&1; then
-        # TODO: Revisit if --break-system-packages is the best choice here.  Added to support debian bookworm.
-        pip3 install --disable-pip-version-check --no-cache-dir --user pipx --break-system-packages
+        pip3 install --disable-pip-version-check --no-cache-dir --user pipx
         pipx_bin=/tmp/pip-tmp/bin/pipx
-    fi
-
-    if [ "${AZ_VERSION}" = "latest" ] || [ "${AZ_VERSION}" = "lts" ] || [ "${AZ_VERSION}" = "stable" ]; then
-        # Empty, meaning grab the "latest" in the apt repo
-        ver=""
-    else
-        ver="==${AZ_VERSION}"
     fi
 
     set +e
@@ -177,7 +193,7 @@ fi
 
 if [ "${use_pip}" = "true" ]; then
     AZ_VERSION=${CACHED_AZURE_VERSION}
-    install_using_pip
+    install_using_pip_strategy
 
     if [ "$?" != 0 ]; then
         echo "Please provide a valid version for your distribution ${ID} ${VERSION_CODENAME} (${architecture})."
