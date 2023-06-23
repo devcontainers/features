@@ -16,13 +16,17 @@ AZ_VERSION=${VERSION:-"latest"}
 AZ_EXTENSIONS=${EXTENSIONS}
 AZ_INSTALLBICEP=${INSTALLBICEP:-false}
 
-USERNAME="${USERNAME:-"${_REMOTE_USER:-"root"}"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64"
 AZCLI_ARCHIVE_VERSION_CODENAMES="stretch buster bullseye bionic focal jammy"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
+    exit 1
+fi
+
+if [ -z "${_REMOTE_USER}" ]; then
+    echo -e 'Feature script must be executed by a tool that implements the dev container specification. See https://containers.dev/ for more information.'
     exit 1
 fi
 
@@ -152,7 +156,7 @@ install_with_pipx() {
     fi
 
     pipx install azure-cli${ver}
-    chown -hR ${USERNAME}:${USERNAME} "${REMOTE_USER_LOCAL_FOLDER}"   
+    chown -hR ${_REMOTE_USER}:${_REMOTE_USER} "${REMOTE_USER_LOCAL_FOLDER}"   
 }
 
 install_with_complete_python_installation() {
@@ -218,7 +222,7 @@ if [ ${#AZ_EXTENSIONS[@]} -gt 0 ]; then
     for i in "${extensions[@]}"
     do
         echo "Installing ${i}"
-        su ${USERNAME} -c "az extension add --name ${i} -y" || continue
+        su ${_REMOTE_USER} -c "az extension add --name ${i} -y" || continue
     done
 fi
 
@@ -242,8 +246,8 @@ if [ "${AZ_INSTALLBICEP}" = "true" ]; then
 
     # Add a symlink so bicep can be accessed as a standalone executable or as part of az
     mkdir -p ${_REMOTE_USER_HOME}/.azure/bin
-    chown -hR ${USERNAME}:${USERNAME} ${USERNAME}/.azure
-    ln -s /usr/local/bin/bicep ${USERNAME}/.azure/bin/bicep
+    chown -hR ${_REMOTE_USER}:${_REMOTE_USER} ${_REMOTE_USER_HOME}/.azure
+    ln -s /usr/local/bin/bicep ${_REMOTE_USER_HOME}/.azure/bin/bicep
 fi
 
 # Clean up
