@@ -16,6 +16,7 @@ AZ_VERSION=${VERSION:-"latest"}
 AZ_EXTENSIONS=${EXTENSIONS}
 AZ_INSTALLBICEP=${INSTALLBICEP:-false}
 
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"root"}"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64"
 AZCLI_ARCHIVE_VERSION_CODENAMES="stretch buster bullseye bionic focal jammy"
@@ -56,8 +57,6 @@ check_packages() {
         apt-get -y install --no-install-recommends "$@"
     fi
 }
-
-export DEBIAN_FRONTEND=noninteractive
 
 # Soft version matching that resolves a version for a given package in the *current apt-cache*
 # Return value is stored in first argument (the unprocessed version)
@@ -141,13 +140,19 @@ install_using_pip_strategy() {
 
 install_with_pipx() {
     local ver="$1"
+
+    local REMOTE_USER_LOCAL_FOLDER="${_REMOTE_USER_HOME}/.local"
+    local PIPX_HOME="${REMOTE_USER_LOCAL_FOLDER}/pipx"
+    local PIPX_BIN_DIR="${REMOTE_USER_LOCAL_FOLDER}/bin"
+
     if ! type pipx > /dev/null 2>&1; then
         echo "(*) Installing pipx..."
         check_packages pipx
-        pipx ensurepath
+        pipx ensurepath # Adds PIPX_BIN_DIR to the PATH
     fi
 
     pipx install azure-cli${ver}
+    chown -hR ${USERNAME}:${USERNAME} "${REMOTE_USER_LOCAL_FOLDER}"   
 }
 
 install_with_complete_python_installation() {
@@ -180,6 +185,8 @@ install_with_complete_python_installation() {
     set -e
 }
 
+export DEBIAN_FRONTEND=noninteractive
+
 # See if we're on x86_64 and if so, install via apt-get, otherwise use pip3
 echo "(*) Installing Azure CLI..."
 . /etc/os-release
@@ -211,7 +218,7 @@ if [ ${#AZ_EXTENSIONS[@]} -gt 0 ]; then
     for i in "${extensions[@]}"
     do
         echo "Installing ${i}"
-        su ${_REMOTE_USER} -c "az extension add --name ${i} -y" || continue
+        su ${USERNAME} -c "az extension add --name ${i} -y" || continue
     done
 fi
 
@@ -235,8 +242,8 @@ if [ "${AZ_INSTALLBICEP}" = "true" ]; then
 
     # Add a symlink so bicep can be accessed as a standalone executable or as part of az
     mkdir -p ${_REMOTE_USER_HOME}/.azure/bin
-    chown -hR ${_REMOTE_USER}:${_REMOTE_USER} ${_REMOTE_USER_HOME}/.azure
-    ln -s /usr/local/bin/bicep ${_REMOTE_USER_HOME}/.azure/bin/bicep
+    chown -hR ${USERNAME}:${USERNAME} ${USERNAME}/.azure
+    ln -s /usr/local/bin/bicep ${USERNAME}/.azure/bin/bicep
 fi
 
 # Clean up
