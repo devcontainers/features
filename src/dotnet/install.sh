@@ -194,11 +194,13 @@ install_using_apt() {
         curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
         echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
 
-        cat << 'EOF' > /etc/apt/preferences
+        # See https://github.com/dotnet/core/issues/7699
+        cat << 'EOF' >> /etc/apt/preferences
 Package: *
 Pin: origin "packages.microsoft.com"
 Pin-Priority: 1001
 EOF
+
         apt-get update -y
     fi
 
