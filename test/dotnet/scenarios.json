@@ -48,6 +48,14 @@
             }
         }
     },
+    "install_dotnet_6_jammy": {
+        "image": "ubuntu:jammy",
+        "features": {
+            "dotnet": {
+                "version": "6"
+            }
+        }
+    },
     "install_dotnet_latest": {
         "image": "ubuntu:jammy",
         "features": {

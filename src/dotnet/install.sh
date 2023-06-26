@@ -147,9 +147,9 @@ apt_cache_package_and_version_soft_match() {
     . /etc/os-release
     local architecture="$(dpkg --print-architecture)"
 
+    apt-get update -y
     major_minor_version="$(echo "${requested_version}" | cut -d "." --field=1,2)"
-    package_name="$(apt-cache search "${partial_package_name}-[0-9].[0-9]" | awk -F" - " '{print $1}' | grep -m 1 "${partial_package_name}-${major_minor_version}")"
-    
+    package_name="$(apt-cache search "${partial_package_name}-[0-9].[0-9]" | awk -F" - " '{print $1}' | grep -v "source-built-artifacts" | grep -m 1 "${partial_package_name}-${major_minor_version}")"
     dot_escaped="${requested_version//./\\.}"
     dot_plus_escaped="${dot_escaped//+/\\+}"
     # Regex needs to handle debian package version number format: https://www.systutorials.com/docs/linux/man/5-deb-version/
@@ -193,6 +193,12 @@ install_using_apt() {
         # Import key safely and import Microsoft apt repo
         curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
         echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+
+        cat << 'EOF' > /etc/apt/preferences
+Package: *
+Pin: origin "packages.microsoft.com"
+Pin-Priority: 1001
+EOF
         apt-get update -y
     fi
 
@@ -233,8 +239,8 @@ install_using_apt() {
     mkdir -p "${TARGET_DOTNET_ROOT}"
     local dotnet_installed_version="$(dotnet --version)"
     # See if its the distro version
-    if [[ "$(dotnet --info)" == *"Base Path:   /usr/lib/dotnet/dotnet${dotnet_installed_version:0:1}-${dotnet_installed_version}"* ]]; then
-        ln -s "/usr/lib/dotnet/dotnet${dotnet_installed_version:0:1}" "${CURRENT_DIR}"
+    if [[ "$(dotnet --info)" == *"Base Path:   /usr/lib/dotnet/${DOTNET_SDK_OR_RUNTIME}/${dotnet_installed_version}"* ]]; then
+        ln -s "/usr/lib/dotnet" "${CURRENT_DIR}"
     else
         # Location used by MS repo versions
         ln -s "/usr/share/dotnet" "${CURRENT_DIR}" 
