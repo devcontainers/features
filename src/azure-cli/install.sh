@@ -143,20 +143,18 @@ install_using_pip_strategy() {
 }
 
 install_with_pipx() {
+    echo "(*) Attempting to install globally with pipx..."
     local ver="$1"
-
-    local REMOTE_USER_LOCAL_FOLDER="${_REMOTE_USER_HOME}/.local"
-    local PIPX_HOME="${REMOTE_USER_LOCAL_FOLDER}/pipx"
-    local PIPX_BIN_DIR="${REMOTE_USER_LOCAL_FOLDER}/bin"
+    local PIPX_HOME="/usr/local/pipx"
+    local PIPX_BIN_DIR=/usr/local/bin
 
     if ! type pipx > /dev/null 2>&1; then
         echo "(*) Installing pipx..."
         check_packages pipx
-        pipx ensurepath # Adds PIPX_BIN_DIR to the PATH
+        pipx ensurepath # Ensures PIPX_BIN_DIR is on the PATH
     fi
 
     pipx install azure-cli${ver}
-    chown -hR ${_REMOTE_USER}:${_REMOTE_USER} "${REMOTE_USER_LOCAL_FOLDER}"   
 }
 
 install_with_complete_python_installation() {
