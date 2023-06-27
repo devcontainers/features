@@ -9,6 +9,16 @@
       }
     }
   },
+  "install_extensions_bookworm": {
+    "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "extensions": "aks-preview,amg,containerapp"
+      }
+    }
+  },
   "install_bicep": {
     "image": "mcr.microsoft.com/devcontainers/base:jammy",
     "user": "vscode",

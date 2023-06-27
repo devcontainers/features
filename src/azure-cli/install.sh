@@ -25,6 +25,13 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+if [ -z "${_REMOTE_USER}" ]; then
+    echo -e 'Feature script must be executed by a tool that implements the dev container specification. See https://containers.dev/ for more information.'
+    exit 1
+fi
+
+echo "Effective REMOTE_USER: ${_REMOTE_USER}"
+
 # Get central common setting
 get_common_setting() {
     if [ "${common_settings_file_loaded}" != "true" ]; then
@@ -56,8 +63,6 @@ check_packages() {
         apt-get -y install --no-install-recommends "$@"
     fi
 }
-
-export DEBIAN_FRONTEND=noninteractive
 
 # Soft version matching that resolves a version for a given package in the *current apt-cache*
 # Return value is stored in first argument (the unprocessed version)
@@ -127,7 +132,39 @@ install_using_apt() {
     fi
 }
 
-install_using_pip() {
+install_using_pip_strategy() {
+    local ver=""
+    if [ "${AZ_VERSION}" = "latest" ] || [ "${AZ_VERSION}" = "lts" ] || [ "${AZ_VERSION}" = "stable" ]; then
+        # Empty, meaning grab the "latest" in the apt repo
+        ver=""
+    else
+        ver="==${AZ_VERSION}"
+    fi
+
+    install_with_pipx "${ver}" || install_with_complete_python_installation "${ver}" || return 1
+}
+
+install_with_pipx() {
+    echo "(*) Attempting to install globally with pipx..."
+    local ver="$1"
+    export 
+    local 
+
+    if ! type pipx > /dev/null 2>&1; then
+        echo "(*) Installing pipx..."
+        check_packages pipx
+        pipx ensurepath # Ensures PIPX_BIN_DIR is on the PATH
+    fi
+
+    PIPX_HOME="/usr/local/pipx" \
+    PIPX_BIN_DIR=/usr/local/bin \
+    pipx install azure-cli${ver}
+
+    echo "(*) Finished installing globally with pipx."
+}
+
+install_with_complete_python_installation() {
+    local ver="$1"
     echo "(*) No pre-built binaries available in apt-cache. Installing via pip3."
     if ! dpkg -s python3-minimal python3-pip libffi-dev python3-venv > /dev/null 2>&1; then
         apt_get_update
@@ -144,24 +181,19 @@ install_using_pip() {
         pipx_bin=/tmp/pip-tmp/bin/pipx
     fi
 
-    if [ "${AZ_VERSION}" = "latest" ] || [ "${AZ_VERSION}" = "lts" ] || [ "${AZ_VERSION}" = "stable" ]; then
-        # Empty, meaning grab the "latest" in the apt repo
-        ver=""
-    else
-        ver="==${AZ_VERSION}"
-    fi
-
     set +e
         ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' -f azure-cli${ver}
 
         # Fail gracefully
         if [ "$?" != 0 ]; then
-            echo "Could not install azure-cli${ver} via pip"
+            echo "Could not install azure-cli${ver} via pip3"
             rm -rf /tmp/pip-tmp
             return 1
         fi
     set -e
 }
+
+export DEBIAN_FRONTEND=noninteractive
 
 # See if we're on x86_64 and if so, install via apt-get, otherwise use pip3
 echo "(*) Installing Azure CLI..."
@@ -176,7 +208,7 @@ fi
 
 if [ "${use_pip}" = "true" ]; then
     AZ_VERSION=${CACHED_AZURE_VERSION}
-    install_using_pip
+    install_using_pip_strategy
 
     if [ "$?" != 0 ]; then
         echo "Please provide a valid version for your distribution ${ID} ${VERSION_CODENAME} (${architecture})."
