@@ -30,6 +30,8 @@ if [ -z "${_REMOTE_USER}" ]; then
     exit 1
 fi
 
+echo "Effective REMOTE_USER: ${_REMOTE_USER}"
+
 # Get central common setting
 get_common_setting() {
     if [ "${common_settings_file_loaded}" != "true" ]; then
@@ -145,8 +147,8 @@ install_using_pip_strategy() {
 install_with_pipx() {
     echo "(*) Attempting to install globally with pipx..."
     local ver="$1"
-    local PIPX_HOME="/usr/local/pipx"
-    local PIPX_BIN_DIR=/usr/local/bin
+    export 
+    local 
 
     if ! type pipx > /dev/null 2>&1; then
         echo "(*) Installing pipx..."
@@ -154,7 +156,11 @@ install_with_pipx() {
         pipx ensurepath # Ensures PIPX_BIN_DIR is on the PATH
     fi
 
+    PIPX_HOME="/usr/local/pipx" \
+    PIPX_BIN_DIR=/usr/local/bin \
     pipx install azure-cli${ver}
+
+    echo "(*) Finished installing globally with pipx."
 }
 
 install_with_complete_python_installation() {
@@ -180,7 +186,7 @@ install_with_complete_python_installation() {
 
         # Fail gracefully
         if [ "$?" != 0 ]; then
-            echo "Could not install azure-cli${ver} via pip"
+            echo "Could not install azure-cli${ver} via pip3"
             rm -rf /tmp/pip-tmp
             return 1
         fi
