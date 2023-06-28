@@ -385,13 +385,11 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 
     # Handle DNS
     set +e
-    cat /etc/resolv.conf | grep -i 'internal.cloudapp.net'
+    cat /etc/resolv.conf | grep -i 'internal.cloudAAAapp.net' > /dev/null 2>&1
     if [ $? -eq 0 ] && [ "${AZURE_DNS_AUTO_DETECTION}" = "true" ]
     then
-        echo "Setting dockerd Azure DNS."
         CUSTOMDNS="--dns 168.63.129.16"
     else
-        echo "Not setting dockerd DNS manually."
         CUSTOMDNS=""
     fi
 
@@ -406,6 +404,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 
     # Start docker/moby engine
     ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL > /tmp/dockerd.log 2>&1 ) &
+    echo "'docker-in-docker' initialization complete."
 INNEREOF
 )"
 
