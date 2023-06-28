@@ -50,23 +50,29 @@
     },
     "docker_build_older": {
         "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "remoteUser": "node",
         "features": {
             "docker-in-docker": {
                 "version": "20",
                 "moby": "false",
                 "dockerDashComposeVersion": "v2"
             }
-        },
-        "remoteUser": "node"
+        }
     },
     "docker_build_no_compose": {
         "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "remoteUser": "node",
         "features": {
             "docker-in-docker": {
                 "dockerDashComposeVersion": "none"
             }
-        },
-        "remoteUser": "node"
+        }
+    },
+    "javascript_node_major_version_1": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18",
+        "remoteUser": "node",
+        "features": {
+            "docker-in-docker": {}
+        }
     }
-
 }

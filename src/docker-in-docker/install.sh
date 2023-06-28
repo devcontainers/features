@@ -385,7 +385,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 
     # Handle DNS
     set +e
-    cat /etc/resolv.conf | grep -i 'internal.cloudAAAapp.net' > /dev/null 2>&1
+    cat /etc/resolv.conf | grep -i 'internal.cloudapp.net' > /dev/null 2>&1
     if [ $? -eq 0 ] && [ "${AZURE_DNS_AUTO_DETECTION}" = "true" ]
     then
         CUSTOMDNS="--dns 168.63.129.16"
@@ -404,6 +404,20 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 
     # Start docker/moby engine
     ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL > /tmp/dockerd.log 2>&1 ) &
+
+    # Wait for API to be listening on unix socket.
+    echo "Waiting for 'docker-in-docker' to be ready..."
+    COUNTER=0
+    while ! (cat /tmp/dockerd.log | grep 'API listen on /var/run/docker.sock') > /dev/null 2>&1; do
+        sleep 1
+        COUNTER=$((COUNTER+1))
+        if [ $COUNTER -gt 5 ]
+        then
+            echo "(!) 'docker-in-docker' did not initialize correctly."
+            exit 1
+        fi
+    done
+
     echo "'docker-in-docker' initialization complete."
 INNEREOF
 )"
