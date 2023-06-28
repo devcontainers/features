@@ -353,7 +353,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     find /run /var/run -iname 'docker*.pid' -delete || :
     find /run /var/run -iname 'container*.pid' -delete || :
 
-    ## Dind wrapper script from docker team, adapted to a function
+    # -- Start: dind wrapper script --
     # Maintained: https://github.com/moby/moby/blob/master/hack/dind
 
     export container=docker
@@ -362,6 +362,8 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         mount -t securityfs none /sys/kernel/security || {
             echo >&2 'Could not mount /sys/kernel/security.'
             echo >&2 'AppArmor detection and --privileged mode might break.'
+            echo >&2 ""
+            echo >&2 'Please confirm passing --privileged flag!'
         }
     fi
 
@@ -381,7 +383,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         sed -e 's/ / +/g' -e 's/^/+/' < /sys/fs/cgroup/cgroup.controllers \
             > /sys/fs/cgroup/cgroup.subtree_control
     fi
-    ## Dind wrapper over.
+    # -- End: dind wrapper script --
 
     # Handle DNS
     set +e
