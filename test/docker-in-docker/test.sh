@@ -12,6 +12,8 @@ check "log-exists" bash -c "ls /tmp/dockerd.log"
 check "log-for-completion" bash -c "cat /tmp/dockerd.log | grep 'Daemon has completed initialization'"
 check "log-contents" bash -c "cat /tmp/dockerd.log | grep 'API listen on /var/run/docker.sock'"
 check "docker-ps" bash -c "docker ps"
+check "run hello-world" bash -c "docker run hello-world"
+check "validate hello-world image exists" bash -c "docker images | grep hello-world"
 
 # Report result
 reportResults
