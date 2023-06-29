@@ -392,9 +392,9 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     set_cgroup_nesting
     if [ $? -ne 0 ]; then
         echo >&2 "cgroup v2: failed to enable nesting, retrying once..."
+        set -e
         set_cgroup_nesting
     fi
-    set -e
 
     # -- End: dind wrapper script --
 
