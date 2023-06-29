@@ -5,9 +5,6 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-cat /etc/apt/preferences
-
-
 check "dotnet sdks" dotnet --list-sdks
 check "some major version of dotnet 7 is installed" bash -c "dotnet --list-sdks |  grep '7\.[0-9]*\.[0-9]*'"
 check "dotnet version 7 installed"  bash -c "ls -l /usr/lib/dotnet/sdk | grep '7\.[0-9]*\.[0-9]*'"
