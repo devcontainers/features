@@ -6,6 +6,16 @@ This feature provides two ways of connecting to the desktop environment it adds.
 1. Open the ports view in your tool, select the noVNC port, and click the Globe icon.
 1. In the browser that appears, click the **Connect** button and enter the desktop password (`vscode` by default).
 
+To set up the `6080` port from your `devcontainer.json` file, include the following:
+```json
+  "forwardPorts": [6080],
+  "portsAttributes": {
+    "6080": {
+      "label": "desktop"
+    }
+  }
+```
+
 You can also connect to the desktop using a [VNC viewer](https://www.realvnc.com/en/connect/download/viewer/). To do so:
 
 1. Connect to the environment from a desktop tool that supports the dev container spec (e.g., VS Code client).
