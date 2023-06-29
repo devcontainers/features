@@ -372,17 +372,30 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         mount -t tmpfs none /tmp
     fi
 
-    # cgroup v2: enable nesting
-    if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
-        # move the processes from the root group to the /init group,
-        # otherwise writing subtree_control fails with EBUSY.
-        # An error during moving non-existent process (i.e., "cat") is ignored.
-        mkdir -p /sys/fs/cgroup/init
-        xargs -rn1 < /sys/fs/cgroup/cgroup.procs > /sys/fs/cgroup/init/cgroup.procs || :
-        # enable controllers
-        sed -e 's/ / +/g' -e 's/^/+/' < /sys/fs/cgroup/cgroup.controllers \
-            > /sys/fs/cgroup/cgroup.subtree_control
+    set_cgroup_nesting()
+    {
+        # cgroup v2: enable nesting
+        if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
+            # move the processes from the root group to the /init group,
+            # otherwise writing subtree_control fails with EBUSY.
+            # An error during moving non-existent process (i.e., "cat") is ignored.
+            mkdir -p /sys/fs/cgroup/init
+            xargs -rn1 < /sys/fs/cgroup/cgroup.procs > /sys/fs/cgroup/init/cgroup.procs || :
+            # enable controllers
+            sed -e 's/ / +/g' -e 's/^/+/' < /sys/fs/cgroup/cgroup.controllers \
+                > /sys/fs/cgroup/cgroup.subtree_control
+        fi
+    }
+
+    # Set cgroup nesting, retrying if necessary
+    set +e
+    set_cgroup_nesting
+    if [ $? -ne 0 ]; then
+        echo >&2 "cgroup v2: failed to enable nesting, retrying once..."
+        set_cgroup_nesting
     fi
+    set -e
+
     # -- End: dind wrapper script --
 
     # Handle DNS
