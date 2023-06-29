@@ -11,7 +11,7 @@ check "sdks" dotnet --list-sdks
 check "version" dotnet --version
 
 echo "Validating expected version present..."
-check "some major version of dotnet 7 is installed" bash -c "dotnet --version |  grep '7\.[0-9]*\.[0-9]*'"
+check "some major version of dotnet (7/8) is installed" bash -c "dotnet --version |  grep '[7-8]\.[0-9]*\.[0-9]*'"
 
 # Verify current symlink exists and works
 check "current link dotnet" /usr/local/dotnet/current/dotnet --info
