@@ -395,6 +395,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         set -e
         set_cgroup_nesting
     fi
+    set -e
 
     # -- End: dind wrapper script --
 
