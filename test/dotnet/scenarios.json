@@ -48,6 +48,14 @@
             }
         }
     },
+    "install_dotnet_6_jammy": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "dotnet": {
+                "version": "6"
+            }
+        }
+    },
     "install_dotnet_latest": {
         "image": "ubuntu:jammy",
         "features": {
