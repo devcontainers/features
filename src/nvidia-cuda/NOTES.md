@@ -15,12 +15,13 @@ Enable GPU passthrough to your devcontainer by using `hostRequirements`. Here's 
 ```json
 {
   "hostRequirements": {
-    "gpu": true
+    "gpu": "optional" 
   }
 }
 ```
 
-> Note: Setting `gpu` property's value to `true` will work with GPU machine types, but fail with CPUs. See [schema](https://containers.dev/implementors/json_schema/#base-schema) for more configuration details.
+> Note: Setting `gpu` property's value to `true` will work with GPU machine types, but fail with CPUs. Hence, setting it to `optional` works in both cases. See [schema](https://containers.dev/implementors/json_schema/#base-schema) for more configuration details.
+
 
 
 ## OS Support
