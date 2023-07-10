@@ -13,5 +13,13 @@
         "features": {
             "ruby": {}
         }
+    },
+    "image_and_feature_installs_same_ruby_version": {
+        "image": "mcr.microsoft.com/devcontainers/universal:2.4.0",
+        "features": {
+            "ruby": {
+                "version": "3.2.2"
+            }
+        }
     }
 }

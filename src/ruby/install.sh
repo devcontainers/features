@@ -177,9 +177,11 @@ fi
 find_version_from_git_tags RUBY_VERSION "https://github.com/ruby/ruby" "tags/v" "_"
 
 # Just install Ruby if RVM already installed
-if [ $(rvm --version) != "" ]; then
+if rvm --version > /dev/null; then
     echo "Ruby Version Manager already exists."
-    if [ "${RUBY_VERSION}" != "none" ]; then
+    if [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
+        echo "(!) Ruby is already installed with version ${RUBY_VERSION}. Skipping..."
+    elif [ "${RUBY_VERSION}" != "none" ]; then
         echo "Installing specified Ruby version."
         su ${USERNAME} -c "rvm install ruby ${RUBY_VERSION}"
     fi
@@ -190,6 +192,9 @@ else
     receive_gpg_keys RVM_GPG_KEYS
     # Determine appropriate settings for rvm installer
     if [ "${RUBY_VERSION}" = "none" ]; then
+        RVM_INSTALL_ARGS=""
+    elif [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
+        echo "(!) Ruby is already installed with version ${RUBY_VERSION}. Skipping..."
         RVM_INSTALL_ARGS=""
     else
         if [ "${RUBY_VERSION}" = "latest" ] || [ "${RUBY_VERSION}" = "current" ] || [ "${RUBY_VERSION}" = "lts" ]; then
@@ -273,8 +278,10 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
             ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
         fi
 
-        ln -s /usr/local/rvm/rubies/default/bin/ruby /usr/local/rvm/gems/default/bin 
-        
+        if [ ! -f /usr/local/rvm/gems/default/bin/ruby ]; then
+            ln -s /usr/local/rvm/rubies/default/bin/ruby /usr/local/rvm/gems/default/bin
+        fi
+
         chown -R "${USERNAME}:rvm" "/home/${USERNAME}/.rbenv/"
         chmod -R g+r+w "/home/${USERNAME}/.rbenv"
         find "/home/${USERNAME}/.rbenv" -type d | xargs -n 1 chmod g+s
