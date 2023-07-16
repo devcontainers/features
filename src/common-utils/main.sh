@@ -12,6 +12,7 @@ set -e
 INSTALL_ZSH="${INSTALLZSH:-"true"}"
 CONFIGURE_ZSH_AS_DEFAULT_SHELL="${CONFIGUREZSHASDEFAULTSHELL:-"false"}"
 INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
+INSTALL_OH_MY_ZSH_CONFIG="${INSTALLOHMYZSHCONFIG:-"true"}"
 UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
 USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
@@ -470,6 +471,9 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         if [ "${USERNAME}" != "root" ]; then
             cp -rf "${user_rc_file}" "${oh_my_install_dir}" /root
             chown -R ${USERNAME}:${group_name} "${oh_my_install_dir}" "${user_rc_file}"
+        fi
+        if [ "$INSTALL_OH_MY_ZSH_CONFIG" != "true" ]; then
+            rm -f "${user_rc_file}" "/root/.zshrc"
         fi
     fi
 fi
