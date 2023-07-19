@@ -27,7 +27,7 @@
                 "latest"
             ],
             "default": "latest",
-            "description": "Default version of Docker Compose (latest, none or specific version number)"
+            "description": "Default version of Docker Compose (latest, none or specific version number e.g. 2.20.2)"
         },
         "azureDnsAutoDetection": {
             "type": "boolean",

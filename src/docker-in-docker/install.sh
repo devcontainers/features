@@ -251,12 +251,15 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
     fi
 
     if [ "${DOCKER_DASH_COMPOSE_VERSION}" == "latest" ]; then
-        docker_compose_version=$( curl --silent "https://api.github.com/repos/docker/compose/releases/latest" | jq -r '.tag_name' )
+        docker_compose_version="latest"
+        find_version_from_git_tags docker_compose_version "https://github.com/docker/compose" "refs/tags/v"
     else
         docker_compose_version="${DOCKER_DASH_COMPOSE_VERSION}"
     fi
 
-    curl --location https://github.com/docker/compose/releases/download/${docker_compose_version}/docker-compose-linux-${dockerComposeArch} \
+    echo "(*) Installing docker-compose ${docker_compose_version}..."
+
+    curl --location https://github.com/docker/compose/releases/download/v${docker_compose_version}/docker-compose-linux-${dockerComposeArch} \
         --output /usr/local/bin/docker-compose
 
     chmod +x /usr/local/bin/docker-compose
