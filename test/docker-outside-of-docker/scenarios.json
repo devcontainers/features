@@ -49,7 +49,8 @@
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "features": {
             "docker-outside-of-docker": {
-                "moby": true
+                "moby": true,
+                "dockerDashComposeVersion": "v2"
             }
         },
         "containerUser": "vscode"
@@ -72,26 +73,6 @@
                 "version": "20",
                 "moby": true,
                 "installDockerBuildx": false
-            }
-        },
-        "containerUser": "vscode"
-    },
-    "docker_dash_compose_v1": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
-        "features": {
-            "docker-outside-of-docker": {
-                "moby": false,
-                "dockerDashComposeVersion": "v1"
-            }
-        },
-        "containerUser": "vscode"
-    },
-    "docker_dash_compose_v1_moby": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
-        "features": {
-            "docker-outside-of-docker": {
-                "moby": true,
-                "dockerDashComposeVersion": "v1"
             }
         },
         "containerUser": "vscode"

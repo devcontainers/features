@@ -9,7 +9,7 @@ source dev-container-features-test-lib
 check "docker-buildx" docker buildx version
 check "docker-build" docker build ./
 
-check "not installing compose skips docker-compose v1 install" bash -c "! type docker-compose"
+check "not installing compose skips docker-compose v2 install" bash -c "! type docker-compose"
 
 # Report result
 reportResults
