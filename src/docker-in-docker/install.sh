@@ -265,7 +265,21 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
                 pip3 install --disable-pip-version-check --no-cache-dir --user pipx
                 pipx_bin=/tmp/pip-tmp/bin/pipx
             fi
-            ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
+
+            set +e
+                ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
+                exit_code=$?
+            set -e
+
+            if [ ${exit_code} -ne 0 ]; then
+                # Temporary: https://github.com/devcontainers/features/issues/616
+                # See https://github.com/yaml/pyyaml/issues/601
+                echo "(*) Failed to install docker-compose via pipx. Trying via pip3..."
+
+                export PYTHONUSERBASE=/usr/local
+                pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
+            fi
+
             rm -rf /tmp/pip-tmp
         else
             compose_v1_version="1"
