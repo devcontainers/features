@@ -20,9 +20,9 @@ is_installed_dotnet_sdk_version() {
     return $?
 }
 
-# The version will have to be updated as time moves on, sorry
-check ".NET SDK 6.0 installed" is_installed_dotnet_sdk_version "6.0" 
-check "Example project" dotnet run --project projects/net6.0 
+# This release has reached end of life so this test will remain stable
+check ".NET Core SDK 3.1.426 installed" is_installed_dotnet_sdk_version "3.1.426"
+check "Example project" dotnet run --project projects/netcoreapp3.1 
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.

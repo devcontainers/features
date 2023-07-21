@@ -1,35 +1,31 @@
 {
     "id": "dotnet",
-    "version": "1.1.4",
+    "version": "2.0.0",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
-    "description": "Installs the .NET CLI. Provides option of installing sdk or runtime, and option of versions to install. Uses latest version of .NET sdk as defaults to install.",
+    "description": "Installs .NET and its CLI. Offers options to install multiple SDK versions.",
     "options": {
         "version": {
             "type": "string",
             "proposals": [
                 "latest",
-                "7",
-                "6",
-                "3.1"
+                "lts",
+                "8.0",
+                "7.0",
+                "6.0"
             ],
             "default": "latest",
-            "description": "Select or enter a dotnet CLI version. (Available versions may vary by Linux distribution.)"
+            "description": "Version of .NET SDK to install. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' for a specific release, or 'X.Y.Z' for a specific version."
         },
-        "runtimeOnly": {
-            "type": "boolean",
-            "default": false,
-            "description": "Install just the dotnet runtime if true, and sdk if false."
-        },
-        "installUsingApt": {
-            "type": "boolean",
-            "default": true,
-            "description": "If true, it installs using apt instead of the release URL"
+        "additionalVersions": {
+            "type": "string",
+            "default": "",
+            "description": "Comma-separated list of additional .NET SDK versions to install. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' for a specific release, or 'X.Y.Z' for a specific version."
         }
     },
     "containerEnv": {
-        "DOTNET_ROOT": "/usr/local/dotnet/current",
-        "PATH": "/usr/local/dotnet/current:${PATH}"
+        "DOTNET_ROOT": "/usr/share/dotnet",
+        "PATH": "${DOTNET_ROOT}:${PATH}"
     },
     "customizations": {
         "vscode": {

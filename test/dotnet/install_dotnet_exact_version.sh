@@ -20,9 +20,8 @@ is_installed_dotnet_sdk_version() {
     return $?
 }
 
-# The version will have to be updated as time moves on, sorry
-check ".NET SDK 6.0 installed" is_installed_dotnet_sdk_version "6.0" 
-check "Example project" dotnet run --project projects/net6.0 
+check ".NET SDK 8.0.100-preview.6.23330.14 installed" is_installed_dotnet_sdk_version "8.0.100-preview.6.23330.14"
+check "Example project" dotnet run --project projects/net8.0 
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.
