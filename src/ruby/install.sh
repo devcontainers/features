@@ -278,6 +278,7 @@ if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
             ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
         fi
 
+        # Oryx expects ruby to be installed in this specific path, else it breaks the oryx magic for ruby projects.
         if [ ! -f /usr/local/rvm/gems/default/bin/ruby ]; then
             ln -s /usr/local/rvm/rubies/default/bin/ruby /usr/local/rvm/gems/default/bin
         fi
