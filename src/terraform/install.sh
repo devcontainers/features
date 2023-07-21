@@ -27,7 +27,7 @@ TFSEC_SHA256="${TFSEC_SHA256:-"automatic"}"
 TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
 
 TERRAFORM_GPG_KEY="72D7468F"
-TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/master/8CE69160EB3F2FE9.key"
+TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/v0.46.1/8CE69160EB3F2FE9.key"
 GPG_KEY_SERVERS="keyserver hkps://keyserver.ubuntu.com
 keyserver hkps://keys.openpgp.org
 keyserver hkps://keyserver.pgp.com"
