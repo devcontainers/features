@@ -8,7 +8,6 @@
 # Maintainer: The VS Code and Codespaces Teams
 DOTNET_VERSION="${VERSION:-"latest"}"
 DOTNET_ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
-DOTNET_RUNTIME_ONLY="${RUNTIMEONLY:-"false"}"
 
 DOTNET_INSTALL_SCRIPT_URL='https://dot.net/v1/dotnet-install.sh'
 DOTNET_INSTALL_SCRIPT='/tmp/dotnet-install.sh'
@@ -50,7 +49,6 @@ fetch_latest_sdk_version() {
 install_version() {
     local version="$1"
     local channel="STS"
-    local runtime_arg=""
 
     echo "Installing version '$version'..."
 
@@ -99,17 +97,11 @@ install_version() {
         channel=""
     fi
 
-    if [ "$DOTNET_RUNTIME_ONLY" = 'true' ]; then
-        echo "Installing runtime only..."
-        runtime_arg='--runtime dotnet'
-    fi
-
-    echo "Executing $DOTNET_INSTALL_SCRIPT --install-dir $DOTNET_INSTALL_DIR --version $version --channel $channel $runtime_arg"
+    echo "Executing $DOTNET_INSTALL_SCRIPT --install-dir $DOTNET_INSTALL_DIR --version $version --channel $channel"
     "$DOTNET_INSTALL_SCRIPT" \
         --install-dir "$DOTNET_INSTALL_DIR" \
         --version "$version" \
-        --channel "$channel" \
-        $runtime_arg
+        --channel "$channel"
 }
 
 if [ "$(id -u)" -ne 0 ]; then
