@@ -31,6 +31,21 @@ check_packages() {
     fi
 }
 
+fetch_latest_sdk_version_in_channel() {
+    local channel="$1"
+    wget -qO- "https://dotnetcli.azureedge.net/dotnet/Sdk/$channel/latest.version"
+}
+
+fetch_latest_sdk_version() {
+    local latest_STS=$(fetch_latest_sdk_version_in_channel "STS")
+    local latest_LTS=$(fetch_latest_sdk_version_in_channel "LTS")
+    if [[ "$latest_STS" > "$latest_LTS" ]]; then
+        echo "$latest_STS"
+    else
+        echo "$latest_LTS"
+    fi
+}
+
 # Installs a version of .NET using the DOTNET_INSTALLER_SCRIPT
 install_version() {
     local version="$1"
@@ -61,9 +76,9 @@ install_version() {
     # This script aims to reduce these combinations of options to a single 'version' input
     # Currently this script does not make it possible to request a version in the form 'A.B' or 'A.B.Cxx' and a quality other than 'GA'
     if [[ "$version" == "latest" ]]; then
-        # When user input is 'latest'
-        # Then version=latest, channel=STS
-        channel="STS"
+        # Fetch the latest version manually, because dotnet-install.sh does not support it directly
+        version=$(fetch_latest_sdk_version)
+        channel=""
     elif [[ "$version" == "lts" ]]; then
         # When user input is 'lts'
         # Then version=latest, channel=LTS
@@ -81,7 +96,7 @@ install_version() {
         version="latest"
     else
         # Assume version is an exact version string like '6.0.412' or '8.0.100-rc.1.23371.5''
-        channel="superseded"
+        channel=""
     fi
 
     if [ "$DOTNET_RUNTIME_ONLY" = 'true' ]; then
