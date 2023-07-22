@@ -16,7 +16,8 @@ source dev-container-features-test-lib
 # check <LABEL> <cmd> [args...]
 
 is_installed_dotnet_sdk_version() {
-    dotnet --list-sdks | grep -q $1
+    local version="$1"
+    dotnet --list-sdks | grep -q $version
     return $?
 }
 

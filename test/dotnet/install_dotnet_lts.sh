@@ -15,13 +15,20 @@ source dev-container-features-test-lib
 # The 'check' command comes from the dev-container-features-test-lib. Syntax is...
 # check <LABEL> <cmd> [args...]
 
+fetch_latest_sdk_version_in_channel() {
+    local channel="$1"
+    wget -qO- "https://dotnetcli.azureedge.net/dotnet/Sdk/$channel/latest.version"
+}
+
 is_installed_dotnet_sdk_version() {
-    dotnet --list-sdks | grep -q $1
+    local version="$1"
+    dotnet --list-sdks | grep -q $version
     return $?
 }
 
-# The version will have to be updated as time moves on, sorry
-check ".NET SDK 6.0 installed" is_installed_dotnet_sdk_version "6.0" 
+latest_lts=$(fetch_latest_sdk_version_in_channel "LTS")
+
+check "Latest LTS version installed" is_installed_dotnet_sdk_version $latest_lts 
 check "Example project" dotnet run --project projects/net6.0 
 
 # Report results
