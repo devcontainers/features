@@ -32,7 +32,7 @@
             "docker-in-docker": {
                 "version": "latest",
                 "moby": "false",
-                "dockerDashComposeVersion": "v2"
+                "dockerDashComposeVersion": "2"
             }
         },
         "remoteUser": "node"
@@ -44,7 +44,7 @@
                 "version": "latest",
                 "installDockerBuildx": true,
                 "moby": "false",
-                "dockerDashComposeVersion": "v2"
+                "dockerDashComposeVersion": "2"
             }
         }
     },
@@ -54,7 +54,7 @@
             "docker-in-docker": {
                 "version": "20",
                 "moby": "false",
-                "dockerDashComposeVersion": "v2"
+                "dockerDashComposeVersion": "2"
             }
         },
         "remoteUser": "node"
@@ -67,6 +67,14 @@
             }
         },
         "remoteUser": "node"
+    },
+    "docker_build_compose_v1": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "features": {
+            "docker-in-docker": {
+                "dockerDashComposeVersion": "1"
+            }
+        },
+        "remoteUser": "node"
     }
-
 }

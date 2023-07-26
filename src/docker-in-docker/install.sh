@@ -10,7 +10,7 @@
 
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" # v1 or v2 or none
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}"
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -244,6 +244,14 @@ echo "Finished installing docker / moby!"
 
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
+
+    dockerComposeMajorVersion="$(echo ${DOCKER_DASH_COMPOSE_VERSION} | grep -oE '^[0-9]+' || echo '')"
+
+    if [ "${dockerComposeMajorVersion}" = "1" ]; then
+        echo "(!) docker-compose v1 is not supported. To use docker-compose, set the DOCKER_DASH_COMPOSE_VERSION feature option to a v2 version (eg: 2.0.0)"
+        exit 1
+    fi
+
     if [ "${architecture}" = "amd64" ]; then
         dockerComposeArch="x86_64"
     elif [ "${architecture}" == "arm64" ]; then
@@ -253,16 +261,11 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         exit 1
     fi
 
-    if [ "${DOCKER_DASH_COMPOSE_VERSION}" == "latest" ]; then
-        docker_compose_version="latest"
-        find_version_from_git_tags docker_compose_version "https://github.com/docker/compose" "refs/tags/v"
-    else
-        docker_compose_version="${DOCKER_DASH_COMPOSE_VERSION}"
-    fi
+    find_version_from_git_tags DOCKER_DASH_COMPOSE_VERSION "https://github.com/docker/compose" "refs/tags/v"
+    
+    echo "(*) Installing docker-compose ${DOCKER_DASH_COMPOSE_VERSION}..."
 
-    echo "(*) Installing docker-compose ${docker_compose_version}..."
-
-    curl --location https://github.com/docker/compose/releases/download/v${docker_compose_version}/docker-compose-linux-${dockerComposeArch} \
+    curl --location https://github.com/docker/compose/releases/download/v${DOCKER_DASH_COMPOSE_VERSION}/docker-compose-linux-${dockerComposeArch} \
         --output /usr/local/bin/docker-compose
 
     chmod +x /usr/local/bin/docker-compose

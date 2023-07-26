@@ -22,12 +22,14 @@
         },
         "dockerDashComposeVersion": {
             "type": "string",
-            "enum": [
-                "none",
-                "latest"
+            "proposals": [
+                "latest",
+                "2.20.2",
+                "2.20",
+                "2"
             ],
             "default": "latest",
-            "description": "Default version of Docker Compose (latest, none or specific version number e.g. 2.20.2)"
+            "description": "Select or enter a Docker Compose version"
         },
         "azureDnsAutoDetection": {
             "type": "boolean",
