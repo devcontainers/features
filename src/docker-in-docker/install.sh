@@ -244,10 +244,13 @@ echo "Finished installing docker / moby!"
 
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
-    if [ "${architecture}" == "amd64" ]; then
+    if [ "${architecture}" = "amd64" ]; then
         dockerComposeArch="x86_64"
     elif [ "${architecture}" == "arm64" ]; then
         dockerComposeArch="aarch64"
+    else
+        echo "(!) Architecture ${architecture} unsupported"
+        exit 1
     fi
 
     if [ "${DOCKER_DASH_COMPOSE_VERSION}" == "latest" ]; then
