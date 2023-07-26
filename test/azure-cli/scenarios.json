@@ -28,5 +28,15 @@
         "installBicep": true
       }
     }
+  },
+  "install_with_python": {
+    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "installUsingPython": true
+      }
+    }
   }
 }
