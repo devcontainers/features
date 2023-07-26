@@ -19,7 +19,7 @@ Re-use the host docker socket, adding the Docker CLI to a container. Feature inv
 |-----|-----|-----|-----|
 | version | Select or enter a Docker/Moby CLI version. (Availability can vary by OS version.) | string | latest |
 | moby | Install OSS Moby build instead of Docker CE | boolean | true |
-| dockerDashComposeVersion | Default version of Docker Compose (latest, none or specific version number e.g. 2.20.2) | string | latest |
+| dockerDashComposeVersion | Compose version to use for docker-compose (v1 or v2 or none) | string | v2 |
 | installDockerBuildx | Install Docker Buildx | boolean | true |
 
 ## Customizations
