@@ -15,6 +15,9 @@ DOTNET_INSTALL_DIR='/usr/share/dotnet'
 
 set -e
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
+
 # Setup STDERR.
 err() {
     echo "(!) $*" >&2
@@ -158,6 +161,8 @@ for version in "${versions[@]}"; do
     install_version $version
 done
 
+# Clean up
+rm -rf /var/lib/apt/lists/*
 rm "$DOTNET_INSTALL_SCRIPT"
 
 echo "Done!"
