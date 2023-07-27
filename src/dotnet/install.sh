@@ -15,6 +15,11 @@ DOTNET_INSTALL_DIR='/usr/share/dotnet'
 
 set -e
 
+# Setup STDERR.
+err() {
+    echo "(!) $*" >&2
+}
+
 apt_get_update() {
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
         echo "Running apt-get update..."
@@ -105,7 +110,7 @@ install_version() {
 }
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
+    err 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
 fi
 
