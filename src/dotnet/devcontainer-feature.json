@@ -3,7 +3,7 @@
     "version": "2.0.0",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
-    "description": "Installs .NET and its CLI. Offers options to install multiple SDK versions.",
+    "description": "Installs .NET SDK, which includes the .NET CLI and the shared runtime. Offers options to install multiple SDK versions.",
     "options": {
         "version": {
             "type": "string",
