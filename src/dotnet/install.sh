@@ -109,32 +109,54 @@ install_version() {
         --channel "$channel"
 }
 
+# Splits comma-separated values into an array
+split_csv() {
+    local OLD_IFS=$IFS
+    IFS=","
+    read -a values <<< "$1"
+    IFS=$OLD_IFS
+    echo "${values[@]}"
+}
+
+# Removes leading and trailing whitespace from an input string
+trim_whitespace() {
+    echo $1 | tr -d '[:space:]'
+}
+
 if [ "$(id -u)" -ne 0 ]; then
     err 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
 fi
 
+# For our own convenience, combine DOTNET_VERSION and DOTNET_ADDITIONAL_VERSIONS into a single 'versions' array
+# Ensure there are no leading or trailing spaces that can break regex pattern matching
+versions=($(trim_whitespace "$DOTNET_VERSION"))
+for additional_version in $(split_csv "$DOTNET_ADDITIONAL_VERSIONS"); do
+    versions+=($(trim_whitespace "$additional_version"))
+done
+
+# Fail fast in case of bad input to avoid unneccesary work
+for version in "${versions[@]}"; do
+    if [[ "$version" =~ ^[0-9]+$ ]]; then
+        # v1 of the .NET feature allowed specifying only a major version 'X' like '3'
+        # v2 removed this ability
+        # - because install-dotnet.sh does not support it directly
+        # - because the previous behavior installed an old version like '3.0.103', not the newest version '3.1.426', which was counterintuitive
+        err "Unsupported .NET SDK version '${version}'. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+        exit 1
+    fi
+done
+
+# Install .NET versions and dependencies
 # icu-devtools includes dependencies for .NET
 check_packages wget ca-certificates icu-devtools
 
 wget -O "$DOTNET_INSTALL_SCRIPT" "$DOTNET_INSTALL_SCRIPT_URL"
 chmod +x "$DOTNET_INSTALL_SCRIPT"
 
-# Install primary version
-install_version "$DOTNET_VERSION"
-
-# Install additional versions
-if [ -n "$DOTNET_ADDITIONAL_VERSIONS" ]; then
-    OLD_IFS=$IFS
-    IFS=","
-        read -a additional_versions <<< "$DOTNET_ADDITIONAL_VERSIONS"
-        for version in "${additional_versions[@]}"; do
-            # Trim whitespace from version
-            version="$(echo -e "$version" | tr -d '[:space:]')"
-            install_version "$version"
-        done
-    IFS=$OLD_IFS
-fi
+for version in "${versions[@]}"; do
+    install_version $version
+done
 
 rm "$DOTNET_INSTALL_SCRIPT"
 
