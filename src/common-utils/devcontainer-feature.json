@@ -20,7 +20,7 @@
             "default": true,
             "description": "Install Oh My Zsh!?"
         },
-        "INSTALL_OH_MY_ZSH_CONFIG": {
+        "installOhMyZshConfig": {
             "type": "boolean",
             "default": true,
             "description": "Use .zshrc from /etc/skel/ if present or use devcontainer default."
