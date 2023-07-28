@@ -12,6 +12,7 @@ set -e
 INSTALL_ZSH="${INSTALLZSH:-"true"}"
 CONFIGURE_ZSH_AS_DEFAULT_SHELL="${CONFIGUREZSHASDEFAULTSHELL:-"false"}"
 INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
+INSTALL_OH_MY_ZSH_REPOSITORY="${INSTALLOHMYZSHREPOSITORY:-"https://github.com/ohmyzsh/ohmyzsh"}"
 UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
 USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
@@ -454,7 +455,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             -c fsck.zeroPaddedFilemode=ignore \
             -c fetch.fsck.zeroPaddedFilemode=ignore \
             -c receive.fsck.zeroPaddedFilemode=ignore \
-            "https://github.com/ohmyzsh/ohmyzsh" "${oh_my_install_dir}" 2>&1
+            "$INSTALL_OH_MY_ZSH_REPOSITORY" "${oh_my_install_dir}" 2>&1
         echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
         sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
 
