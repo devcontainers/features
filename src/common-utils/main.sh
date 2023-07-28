@@ -391,7 +391,7 @@ else
 fi
 
 # Restore user .bashrc / .profile / .zshrc defaults from skeleton file if it doesn't exist or is empty
-possible_rc_files=( ".bashrc" ".profile")
+possible_rc_files=( ".bashrc" ".profile" )
 [ "$INSTALL_OH_MY_ZSH_CONFIG" == "true" ] && possible_rc_files+=('.zshrc')
 for rc_file in "${possible_rc_files[@]}"; do
     if [ -f "/etc/skel/${rc_file}" ]; then
@@ -464,7 +464,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         ln -s "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/codespaces.zsh-theme"
 
         # Attempt adding devcontainers .zshrc, does nothing given an existing file
-        if [[ (! -f "$user_rc_file") && ("$INSTALL_OH_MY_ZSH_CONFIG" = "true")]]; then
+        if [[ (! -f "$user_rc_file") && ("$INSTALL_OH_MY_ZSH_CONFIG" = "true") ]]; then
             echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
@@ -476,7 +476,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         # Copy to non-root user if one is specified
         if [ "${USERNAME}" != "root" ]; then
             copy_to_root_files=("${oh_my_install_dir}")
-            [ -f "$user_rc_file" ] && copy_to_root_files+=("user_rc_file")
+            [ -f "$user_rc_file" ] && copy_to_root_files+=("$user_rc_file")
             cp -rf "${copy_to_root_files[@]}" /root
             chown -R ${USERNAME}:${group_name} "${oh_my_install_dir}" "${user_rc_file}"
         fi
