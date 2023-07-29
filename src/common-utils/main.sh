@@ -463,8 +463,8 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         cp -f "${FEATURE_DIR}/scripts/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme"
         ln -s "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/codespaces.zsh-theme"
 
-        # Attempt adding devcontainers .zshrc, does nothing given an existing file
-        if [[ (! -f "$user_rc_file") && ("$INSTALL_OH_MY_ZSH_CONFIG" = "true") ]]; then
+        # Attempt adding devcontainer .zshrc template
+        if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
             echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
