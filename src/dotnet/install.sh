@@ -105,11 +105,12 @@ install_version() {
         channel=""
     fi
 
-    echo "Executing $DOTNET_INSTALL_SCRIPT --install-dir $DOTNET_INSTALL_DIR --version $version --channel $channel"
+    echo "Executing $DOTNET_INSTALL_SCRIPT --install-dir $DOTNET_INSTALL_DIR --version $version --channel $channel --no-path"
     "$DOTNET_INSTALL_SCRIPT" \
         --install-dir "$DOTNET_INSTALL_DIR" \
         --version "$version" \
-        --channel "$channel"
+        --channel "$channel" \
+        --no-path
 }
 
 # Splits comma-separated values into an array

@@ -47,5 +47,12 @@
                 ]
             }
         }
+    },
+    "install_dotnet_global_tool": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "dotnet": {}
+        }
     }
 }

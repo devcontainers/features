@@ -25,7 +25,7 @@
     },
     "containerEnv": {
         "DOTNET_ROOT": "/usr/share/dotnet",
-        "PATH": "${DOTNET_ROOT}:${PATH}"
+        "PATH": "$PATH:$DOTNET_ROOT:~/.dotnet/tools"
     },
     "customizations": {
         "vscode": {
