@@ -1,6 +1,6 @@
 {
     "id": "aws-cli",
-    "version": "1.0.6",
+    "version": "1.1.0",
     "name": "AWS CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/aws-cli",
     "description": "Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
@@ -12,6 +12,16 @@
             ],
             "default": "latest",
             "description": "Select or enter an AWS CLI version."
+        },
+        "installSessionManagerPlugin": {
+            "type": "boolean",
+            "default": true,
+            "description": "install [Session Manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html) for AWS CLI."
+        },
+        "sessionManagerPluginVersion": {
+            "type": "string",
+            "default": "latest",
+            "description": "Select or enter a SessionManagerPlugin version."
         }
     },
     "customizations": {
