@@ -23,7 +23,7 @@
         "installOhMyZshConfig": {
             "type": "boolean",
             "default": true,
-            "description": "Use .zshrc from /etc/skel/ if present or use devcontainer default."
+            "description": "Allow installing the default dev conatiner .zshrc template file?"
         },
         "upgradePackages": {
             "type": "boolean",
