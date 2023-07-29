@@ -25,6 +25,6 @@ fetch_latest_sdk_version() {
 # Example: is_dotnet_sdk_version_installed "6.0.412"
 is_dotnet_sdk_version_installed() {
     local expected="$1"
-    dotnet --list-sdks | grep -q $expected
+    dotnet --list-sdks | grep --fixed-strings --silent $expected
     return $?
 }
