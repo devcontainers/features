@@ -1,53 +1,72 @@
 {
-    "configurations": [
+  "configurations": [
+    {
+      "name": "Test All Features",
+      "type": "node",
+      "program": "/home/codespace/.nodejs/current/bin/npx",
+      "args": [
+        "-y",
+        "dev-containers-cli-0.1.0.tgz",
+        "features-test",
+        "-d",
+        "/workspaces/features"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "autoAttachChildProcesses": false,
+      "request": "launch"
+    },
+    {
+      "name": "Test Features (input)",
+      "type": "node",
+      "program": "/home/codespace/.nodejs/current/bin/npx",
+      "args": [
+        "-y",
+        "dev-containers-cli-0.1.0.tgz",
+        "features-test",
+        "--directory",
+        "/workspaces/features",
+        "--features",
+        "${input:selectedFeatures}",
+        "--base-image",
+        "${input:selectedBaseImage}"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "autoAttachChildProcesses": false,
+      "request": "launch"
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "stopAtEntry": false,
+      "externalConsole": true,
+      "cwd": "c:/Users/jamay/OneDrive - King Abdullaziz University/Documents/Deployment-PublicIPAddress-ARM/features/src/aws-cli",
+      "program": "c:/Users/jamay/OneDrive - King Abdullaziz University/Documents/Deployment-PublicIPAddress-ARM/features/src/aws-cli/build/Release/outRelease",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
         {
-            "name": "Test All Features",
-            "type": "node",
-            "program": "/home/codespace/.nodejs/current/bin/npx",
-            "args": [
-                "-y",
-                "dev-containers-cli-0.1.0.tgz",
-                "features-test",
-                "-d",
-                "/workspaces/features"
-            ],
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "autoAttachChildProcesses": false,
-            "request": "launch",
-        },
-        {
-            "name": "Test Features (input)",
-            "type": "node",
-            "program": "/home/codespace/.nodejs/current/bin/npx",
-            "args": [
-                "-y",
-                "dev-containers-cli-0.1.0.tgz",
-                "features-test",
-                "--directory",
-                "/workspaces/features",
-                "--features",
-                "${input:selectedFeatures}",
-                "--base-image",
-                "${input:selectedBaseImage}"
-            ],
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "autoAttachChildProcesses": false,
-            "request": "launch",
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
         }
-    ],
-    "inputs": [
-        {
-            "id": "selectedFeatures",
-            "type": "promptString",
-            "description": "Comma separated list of features to test",
-        },
-        {
-            "id": "selectedBaseImage",
-            "type": "promptString",
-            "description": "Base Image",
-            "default": "mcr.microsoft.com/vscode/devcontainers/base:focal"
-        }
-    ]
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "selectedFeatures",
+      "type": "promptString",
+      "description": "Comma separated list of features to test"
+    },
+    {
+      "id": "selectedBaseImage",
+      "type": "promptString",
+      "description": "Base Image",
+      "default": "mcr.microsoft.com/vscode/devcontainers/base:focal"
+    }
+  ]
 }
