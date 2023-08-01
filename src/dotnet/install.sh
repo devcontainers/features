@@ -9,8 +9,7 @@
 DOTNET_VERSION="${VERSION:-"latest"}"
 DOTNET_ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
-DOTNET_INSTALL_SCRIPT_URL='https://dot.net/v1/dotnet-install.sh'
-DOTNET_INSTALL_SCRIPT='/tmp/dotnet-install.sh'
+DOTNET_INSTALL_SCRIPT='scripts/dotnet-install.sh'
 DOTNET_INSTALL_DIR='/usr/share/dotnet'
 
 set -e
@@ -155,8 +154,6 @@ done
 # icu-devtools includes dependencies for .NET
 check_packages wget ca-certificates icu-devtools
 
-wget -O "$DOTNET_INSTALL_SCRIPT" "$DOTNET_INSTALL_SCRIPT_URL"
-chmod +x "$DOTNET_INSTALL_SCRIPT"
 
 for version in "${versions[@]}"; do
     install_version $version
@@ -164,6 +161,6 @@ done
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
-rm "$DOTNET_INSTALL_SCRIPT"
+rm -rf scripts
 
 echo "Done!"
