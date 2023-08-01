@@ -17,7 +17,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: devcontainer-image-builder-ubuntu
     steps:
       - uses: actions/checkout@v3
 
