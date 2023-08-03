@@ -26,8 +26,8 @@
     "containerEnv": {
         "DOTNET_ROOT": "/usr/share/dotnet",
         "PATH": "$PATH:$DOTNET_ROOT:~/.dotnet/tools",
-        "DOTNET_RUNNING_IN_CONTAINER": true,
-        "DOTNET_USE_POLLING_FILE_WATCHER": true
+        "DOTNET_RUNNING_IN_CONTAINER": "true",
+        "DOTNET_USE_POLLING_FILE_WATCHER": "true"
     },
     "customizations": {
         "vscode": {
