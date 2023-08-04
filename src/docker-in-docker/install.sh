@@ -5,7 +5,7 @@
 #-------------------------------------------------------------------------------------------------------------
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker-in-docker.md
-# Maintainer: The VS Code and Codespaces Teams
+# Maintainer: The Dev Container spec maintainers
 
 
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
@@ -347,7 +347,7 @@ fi
 
 tee /usr/local/share/docker-init.sh > /dev/null \
 << EOF
-#!/bin/sh
+#!/usr/bin/env bash
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
@@ -423,12 +423,28 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 INNEREOF
 )"
 
-# Start using sudo if not invoked as root
-if [ "$(id -u)" -ne 0 ]; then
-    sudo /bin/sh -c "${dockerd_start}"
-else
-    eval "${dockerd_start}"
-fi
+retry_count=0
+docker_ok="false"
+
+until [ "${docker_ok}" = "true"  ] || [ "${retry_count}" -eq "5" ];
+do 
+    # Start using sudo if not invoked as root
+    if [ "$(id -u)" -ne 0 ]; then
+        sudo /bin/sh -c "${dockerd_start}"
+    else
+        eval "${dockerd_start}"
+    fi
+
+    set +e
+        docker info > /dev/null 2>&1 && docker_ok="true"
+
+        if [ "${docker_ok}" != "true" ]; then
+            echo "(*) Failed to start docker, retrying in 5s..."
+            (( retry_count++ ))
+            sleep 5s
+        fi
+    set -e
+done
 
 set +e
 
