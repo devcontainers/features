@@ -347,7 +347,7 @@ fi
 
 tee /usr/local/share/docker-init.sh > /dev/null \
 << EOF
-#!/usr/bin/env bash
+#!/bin/sh
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
@@ -440,7 +440,7 @@ do
 
         if [ "${docker_ok}" != "true" ]; then
             echo "(*) Failed to start docker, retrying in 5s..."
-            (( retry_count++ ))
+            retry_count=`expr $retry_count + 1`
             sleep 5s
         fi
     set -e
