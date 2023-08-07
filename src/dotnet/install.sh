@@ -5,7 +5,7 @@
 #-------------------------------------------------------------------------------------------------------------
 #
 # Docs: https://github.com/devcontainers/features/tree/main/src/dotnet
-# Maintainer: The VS Code and Codespaces Teams
+# Maintainer: The Dev Container spec maintainers
 DOTNET_VERSION="${VERSION:-"latest"}"
 DOTNET_ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
