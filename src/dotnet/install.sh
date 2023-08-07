@@ -54,10 +54,9 @@ fetch_latest_sdk_version() {
 
 # Installs a version of .NET using the DOTNET_INSTALLER_SCRIPT
 install_version() {
-    local version="$1"
-    local channel="STS"
+    local inputVersion="$1"
 
-    echo "Installing version '$version'..."
+    echo "Installing version '$inputVersion'..."
 
     # Quick options reminder for dotnet-install.sh:
     #
@@ -67,7 +66,7 @@ install_version() {
     #
     # Valid examples
     #
-    # dotnet-install.sh [--version latest] --channel LTS
+    # dotnet-install.sh [--version latest] [--channel LTS]
     # dotnet-install.sh [--version latest] --channel STS
     # dotnet-install.sh [--version latest] --channel 6.0 [--quality GA]
     # dotnet-install.sh [--version latest] --channel 6.0.4xx [--quality GA]
@@ -80,25 +79,27 @@ install_version() {
     #
     # This script aims to reduce these combinations of options to a single 'version' input
     # Currently this script does not make it possible to request a version in the form 'A.B' or 'A.B.Cxx' and a quality other than 'GA'
-    if [[ "$version" == "latest" ]]; then
+    local version=""
+    local channel=""
+    if [[ "$inputVersion" == "latest" ]]; then
         # Fetch the latest version manually, because dotnet-install.sh does not support it directly
         version=$(fetch_latest_sdk_version)
         channel=""
-    elif [[ "$version" == "lts" ]]; then
+    elif [[ "$inputVersion" == "lts" ]]; then
         # When user input is 'lts'
         # Then version=latest, channel=LTS
-        channel="LTS"
         version="latest"
-    elif [[ "$version" =~ ^[0-9]+\.[0-9]+$ ]]; then
+        channel="LTS"
+    elif [[ "$inputVersion" =~ ^[0-9]+\.[0-9]+$ ]]; then
         # When user input is form 'A.B' like '3.1'
         # Then version=latest, channel=3.1
-        channel="$version"
         version="latest"
-    elif [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]xx$ ]]; then
+        channel="$inputVersion"
+    elif [[ "$inputVersion" =~ ^[0-9]+\.[0-9]+\.[0-9]xx$ ]]; then
         # When user input is form 'A.B.Cxx' like '6.0.4xx'
         # Then version=latest, channel=6.0.4xx
-        channel="$version"
         version="latest"
+        channel="$inputVersion"
     else
         # Assume version is an exact version string like '6.0.412' or '8.0.100-rc.1.23371.5''
         channel=""
