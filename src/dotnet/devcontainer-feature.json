@@ -3,7 +3,7 @@
     "version": "2.0.0",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
-    "description": "Installs .NET SDK, which includes the .NET CLI and the shared runtime. Offers options to install multiple SDK versions.",
+    "description": "This feature installs the latest .NET SDK, which includes the .NET CLI and the shared runtime. Options are provided to choose a different version or additional versions.",
     "options": {
         "version": {
             "type": "string",
@@ -15,12 +15,12 @@
                 "6.0"
             ],
             "default": "latest",
-            "description": "Version of .NET SDK to install. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+            "description": "Select or enter a .NET SDK version. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
         },
         "additionalVersions": {
             "type": "string",
             "default": "",
-            "description": "Comma-separated list of additional .NET SDK versions to install. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+            "description": "Enter additional .NET SDK versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
         }
     },
     "containerEnv": {
