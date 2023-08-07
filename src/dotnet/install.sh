@@ -9,7 +9,7 @@
 DOTNET_VERSION="${VERSION:-"latest"}"
 DOTNET_ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
-DOTNET_INSTALL_SCRIPT='scripts/dotnet-install.sh'
+DOTNET_INSTALL_SCRIPT='scripts/vendor/dotnet-install.sh'
 DOTNET_INSTALL_DIR='/usr/share/dotnet'
 
 set -e
