@@ -102,6 +102,7 @@ install_version() {
         channel="$inputVersion"
     else
         # Assume version is an exact version string like '6.0.412' or '8.0.100-rc.1.23371.5''
+        version="inputVersion"
         channel=""
     fi
 
