@@ -23,7 +23,7 @@
         "installOhMyZshConfig": {
             "type": "boolean",
             "default": true,
-            "description": "Allow installing the default dev conatiner .zshrc templates?"
+            "description": "Allow installing the default dev container .zshrc templates?"
         },
         "upgradePackages": {
             "type": "boolean",
