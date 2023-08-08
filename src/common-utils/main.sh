@@ -174,6 +174,11 @@ install_redhat_packages() {
         man-db \
         strace"
 
+    local install_cmd=dnf
+    if ! type dnf > /dev/null 2>&1; then
+        install_cmd=yum
+    fi
+
     # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
     # Install 'curl' for every OS except this rockylinux:9
     if [[ "${ID}" = "rocky" ]] && [[ "${VERSION}" != *"9."* ]]; then
@@ -200,10 +205,11 @@ install_redhat_packages() {
         package_list="${package_list} zsh"
     fi
 
-    local install_cmd=dnf
-    if ! type dnf > /dev/null 2>&1; then
-        install_cmd=yum
+    # Install EPEL repository if needed (required to install 'jq' for CentOS)
+    if ! ${install_cmd} -q list jq >/dev/null 2>&1; then
+        ${install_cmd} -y install epel-release
     fi
+
     ${install_cmd} -y install ${package_list}
 
     # Get to latest versions of all packages
