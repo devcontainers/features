@@ -206,8 +206,10 @@ install_redhat_packages() {
     fi
 
     # Install EPEL repository if needed (required to install 'jq' for CentOS)
+    local remove_epel="false"
     if ! ${install_cmd} -q list jq >/dev/null 2>&1; then
         ${install_cmd} -y install epel-release
+        remove_epel="true"
     fi
 
     ${install_cmd} -y install ${package_list}
@@ -215,6 +217,10 @@ install_redhat_packages() {
     # Get to latest versions of all packages
     if [ "${UPGRADE_PACKAGES}" = "true" ]; then
         ${install_cmd} upgrade -y
+    fi
+
+    if [[ "${remove_epel}" = "true" ]]; then
+        ${install_cmd} -y remove epel-release
     fi
 }
 
