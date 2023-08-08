@@ -9,6 +9,7 @@ source dev-container-features-test-lib
 . /etc/os-release
 check "non-root user" test "$(whoami)" = "devcontainer"
 check "distro" test "${ID}" = "fedora"
+check "jq" jq  --version
 
 # Report result
 reportResults
