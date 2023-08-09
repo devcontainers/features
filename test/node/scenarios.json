@@ -17,21 +17,23 @@
             }
         }
     },
+    "zsh_default": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "node": {
+                "version": "lts"
+            },
+            "common-utils": {
+                "configureZshAsDefaultShell": true
+            }
+        }
+    },
     "version_none": {
         "image": "mcr.microsoft.com/devcontainers/base",
         "remoteUser": "vscode",
         "features": {
             "node": {
                 "version": "none"
-            }
-        }
-    },
-    "install_node_on_universal_image": {
-        "image": "mcr.microsoft.com/devcontainers/universal",
-        "remoteUser": "codespace",
-        "features": {
-            "node": {
-                "version": "19.1.0"
             }
         }
     },
