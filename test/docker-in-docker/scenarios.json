@@ -67,6 +67,11 @@
             }
         },
         "remoteUser": "node"
+    },
+    "docker_retry": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-in-docker": {}
+        }
     }
-
 }

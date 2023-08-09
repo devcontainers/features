@@ -5,7 +5,7 @@
 #-------------------------------------------------------------------------------------------------------------
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker-in-docker.md
-# Maintainer: The VS Code and Codespaces Teams
+# Maintainer: The Dev Container spec maintainers
 
 
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
@@ -265,7 +265,21 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
                 pip3 install --disable-pip-version-check --no-cache-dir --user pipx
                 pipx_bin=/tmp/pip-tmp/bin/pipx
             fi
-            ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
+
+            set +e
+                ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
+                exit_code=$?
+            set -e
+
+            if [ ${exit_code} -ne 0 ]; then
+                # Temporary: https://github.com/devcontainers/features/issues/616
+                # See https://github.com/yaml/pyyaml/issues/601
+                echo "(*) Failed to install docker-compose via pipx. Trying via pip3..."
+
+                export PYTHONUSERBASE=/usr/local
+                pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
+            fi
+
             rm -rf /tmp/pip-tmp
         else
             compose_v1_version="1"
@@ -409,12 +423,28 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 INNEREOF
 )"
 
-# Start using sudo if not invoked as root
-if [ "$(id -u)" -ne 0 ]; then
-    sudo /bin/sh -c "${dockerd_start}"
-else
-    eval "${dockerd_start}"
-fi
+retry_count=0
+docker_ok="false"
+
+until [ "${docker_ok}" = "true"  ] || [ "${retry_count}" -eq "5" ];
+do 
+    # Start using sudo if not invoked as root
+    if [ "$(id -u)" -ne 0 ]; then
+        sudo /bin/sh -c "${dockerd_start}"
+    else
+        eval "${dockerd_start}"
+    fi
+
+    set +e
+        docker info > /dev/null 2>&1 && docker_ok="true"
+
+        if [ "${docker_ok}" != "true" ]; then
+            echo "(*) Failed to start docker, retrying in 5s..."
+            retry_count=`expr $retry_count + 1`
+            sleep 5s
+        fi
+    set -e
+done
 
 set +e
 

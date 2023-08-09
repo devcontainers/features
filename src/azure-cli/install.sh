@@ -15,7 +15,7 @@ rm -rf /var/lib/apt/lists/*
 AZ_VERSION=${VERSION:-"latest"}
 AZ_EXTENSIONS=${EXTENSIONS}
 AZ_INSTALLBICEP=${INSTALLBICEP:-false}
-
+INSTALL_USING_PYTHON=${INSTALL_USING_PYTHON:-true}
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64"
 AZCLI_ARCHIVE_VERSION_CODENAMES="stretch buster bullseye bionic focal jammy"
@@ -141,7 +141,12 @@ install_using_pip_strategy() {
         ver="==${AZ_VERSION}"
     fi
 
-    install_with_pipx "${ver}" || install_with_complete_python_installation "${ver}" || return 1
+    # Temprary quick fix for https://github.com/devcontainers/features/issues/624
+    if [ "${INSTALL_USING_PYTHON}" = "true" ]; then
+        install_with_complete_python_installation "${ver}" || install_with_pipx "${ver}" || return 1
+    else
+        install_with_pipx "${ver}" || install_with_complete_python_installation "${ver}" || return 1
+    fi
 }
 
 install_with_pipx() {
