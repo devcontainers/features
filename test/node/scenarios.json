@@ -17,6 +17,17 @@
             }
         }
     },
+    "zsh_default": {
+        "image": "mcr.microsoft.com/devcontainers/base",
+        "features": {
+            "node": {
+                "version": "lts"
+            },
+            "common-utils": {
+                "configureZshAsDefaultShell": true
+            }
+        }
+    },
     "version_none": {
         "image": "mcr.microsoft.com/devcontainers/base",
         "remoteUser": "vscode",
