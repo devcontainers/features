@@ -37,15 +37,6 @@
             }
         }
     },
-    "install_node_on_universal_image": {
-        "image": "mcr.microsoft.com/devcontainers/universal",
-        "remoteUser": "codespace",
-        "features": {
-            "node": {
-                "version": "19.1.0"
-            }
-        }
-    },
     "install_node_16_on_bionic": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-18.04",
         "features": {
