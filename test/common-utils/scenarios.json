@@ -115,6 +115,14 @@
             }
         }
     },
+    "configure_zsh_as_default_shell_no_template": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "common-utils": {
+                "installOhMyZshConfig": false
+            }
+        }
+    },
     "config-subdirectory": {
         "image": "alpine",
         "remoteUser": "devcontainer",
