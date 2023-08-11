@@ -6,7 +6,7 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-check "default-shell-is-zsh-with-no-template" bash -e -x -c "ls -la ~; ls -la /home; [ ! -e ~/.zshrc ]"
+check "default-shell-is-zsh-with-no-template" bash -e -x -c "ls -la ~; ls -la /home; cat /home/natured.log; [ ! -e ~/.zshrc ]"
 
 # Report result
 reportResults
