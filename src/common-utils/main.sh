@@ -428,6 +428,9 @@ fi
 
 # Optionally configure zsh and Oh My Zsh!
 echo "testing" >> /home/natured.log
+echo "ls -la" >> /home/natured.log
+echo "user home: ${user_home}" >> /home/natured.log
+echo "second INSTALL_OH_MY_ZSH_CONFIG : $INSTALL_OH_MY_ZSH_CONFIG" >> /home/natured.log
 if [ "${INSTALL_ZSH}" = "true" ]; then
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
         if [ "${ADJUSTED_ID}" = "rhel" ]; then
