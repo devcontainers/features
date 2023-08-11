@@ -6,7 +6,12 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-check "default-shell-is-zsh-with-no-template" bash -e -x -c "ls -la ~; ls -la /home; cat /home/natured.log; [ ! -e ~/.zshrc ]"
+# alias added due to scenario initializeCommand, check its still there, thus 
+# file not been overridden. testing querk
+function check_not_overridden() {
+    cat ~/.zsh | grep 'alias testingmock' | grep 'testingmock' 
+}
+check "check-file-has-not-been-overridden" check_not_overridden
 
 # Report result
 reportResults

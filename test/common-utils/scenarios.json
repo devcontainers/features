@@ -117,6 +117,7 @@
     },
     "configure_zsh_no_template": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "initializeCommand": "echo 'alias testingmock=\'testingmock\'"
         "features": {
             "common-utils": {
                 "installZsh": true,
