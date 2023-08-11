@@ -427,6 +427,7 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
 fi
 
 # Optionally configure zsh and Oh My Zsh!
+echo "testing" >> /home/natured.log
 if [ "${INSTALL_ZSH}" = "true" ]; then
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
         if [ "${ADJUSTED_ID}" = "rhel" ]; then
@@ -470,8 +471,8 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         mkdir -p ${oh_my_install_dir}/custom/themes
         cp -f "${FEATURE_DIR}/scripts/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme"
         ln -s "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/codespaces.zsh-theme"
-        echo "ls -la" >> natured.log
-        echo "user home: ${user_home}" >> natured.log
+        echo "ls -la" >> /home/natured.log
+        echo "user home: ${user_home}" >> /home/natured.log
         echo "second INSTALL_OH_MY_ZSH_CONFIG : $INSTALL_OH_MY_ZSH_CONFIG" >> /home/natured.log
         if [ -e ${user_rc_file} ]; then
             echo "zsh config already exists " >> /home/natured.log
