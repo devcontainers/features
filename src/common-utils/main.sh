@@ -18,6 +18,7 @@ USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
+
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
 FEATURE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
