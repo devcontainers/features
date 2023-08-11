@@ -18,7 +18,6 @@ USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
-echo "$INSTALL_OH_MY_ZSH_CONFIG" >> /home/natured.log
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
 FEATURE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -427,10 +426,6 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
 fi
 
 # Optionally configure zsh and Oh My Zsh!
-echo "testing" >> /home/natured.log
-echo "ls -la" >> /home/natured.log
-echo "user home: ${user_home}" >> /home/natured.log
-echo "second INSTALL_OH_MY_ZSH_CONFIG : $INSTALL_OH_MY_ZSH_CONFIG" >> /home/natured.log
 if [ "${INSTALL_ZSH}" = "true" ]; then
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
         if [ "${ADJUSTED_ID}" = "rhel" ]; then
@@ -474,12 +469,6 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         mkdir -p ${oh_my_install_dir}/custom/themes
         cp -f "${FEATURE_DIR}/scripts/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme"
         ln -s "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/codespaces.zsh-theme"
-        echo "ls -la" >> /home/natured.log
-        echo "user home: ${user_home}" >> /home/natured.log
-        echo "second INSTALL_OH_MY_ZSH_CONFIG : $INSTALL_OH_MY_ZSH_CONFIG" >> /home/natured.log
-        if [ -e ${user_rc_file} ]; then
-            echo "zsh config already exists " >> /home/natured.log
-        fi
         
         # Attempt adding devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
@@ -488,7 +477,6 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
 
-        echo "testing" >> /home/natured.log
 
         # Shrink git while still enabling updates
         cd "${oh_my_install_dir}"
