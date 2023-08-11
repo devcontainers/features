@@ -115,10 +115,13 @@
             }
         }
     },
-    "configure_zsh_as_default_shell_no_template": {
+    "configure_zsh_no_template": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "postCreateCommand": "echo alias fnomockalias=testingmock >> /root/.zshrc",
+        "remoteUser": "root",
         "features": {
             "common-utils": {
+                "installZsh": true,
                 "installOhMyZshConfig": false
             }
         }

@@ -452,40 +452,42 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
 
     # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
-    oh_my_install_dir="${user_home}/.oh-my-zsh"
-    if [ ! -d "${oh_my_install_dir}" ] && [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
-        template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
+    if [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
         user_rc_file="${user_home}/.zshrc"
-        umask g-w,o-w
-        mkdir -p ${oh_my_install_dir}
-        git clone --depth=1 \
-            -c core.eol=lf \
-            -c core.autocrlf=false \
-            -c fsck.zeroPaddedFilemode=ignore \
-            -c fetch.fsck.zeroPaddedFilemode=ignore \
-            -c receive.fsck.zeroPaddedFilemode=ignore \
-            "https://github.com/ohmyzsh/ohmyzsh" "${oh_my_install_dir}" 2>&1
+        oh_my_install_dir="${user_home}/.oh-my-zsh"
+        template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
+        if [ ! -d "${oh_my_install_dir}" ]; then
+            umask g-w,o-w
+            mkdir -p ${oh_my_install_dir}
+            git clone --depth=1 \
+                -c core.eol=lf \
+                -c core.autocrlf=false \
+                -c fsck.zeroPaddedFilemode=ignore \
+                -c fetch.fsck.zeroPaddedFilemode=ignore \
+                -c receive.fsck.zeroPaddedFilemode=ignore \
+                "https://github.com/ohmyzsh/ohmyzsh" "${oh_my_install_dir}" 2>&1
+
+            # Shrink git while still enabling updates
+            cd "${oh_my_install_dir}"
+            git repack -a -d -f --depth=1 --window=1
+        fi
 
         # Add Dev Containers theme
         mkdir -p ${oh_my_install_dir}/custom/themes
         cp -f "${FEATURE_DIR}/scripts/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme"
-        ln -s "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/codespaces.zsh-theme"
+        ln -sf "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/codespaces.zsh-theme"
 
-        # Attempt adding devcontainer .zshrc template
+        # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
             echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
 
-        # Shrink git while still enabling updates
-        cd "${oh_my_install_dir}"
-        git repack -a -d -f --depth=1 --window=1
-
         # Copy to non-root user if one is specified
         if [ "${USERNAME}" != "root" ]; then
-            copy_to_root_files=("${oh_my_install_dir}")
-            [ -f "$user_rc_file" ] && copy_to_root_files+=("$user_rc_file")
-            cp -rf "${copy_to_root_files[@]}" /root
+            copy_to_user_files=("${oh_my_install_dir}")
+            [ -f "$user_rc_file" ] && copy_to_user_files+=("$user_rc_file")
+            cp -rf "${copy_to_user_files[@]}" /root
             chown -R ${USERNAME}:${group_name} "${oh_my_install_dir}" "${user_rc_file}"
         fi
     fi
