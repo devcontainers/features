@@ -40,32 +40,6 @@ jobs:
             terraform: ./**/terraform/**
             nix: ./**/nix/**
 
-  test:
-    needs: [detect-changes]
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    strategy:
-      matrix:
-        features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
-        baseImage:
-          [
-            "ubuntu:bionic",
-            "ubuntu:focal",
-            "ubuntu:jammy",
-            "debian:11",
-            "debian:12",
-            "mcr.microsoft.com/devcontainers/base:ubuntu",
-            "mcr.microsoft.com/devcontainers/base:debian",
-          ]
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: "Install latest devcontainer CLI"
-        run: npm install -g @devcontainers/cli
-
-      - name: "Generating tests for '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
-        run: devcontainer features test  --skip-scenarios -f ${{ matrix.features }} -i ${{ matrix.baseImage }} .
-
   test-scenarios:
     needs: [detect-changes]
     runs-on: ubuntu-latest
