@@ -68,6 +68,14 @@
         },
         "remoteUser": "node"
     },
+    "docker_login": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-in-docker": {
+                "login": "true"
+            }
+        }
+    },
     "docker_retry": {
         "image": "ubuntu:focal",
         "features": {
