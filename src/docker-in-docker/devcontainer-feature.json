@@ -45,6 +45,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install Docker Buildx"
+        },
+        "login": {
+            "type": "boolean",
+            "default": false,
+            "description": "Run `docker login` after installation."
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",

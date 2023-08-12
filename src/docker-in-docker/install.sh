@@ -15,6 +15,7 @@ AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
+DOCKER_LOGIN="${LOGIN:-"false"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal jammy"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal hirsute impish jammy"
@@ -445,6 +446,10 @@ do
         fi
     set -e
 done
+
+if [ "${DOCKER_LOGIN}" = "true" ]; then
+    docker login
+fi
 
 set +e
 
