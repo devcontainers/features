@@ -6,7 +6,7 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-check "default-zsh-with-no-zshrc" bash -c "[ -e ~/.zshrc ]"
+check "default-zsh-with-no-zshrc" bash -c "[ ! -e ~/.zshrc ]"
 
 # Report result
 reportResults
