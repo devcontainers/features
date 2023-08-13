@@ -426,7 +426,24 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
     RC_SNIPPET_ALREADY_ADDED="true"
 fi
 
+echo "USERNAME: $USERNAME"
+ls -la ~
+ls -la "${user_home}"
+
 # Optionally configure zsh and Oh My Zsh!
+user_rc_file="${user_home}/.zshrc"
+oh_my_install_dir="${user_home}/.oh-my-zsh"
+template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
+
+# Given previous step configured ~/.zshrc then remove it,
+# where installOhMyZshConfig is false.
+# Allow upstream steps to use installOhMyZshConfig false
+if [ "$MARKED_INSTALL_OH_MY_ZSH_CONFIG" = "true" ] && [ "$INSTALL_OH_MY_ZSH_CONFIG" = "false" ]; then
+    if [ -f "${user_rc_file}" ]; then
+        rm "${user_rc_file}"
+    fi
+fi
+
 if [ "${INSTALL_ZSH}" = "true" ]; then
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
         if [ "${ADJUSTED_ID}" = "rhel" ]; then
@@ -453,9 +470,6 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
     if [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
-        user_rc_file="${user_home}/.zshrc"
-        oh_my_install_dir="${user_home}/.oh-my-zsh"
-        template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
         if [ ! -d "${oh_my_install_dir}" ]; then
             umask g-w,o-w
             mkdir -p ${oh_my_install_dir}
@@ -468,8 +482,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
                 "https://github.com/ohmyzsh/ohmyzsh" "${oh_my_install_dir}" 2>&1
 
             # Shrink git while still enabling updates
-            cd "${oh_my_install_dir}"
-            git repack -a -d -f --depth=1 --window=1
+            GIT_WORK_TREE="${oh_my_install_dir}" GIT_DIR="${oh_my_install_dir}/.git" git repack -a -d -f --depth=1 --window=1
         fi
 
         # Add Dev Containers theme
@@ -481,9 +494,10 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
             echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
+            MARKED_INSTALL_OH_MY_ZSH_CONFIG="true"
         fi
 
-        # Copy to non-root user if one is specified
+        # Copy to alternate user if one is specified
         if [ "${USERNAME}" != "root" ]; then
             copy_to_user_files=("${oh_my_install_dir}")
             [ -f "$user_rc_file" ] && copy_to_user_files+=("$user_rc_file")
@@ -531,6 +545,7 @@ echo -e "\
     LOCALE_ALREADY_SET=${LOCALE_ALREADY_SET}\n\
     EXISTING_NON_ROOT_USER=${EXISTING_NON_ROOT_USER}\n\
     RC_SNIPPET_ALREADY_ADDED=${RC_SNIPPET_ALREADY_ADDED}\n\
-    ZSH_ALREADY_INSTALLED=${ZSH_ALREADY_INSTALLED}" > "${MARKER_FILE}"
+    ZSH_ALREADY_INSTALLED=${ZSH_ALREADY_INSTALLED}\n
+    MARKED_INSTALL_OH_MY_ZSH_CONFIG=${MARKED_INSTALL_OH_MY_ZSH_CONFIG}" > "${MARKER_FILE}"
 
 echo "Done!"
