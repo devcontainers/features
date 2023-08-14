@@ -6,9 +6,6 @@
 #
 # Docs: https://github.com/devcontainers/features/tree/main/src/dotnet
 # Maintainer: The Dev Container spec maintainers
-DOTNET_VERSION="${VERSION:-"latest"}"
-DOTNET_ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
-
 DOTNET_INSTALL_SCRIPT='scripts/vendor/dotnet-install.sh'
 DOTNET_INSTALL_DIR='/usr/share/dotnet'
 
@@ -133,10 +130,10 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# For our own convenience, combine DOTNET_VERSION and DOTNET_ADDITIONAL_VERSIONS into a single 'versions' array
+# For our own convenience, combine VERSION and ADDITIONALVERSIONS into a single 'versions' array
 # Ensure there are no leading or trailing spaces that can break regex pattern matching
-versions=($(trim_whitespace "$DOTNET_VERSION"))
-for additional_version in $(split_csv "$DOTNET_ADDITIONAL_VERSIONS"); do
+versions=($(trim_whitespace "$VERSION"))
+for additional_version in $(split_csv "$ADDITIONALVERSIONS"); do
     versions+=($(trim_whitespace "$additional_version"))
 done
 
