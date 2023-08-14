@@ -183,11 +183,16 @@ install_redhat_packages() {
             man-db \
             strace"
 
-        # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
-        # Install 'curl' for every OS except this rockylinux:9
-        if [[ "${ID}" = "rocky" ]] && [[ "${VERSION}" != *"9."* ]]; then
-            package_list="${package_list} curl"
-        fi
+    local install_cmd=dnf
+    if ! type dnf > /dev/null 2>&1; then
+        install_cmd=yum
+    fi
+
+    # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
+    # Install 'curl' for every OS except this rockylinux:9
+    if [[ "${ID}" = "rocky" ]] && [[ "${VERSION}" != *"9."* ]]; then
+        package_list="${package_list} curl"
+    fi
 
         # Install OpenSSL 1.0 compat if needed
         if ${install_cmd} -q list compat-openssl10 >/dev/null 2>&1; then
@@ -210,10 +215,13 @@ install_redhat_packages() {
         package_list="${package_list} zsh"
     fi
 
-    local install_cmd=dnf
-    if ! type dnf > /dev/null 2>&1; then
-        install_cmd=yum
+    # Install EPEL repository if needed (required to install 'jq' for CentOS)
+    local remove_epel="false"
+    if ! ${install_cmd} -q list jq >/dev/null 2>&1; then
+        ${install_cmd} -y install epel-release
+        remove_epel="true"
     fi
+
     ${install_cmd} -y install ${package_list}
 
     # Get to latest versions of all packages
@@ -221,7 +229,9 @@ install_redhat_packages() {
         ${install_cmd} upgrade -y
     fi
 
-    PACKAGES_ALREADY_INSTALLED="true"
+    if [[ "${remove_epel}" = "true" ]]; then
+        ${install_cmd} -y remove epel-release
+    fi
 }
 
 # Alpine Linux packages
