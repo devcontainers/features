@@ -153,6 +153,12 @@ install_debian_packages() {
 # RedHat / RockyLinux / CentOS / Fedora packages
 install_redhat_packages() {
     local package_list=""
+    local remove_epel="false"
+    local install_cmd=dnf
+    if ! type dnf > /dev/null 2>&1; then
+        install_cmd=yum
+    fi
+
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         package_list="${package_list} \
             gawk \
@@ -183,11 +189,6 @@ install_redhat_packages() {
             man-db \
             strace"
 
-    local install_cmd=dnf
-    if ! type dnf > /dev/null 2>&1; then
-        install_cmd=yum
-    fi
-
     # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
     # Install 'curl' for every OS except this rockylinux:9
     if [[ "${ID}" = "rocky" ]] && [[ "${VERSION}" != *"9."* ]]; then
@@ -208,18 +209,17 @@ install_redhat_packages() {
         if ! type git > /dev/null 2>&1; then
             package_list="${package_list} git"
         fi
+
+        # Install EPEL repository if needed (required to install 'jq' for CentOS)
+        if ! ${install_cmd} -q list jq >/dev/null 2>&1; then
+            ${install_cmd} -y install epel-release
+            remove_epel="true"
+        fi
     fi
 
     # Install zsh if needed
     if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
         package_list="${package_list} zsh"
-    fi
-
-    # Install EPEL repository if needed (required to install 'jq' for CentOS)
-    local remove_epel="false"
-    if ! ${install_cmd} -q list jq >/dev/null 2>&1; then
-        ${install_cmd} -y install epel-release
-        remove_epel="true"
     fi
 
     ${install_cmd} -y install ${package_list}
@@ -232,6 +232,8 @@ install_redhat_packages() {
     if [[ "${remove_epel}" = "true" ]]; then
         ${install_cmd} -y remove epel-release
     fi
+
+    PACKAGES_ALREADY_INSTALLED="true"
 }
 
 # Alpine Linux packages
