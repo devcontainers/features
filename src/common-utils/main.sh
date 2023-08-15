@@ -437,6 +437,7 @@ template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
 if [ "$OH_MY_ZSH_CONFIG_INSTALLED" = "true" ] && [ "$INSTALL_OH_MY_ZSH_CONFIG" = "false" ]; then
     if [ -f "${user_rc_file}" ]; then
         rm "${user_rc_file}"
+        OH_MY_ZSH_CONFIG_INSTALLED="false"
     fi
 fi
 
@@ -466,6 +467,8 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
     if [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
+        copy_to_user_files=()
+        copy_to_user_files+=("${oh_my_install_dir}")
         if [ ! -d "${oh_my_install_dir}" ]; then
             umask g-w,o-w
             mkdir -p ${oh_my_install_dir}
@@ -491,17 +494,19 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
             echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
-            copy_to_user_files+=("${oh_my_install_dir}")
-            [ -f "$user_rc_file" ] && copy_to_user_files+=("$user_rc_file")
-            chown -R ${USERNAME}:${group_name} "${copy_to_user_files[@]}"
+            copy_to_user_files+=("$user_rc_file")
             OH_MY_ZSH_CONFIG_INSTALLED="true"
+            local_omz_config_installed="true"
         fi
+
+        # Set permissions of new zsh for current user
+        chown -R ${USERNAME}:${group_name} "${copy_to_user_files[@]}"
 
         # Copy to alternate user if one is specified
         if [ "${USERNAME}" != "root" ] && (( ${#copy_to_user_files[@]} != 0 )); then
             cp -rf "${copy_to_user_files[@]}" /root
             root_files=("/root/.oh-my-zsh")
-            [ -f /root/.zshrc ] && root_files+=("/root/.zshrc")
+            [ "$local_omz_config_installed" = "true" ] && root_files+=("/root/.zshrc")
             chown -R root:root "${root_files[@]}"
         fi
     fi
