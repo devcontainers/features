@@ -117,8 +117,8 @@
     },
     "configure_zsh_no_template_second_step": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "postCreateCommand": "echo alias fnomockalias=testingmock >> /root/.zshrc",
-        "remoteUser": "root",
+        "postCreateCommand": "echo alias fnomockalias=testingmock >> /home/devcontainer/.zshrc",
+        "remoteUser": "devcontainer",
         "features": {
             "common-utils": {
                 "installZsh": true,
@@ -128,7 +128,7 @@
     },
     "configure_zsh_no_template_first_step": {
         "image": "debian:bullseye",
-        "remoteUser": "vscode",
+        "remoteUser": "devcontainer",
         "features": {
             "common-utils": {
                 "installZsh": true,
