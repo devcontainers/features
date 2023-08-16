@@ -442,6 +442,8 @@ if [ "$OH_MY_ZSH_CONFIG_INSTALLED" = "true" ] && [ "$INSTALL_OH_MY_ZSH_CONFIG" =
 fi
 
 if [ "${INSTALL_ZSH}" = "true" ]; then
+    umask g-w,o-w
+
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
         if [ "${ADJUSTED_ID}" = "rhel" ]; then
              global_rc_path="/etc/zshrc"
@@ -464,14 +466,11 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         chsh --shell /bin/zsh ${USERNAME}
     fi
 
-    # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
-    # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
     if [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
-        copy_to_user_files=()
-        copy_to_user_files+=("${oh_my_install_dir}")
         if [ ! -d "${oh_my_install_dir}" ]; then
-            umask g-w,o-w
             mkdir -p ${oh_my_install_dir}
+            # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
+            # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
             git clone --depth=1 \
                 -c core.eol=lf \
                 -c core.autocrlf=false \
@@ -479,34 +478,42 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
                 -c fetch.fsck.zeroPaddedFilemode=ignore \
                 -c receive.fsck.zeroPaddedFilemode=ignore \
                 "https://github.com/ohmyzsh/ohmyzsh" "${oh_my_install_dir}" 2>&1
-
             # Shrink git while still enabling updates
-            GIT_WORK_TREE="${oh_my_install_dir}" GIT_DIR="${oh_my_install_dir}/.git" git repack -a -d -f --depth=1 --window=1
+            GIT_WORK_TREE="${oh_my_install_dir}" GIT_DIR="${oh_my_install_dir}/.git" git repack\
+                -a -d -f --depth=1 --window=1
         fi
 
-        # Add Dev Containers theme
-        mkdir -p ${oh_my_install_dir}/custom/themes
-        cp -f "${FEATURE_DIR}/scripts/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme"
-        ln -sf "${oh_my_install_dir}/custom/themes/devcontainers.zsh-theme" "${oh_my_install_dir}/custom/themes/codespaces.zsh-theme"
+        # Add dev containers theme
+        zsh_theme_dir_target="${oh_my_install_dir}/custom/themes"
+        devcontainers_theme_target="${zsh_theme_dir_target}/devcontainers.zsh-theme"
+        codespaces_theme_target="${zsh_theme_dir_target}/codespaces.zsh-theme"
+        theme_template_path="${FEATURE_DIR}/scripts/devcontainers.zsh-theme"
+        mkdir -p "${zsh_theme_dir_target}"
+        cp -f "${theme_template_path}" "${devcontainers_theme_target}"
+        cp -f "${theme_template_path}" "${codespaces_theme_target}"
 
         # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
             echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
-            copy_to_user_files+=("$user_rc_file")
             OH_MY_ZSH_CONFIG_INSTALLED="true"
-            local_omz_config_installed="true"
         fi
 
-        # Set permissions of new zsh for current user
+        # Prepare build file paths
+        copy_to_user_files=("${oh_my_install_dir}")
+        root_file_paths=("/root/.oh-my-zsh")
+        if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
+            root_file_paths+=("/root/.zshrc")
+            copy_to_user_files+=("$user_rc_file")
+        fi
+
+        # Set zsh file permissions for current user
         chown -R ${USERNAME}:${group_name} "${copy_to_user_files[@]}"
 
         # Copy to alternate user if one is specified
-        if [ "${USERNAME}" != "root" ] && (( ${#copy_to_user_files[@]} != 0 )); then
+        if [ "${USERNAME}" != "root" ]; then
             cp -rf "${copy_to_user_files[@]}" /root
-            root_files=("/root/.oh-my-zsh")
-            [ "$local_omz_config_installed" = "true" ] && root_files+=("/root/.zshrc")
-            chown -R root:root "${root_files[@]}"
+            chown -R root:root "${root_file_paths[@]}"
         fi
     fi
 fi
