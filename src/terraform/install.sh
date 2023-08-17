@@ -160,12 +160,42 @@ check_packages() {
 
 # Install 'cosign' for validating signatures
 # https://docs.sigstore.dev/cosign/overview/
+get_cosign_latest_version() {
+    local github_api_url="https://api.github.com/repos/sigstore/cosign/releases/latest"
+    local response
+    response=$(curl -s -w "%{http_code}" "$github_api_url")
+    local status_code=${response: -3}
+    local content=${response::-3}
+
+    if [[ $status_code -eq 200 ]]; then
+        local latest_version
+        latest_version=$(echo "$content" | grep tag_name | cut -d : -f2 | tr -d "v\", ")
+        echo "$latest_version"
+    else
+        local github_url="https://github.com/sigstore/cosign/releases/latest"
+        redirect_url=$(curl -s -L -w "%{url_effective}" -o /dev/null "$github_url")
+
+        response=$(curl -L -s -o /dev/null -w "%{url_effective}\n%{response_code}" "$github_url")
+        local status_code=${response: -3}
+        local redirect_url=${response::-3}
+
+        if [[ $status_code -eq 200 ]]; then
+            local latest_version
+            latest_version=$(echo "$redirect_url" | cut -d '/' -f8 | tr -d "v")
+            echo "$latest_version"
+        else
+            echo "Failed to fetch latest cosign version"
+            exit 1
+        fi
+    fi
+}
+
 ensure_cosign() {
     check_packages curl ca-certificates gnupg2
 
     if ! type cosign > /dev/null 2>&1; then
         echo "Installing cosign..."
-        local LATEST_COSIGN_VERSION=$(curl https://api.github.com/repos/sigstore/cosign/releases/latest | grep tag_name | cut -d : -f2 | tr -d "v\", ")
+        local LATEST_COSIGN_VERSION=$(get_cosign_latest_version)
         curl -L "https://github.com/sigstore/cosign/releases/latest/download/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb" -o /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
         
         dpkg -i /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
