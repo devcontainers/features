@@ -427,13 +427,17 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
 fi
 
 # Optionally configure zsh and Oh My Zsh!
-user_rc_file="${user_home}/.zshrc"
-oh_my_install_dir="${user_home}/.oh-my-zsh"
-template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
+omz_rc_filename=".zshrc"
+omz_source_dirname=".oh-my-zsh"
+user_rc_file="${user_home}/${omz_rc_filename}"
+user_omz_install_dir="${user_home}/${omz_source_dirname}"
+template_path="${user_omz_install_dir}/templates/zshrc.zsh-template"
 
-# Given previous step configured ~/.zshrc then remove it,
-# where installOhMyZshConfig is false.
 # Allow upstream steps to use installOhMyZshConfig false
+# Given previous step configured ~/.zshrc,
+# When installOhMyZshConfig is false, done before INSTALL_ZSH since
+#  Or where installOhMyZshconfig false, and installZsh false
+# Then remove the file
 if [ "$OH_MY_ZSH_CONFIG_INSTALLED" = "true" ] && [ "$INSTALL_OH_MY_ZSH_CONFIG" = "false" ]; then
     if [ -f "${user_rc_file}" ]; then
         rm "${user_rc_file}"
@@ -467,54 +471,51 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     fi
 
     if [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
-        if [ ! -d "${oh_my_install_dir}" ]; then
-            mkdir -p ${oh_my_install_dir}
-            # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
-            # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
+        # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
+        # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
+        omz_added_filesnames=("${omz_source_dirname}")
+        if [ ! -d "${user_omz_install_dir}" ]; then
+            mkdir -p ${user_omz_install_dir}
             git clone --depth=1 \
                 -c core.eol=lf \
                 -c core.autocrlf=false \
                 -c fsck.zeroPaddedFilemode=ignore \
                 -c fetch.fsck.zeroPaddedFilemode=ignore \
                 -c receive.fsck.zeroPaddedFilemode=ignore \
-                "https://github.com/ohmyzsh/ohmyzsh" "${oh_my_install_dir}" 2>&1
+                "https://github.com/ohmyzsh/ohmyzsh" "${user_omz_install_dir}" 2>&1
             # Shrink git while still enabling updates
-            GIT_WORK_TREE="${oh_my_install_dir}" GIT_DIR="${oh_my_install_dir}/.git" git repack\
+            GIT_WORK_TREE="${user_omz_install_dir}" GIT_DIR="${user_omz_install_dir}/.git" git repack\
                 -a -d -f --depth=1 --window=1
         fi
 
         # Add dev containers theme
-        zsh_theme_dir_target="${oh_my_install_dir}/custom/themes"
-        devcontainers_theme_target="${zsh_theme_dir_target}/devcontainers.zsh-theme"
-        codespaces_theme_target="${zsh_theme_dir_target}/codespaces.zsh-theme"
+        user_omz_theme_filepath="${user_omz_install_dir}/custom/themes"
+        user_devcontainer_theme_target="${user_omz_theme_filepath}/devcontainers.zsh-theme"
+        user_codespaces_theme_target="${user_omz_theme_filepath}/codespaces.zsh-theme"
         theme_template_path="${FEATURE_DIR}/scripts/devcontainers.zsh-theme"
-        mkdir -p "${zsh_theme_dir_target}"
-        cp -f "${theme_template_path}" "${devcontainers_theme_target}"
-        cp -f "${theme_template_path}" "${codespaces_theme_target}"
+        mkdir -p "${user_omz_theme_filepath}"
+        cp -f "${theme_template_path}" "${user_devcontainer_theme_target}"
+        cp -f "${theme_template_path}" "${user_codespaces_theme_target}"
 
         # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
             echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
             OH_MY_ZSH_CONFIG_INSTALLED="true"
+            omz_added_filesnames+=("${omz_rc_filename}")
         fi
 
-        # Prepare build file paths
-        copy_to_user_files=("${oh_my_install_dir}")
-        root_file_paths=("/root/.oh-my-zsh")
-        if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
-            root_file_paths+=("/root/.zshrc")
-            copy_to_user_files+=("$user_rc_file")
-        fi
+        user_omz_filepaths=( "${omz_added_filesnames[@]/#/$user_home/}" )
 
-        # Copy to alternate user if one is specified
         if [ "${USERNAME}" != "root" ]; then
-            cp -rf "${copy_to_user_files[@]}" /root
-            chown -R root:root "${root_file_paths[@]}"
+            # Copy files to alternate user if one is specified
+            cp -rf "${user_omz_filepaths[@]}" /root
+            # Set permissions for root user
+            chown -R root:root "${omz_added_filesnames[@]/#//root/}"
         fi
-        
-        # Set zsh file permissions for current user
-        chown -R ${USERNAME}:${group_name} "${copy_to_user_files[@]}"
+
+        # Set permissions for current user
+        chown -R "${USERNAME}:${group_name}" "${user_omz_filepaths[@]}"
     fi
 fi
 
