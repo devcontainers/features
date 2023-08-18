@@ -441,9 +441,8 @@ do
         docker info > /dev/null 2>&1 && docker_ok="true"
 
         if [ "${docker_ok}" != "true" ]; then
-            echo "(*) Failed to start docker, retrying in 5s..."
+            echo "(*) Failed to start docker, retrying..."
             retry_count=`expr $retry_count + 1`
-            sleep 5s
         fi
     set -e
 done

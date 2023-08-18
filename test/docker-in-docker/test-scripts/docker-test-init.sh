@@ -14,13 +14,14 @@ do
         /usr/local/share/docker-init.sh
     fi
 
+    sleep 5s
+
     set +e
         docker info > /dev/null 2>&1 && docker_ok="true"
 
         if [ "${docker_ok}" != "true" ]; then
-            echo "(*) Failed to start docker, retrying in 5s... Retry count: ${retry_count}"
+            echo "(*) Failed to start docker, retrying... Retry count: ${retry_count}"
             retry_count=`expr $retry_count + 1`
-            sleep 1s
         fi
     set -e
 done
