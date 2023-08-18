@@ -423,31 +423,12 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 INNEREOF
 )"
 
-retry_count=0
-docker_ok="false"
-
-until [ "${docker_ok}" = "true"  ] || [ "${retry_count}" -eq "5" ];
-do 
-    # Start using sudo if not invoked as root
-    if [ "$(id -u)" -ne 0 ]; then
-        sudo /bin/sh -c "${dockerd_start}"
-    else
-        eval "${dockerd_start}"
-    fi
-
-    sleep 5s
-
-    set +e
-        docker info > /dev/null 2>&1 && docker_ok="true"
-
-        if [ "${docker_ok}" != "true" ]; then
-            echo "(*) Failed to start docker, retrying..."
-            retry_count=`expr $retry_count + 1`
-        fi
-    set -e
-done
-
-set +e
+# Start using sudo if not invoked as root
+if [ "$(id -u)" -ne 0 ]; then
+    sudo /bin/sh -c "${dockerd_start}"
+else
+    eval "${dockerd_start}"
+fi
 
 # Execute whatever commands were passed in (if any). This allows us
 # to set this script to ENTRYPOINT while still executing the default CMD.
