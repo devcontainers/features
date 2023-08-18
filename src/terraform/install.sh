@@ -195,7 +195,8 @@ ensure_cosign() {
 
     if ! type cosign > /dev/null 2>&1; then
         echo "Installing cosign..."
-        local LATEST_COSIGN_VERSION=$(get_cosign_latest_version)
+        LATEST_COSIGN_VERSION="latest"
+        find_version_from_git_tags LATEST_COSIGN_VERSION 'https://github.com/sigstore/cosign'
         curl -L "https://github.com/sigstore/cosign/releases/latest/download/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb" -o /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
         
         dpkg -i /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
