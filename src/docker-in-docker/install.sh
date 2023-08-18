@@ -435,6 +435,8 @@ do
         eval "${dockerd_start}"
     fi
 
+    sleep 5s
+
     set +e
         docker info > /dev/null 2>&1 && docker_ok="true"
 
