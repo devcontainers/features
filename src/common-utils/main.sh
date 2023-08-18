@@ -377,6 +377,15 @@ if [ "${USERNAME}" != "root" ] && [ "${EXISTING_NON_ROOT_USER}" != "${USERNAME}"
 fi
 
 # *********************************
+# ** Ensure config directory **
+# *********************************
+user_config_dir="${user_home}/.config"
+if [ ! -d "${user_config_dir}" ]; then
+    mkdir -p "${user_config_dir}"
+    chown ${USERNAME}:${group_name} "${user_config_dir}"
+fi
+
+# *********************************
 # ** Shell customization section **
 # *********************************
 
@@ -427,24 +436,6 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
 fi
 
 # Optionally configure zsh and Oh My Zsh!
-omz_rc_filename=".zshrc"
-omz_source_dirname=".oh-my-zsh"
-user_rc_file="${user_home}/${omz_rc_filename}"
-user_omz_install_dir="${user_home}/${omz_source_dirname}"
-template_path="${user_omz_install_dir}/templates/zshrc.zsh-template"
-
-# Allow upstream steps to use installOhMyZshConfig false
-# Given previous step configured ~/.zshrc,
-# When installOhMyZshConfig is false, done before INSTALL_ZSH since
-#  Or where installOhMyZshconfig false, and installZsh false
-# Then remove the file
-if [ "$OH_MY_ZSH_CONFIG_INSTALLED" = "true" ] && [ "$INSTALL_OH_MY_ZSH_CONFIG" = "false" ]; then
-    if [ -f "${user_rc_file}" ]; then
-        rm "${user_rc_file}"
-        OH_MY_ZSH_CONFIG_INSTALLED="false"
-    fi
-fi
-
 if [ "${INSTALL_ZSH}" = "true" ]; then
     umask g-w,o-w
 
@@ -473,6 +464,8 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     if [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
         # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
         # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
+        omz_source_dirname=".oh-my-zsh"
+        user_omz_install_dir="${user_home}/${omz_source_dirname}"
         omz_added_filesnames=("${omz_source_dirname}")
         if [ ! -d "${user_omz_install_dir}" ]; then
             mkdir -p ${user_omz_install_dir}
@@ -497,13 +490,16 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         cp -f "${theme_template_path}" "${user_devcontainer_theme_target}"
         cp -f "${theme_template_path}" "${user_codespaces_theme_target}"
 
-        # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
-            echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
+            # Add devcontainer .zshrc template
+            omz_rc_filename=".zshrc"
+            user_rc_file="${user_home}/${omz_rc_filename}"
+            omz_zshrc_template_path="${user_omz_install_dir}/templates/zshrc.zsh-template"
+            echo -e "$(cat "${omz_zshrc_template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
-            OH_MY_ZSH_CONFIG_INSTALLED="true"
             omz_added_filesnames+=("${omz_rc_filename}")
         fi
+        # TODO remove installed files from previous step
 
         user_omz_filepaths=( "${omz_added_filesnames[@]/#/$user_home/}" )
 
@@ -519,14 +515,6 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     fi
 fi
 
-# *********************************
-# ** Ensure config directory **
-# *********************************
-user_config_dir="${user_home}/.config"
-if [ ! -d "${user_config_dir}" ]; then
-    mkdir -p "${user_config_dir}"
-    chown ${USERNAME}:${group_name} "${user_config_dir}"
-fi
 
 # ****************************
 # ** Utilities and commands **
@@ -557,7 +545,6 @@ echo -e "\
     LOCALE_ALREADY_SET=${LOCALE_ALREADY_SET}\n\
     EXISTING_NON_ROOT_USER=${EXISTING_NON_ROOT_USER}\n\
     RC_SNIPPET_ALREADY_ADDED=${RC_SNIPPET_ALREADY_ADDED}\n\
-    ZSH_ALREADY_INSTALLED=${ZSH_ALREADY_INSTALLED}\n\
-    OH_MY_ZSH_CONFIG_INSTALLED=${OH_MY_ZSH_CONFIG_INSTALLED}" > "${MARKER_FILE}"
+    ZSH_ALREADY_INSTALLED=${ZSH_ALREADY_INSTALLED}\n" > "${MARKER_FILE}"
 
 echo "Done!"
