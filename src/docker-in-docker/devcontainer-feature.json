@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "2.3.1",
+    "version": "2.4.0",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
