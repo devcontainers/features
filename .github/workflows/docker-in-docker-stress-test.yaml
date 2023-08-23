@@ -19,5 +19,5 @@ jobs:
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
 
-      - name: "Generating tests for '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+      - name: "Generating tests for 'docker-in-docker' which validates if docker daemon is available within 'onCreateCommand'"
         run: devcontainer features test --skip-scenarios -f docker-in-docker -i mcr.microsoft.com/devcontainers/base:debian .
