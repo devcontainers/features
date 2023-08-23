@@ -39,7 +39,6 @@
         "vscode": {
             "extensions": [
                 "vadimcn.vscode-lldb",
-                "mutantdino.resourcemonitor",
                 "rust-lang.rust-analyzer",
                 "tamasfe.even-better-toml",
                 "serayuzgur.crates"
