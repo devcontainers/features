@@ -401,9 +401,8 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 
     # Set cgroup nesting, retrying if necessary
     retry_cgroup_nesting=0
-    cgroup_ok="false"
 
-    until [ "${cgroup_ok}" = "true"  ] || [ "${retry_cgroup_nesting}" -eq "5" ];
+    until [ "${retry_cgroup_nesting}" -eq "5" ];
     do
         set +e
             set_cgroup_nesting
@@ -411,7 +410,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
             if [ $? -ne 0 ]; then
                 echo "(*) cgroup v2: Failed to enable nesting, retrying..."
             else
-                cgroup_ok="true"
+                break
             fi
 
             retry_cgroup_nesting=`expr $retry_cgroup_nesting + 1`
