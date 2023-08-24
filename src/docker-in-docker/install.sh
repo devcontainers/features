@@ -460,12 +460,12 @@ do
     retry_count=0
     until [ "${docker_ok}" = "true"  ] || [ "${retry_count}" -eq "5" ];
     do
+        sleep 1s
         set +e
             docker info > /dev/null 2>&1 && docker_ok="true"
         set -e
 
         retry_count=`expr $retry_count + 1`
-        sleep 1s
     done
     
     if [ "${docker_ok}" != "true" ]; then
