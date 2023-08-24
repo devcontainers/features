@@ -75,6 +75,6 @@
             "docker-in-docker": {}
         },
         "remoteUser": "vscode",
-        "onCreateCommand": "docker ps"
+        "onCreateCommand": "docker ps && sleep 5s && docker ps"
     }
 }
