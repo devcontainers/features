@@ -367,7 +367,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     find /run /var/run -iname 'docker*.pid' -delete || :
     find /run /var/run -iname 'container*.pid' -delete || :
 
-    ## Dind wrapper script from docker team, adapted to a function
+    # -- Start: dind wrapper script --
     # Maintained: https://github.com/moby/moby/blob/master/hack/dind
 
     export container=docker
@@ -384,31 +384,52 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         mount -t tmpfs none /tmp
     fi
 
-    # cgroup v2: enable nesting
-    if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
-        # move the processes from the root group to the /init group,
-        # otherwise writing subtree_control fails with EBUSY.
-        # An error during moving non-existent process (i.e., "cat") is ignored.
-        mkdir -p /sys/fs/cgroup/init
-        xargs -rn1 < /sys/fs/cgroup/cgroup.procs > /sys/fs/cgroup/init/cgroup.procs || :
-        # enable controllers
-        sed -e 's/ / +/g' -e 's/^/+/' < /sys/fs/cgroup/cgroup.controllers \
-            > /sys/fs/cgroup/cgroup.subtree_control
-    fi
-    ## Dind wrapper over.
+    set_cgroup_nesting()
+    {
+        # cgroup v2: enable nesting
+        if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
+            # move the processes from the root group to the /init group,
+            # otherwise writing subtree_control fails with EBUSY.
+            # An error during moving non-existent process (i.e., "cat") is ignored.
+            mkdir -p /sys/fs/cgroup/init
+            xargs -rn1 < /sys/fs/cgroup/cgroup.procs > /sys/fs/cgroup/init/cgroup.procs || :
+            # enable controllers
+            sed -e 's/ / +/g' -e 's/^/+/' < /sys/fs/cgroup/cgroup.controllers \
+                > /sys/fs/cgroup/cgroup.subtree_control
+        fi
+    }
+
+    # Set cgroup nesting, retrying if necessary
+    retry_cgroup_nesting=0
+
+    until [ "${retry_cgroup_nesting}" -eq "5" ];
+    do
+        set +e
+            set_cgroup_nesting
+
+            if [ $? -ne 0 ]; then
+                echo "(*) cgroup v2: Failed to enable nesting, retrying..."
+            else
+                break
+            fi
+
+            retry_cgroup_nesting=`expr $retry_cgroup_nesting + 1`
+        set -e
+    done 
+
+    # -- End: dind wrapper script --
 
     # Handle DNS
     set +e
-    cat /etc/resolv.conf | grep -i 'internal.cloudapp.net'
-    if [ $? -eq 0 ] && [ "${AZURE_DNS_AUTO_DETECTION}" = "true" ]
-    then
-        echo "Setting dockerd Azure DNS."
-        CUSTOMDNS="--dns 168.63.129.16"
-    else
-        echo "Not setting dockerd DNS manually."
-        CUSTOMDNS=""
-    fi
-
+        cat /etc/resolv.conf | grep -i 'internal.cloudapp.net' > /dev/null 2>&1
+        if [ $? -eq 0 ] && [ "${AZURE_DNS_AUTO_DETECTION}" = "true" ]
+        then
+            echo "Setting dockerd Azure DNS."
+            CUSTOMDNS="--dns 168.63.129.16"
+        else
+            echo "Not setting dockerd DNS manually."
+            CUSTOMDNS=""
+        fi
     set -e
 
     if [ -z "$DOCKER_DEFAULT_ADDRESS_POOL" ]
@@ -423,10 +444,10 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 INNEREOF
 )"
 
-retry_count=0
+retry_docker_start_count=0
 docker_ok="false"
 
-until [ "${docker_ok}" = "true"  ] || [ "${retry_count}" -eq "5" ];
+until [ "${docker_ok}" = "true"  ] || [ "${retry_docker_start_count}" -eq "5" ];
 do 
     # Start using sudo if not invoked as root
     if [ "$(id -u)" -ne 0 ]; then
@@ -435,18 +456,23 @@ do
         eval "${dockerd_start}"
     fi
 
-    set +e
-        docker info > /dev/null 2>&1 && docker_ok="true"
+    retry_count=0
+    until [ "${docker_ok}" = "true"  ] || [ "${retry_count}" -eq "5" ];
+    do
+        sleep 1s
+        set +e
+            docker info > /dev/null 2>&1 && docker_ok="true"
+        set -e
 
-        if [ "${docker_ok}" != "true" ]; then
-            echo "(*) Failed to start docker, retrying in 5s..."
-            retry_count=`expr $retry_count + 1`
-            sleep 5s
-        fi
-    set -e
+        retry_count=`expr $retry_count + 1`
+    done
+    
+    if [ "${docker_ok}" != "true" ]; then
+        echo "(*) Failed to start docker, retrying..."
+    fi
+    
+    retry_docker_start_count=`expr $retry_docker_start_count + 1`
 done
-
-set +e
 
 # Execute whatever commands were passed in (if any). This allows us
 # to set this script to ENTRYPOINT while still executing the default CMD.
