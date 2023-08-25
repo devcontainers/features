@@ -44,5 +44,13 @@
                 "version": "16"
             }
         }
+    },
+    "install_nvm_0.39": {
+        "image": "mcr.microsoft.com/devcontainers/base",
+        "features": {
+            "node": {
+                "nvmVersion": "0.39"
+            }
+        }
     }
 }
