@@ -54,18 +54,36 @@ fetch_latest_sdk_version() {
     fi
 }
 
-# Splits comma-separated values into an array
-split_csv() {
-    local OLD_IFS=$IFS
-    IFS=","
-    read -ra values <<< "$1"
-    IFS=$OLD_IFS
-    echo "${values[@]}"
-}
-
 # Removes leading and trailing whitespace from an input string
 trim_whitespace() {
-    echo "$1" | tr -d '[:space:]'
+    text="$1"
+
+    # Remove leading spaces
+    while [ "${text:0:1}" == " " ]; do
+        text="${text:1}"
+    done
+
+    # Remove trailing spaces
+    while [ "${text: -1}" == " " ]; do
+        text="${text:0:-1}"
+    done
+
+    echo "$text"
+}
+
+# Splits comma-separated values into an array while ignoring empty entries
+split_csv() {
+    local -a values=()
+    while IFS="," read -ra entries; do
+        for entry in "${entries[@]}"; do
+            entry="$(trim_whitespace "$entry")"
+            if [ -n "$entry" ]; then
+                values+=("$entry")
+            fi
+        done
+    done <<< "$1"
+
+    echo "${values[@]}"
 }
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -77,7 +95,7 @@ fi
 # Ensure there are no leading or trailing spaces that can break regex pattern matching
 versions=("$(trim_whitespace "$DOTNET_VERSION")")
 for additional_version in $(split_csv "$ADDITIONAL_VERSIONS"); do
-    versions+=("$(trim_whitespace "$additional_version")")
+    versions+=("$additional_version")
 done
 
 # Fail fast in case of bad input to avoid unneccesary work
