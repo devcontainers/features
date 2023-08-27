@@ -9,12 +9,14 @@ fetch_latest_sdk_version_in_channel() {
 
 # Prints the latest SDK version
 fetch_latest_sdk_version() {
-    local latest_sts=$(fetch_latest_sdk_version_in_channel "STS")
-    local latest_lts=$(fetch_latest_sdk_version_in_channel "LTS")
-    if [[ "$latest_sts" > "$latest_lts" ]]; then
-        echo "$latest_sts"
+    local sts_version
+    local lts_version
+    sts_version=$(fetch_latest_sdk_version_in_channel "STS")
+    lts_version=$(fetch_latest_sdk_version_in_channel "LTS")
+    if [[ "$sts_version" > "$lts_version" ]]; then
+        echo "$sts_version"
     else
-        echo "$latest_lts"
+        echo "$lts_version"
     fi
 }
 

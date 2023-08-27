@@ -43,75 +43,15 @@ fetch_latest_sdk_version_in_channel() {
 }
 
 fetch_latest_sdk_version() {
-    local latest_STS=$(fetch_latest_sdk_version_in_channel "STS")
-    local latest_LTS=$(fetch_latest_sdk_version_in_channel "LTS")
-    if [[ "$latest_STS" > "$latest_LTS" ]]; then
-        echo "$latest_STS"
+    local sts_version
+    local lts_version
+    sts_version=$(fetch_latest_sdk_version_in_channel "STS")
+    lts_version=$(fetch_latest_sdk_version_in_channel "LTS")
+    if [[ "$sts_version" > "$lts_version" ]]; then
+        echo "$sts_version"
     else
-        echo "$latest_LTS"
+        echo "$lts_version"
     fi
-}
-
-# Installs a version of .NET using the DOTNET_INSTALLER_SCRIPT
-install_version() {
-    local inputVersion="$1"
-
-    echo "Installing version '$inputVersion'..."
-
-    # Quick options reminder for dotnet-install.sh:
-    #
-    # --version: 'latest' (default) or an exact version in the form 'A.B.C' like '6.0.412'
-    # --channel: 'LTS' (default), 'STS', a two-part version in the form 'A.B' like '6.0' or three-part form 'A.B.Cxx' like '6.0.1xx'
-    # --quality: 'daily', 'signed', 'validated', 'preview' or 'GA'
-    #
-    # Valid examples
-    #
-    # dotnet-install.sh [--version latest] [--channel LTS]
-    # dotnet-install.sh [--version latest] --channel STS
-    # dotnet-install.sh [--version latest] --channel 6.0 [--quality GA]
-    # dotnet-install.sh [--version latest] --channel 6.0.4xx [--quality GA]
-    # dotnet-install.sh [--version latest] --channel 8.0 --quality preview
-    # dotnet-install.sh [--version latest] --channel 8.0 --quality daily
-    # dotnet-install.sh --version 6.0.412
-    #
-    # The channel option is only used when version is 'latest' because an exact version overrides the channel option
-    # The quality option is only used when channel is 'A.B' or 'A.B.Cxx' because it can't be used with STS or LTS
-    #
-    # This script aims to reduce these combinations of options to a single 'version' input
-    # Currently this script does not make it possible to request a version in the form 'A.B' or 'A.B.Cxx' and a quality other than 'GA'
-    local version=""
-    local channel=""
-    if [[ "$inputVersion" == "latest" ]]; then
-        # Fetch the latest version manually, because dotnet-install.sh does not support it directly
-        version=$(fetch_latest_sdk_version)
-        channel=""
-    elif [[ "$inputVersion" == "lts" ]]; then
-        # When user input is 'lts'
-        # Then version=latest, channel=LTS
-        version="latest"
-        channel="LTS"
-    elif [[ "$inputVersion" =~ ^[0-9]+\.[0-9]+$ ]]; then
-        # When user input is form 'A.B' like '3.1'
-        # Then version=latest, channel=3.1
-        version="latest"
-        channel="$inputVersion"
-    elif [[ "$inputVersion" =~ ^[0-9]+\.[0-9]+\.[0-9]xx$ ]]; then
-        # When user input is form 'A.B.Cxx' like '6.0.4xx'
-        # Then version=latest, channel=6.0.4xx
-        version="latest"
-        channel="$inputVersion"
-    else
-        # Assume version is an exact version string like '6.0.412' or '8.0.100-rc.1.23371.5''
-        version="$inputVersion"
-        channel=""
-    fi
-
-    echo "Executing $DOTNET_INSTALL_SCRIPT --install-dir $DOTNET_INSTALL_DIR --version $version --channel $channel --no-path"
-    "$DOTNET_INSTALL_SCRIPT" \
-        --install-dir "$DOTNET_INSTALL_DIR" \
-        --version "$version" \
-        --channel "$channel" \
-        --no-path
 }
 
 # Splits comma-separated values into an array
