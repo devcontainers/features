@@ -23,7 +23,6 @@ Installs Rust, common Rust utilities, and their required dependencies
 ### VS Code Extensions
 
 - `vadimcn.vscode-lldb`
-- `mutantdino.resourcemonitor`
 - `rust-lang.rust-analyzer`
 - `tamasfe.even-better-toml`
 - `serayuzgur.crates`
