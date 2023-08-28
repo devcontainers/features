@@ -10,6 +10,7 @@
             "proposals": [
                 "latest",
                 "lts",
+                "none",
                 "8.0",
                 "7.0",
                 "6.0"
@@ -21,6 +22,16 @@
             "type": "string",
             "default": "",
             "description": "Enter additional .NET SDK versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+        },
+        "dotnetRuntimeVersions": {
+            "type": "string",
+            "default": "",
+            "description": "Enter additional .NET runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+        },
+        "aspNetCoreRuntimeVersions": {
+            "type": "string",
+            "default": "",
+            "description": "Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
         }
     },
     "containerEnv": {

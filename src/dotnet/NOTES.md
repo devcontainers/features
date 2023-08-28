@@ -54,6 +54,18 @@ Installing a specific SDK patch version.
 }
 ```
 
+Installing only the .NET Runtime or the ASP.NET Core Runtime. Note that the SDK includes all runtimes so this configuration is only useful for users who need to run .NET apps without building them from source.
+
+``` json
+{
+"features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+        "version": "none",
+        "dotnetRuntimeVersions": "latest, lts",
+        "aspnetCoreRuntimeVersions": "latest, lts",
+    }
+}
+```
 
 ## OS Support
 

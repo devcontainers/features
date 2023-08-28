@@ -61,5 +61,25 @@
         "features": {
             "dotnet": ""
         }
+    },
+    "install_dotnet_runtime_only": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "dotnet": {
+                "version": "none",
+                "dotnetRuntimeVersions": "latest"
+            }
+        }
+    },
+    "install_aspnetcore_runtime_only": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "dotnet": {
+                "version": "none",
+                "aspnetcoreRuntimeVersions": "latest"
+            }
+        }
     }
 }
