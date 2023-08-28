@@ -54,5 +54,12 @@
         "features": {
             "dotnet": {}
         }
+    },
+    "install_dotnet_latest_when_version_is_empty": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "dotnet": ""
+        }
     }
 }

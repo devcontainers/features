@@ -6,8 +6,8 @@
 #
 # Docs: https://github.com/devcontainers/features/tree/main/src/dotnet
 # Maintainer: The Dev Container spec maintainers
-DOTNET_VERSION="${VERSION}"
-ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS}"
+DOTNET_VERSION="${VERSION:-"latest"}"
+ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
 DOTNET_INSTALL_SCRIPT='scripts/vendor/dotnet-install.sh'
 DOTNET_INSTALL_DIR='/usr/share/dotnet'
