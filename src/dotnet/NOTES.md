@@ -54,7 +54,7 @@ Installing a specific SDK patch version.
 }
 ```
 
-Installing only the .NET Runtime or the ASP.NET Core Runtime. Note that the SDK includes all runtimes so this configuration is only useful for users who need to run .NET apps without building them from source.
+Installing only the .NET Runtime or the ASP.NET Core Runtime. (The SDK includes all runtimes so this configuration is only useful if you need to run .NET apps without building them from source.)
 
 ``` json
 {
