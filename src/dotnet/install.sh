@@ -80,13 +80,17 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-
 # For our own convenience, combine DOTNET_VERSION and ADDITIONAL_VERSIONS into a single 'versions' array
+versions=()
+
+# The version can be set to 'none' for runtime-only installations, then the array will just remain empty
 # Ensure there are no leading or trailing spaces that can break regex pattern matching
-versions=("$(trim_whitespace "$DOTNET_VERSION")")
-for additional_version in $(split_csv "$ADDITIONAL_VERSIONS"); do
-    versions+=("$additional_version")
-done
+if [ "$DOTNET_VERSION" != "none" ]; then
+    versions+=("$(trim_whitespace "$DOTNET_VERSION")")
+    for additional_version in $(split_csv "$ADDITIONAL_VERSIONS"); do
+        versions+=("$additional_version")
+    done
+fi
 
 dotnetRuntimeVersions=()
 for dotnetRuntimeVersion in $(split_csv "$DOTNET_RUNTIME_VERSIONS"); do
@@ -128,11 +132,9 @@ done
 # icu-devtools includes dependencies for .NET
 check_packages wget ca-certificates icu-devtools
 
-if [ "${versions[0]}" != "none" ]; then
-    for version in "${versions[@]}"; do
-        install_dotnet_sdk "$version"
-    done
-fi
+for version in "${versions[@]}"; do
+    install_dotnet_sdk "$version"
+done
 
 for version in "${dotnetRuntimeVersions[@]}"; do
     install_dotnet_runtime "$version"
