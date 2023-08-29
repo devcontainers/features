@@ -13,7 +13,7 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-expected=$(fetch_latest_dotnet_runtime_version)
+expected=$(fetch_latest_version "dotnet")
 
 check "Latest .NET Runtime version installed" \
 is_dotnet_runtime_version_installed "$expected"

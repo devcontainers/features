@@ -18,7 +18,7 @@ check "Install a .NET global tool" \
 dotnet tool install --global dotnetsay
 
 check "Run the tool" \
-dotnetsay $(dotnet --info)
+dotnetsay "$(dotnet --info)"
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.

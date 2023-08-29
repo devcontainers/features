@@ -9,8 +9,8 @@
 #
 # Run this script to replace dotnet-install.sh with the latest and greatest available version
 # 
-dotnet_scripts=$(dirname "$BASH_SOURCE")
-dotnet_install_script="$dotnet_scripts/vendor/dotnet-install.sh"
+DOTNET_SCRIPTS=$(dirname "${BASH_SOURCE[0]}")
+DOTNET_INSTALL_SCRIPT="$DOTNET_SCRIPTS/vendor/dotnet-install.sh"
 
-wget https://dot.net/v1/dotnet-install.sh -O "$dotnet_install_script"
-chmod +x "$dotnet_install_script"
+wget https://dot.net/v1/dotnet-install.sh -O "$DOTNET_INSTALL_SCRIPT"
+chmod +x "$DOTNET_INSTALL_SCRIPT"

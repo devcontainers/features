@@ -13,7 +13,7 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-expected=$(fetch_latest_aspnetcore_runtime_version)
+expected=$(fetch_latest_version "aspnetcore")
 
 check "Latest ASP.NET Core Runtime version installed" \
 is_aspnetcore_runtime_version_installed "$expected"

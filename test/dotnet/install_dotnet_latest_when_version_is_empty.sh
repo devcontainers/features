@@ -13,10 +13,10 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-expected=$(fetch_latest_sdk_version)
+expected=$(fetch_latest_version)
 
 check "Latest .NET SDK version installed" \
-is_dotnet_sdk_version_installed $expected
+is_dotnet_sdk_version_installed "$expected"
 
 # Expect this check to fail in November 2023 when .NET 8.0 becomes GA
 check "It is a flavor of .NET 7.0" \

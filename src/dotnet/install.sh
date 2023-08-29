@@ -11,14 +11,13 @@ ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 DOTNET_RUNTIME_VERSIONS="${DOTNETRUNTIMEVERSIONS:-""}"
 ASPNETCORE_RUNTIME_VERSIONS="${ASPNETCORERUNTIMEVERSIONS:-""}"
 
-DOTNET_INSTALL_SCRIPT='scripts/vendor/dotnet-install.sh'
-DOTNET_INSTALL_DIR='/usr/share/dotnet'
-
 set -e
 
-source "scripts/install-dotnet-sdk.sh"
-source "scripts/install-dotnet-runtime.sh"
-source "scripts/install-aspnetcore-runtime.sh"
+# Import trim_whitespace and split_csv
+source "scripts/string-helpers.sh"
+
+# Import install_sdk and install_runtime
+source "scripts/dotnet-helpers.sh"
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
@@ -41,38 +40,6 @@ check_packages() {
         apt_get_update
         apt-get -y install --no-install-recommends "$@"
     fi
-}
-
-# Removes leading and trailing whitespace from an input string
-trim_whitespace() {
-    text="$1"
-
-    # Remove leading spaces
-    while [ "${text:0:1}" == " " ]; do
-        text="${text:1}"
-    done
-
-    # Remove trailing spaces
-    while [ "${text: -1}" == " " ]; do
-        text="${text:0:-1}"
-    done
-
-    echo "$text"
-}
-
-# Splits comma-separated values into an array while ignoring empty entries
-split_csv() {
-    local -a values=()
-    while IFS="," read -ra entries; do
-        for entry in "${entries[@]}"; do
-            entry="$(trim_whitespace "$entry")"
-            if [ -n "$entry" ]; then
-                values+=("$entry")
-            fi
-        done
-    done <<< "$1"
-
-    echo "${values[@]}"
 }
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -133,15 +100,15 @@ done
 check_packages wget ca-certificates icu-devtools
 
 for version in "${versions[@]}"; do
-    install_dotnet_sdk "$version"
+    install_sdk "$version"
 done
 
 for version in "${dotnetRuntimeVersions[@]}"; do
-    install_dotnet_runtime "$version"
+    install_runtime "dotnet" "$version"
 done
 
 for version in "${aspNetCoreRuntimeVersions[@]}"; do
-    install_aspnetcore_runtime "$version"
+    install_runtime "aspnetcore" "$version"
 done
 
 # Clean up

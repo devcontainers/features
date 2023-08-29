@@ -13,10 +13,10 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-expected=$(fetch_latest_sdk_version_in_channel "3.1")
+expected=$(fetch_latest_version_in_channel "3.1")
 
 check ".NET Core SDK 3.1 installed" \
-is_dotnet_sdk_version_installed $expected
+is_dotnet_sdk_version_installed "$expected"
 
 check "Build and run example project" \
 dotnet run --project projects/netcoreapp3.1 
