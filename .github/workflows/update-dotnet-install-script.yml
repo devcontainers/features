@@ -1,4 +1,4 @@
-name: "Update dotnet-install script"
+name: "Updates vendor 'dotnet-install' script"
 on:
   workflow_dispatch:
   schedule:
@@ -16,7 +16,7 @@ jobs:
       - name: Create a PR for dotnet-install.sh
         id: push_image_info
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
           set -e
           echo "Start."
@@ -28,7 +28,7 @@ jobs:
 
           branch=automated-script-update-$GITHUB_RUN_ID
           git checkout -b $branch
-          message='Automated dotnet-install script update'
+          message='[Updates] Automated vendor 'dotnet-install' script'
 
           # Add / update and commit
           git add src/dotnet/scripts/vendor/dotnet-install.sh
