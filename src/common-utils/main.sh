@@ -500,7 +500,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             copy_to_user_files=("${oh_my_install_dir}")
             [ -f "$user_rc_file" ] && copy_to_user_files+=("$user_rc_file")
             cp -rf "${copy_to_user_files[@]}" /root
-            chown -R ${USERNAME}:${group_name} "${oh_my_install_dir}" "${user_rc_file}"
+            chown -R ${USERNAME}:${group_name} "${copy_to_user_files[@]}"
         fi
     fi
 fi
