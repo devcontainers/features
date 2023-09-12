@@ -13,17 +13,12 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-expected=$(fetch_latest_version)
+# From https://learn.microsoft.com/en-us/dotnet/core/tools/global-tools
+check "Install a .NET global tool" \
+dotnet tool install --global dotnetsay
 
-check "Latest .NET SDK version installed" \
-is_dotnet_sdk_version_installed "$expected"
-
-# Expect this check to fail in November 2023 when .NET 8.0 becomes GA
-check "It is a flavor of .NET 7.0" \
-is_dotnet_sdk_version_installed "7.0"
-
-check "Build and run example project" \
-dotnet run --project projects/net7.0
+check "Run the tool" \
+dotnetsay "$(dotnet --info)"
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.

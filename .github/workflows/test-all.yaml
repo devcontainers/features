@@ -42,7 +42,6 @@ jobs:
         ]
         baseImage:
           [
-            "ubuntu:bionic",
             "ubuntu:focal",
             "ubuntu:jammy",
             "debian:11",
