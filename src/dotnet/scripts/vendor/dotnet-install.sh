@@ -547,6 +547,39 @@ is_dotnet_package_installed() {
 }
 
 # args:
+# downloaded file - $1
+# remote_file_size - $2
+validate_remote_local_file_sizes() 
+{
+    eval $invocation
+
+    local downloaded_file="$1"
+    local remote_file_size="$2"
+
+    local file_size=''
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        file_size="$(stat -c '%s' "$downloaded_file")"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        file_size="$(stat -f '%z' "$downloaded_file")"
+    fi  
+    
+    if [ -n "$file_size" ]; then
+        say "Downloaded file size is $file_size bytes."
+
+        if [ -n "$remote_file_size" ] && [ -n "$file_size" ]; then
+            if [ "$file_size" != "$remote_file_size" ]; then
+                say "The remote and local file sizes are not equal. Remote file size is $remote_file_size bytes and local size is $file_size bytes. The local package may be corrupted."
+            else
+                say "The remote and local file sizes are equal."
+            fi
+        fi
+        
+    else
+        say "Either downloaded or local package size can not be measured. One of them may be corrupted."      
+    fi 
+}
+
+# args:
 # azure_feed - $1
 # channel - $2
 # normalized_architecture - $3
@@ -915,13 +948,38 @@ copy_files_or_dirs_from_list() {
 }
 
 # args:
+# zip_uri - $1
+get_remote_file_size() {
+    local zip_uri="$1"
+
+    if machine_has "curl"; then
+        file_size=$(curl -sI  "$zip_uri" | grep -i content-length | awk '{print $2}')
+    elif machine_has "wget"; then
+        file_size=$(wget --server-response -O /dev/null "$zip_uri" 2>&1 | grep -i '^Content-Length:' | awk '{print $2}')
+    else
+        say "Neither curl nor wget is available on this system."
+        return
+    fi
+
+    if [ -n "$file_size" ]; then
+        say "Remote file $zip_uri size is $file_size bytes."
+        echo "$file_size"
+    else
+        say_verbose "Content-Length header was not extracted for $zip_uri."
+        echo ""
+    fi
+}
+
+# args:
 # zip_path - $1
 # out_path - $2
+# remote_file_size - $3
 extract_dotnet_package() {
     eval $invocation
 
     local zip_path="$1"
     local out_path="$2"
+    local remote_file_size="$3"
 
     local temp_out_path="$(mktemp -d "$temporary_file_template")"
 
@@ -931,7 +989,9 @@ extract_dotnet_package() {
     local folders_with_version_regex='^.*/[0-9]+\.[0-9]+[^/]+/'
     find "$temp_out_path" -type f | grep -Eo "$folders_with_version_regex" | sort | copy_files_or_dirs_from_list "$temp_out_path" "$out_path" false
     find "$temp_out_path" -type f | grep -Ev "$folders_with_version_regex" | copy_files_or_dirs_from_list "$temp_out_path" "$out_path" "$override_non_versioned_files"
-
+    
+    validate_remote_local_file_sizes "$zip_path" "$remote_file_size"
+    
     rm -rf "$temp_out_path"
     rm -f "$zip_path" && say_verbose "Temporary zip file $zip_path was removed"
 
@@ -1427,6 +1487,7 @@ install_dotnet() {
     eval $invocation
     local download_failed=false
     local download_completed=false
+    local remote_file_size=''
 
     mkdir -p "$install_root"
     zip_path="$(mktemp "$temporary_file_template")"
@@ -1467,8 +1528,10 @@ install_dotnet() {
         return 1
     fi
 
+    remote_file_size="$(get_remote_file_size "$download_link")"
+
     say "Extracting zip from $download_link"
-    extract_dotnet_package "$zip_path" "$install_root" || return 1
+    extract_dotnet_package "$zip_path" "$install_root" "$remote_file_size" || return 1
 
     #  Check if the SDK version is installed; if not, fail the installation.
     # if the version contains "RTM" or "servicing"; check if a 'release-type' SDK version is installed.
