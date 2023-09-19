@@ -30,6 +30,7 @@ jobs:
             "kubectl-helm-minikube",
             "node",
             "nvidia-cuda",
+            "opentf",
             "oryx",
             "php",
             "powershell",

@@ -30,6 +30,7 @@ jobs:
             kubectl-helm-minikube: ./**/kubectl-helm-minikube/**
             node: ./**/node/**
             nvidia-cuda: ./**/nvidia-cuda/**
+            opentf: ./**/opentf/**
             oryx: ./**/oryx/**
             php: ./**/php/**
             powershell: ./**/powershell/**
