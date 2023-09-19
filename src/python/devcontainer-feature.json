@@ -62,7 +62,11 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
-        "ms-python.vscode-pylance"
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-python.flake8",        
+        "ms-python.isort",
+        "ms-python.pylint"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
@@ -73,7 +77,9 @@
         "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
         "python.linting.mypyEnabled": false,
         "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
-        "python.linting.pylintEnabled": false
+        "python.linting.pylintEnabled": false,
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestEnabled": true
       }
     }
   },
