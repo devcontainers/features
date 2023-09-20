@@ -53,14 +53,5 @@
         "features": {
             "python": "3.10"
         }
-    },
-    "install_jupyterlab_debian": {
-        "image": "debian:bullseye-slim",
-        "features": {
-            "python": {
-                "version": "3.11",
-                "installJupyterlab": true
-            }
-        }
     }
 }
