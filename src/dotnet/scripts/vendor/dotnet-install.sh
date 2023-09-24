@@ -314,6 +314,10 @@ get_machine_architecture() {
             echo "ppc64le"
             return 0
             ;;
+        loongarch64)
+            echo "loongarch64"
+            return 0
+            ;;
         esac
     fi
 
@@ -353,6 +357,10 @@ get_normalized_architecture_from_architecture() {
             ;;
         ppc64le)
             echo "ppc64le"
+            return 0
+            ;;
+        loongarch64)
+            echo "loongarch64"
             return 0
             ;;
     esac
@@ -544,6 +552,40 @@ is_dotnet_package_installed() {
     else
         return 1
     fi
+}
+
+# args:
+# downloaded file - $1
+# remote_file_size - $2
+validate_remote_local_file_sizes() 
+{
+    eval $invocation
+
+    local downloaded_file="$1"
+    local remote_file_size="$2"
+    local file_size=''
+
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        file_size="$(stat -c '%s' "$downloaded_file")"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # hardcode in order to avoid conflicts with GNU stat
+        file_size="$(/usr/bin/stat -f '%z' "$downloaded_file")"
+    fi  
+    
+    if [ -n "$file_size" ]; then
+        say "Downloaded file size is $file_size bytes."
+
+        if [ -n "$remote_file_size" ] && [ -n "$file_size" ]; then
+            if [ "$remote_file_size" -ne "$file_size" ]; then
+                say "The remote and local file sizes are not equal. The remote file size is $remote_file_size bytes and the local size is $file_size bytes. The local package may be corrupted."
+            else
+                say "The remote and local file sizes are equal."
+            fi
+        fi
+        
+    else
+        say "Either downloaded or local package size can not be measured. One of them may be corrupted."      
+    fi 
 }
 
 # args:
@@ -915,13 +957,38 @@ copy_files_or_dirs_from_list() {
 }
 
 # args:
+# zip_uri - $1
+get_remote_file_size() {
+    local zip_uri="$1"
+
+    if machine_has "curl"; then
+        file_size=$(curl -sI  "$zip_uri" | grep -i content-length | awk '{ num = $2 + 0; print num }')
+    elif machine_has "wget"; then
+        file_size=$(wget --spider --server-response -O /dev/null "$zip_uri" 2>&1 | grep -i 'Content-Length:' | awk '{ num = $2 + 0; print num }')
+    else
+        say "Neither curl nor wget is available on this system."
+        return
+    fi
+
+    if [ -n "$file_size" ]; then
+        say "Remote file $zip_uri size is $file_size bytes."
+        echo "$file_size"
+    else
+        say_verbose "Content-Length header was not extracted for $zip_uri."
+        echo ""
+    fi
+}
+
+# args:
 # zip_path - $1
 # out_path - $2
+# remote_file_size - $3
 extract_dotnet_package() {
     eval $invocation
 
     local zip_path="$1"
     local out_path="$2"
+    local remote_file_size="$3"
 
     local temp_out_path="$(mktemp -d "$temporary_file_template")"
 
@@ -931,9 +998,13 @@ extract_dotnet_package() {
     local folders_with_version_regex='^.*/[0-9]+\.[0-9]+[^/]+/'
     find "$temp_out_path" -type f | grep -Eo "$folders_with_version_regex" | sort | copy_files_or_dirs_from_list "$temp_out_path" "$out_path" false
     find "$temp_out_path" -type f | grep -Ev "$folders_with_version_regex" | copy_files_or_dirs_from_list "$temp_out_path" "$out_path" "$override_non_versioned_files"
-
+    
+    validate_remote_local_file_sizes "$zip_path" "$remote_file_size"
+    
     rm -rf "$temp_out_path"
-    rm -f "$zip_path" && say_verbose "Temporary zip file $zip_path was removed"
+    if [ -z ${keep_zip+x} ]; then
+        rm -f "$zip_path" && say_verbose "Temporary zip file $zip_path was removed"
+    fi
 
     if [ "$failed" = true ]; then
         say_err "Extraction failed"
@@ -1427,9 +1498,10 @@ install_dotnet() {
     eval $invocation
     local download_failed=false
     local download_completed=false
+    local remote_file_size=0
 
     mkdir -p "$install_root"
-    zip_path="$(mktemp "$temporary_file_template")"
+    zip_path="${zip_path:-$(mktemp "$temporary_file_template")}"
     say_verbose "Zip path: $zip_path"
 
     for link_index in "${!download_links[@]}"
@@ -1467,8 +1539,10 @@ install_dotnet() {
         return 1
     fi
 
+    remote_file_size="$(get_remote_file_size "$download_link")"
+
     say "Extracting zip from $download_link"
-    extract_dotnet_package "$zip_path" "$install_root" || return 1
+    extract_dotnet_package "$zip_path" "$install_root" "$remote_file_size" || return 1
 
     #  Check if the SDK version is installed; if not, fail the installation.
     # if the version contains "RTM" or "servicing"; check if a 'release-type' SDK version is installed.
@@ -1618,6 +1692,14 @@ do
             override_non_versioned_files=false
             non_dynamic_parameters+=" $name"
             ;;
+        --keep-zip|-[Kk]eep[Zz]ip)
+            keep_zip=true
+            non_dynamic_parameters+=" $name"
+            ;;
+        --zip-path|-[Zz]ip[Pp]ath)
+            shift
+            zip_path="$1"
+            ;;
         -?|--?|-h|--help|-[Hh]elp)
             script_name="$(basename "$0")"
             echo ".NET Tools Installer"
@@ -1663,7 +1745,7 @@ do
             echo "      -InstallDir"
             echo "  --architecture <ARCHITECTURE>      Architecture of dotnet binaries to be installed, Defaults to \`$architecture\`."
             echo "      --arch,-Architecture,-Arch"
-            echo "          Possible values: x64, arm, arm64, s390x and ppc64le"
+            echo "          Possible values: x64, arm, arm64, s390x, ppc64le and loongarch64"
             echo "  --os <system>                    Specifies operating system to be used when selecting the installer."
             echo "          Overrides the OS determination approach used by the script. Supported values: osx, linux, linux-musl, freebsd, rhel.6."
             echo "          In case any other value is provided, the platform will be determined by the script based on machine configuration."
@@ -1688,6 +1770,8 @@ do
             echo "  --no-cdn,-NoCdn                    Disable downloading from the Azure CDN, and use the uncached feed directly."
             echo "  --jsonfile <JSONFILE>              Determines the SDK version from a user specified global.json file."
             echo "                                     Note: global.json must have a value for 'SDK:Version'"
+            echo "  --keep-zip,-KeepZip                If set, downloaded file is kept."
+            echo "  --zip-path, -ZipPath               If set, downloaded file is stored at the specified path."
             echo "  -?,--?,-h,--help,-Help             Shows this help message"
             echo ""
             echo "Install Location:"
