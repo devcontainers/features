@@ -6,6 +6,7 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 INSTALL_CUDNN=${INSTALLCUDNN}
+INSTALL_CUDNNDEV=${INSTALLCUDNNDEV}
 INSTALL_NVTX=${INSTALLNVTX}
 INSTALL_NVCC=${INSTALLNVCC}
 INSTALL_TOOLKIT=${INSTALLTOOLKIT}
@@ -59,7 +60,7 @@ fi
 echo "Installing CUDA libraries..."
 apt-get install -yq "$cuda_pkg"
 
-if [ "$INSTALL_CUDNN" = "true" ]; then
+if [ "$INSTALL_CUDNN" = "true" ] || [ "$INSTALL_CUDNNDEV" = "true" ]; then
     # Ensure that the requested version of cuDNN is available AND compatible
     cudnn_pkg_version="libcudnn8=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
     if ! apt-cache show "$cudnn_pkg_version"; then
@@ -67,8 +68,13 @@ if [ "$INSTALL_CUDNN" = "true" ]; then
         exit 1
     fi
 
+    cudnn_dev_pkg_version=""
+    if [ "$INSTALL_CUDNNDEV" = "true" ]; then
+        cudnn_dev_pkg_version="libcudnn8-dev=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+    fi
+
     echo "Installing cuDNN libraries..."
-    apt-get install -yq "$cudnn_pkg_version"
+    apt-get install -yq "$cudnn_pkg_version" "$cudnn_dev_pkg_version"
 fi
 
 if [ "$INSTALL_NVTX" = "true" ]; then

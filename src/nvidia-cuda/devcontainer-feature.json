@@ -10,6 +10,11 @@
       "default": false,
       "description": "Additionally install CUDA Deep Neural Network (cuDNN) shared library"
     },
+    "installCudnnDev": {
+      "type": "boolean",
+      "default": false,
+      "description": "Additionally install CUDA Deep Neural Network (cuDNN) development libraries and headers"
+    },
     "installNvtx": {
       "type": "boolean",
       "default": false,
