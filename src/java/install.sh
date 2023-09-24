@@ -111,13 +111,13 @@ sdk_install() {
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
     else
-        local regex="${prefix}\\K[0-9]+\\.[0-9]+\\.[0-9]+${suffix}"
+        local regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
         local version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
             set +e
-            requested_version="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
+            requested_version="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|-\s*|$)")"
             set -e
         fi
         if [ -z "${requested_version}" ] || ! echo "${version_list}" | grep "^${requested_version//./\\.}$" > /dev/null 2>&1; then
