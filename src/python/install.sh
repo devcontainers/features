@@ -308,14 +308,15 @@ sudo_if() {
     fi
 }
 
-install_package() {
-    PACKAGE="$1"
-    sudo_if "${PYTHON_SRC}" -m pip install --upgrade --no-cache-dir "$PACKAGE"
-}
-
 install_user_package() {
-    PACKAGE="$1"
-    sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+    INSTALL_UNDER_ROOT="$1"
+    PACKAGE="$2"
+
+    if [ "$INSTALL_UNDER_ROOT" = true ]; then
+        sudo_if "${PYTHON_SRC}" -m pip install --upgrade --no-cache-dir "$PACKAGE"
+    else
+        sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+    fi
 }
 
 add_user_jupyter_config() {
@@ -466,27 +467,23 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         exit 1
     fi
 
+    INSTALL_UNDER_ROOT=true;
     if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
-        install_user_package jupyterlab
-        install_user_package jupyterlab-git
-    else
-         install_package jupyterlab
-         install_package jupyterlab-git
+        INSTALL_UNDER_ROOT=false
     fi
+
+    install_user_package $INSTALL_UNDER_ROOT jupyterlab
+    install_user_package $INSTALL_UNDER_ROOT jupyterlab-git
 
     # Configure JupyterLab if needed
     if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
-        # Resolve config directory and file
-        CONFIG_DIR=""
-        CONFIG_FILE=""
-
-        if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
+        # Resolve config directory
+        CONFIG_DIR="/root/.jupyter"
+        if [ "$INSTALL_UNDER_ROOT" = false ]; then
             CONFIG_DIR="/home/$USERNAME/.jupyter"
-            CONFIG_FILE="$CONFIG_DIR/jupyter_server_config.py"
-        else
-            CONFIG_DIR="/root/.jupyter"
-            CONFIG_FILE="$CONFIG_DIR/jupyter_server_config.py"
         fi
+
+        CONFIG_FILE="$CONFIG_DIR/jupyter_server_config.py"
 
         add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
         add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
