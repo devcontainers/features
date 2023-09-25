@@ -308,21 +308,26 @@ sudo_if() {
     fi
 }
 
+install_package() {
+    PACKAGE="$1"
+    sudo_if "${PYTHON_SRC}" -m pip install --upgrade --no-cache-dir "$PACKAGE"
+}
+
 install_user_package() {
     PACKAGE="$1"
     sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
 }
 
 add_user_jupyter_config() {
-    CONFIG_DIR="/home/$USERNAME/.jupyter"
-    CONFIG_FILE="$CONFIG_DIR/jupyter_server_config.py"
+    CONFIG_DIR=$1
+    CONFIG_FILE="$2"
 
     # Make sure the config file exists or create it with proper permissions
     test -d "$CONFIG_DIR" || sudo_if mkdir "$CONFIG_DIR"
     test -f "$CONFIG_FILE" || sudo_if touch "$CONFIG_FILE"
 
     # Don't write the same config more than once
-    grep -q "$1" "$CONFIG_FILE" || echo "$1" >> "$CONFIG_FILE"
+    grep -q "$3" "$CONFIG_FILE" || echo "$3" >> "$CONFIG_FILE"
 }
 
 install_python() {
@@ -461,13 +466,30 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         exit 1
     fi
 
-    install_user_package jupyterlab
-    install_user_package jupyterlab-git
+    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
+        install_user_package jupyterlab
+        install_user_package jupyterlab-git
+    else
+         install_package jupyterlab
+         install_package jupyterlab-git
+    fi
 
     # Configure JupyterLab if needed
     if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
-        add_user_jupyter_config "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
-        add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+        # Resolve config directory and file
+        CONFIG_DIR=""
+        CONFIG_FILE=""
+
+        if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
+            CONFIG_DIR="/home/$USERNAME/.jupyter"
+            CONFIG_FILE="$CONFIG_DIR/jupyter_server_config.py"
+        else
+            CONFIG_DIR="/root/.jupyter"
+            CONFIG_FILE="$CONFIG_DIR/jupyter_server_config.py"
+        fi
+
+        add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+        add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
     fi
 fi
 
