@@ -183,5 +183,21 @@
                 "configureZshAsDefaultShell": true
             }
         }
+    },
+    "devcontainer-custom-home": {
+        "build": {
+            "dockerfile": "Dockerfile"
+        },
+        "remoteUser": "customUser",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "devcontainer-custom-user-default-home": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "remoteUser": "customUser",
+        "features": {
+            "common-utils": {}
+        }
     }
 }

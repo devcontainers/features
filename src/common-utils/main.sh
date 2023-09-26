@@ -408,10 +408,15 @@ fi
 if [ "${USERNAME}" = "root" ]; then
     user_home="/root"
 else
-    user_home="/home/${USERNAME}"
-    if [ ! -d "${user_home}" ]; then
-        mkdir -p "${user_home}"
-        chown ${USERNAME}:${group_name} "${user_home}"
+    # Check if user already has a home directory other than /home/${USERNAME}
+    if [ "/home/${USERNAME}" != $( getent passwd $USERNAME | cut -d: -f6 ) ]; then
+        user_home=$( getent passwd $USERNAME | cut -d: -f6 )
+    else
+        user_home="/home/${USERNAME}"
+        if [ ! -d "${user_home}" ]; then
+            mkdir -p "${user_home}"
+            chown ${USERNAME}:${group_name} "${user_home}"
+        fi
     fi
 fi
 
