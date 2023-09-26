@@ -67,6 +67,14 @@
             }
         },
         "remoteUser": "node"
+    },
+    // DO NOT REMOVE: This scenario is used by the docker-in-docker-stress-test workflow
+    "docker_with_on_create_command": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {}
+        },
+        "remoteUser": "vscode",
+        "onCreateCommand": "docker ps && sleep 5s && docker ps"
     }
-
 }

@@ -141,7 +141,6 @@ install_using_pip_strategy() {
         ver="==${AZ_VERSION}"
     fi
 
-    # Temprary quick fix for https://github.com/devcontainers/features/issues/624
     if [ "${INSTALL_USING_PYTHON}" = "true" ]; then
         install_with_complete_python_installation "${ver}" || install_with_pipx "${ver}" || return 1
     else

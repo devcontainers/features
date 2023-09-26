@@ -49,7 +49,6 @@ jobs:
         features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
         baseImage:
           [
-            "ubuntu:bionic",
             "ubuntu:focal",
             "ubuntu:jammy",
             "debian:11",
