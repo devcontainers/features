@@ -20,11 +20,6 @@
       "default": false,
       "description": "Additionally install NVIDIA Tools Extension (NVTX)"
     },
-    "installNvcc": {
-      "type": "boolean",
-      "default": false,
-      "description": "Additionally install NVIDIA CUDA Compiler (NVCC)"
-    },
     "installToolkit": {
       "type": "boolean",
       "default": false,

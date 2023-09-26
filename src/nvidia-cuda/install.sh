@@ -8,7 +8,6 @@ rm -rf /var/lib/apt/lists/*
 INSTALL_CUDNN=${INSTALLCUDNN}
 INSTALL_CUDNNDEV=${INSTALLCUDNNDEV}
 INSTALL_NVTX=${INSTALLNVTX}
-INSTALL_NVCC=${INSTALLNVCC}
 INSTALL_TOOLKIT=${INSTALLTOOLKIT}
 CUDA_VERSION=${CUDAVERSION}
 CUDNN_VERSION=${CUDNNVERSION}
@@ -50,7 +49,6 @@ apt-get update -yq
 # Ensure that the requested version of CUDA is available
 cuda_pkg="cuda-libraries-${CUDA_VERSION/./-}"
 nvtx_pkg="cuda-nvtx-${CUDA_VERSION/./-}"
-nvcc_pkg="cuda-nvcc-${CUDA_VERSION/./-}"
 toolkit_pkg="cuda-toolkit-${CUDA_VERSION/./-}"
 if ! apt-cache show "$cuda_pkg"; then
     echo "The requested version of CUDA is not available: CUDA $CUDA_VERSION"
@@ -80,11 +78,6 @@ fi
 if [ "$INSTALL_NVTX" = "true" ]; then
     echo "Installing NVTX..."
     apt-get install -yq "$nvtx_pkg"
-fi
-
-if [ "$INSTALL_NVCC" = "true" ]; then
-    echo "Installing NVCC..."
-    apt-get install -yq "$nvcc_pkg"
 fi
 
 if [ "$INSTALL_TOOLKIT" = "true" ]; then
