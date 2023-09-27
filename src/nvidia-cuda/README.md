@@ -16,10 +16,7 @@ Installs shared libraries for NVIDIA CUDA.
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | installCudnn | Additionally install CUDA Deep Neural Network (cuDNN) shared library | boolean | false |
-| installCudnnDev | Additionally install CUDA Deep Neural Network (cuDNN) development libraries and headers | boolean | false |
 | installNvtx | Additionally install NVIDIA Tools Extension (NVTX) | boolean | false |
-| installNvcc | Additionally install NVIDIA CUDA Compiler (NVCC) | boolean | false |
-| installToolkit | Additionally install NVIDIA CUDA Compiler Toolkit | boolean | false |
 | cudaVersion | Version of CUDA to install | string | 11.8 |
 | cudnnVersion | Version of cuDNN to install | string | 8.6.0.163 |
 
