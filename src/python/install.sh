@@ -320,7 +320,7 @@ install_user_package() {
 }
 
 add_user_jupyter_config() {
-    CONFIG_DIR=$1
+    CONFIG_DIR="$1"
     CONFIG_FILE="$2"
 
     # Make sure the config file exists or create it with proper permissions
@@ -467,7 +467,7 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         exit 1
     fi
 
-    INSTALL_UNDER_ROOT=true;
+    INSTALL_UNDER_ROOT=true
     if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
         INSTALL_UNDER_ROOT=false
     fi
