@@ -117,7 +117,7 @@ sdk_install() {
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
             set +e
-            requested_version="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|-\s*|$)")"
+            requested_version="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|-|$)")"
             set -e
         fi
         if [ -z "${requested_version}" ] || ! echo "${version_list}" | grep "^${requested_version//./\\.}$" > /dev/null 2>&1; then
