@@ -35,8 +35,11 @@ jobs:
           git add src/dotnet/scripts/vendor/dotnet-install.sh
           git commit -m 'Automated dotnet-install script update' || export NO_UPDATES=true
 
-          # Push
+          # Bump version and push
           if [ "$NO_UPDATES" != "true" ] ; then
+              echo "$(jq --indent 4 '.version = (.version | split(".") | map(tonumber) | .[2] += 1 | join("."))' src/dotnet/devcontainer-feature.json)"  > src/dotnet/devcontainer-feature.json 
+              git add src/dotnet/devcontainer-feature.json
+              git commit -m 'Bump version'
               git push origin "$branch"
               gh api \
                 --method POST \
