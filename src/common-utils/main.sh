@@ -407,6 +407,9 @@ fi
 
 if [ "${USERNAME}" = "root" ]; then
     user_home="/root"
+# Check if user already has a home directory other than /home/${USERNAME}
+elif [ "/home/${USERNAME}" != $( getent passwd $USERNAME | cut -d: -f6 ) ]; then
+    user_home=$( getent passwd $USERNAME | cut -d: -f6 )
 else
     user_home="/home/${USERNAME}"
     if [ ! -d "${user_home}" ]; then

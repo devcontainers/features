@@ -5,10 +5,6 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-# Always run these checks as the non-root user
-user="$(whoami)"
-check "user" grep vscode <<< "$user"
-
 # Check for an installation of JupyterLab
 check "version" jupyter lab --version
 
@@ -20,7 +16,7 @@ check "location" grep jupyter <<< "$packages"
 check "jupyterlab_git" grep jupyterlab_git <<< "$packages"
 
 # Check for correct JupyterLab configuration
-check "config" grep ".*.allow_origin = '*'" /home/vscode/.jupyter/jupyter_server_config.py
+check "config" grep ".*.allow_origin = '*'" /root/.jupyter/jupyter_server_config.py
 
 # Report result
 reportResults

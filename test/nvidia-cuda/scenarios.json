@@ -1,10 +1,12 @@
 {
-    "install_cudnn_nvxt": {
+    "install_all_options": {
         "image": "debian",
         "features": {
             "nvidia-cuda": {
                 "installCudnn": true,
-                "installNvtx": true
+                "installCudnnDev": true,
+                "installNvtx": true,
+                "installToolkit": true
             }
         }
     },

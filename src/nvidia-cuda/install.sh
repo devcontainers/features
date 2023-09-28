@@ -6,7 +6,9 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 INSTALL_CUDNN=${INSTALLCUDNN}
+INSTALL_CUDNNDEV=${INSTALLCUDNNDEV}
 INSTALL_NVTX=${INSTALLNVTX}
+INSTALL_TOOLKIT=${INSTALLTOOLKIT}
 CUDA_VERSION=${CUDAVERSION}
 CUDNN_VERSION=${CUDNNVERSION}
 
@@ -47,6 +49,7 @@ apt-get update -yq
 # Ensure that the requested version of CUDA is available
 cuda_pkg="cuda-libraries-${CUDA_VERSION/./-}"
 nvtx_pkg="cuda-nvtx-${CUDA_VERSION/./-}"
+toolkit_pkg="cuda-toolkit-${CUDA_VERSION/./-}"
 if ! apt-cache show "$cuda_pkg"; then
     echo "The requested version of CUDA is not available: CUDA $CUDA_VERSION"
     exit 1
@@ -67,9 +70,26 @@ if [ "$INSTALL_CUDNN" = "true" ]; then
     apt-get install -yq "$cudnn_pkg_version"
 fi
 
+if [ "$INSTALL_CUDNNDEV" = "true" ]; then
+    # Ensure that the requested version of cuDNN development package is available AND compatible
+    cudnn_dev_pkg_version="libcudnn8-dev=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+    if ! apt-cache show "$cudnn_dev_pkg_version"; then
+        echo "The requested version of cuDNN development package is not available: cuDNN $CUDNN_VERSION for CUDA $CUDA_VERSION"
+        exit 1
+    fi
+
+    echo "Installing cuDNN dev libraries..."
+    apt-get install -yq "$cudnn_dev_pkg_version"
+fi
+
 if [ "$INSTALL_NVTX" = "true" ]; then
     echo "Installing NVTX..."
     apt-get install -yq "$nvtx_pkg"
+fi
+
+if [ "$INSTALL_TOOLKIT" = "true" ]; then
+    echo "Installing CUDA Toolkit..."
+    apt-get install -yq "$toolkit_pkg"
 fi
 
 # Clean up
