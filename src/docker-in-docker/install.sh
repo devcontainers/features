@@ -447,8 +447,8 @@ INNEREOF
 retry_docker_start_count=0
 docker_ok="false"
 
-until [ "${docker_ok}" = "true"  ] || [ "${retry_docker_start_count}" -eq "5" ];
-do 
+until [ -f /tmp/docker-ready ] || [ "${retry_docker_start_count}" -eq "5" ];
+do
     # Start using sudo if not invoked as root
     if [ "$(id -u)" -ne 0 ]; then
         sudo /bin/sh -c "${dockerd_start}"
@@ -457,20 +457,20 @@ do
     fi
 
     retry_count=0
-    until [ "${docker_ok}" = "true"  ] || [ "${retry_count}" -eq "5" ];
+    until [ "${retry_count}" -eq "5" ];
     do
-        sleep 1s
-        set +e
-            docker info > /dev/null 2>&1 && docker_ok="true"
-        set -e
+        if [ -f "/tmp/docker-ready" ]; then
+            echo "Docker is ready"
+            exit 0
+        fi
 
-        retry_count=`expr $retry_count + 1`
+        sleep 1
+        retry_count=$((retry_count + 1))
     done
-    
-    if [ "${docker_ok}" != "true" ]; then
-        echo "(*) Failed to start docker, retrying..."
-    fi
-    
+
+    echo "(*) Failed to start docker, retrying..."
+    cat /tmp/dockerd.log
+
     retry_docker_start_count=`expr $retry_docker_start_count + 1`
 done
 
@@ -479,7 +479,37 @@ done
 exec "$@"
 EOF
 
+# This will run as the feature's onCreateCommand. It will run as the user, and
+# it will block execution of the user's commands until it exits (until Docker is
+# ready).
+tee /usr/local/share/docker-oncreatecommand.sh > /dev/null \
+<< 'EOF'
+#!/usr/bin/env bash
+
+set -e
+
+docker_ok="false"
+retry_count=0
+
+until [ "${docker_ok}" = "true"  ] || [ "${retry_count}" -eq "60" ];
+do
+    sleep 1s
+    if docker info >/dev/null 2>&1; then
+        docker_ok="true"
+    fi
+
+    retry_count=$((retry_count + 1))
+done
+
+if [ "${docker_ok}" == "true" ]; then
+    echo "Docker is ready"
+    touch /tmp/docker-ready
+fi
+EOF
+
+
 chmod +x /usr/local/share/docker-init.sh
+chmod +x /usr/local/share/docker-oncreatecommand.sh
 chown ${USERNAME}:root /usr/local/share/docker-init.sh
 
 # Clean up
