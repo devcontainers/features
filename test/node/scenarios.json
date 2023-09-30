@@ -17,6 +17,17 @@
             }
         }
     },
+    "zsh_default": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "node": {
+                "version": "lts"
+            },
+            "common-utils": {
+                "configureZshAsDefaultShell": true
+            }
+        }
+    },
     "version_none": {
         "image": "mcr.microsoft.com/devcontainers/base",
         "remoteUser": "vscode",
@@ -26,20 +37,19 @@
             }
         }
     },
-    "install_node_on_universal_image": {
-        "image": "mcr.microsoft.com/devcontainers/universal",
-        "remoteUser": "codespace",
-        "features": {
-            "node": {
-                "version": "19.1.0"
-            }
-        }
-    },
     "install_node_16_on_bionic": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-18.04",
         "features": {
             "node": {
                 "version": "16"
+            }
+        }
+    },
+    "install_nvm_0.39": {
+        "image": "mcr.microsoft.com/devcontainers/base",
+        "features": {
+            "node": {
+                "nvmVersion": "0.39"
             }
         }
     }

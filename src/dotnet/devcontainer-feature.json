@@ -1,35 +1,44 @@
 {
     "id": "dotnet",
-    "version": "1.1.4",
+    "version": "2.0.1",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
-    "description": "Installs the .NET CLI. Provides option of installing sdk or runtime, and option of versions to install. Uses latest version of .NET sdk as defaults to install.",
+    "description": "This Feature installs the latest .NET SDK, which includes the .NET CLI and the shared runtime. Options are provided to choose a different version or additional versions.",
     "options": {
         "version": {
             "type": "string",
             "proposals": [
                 "latest",
-                "7",
-                "6",
-                "3.1"
+                "lts",
+                "none",
+                "8.0",
+                "7.0",
+                "6.0"
             ],
             "default": "latest",
-            "description": "Select or enter a dotnet CLI version. (Available versions may vary by Linux distribution.)"
+            "description": "Select or enter a .NET SDK version. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
         },
-        "runtimeOnly": {
-            "type": "boolean",
-            "default": false,
-            "description": "Install just the dotnet runtime if true, and sdk if false."
+        "additionalVersions": {
+            "type": "string",
+            "default": "",
+            "description": "Enter additional .NET SDK versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
         },
-        "installUsingApt": {
-            "type": "boolean",
-            "default": true,
-            "description": "If true, it installs using apt instead of the release URL"
+        "dotnetRuntimeVersions": {
+            "type": "string",
+            "default": "",
+            "description": "Enter additional .NET runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+        },
+        "aspNetCoreRuntimeVersions": {
+            "type": "string",
+            "default": "",
+            "description": "Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
         }
     },
     "containerEnv": {
-        "DOTNET_ROOT": "/usr/local/dotnet/current",
-        "PATH": "/usr/local/dotnet/current:${PATH}"
+        "DOTNET_ROOT": "/usr/share/dotnet",
+        "PATH": "$PATH:$DOTNET_ROOT:~/.dotnet/tools",
+        "DOTNET_RUNNING_IN_CONTAINER": "true",
+        "DOTNET_USE_POLLING_FILE_WATCHER": "true"
     },
     "customizations": {
         "vscode": {

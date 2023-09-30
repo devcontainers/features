@@ -48,7 +48,7 @@ You can also connect to the desktop using a [VNC viewer](https://www.realvnc.com
 
 ## Customizing Fluxbox
 
-The window manager is installed is [Fluxbox](http://fluxbox.org/). **Right-click** to see the application menu. In addition, any UI-based commands you execute inside the dev container will automatically appear on the desktop.
+The window manager installed is [Fluxbox](http://fluxbox.org/). **Right-click** to see the application menu. In addition, any UI-based commands you execute inside the dev container will automatically appear on the desktop.
 
 You can customize the desktop using Fluxbox configuration files. The configuration files are located in the `.fluxbox` folder of the home directory of the user you using to connect to the dev container (`$HOME/.fluxbox`).
 

@@ -1,6 +1,6 @@
 {
     "id": "common-utils",
-    "version": "2.0.10",
+    "version": "2.2.0",
     "name": "Common Utilities",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/common-utils",
     "description": "Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.",
@@ -19,6 +19,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install Oh My Zsh!?"
+        },
+        "installOhMyZshConfig": {
+            "type": "boolean",
+            "default": true,
+            "description": "Allow installing the default dev container .zshrc templates?"
         },
         "upgradePackages": {
             "type": "boolean",

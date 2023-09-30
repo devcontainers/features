@@ -304,25 +304,31 @@ sudo_if() {
     if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
         su - "$USERNAME" -c "$COMMAND"
     else
-        "$COMMAND"
+        $COMMAND
     fi
 }
 
 install_user_package() {
-    PACKAGE="$1"
-    sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+    INSTALL_UNDER_ROOT="$1"
+    PACKAGE="$2"
+
+    if [ "$INSTALL_UNDER_ROOT" = true ]; then
+        sudo_if "${PYTHON_SRC}" -m pip install --upgrade --no-cache-dir "$PACKAGE"
+    else
+        sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
+    fi
 }
 
 add_user_jupyter_config() {
-    CONFIG_DIR="/home/$USERNAME/.jupyter"
-    CONFIG_FILE="$CONFIG_DIR/jupyter_server_config.py"
+    CONFIG_DIR="$1"
+    CONFIG_FILE="$2"
 
     # Make sure the config file exists or create it with proper permissions
     test -d "$CONFIG_DIR" || sudo_if mkdir "$CONFIG_DIR"
     test -f "$CONFIG_FILE" || sudo_if touch "$CONFIG_FILE"
 
     # Don't write the same config more than once
-    grep -q "$1" "$CONFIG_FILE" || echo "$1" >> "$CONFIG_FILE"
+    grep -q "$3" "$CONFIG_FILE" || echo "$3" >> "$CONFIG_FILE"
 }
 
 install_python() {
@@ -461,13 +467,26 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         exit 1
     fi
 
-    install_user_package jupyterlab
-    install_user_package jupyterlab-git
+    INSTALL_UNDER_ROOT=true
+    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
+        INSTALL_UNDER_ROOT=false
+    fi
+
+    install_user_package $INSTALL_UNDER_ROOT jupyterlab
+    install_user_package $INSTALL_UNDER_ROOT jupyterlab-git
 
     # Configure JupyterLab if needed
     if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
-        add_user_jupyter_config "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
-        add_user_jupyter_config "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+        # Resolve config directory
+        CONFIG_DIR="/root/.jupyter"
+        if [ "$INSTALL_UNDER_ROOT" = false ]; then
+            CONFIG_DIR="/home/$USERNAME/.jupyter"
+        fi
+
+        CONFIG_FILE="$CONFIG_DIR/jupyter_server_config.py"
+
+        add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+        add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
     fi
 fi
 
