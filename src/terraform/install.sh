@@ -82,7 +82,7 @@ receive_gpg_keys() {
     if [ "${gpg_ok}" = "false" ]; then
         retry_count=0;
         echo "(*) Resolving GPG keyserver IP address..."
-        local keyserver_ip_address=$( resolve_ip_by_domain keyserver.ubuntu.com )
+        local keyserver_ip_address=$( dig +short keyserver.ubuntu.com | head -n1 )
         echo "(*) GPG keyserver IP address $keyserver_ip_address"
         
         until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "3" ]; 
