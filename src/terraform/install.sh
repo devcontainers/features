@@ -77,6 +77,25 @@ receive_gpg_keys() {
             sleep 10s
         fi
     done
+
+    # If all attempts fail, try getting the keyserver IP address and explicitly passing it to gpg
+    if [ "${gpg_ok}" = "false" ]; then
+        retry_count=0;
+        echo "(*) Resolving GPG keyserver IP address..."
+        local keyserver_ip_address=$( resolve_ip_by_domain keyserver.ubuntu.com )
+        echo "(*) GPG keyserver IP address $keyserver_ip_address"
+        
+        until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "3" ]; 
+        do
+            echo "(*) Downloading GPG key..."
+            ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys --keyserver ${keyserver_ip_address}) 2>&1 && gpg_ok="true"
+            if [ "${gpg_ok}" != "true" ]; then
+                echo "(*) Failed getting key, retring in 10s..."
+                (( retry_count++ ))
+                sleep 10s
+            fi
+        done
+    fi
     set -e
     if [ "${gpg_ok}" = "false" ]; then
         echo "(!) Failed to get gpg key."
@@ -183,7 +202,7 @@ ensure_cosign() {
 export DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies if missing
-check_packages curl ca-certificates gnupg2 dirmngr coreutils unzip
+check_packages curl ca-certificates gnupg2 dirmngr coreutils unzip dnsutils
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
