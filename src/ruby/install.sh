@@ -24,6 +24,7 @@ DEFAULT_GEMS="rake"
 
 RVM_GPG_KEYS="409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
+keyserver hkp://keyserver.ubuntu.com:80
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
