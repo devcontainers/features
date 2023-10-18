@@ -45,6 +45,9 @@ YLZATHZKTJyiqA==
 =vYOk
 -----END PGP PUBLIC KEY BLOCK-----"
 
+INSTALL_SESSIONMANAGERPLUGIN="${installSessionManagerPlugin:-"false"}"
+SESSIONMANAGERPLUGIN_VERSION="${sessionManagerPluginVersion:-"latest"}"
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -135,11 +138,46 @@ install() {
     rm -rf ./aws
 }
 
+install_session_manager_plugin() {
+    # See ubuntu/Debian install docs at https://docs.aws.amazon.com/systems-manager/latest/userguide/install-plugin-debian.html
+
+    if [[ "${INSTALL_SESSIONMANAGERPLUGIN}" == "true" ]] && ! session-manager-plugin > /dev/null; then
+        echo "installSessionManagerPlugin is ${INSTALL_SESSIONMANAGERPLUGIN}"
+        return
+    fi
+
+    echo "(*) Installing Session Manager Plugin..."
+
+    local ssmPluginVersionStr="latest"
+
+    if [ "${SESSIONMANAGERPLUGIN_VERSION}" != "latest" ]; then
+        ssmPluginVersionStr=-${SESSIONMANAGERPLUGIN_VERSION}
+    fi
+
+    architecture=$(dpkg --print-architecture)
+    case "${architecture}" in
+        amd64) architectureStr=64bit ;;
+        arm64) architectureStr=arm64 ;;
+        *)
+            echo "AWS session manager plugin does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
+            exit 1
+    esac
+
+    curl "https://s3.amazonaws.com/session-manager-downloads/plugin/${ssmPluginVersionStr}/ubuntu_${architectureStr}/session-manager-plugin.deb" -o "session-manager-plugin.deb"
+
+    dpkg -i session-manager-plugin.deb
+
+    rm session-manager-plugin.deb
+}
+
 echo "(*) Installing AWS CLI..."
 
 install
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
+
+# Install Session Manager Plugin
+install_session_manager_plugin
 
 echo "Done!"

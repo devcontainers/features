@@ -16,6 +16,8 @@ Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter an AWS CLI version. | string | latest |
+| installSessionManagerPlugin | install [Session Manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html) for AWS CLI. | string | false |
+| sessionManagerPluginVersion | Select or enter a SessionManagerPlugin version. | String | latest |
 
 ## Customizations
 

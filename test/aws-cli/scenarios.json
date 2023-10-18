@@ -1,0 +1,11 @@
+{
+    "install_ssm_plugin": {
+      "image": "mcr.microsoft.com/devcontainers/base:bullseye",
+      "user": "vscode",
+      "features": {
+        "aws-cli": {
+          "installSessionManagerPlugin": "true"
+        }
+      }
+    }
+}
