@@ -17,7 +17,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-if [[ $(uname -m) = "arm64" ]]; then
+if [[ $(uname -m) = "aarch64" ]]; then
     echo -e "NVIDIA® CUDA Toolkit no longer supports development or running applications on machines with the 'arm64' architecture. Please consider an alternative or check for updates or support for your architecture."
     exit 1
 fi
