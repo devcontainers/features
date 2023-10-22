@@ -19,8 +19,15 @@
             "type": "string",
             "default": "",
             "description": "Optional comma separated list of PowerShell modules to install."
-          }
-        },
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.powershell"
+            ]
+        }
+    },
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"
     ]
