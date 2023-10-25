@@ -57,21 +57,6 @@ elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
     USERNAME=root
 fi
 
-# Get central common setting
-get_common_setting() {
-    if [ "${common_settings_file_loaded}" != "true" ]; then
-        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" 2>/dev/null -o /tmp/vsdc-settings.env || echo "Could not download settings file. Skipping."
-        common_settings_file_loaded=true
-    fi
-    if [ -f "/tmp/vsdc-settings.env" ]; then
-        local multi_line=""
-        if [ "$2" = "true" ]; then multi_line="-z"; fi
-        local result="$(grep ${multi_line} -oP "$1=\"?\K[^\"]+" /tmp/vsdc-settings.env | tr -d '\0')"
-        if [ ! -z "${result}" ]; then declare -g $1="${result}"; fi
-    fi
-    echo "$1=${!1}"
-}
-
 apt_get_update()
 {
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
@@ -137,8 +122,6 @@ architecture="$(dpkg --print-architecture)"
 
 # Check if distro is supported
 if [ "${USE_MOBY}" = "true" ]; then
-    # 'get_common_setting' allows attribute to be updated remotely
-    get_common_setting DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES
     if [[ "${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
         err "Unsupported  distribution version '${VERSION_CODENAME}'. To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS distribution"
         err "Support distributions include:  ${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}"
@@ -146,7 +129,6 @@ if [ "${USE_MOBY}" = "true" ]; then
     fi
     echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}'"
 else
-    get_common_setting DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES
     if [[ "${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
         err "Unsupported distribution version '${VERSION_CODENAME}'. To resolve, please choose a compatible OS distribution"
         err "Support distributions include:  ${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}"
@@ -177,7 +159,6 @@ if [ "${USE_MOBY}" = "true" ]; then
     cli_package_name="moby-cli"
 
     # Import key safely and import Microsoft apt repo
-    get_common_setting MICROSOFT_GPG_KEYS_URI
     curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
     echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
 else
