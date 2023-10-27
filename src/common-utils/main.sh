@@ -467,7 +467,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         else
             global_rc_path="/etc/zsh/zshrc"
         fi
-        cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> /etc/zshrc
+        cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${global_rc_path}
         ZSH_ALREADY_INSTALLED="true"
     fi
 
@@ -483,18 +483,12 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         chsh --shell /bin/zsh ${USERNAME}
     fi
 
-    # Adapted, simplified inline Oh My Zsh! install steps that adds RC snippet and defaults to a codespaces theme.
+    # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
     if [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
         user_rc_file="${user_home}/.zshrc"
         oh_my_install_dir="${user_home}/.oh-my-zsh"
         template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
-
-        if [ "${ZSH_RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
-            cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${user_rc_file}
-            ZSH_RC_SNIPPET_ALREADY_ADDED="true"
-        fi
-
         if [ ! -d "${oh_my_install_dir}" ]; then
             umask g-w,o-w
             mkdir -p ${oh_my_install_dir}
@@ -518,7 +512,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
 
         # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
-            echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" >> ${user_rc_file}
+            echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
 
@@ -570,7 +564,6 @@ echo -e "\
     LOCALE_ALREADY_SET=${LOCALE_ALREADY_SET}\n\
     EXISTING_NON_ROOT_USER=${EXISTING_NON_ROOT_USER}\n\
     RC_SNIPPET_ALREADY_ADDED=${RC_SNIPPET_ALREADY_ADDED}\n\
-    ZSH_RC_SNIPPET_ALREADY_ADDED=${ZSH_RC_SNIPPET_ALREADY_ADDED}\n\
     ZSH_ALREADY_INSTALLED=${ZSH_ALREADY_INSTALLED}" > "${MARKER_FILE}"
 
 echo "Done!"
