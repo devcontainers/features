@@ -11,6 +11,5 @@ check "default-shell-is-zsh" bash -c "getent passwd $(whoami) | awk -F: '{ print
 check "default-zshrc-is-dev-container-template" bash -c "cat ~/.zshrc | grep ZSH_THEME | grep devcontainers"
 check "zsh-path-contains-local-bin" zsh -l -c "echo $PATH | grep '/home/devcontainer/.local/bin'"
 
-cat /etc/zshrc
 # Report result
 reportResults
