@@ -490,7 +490,10 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         oh_my_install_dir="${user_home}/.oh-my-zsh"
         template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
 
-        cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${user_rc_file}
+        if [ "${ZSH_RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
+            cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${user_rc_file}
+            ZSH_RC_SNIPPET_ALREADY_ADDED="true"
+        fi
 
         if [ ! -d "${oh_my_install_dir}" ]; then
             umask g-w,o-w
@@ -567,6 +570,7 @@ echo -e "\
     LOCALE_ALREADY_SET=${LOCALE_ALREADY_SET}\n\
     EXISTING_NON_ROOT_USER=${EXISTING_NON_ROOT_USER}\n\
     RC_SNIPPET_ALREADY_ADDED=${RC_SNIPPET_ALREADY_ADDED}\n\
+    ZSH_RC_SNIPPET_ALREADY_ADDED=${ZSH_RC_SNIPPET_ALREADY_ADDED}\n\
     ZSH_ALREADY_INSTALLED=${ZSH_ALREADY_INSTALLED}" > "${MARKER_FILE}"
 
 echo "Done!"
