@@ -421,6 +421,7 @@ fi
 # Restore user .bashrc / .profile / .zshrc defaults from skeleton file if it doesn't exist or is empty
 possible_rc_files=( ".bashrc" ".profile" )
 [ "$INSTALL_OH_MY_ZSH_CONFIG" == "true" ] && possible_rc_files+=('.zshrc')
+[ "$INSTALL_ZSH" == "true" ] && possible_rc_files+=('.zprofile')
 for rc_file in "${possible_rc_files[@]}"; do
     if [ -f "/etc/skel/${rc_file}" ]; then
         if [ ! -e "${user_home}/${rc_file}" ] || [ ! -s "${user_home}/${rc_file}" ]; then
@@ -456,13 +457,17 @@ fi
 
 # Optionally configure zsh and Oh My Zsh!
 if [ "${INSTALL_ZSH}" = "true" ]; then
+    if [ ! -f "${user_home}/.zprofile" ] || ! grep -Fxq 'source $HOME/.profile' "${user_home}/.zprofile" ; then
+        echo 'source $HOME/.profile' >> "${user_home}/.zprofile"
+    fi
+
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
         if [ "${ADJUSTED_ID}" = "rhel" ]; then
              global_rc_path="/etc/zshrc"
         else
             global_rc_path="/etc/zsh/zshrc"
         fi
-        cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> /etc/zshrc
+        cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${global_rc_path}
         ZSH_ALREADY_INSTALLED="true"
     fi
 
