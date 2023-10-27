@@ -421,6 +421,7 @@ fi
 # Restore user .bashrc / .profile / .zshrc defaults from skeleton file if it doesn't exist or is empty
 possible_rc_files=( ".bashrc" ".profile" )
 [ "$INSTALL_OH_MY_ZSH_CONFIG" == "true" ] && possible_rc_files+=('.zshrc')
+[ "$INSTALL_ZSH" == "true" ] && possible_rc_files+=('.zprofile')
 for rc_file in "${possible_rc_files[@]}"; do
     if [ -f "/etc/skel/${rc_file}" ]; then
         if [ ! -e "${user_home}/${rc_file}" ] || [ ! -s "${user_home}/${rc_file}" ]; then
@@ -456,6 +457,10 @@ fi
 
 # Optionally configure zsh and Oh My Zsh!
 if [ "${INSTALL_ZSH}" = "true" ]; then
+    if [ ! -f "${user_home}/.zprofile" ] || ! grep -Fxq 'source $HOME/.profile' "${user_home}/.zprofile" ; then
+        echo 'source $HOME/.profile' >> "${user_home}/.zprofile"
+    fi
+
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
         if [ "${ADJUSTED_ID}" = "rhel" ]; then
              global_rc_path="/etc/zshrc"
@@ -478,12 +483,15 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         chsh --shell /bin/zsh ${USERNAME}
     fi
 
-    # Adapted, simplified inline Oh My Zsh! install steps that adds, defaults to a codespaces theme.
+    # Adapted, simplified inline Oh My Zsh! install steps that adds RC snippet and defaults to a codespaces theme.
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
     if [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
         user_rc_file="${user_home}/.zshrc"
         oh_my_install_dir="${user_home}/.oh-my-zsh"
         template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
+
+        cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${user_rc_file}
+
         if [ ! -d "${oh_my_install_dir}" ]; then
             umask g-w,o-w
             mkdir -p ${oh_my_install_dir}
@@ -507,7 +515,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
 
         # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
-            echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
+            echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" >> ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
 

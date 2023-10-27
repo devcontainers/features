@@ -108,12 +108,14 @@
         }
     },
     "configure_zsh_as_default_shell": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "image": "ubuntu",
         "features": {
             "common-utils": {
+                "installZsh": true,
                 "configureZshAsDefaultShell": true
             }
-        }
+        },
+        "remoteUser": "devcontainer"
     },
     "configure_zsh_no_template_second_step": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
