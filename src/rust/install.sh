@@ -159,8 +159,6 @@ if ! cat /etc/group | grep -e "^rustlang:" > /dev/null 2>&1; then
 fi
 usermod -a -G rustlang "${USERNAME}"
 mkdir -p "${CARGO_HOME}" "${RUSTUP_HOME}"
-chown "${USERNAME}:rustlang" "${RUSTUP_HOME}" "${CARGO_HOME}"
-chmod g+r+w+s "${RUSTUP_HOME}" "${CARGO_HOME}"
 
 if [ "${RUST_VERSION}" = "none" ] || type rustup > /dev/null 2>&1; then
     echo "Rust already installed. Skipping..."
@@ -210,7 +208,10 @@ EOF
 )"
 
 # Make files writable for rustlang group
+chown -R "${USERNAME}:rustlang" "${RUSTUP_HOME}" "${CARGO_HOME}"
 chmod -R g+r+w "${RUSTUP_HOME}" "${CARGO_HOME}"
+find "${RUSTUP_HOME}" -type d -print0 | xargs -n 1 -0 chmod g+s
+find "${CARGO_HOME}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
