@@ -423,8 +423,13 @@ get_normalized_os() {
                 echo "$osname"
                 return 0
                 ;;
+            macos)
+                osname='osx'
+                echo "$osname"
+                return 0
+                ;;
             *)
-                say_err "'$user_defined_os' is not a supported value for --os option, supported values are: osx, linux, linux-musl, freebsd, rhel.6. If you think this is a bug, report it at https://github.com/dotnet/install-scripts/issues."
+                say_err "'$user_defined_os' is not a supported value for --os option, supported values are: osx, macos, linux, linux-musl, freebsd, rhel.6. If you think this is a bug, report it at https://github.com/dotnet/install-scripts/issues."
                 return 1
                 ;;
         esac
