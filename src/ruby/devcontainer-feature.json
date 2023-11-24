@@ -9,7 +9,6 @@
             "type": "string",
             "proposals": [
                 "latest",
-                "os-provided",
                 "none",
                 "3.2",
                 "3.1",
