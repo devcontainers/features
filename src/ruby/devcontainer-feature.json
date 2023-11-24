@@ -1,7 +1,7 @@
 {
     "id": "ruby",
-    "version": "1.2.0",
-    "name": "Ruby (via rvm)",
+    "version": "1.2.0", // TODO - Is this a major or a minor update? Major, probably.
+    "name": "Ruby",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/ruby",
     "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
     "options": {
@@ -9,13 +9,19 @@
             "type": "string",
             "proposals": [
                 "latest",
+                "os-provided",
                 "none",
+                "3.2",
                 "3.1",
-                "3.0",
-                "2.7"
+                "3.0"
             ],
             "default": "latest",
             "description": "Select or enter a Ruby version to install"
+        },
+        "additionalVersions": {
+            "type": "string",
+            "default": "",
+            "description": "Enter additional versions, separated by commas."
         }
     },
     "customizations": {

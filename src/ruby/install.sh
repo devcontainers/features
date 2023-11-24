@@ -7,26 +7,22 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/ruby.md
 # Maintainer: The VS Code and Codespaces Teams
 
-RUBY_VERSION="${VERSION:-"latest"}"
-
-USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
-UPDATE_RC="${UPDATE_RC:-"true"}"
+export RUBY_VERSION="${VERSION:-"latest"}"
 INSTALL_RUBY_TOOLS="${INSTALL_RUBY_TOOLS:-"true"}"
 
 # Comma-separated list of ruby versions to be installed (with rvm)
 # alongside RUBY_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
-# Note: ruby-debug-ide will install the right version of debase if missing and
-# installing debase directly fails on Ruby 3.1.0 as of 1/7/2022, so omitting.
-# installing ruby-debug-ide on debian fails, so omitting.
-DEFAULT_GEMS="rake"
+GPG_KEY_SERVERS="keyserver hkps://keys.openpgp.org
+keyserver hkp://keyserver.pgp.com
+keyserver hkp://pgp.mit.edu
+keyserver hkp://ipv4.pool.sks-keyservers.net
+keyserver hkp://keyserver.ubuntu.com
+keyserver hkp://keyserver.ubuntu.com:80"
 
-RVM_GPG_KEYS="409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
-keyserver hkp://keyserver.ubuntu.com:80
-keyserver hkps://keys.openpgp.org
-keyserver hkp://keyserver.pgp.com"
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+UPDATE_RC="${UPDATE_RC:-"true"}"
 
 set -e
 
@@ -106,7 +102,7 @@ receive_gpg_keys() {
     fi
 }
 
-# Figure out correct version of a three part version number is not passed
+# Figure out correct version if a three part version number is not passed
 find_version_from_git_tags() {
     local variable_name=$1
     local requested_version=${!variable_name}
@@ -169,10 +165,10 @@ fi
 check_packages curl ca-certificates software-properties-common build-essential gnupg2 libreadline-dev \
     procps dirmngr gawk autoconf automake bison libffi-dev libgdbm-dev libncurses5-dev \
     libsqlite3-dev libtool libyaml-dev pkg-config sqlite3 zlib1g-dev libgmp-dev libssl-dev
+
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
-
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags RUBY_VERSION "https://github.com/ruby/ruby" "tags/v" "_"
@@ -181,21 +177,20 @@ find_version_from_git_tags RUBY_VERSION "https://github.com/ruby/ruby" "tags/v" 
 if rvm --version > /dev/null; then
     echo "Ruby Version Manager already exists."
     if [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
-        echo "(!) Ruby is already installed with version ${RUBY_VERSION}. Skipping..."
+        echo "(!) Ruby is already installed with version ${RUBY_VERSION}."
     elif [ "${RUBY_VERSION}" != "none" ]; then
         echo "Installing specified Ruby version."
         su ${USERNAME} -c "rvm install ruby ${RUBY_VERSION}"
     fi
-    SKIP_GEM_INSTALL="false"
-    SKIP_RBENV_RBUILD="true"
 else
     # Install RVM
+    RVM_GPG_KEYS="409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
     receive_gpg_keys RVM_GPG_KEYS
     # Determine appropriate settings for rvm installer
     if [ "${RUBY_VERSION}" = "none" ]; then
         RVM_INSTALL_ARGS=""
     elif [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
-        echo "(!) Ruby is already installed with version ${RUBY_VERSION}. Skipping..."
+        echo "(!) Ruby is already installed with version ${RUBY_VERSION}."
         RVM_INSTALL_ARGS=""
     else
         if [ "${RUBY_VERSION}" = "latest" ] || [ "${RUBY_VERSION}" = "current" ] || [ "${RUBY_VERSION}" = "lts" ]; then
@@ -204,29 +199,17 @@ else
         else
             RVM_INSTALL_ARGS="--ruby=${RUBY_VERSION}"
         fi
-        if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then
-            SKIP_GEM_INSTALL="true"
-        else 
-            DEFAULT_GEMS=""
-        fi
     fi
     # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
     fi
     # Install rvm
-    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} 2>&1
     usermod -aG rvm ${USERNAME}
     source /usr/local/rvm/scripts/rvm
     rvm fix-permissions system
     rm -rf ${GNUPGHOME}
-fi
-
-if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then
-    # Non-root user may not have "gem" in path when script is run and no ruby version
-    # is installed by rvm, so handle this by using root's default gem in this case
-    ROOT_GEM="$(which gem || echo "")"
-    ${ROOT_GEM} install ${DEFAULT_GEMS}
 fi
 
 # VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
@@ -246,59 +229,12 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     IFS=$OLDIFS
 fi
 
-# Install rbenv/ruby-build for good measure
-if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
-
-    if [[ ! -d "/usr/local/share/rbenv" ]]; then
-        git clone --depth=1 \
-            -c core.eol=lf \
-            -c core.autocrlf=false \
-            -c fsck.zeroPaddedFilemode=ignore \
-            -c fetch.fsck.zeroPaddedFilemode=ignore \
-            -c receive.fsck.zeroPaddedFilemode=ignore \
-            https://github.com/rbenv/rbenv.git /usr/local/share/rbenv
-    fi
-
-    if [[ ! -d "/usr/local/share/ruby-build" ]]; then
-        git clone --depth=1 \
-            -c core.eol=lf \
-            -c core.autocrlf=false \
-            -c fsck.zeroPaddedFilemode=ignore \
-            -c fetch.fsck.zeroPaddedFilemode=ignore \
-            -c receive.fsck.zeroPaddedFilemode=ignore \
-            https://github.com/rbenv/ruby-build.git /usr/local/share/ruby-build
-        mkdir -p /root/.rbenv/plugins
-
-        ln -s /usr/local/share/ruby-build /root/.rbenv/plugins/ruby-build
-    fi
-
-    if [ "${USERNAME}" != "root" ]; then
-        mkdir -p /home/${USERNAME}/.rbenv/plugins
-
-        if [[ ! -d "/home/${USERNAME}/.rbenv/plugins/ruby-build" ]]; then
-            ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
-        fi
-
-        # Oryx expects ruby to be installed in this specific path, else it breaks the oryx magic for ruby projects.
-        if [ ! -f /usr/local/rvm/gems/default/bin/ruby ]; then
-            ln -s /usr/local/rvm/rubies/default/bin/ruby /usr/local/rvm/gems/default/bin
-        fi
-
-        chown -R "${USERNAME}:rvm" "/home/${USERNAME}/.rbenv/"
-        chmod -R g+r+w "/home/${USERNAME}/.rbenv"
-        find "/home/${USERNAME}/.rbenv" -type d | xargs -n 1 chmod g+s
-    fi
-fi
-
 chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
 chmod -R g+r+w "/usr/local/rvm/"
 find "/usr/local/rvm/" -type d | xargs -n 1 chmod g+s
 
 # Clean up
 rvm cleanup all
-${ROOT_GEM} cleanup
-
-# Clean up
 rm -rf /var/lib/apt/lists/*
 
 echo "Done!"
