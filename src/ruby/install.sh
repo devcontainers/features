@@ -8,7 +8,6 @@
 # Maintainer: The VS Code and Codespaces Teams
 
 export RUBY_VERSION="${VERSION:-"latest"}"
-INSTALL_RUBY_TOOLS="${INSTALL_RUBY_TOOLS:-"true"}"
 
 # Comma-separated list of ruby versions to be installed (with rvm)
 # alongside RUBY_VERSION, but not set as default.
