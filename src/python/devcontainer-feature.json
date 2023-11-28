@@ -22,6 +22,11 @@
       "default": "os-provided",
       "description": "Select a Python version to install."
     },
+    "additionalVersions": {
+      "type": "string",
+      "default": "",
+      "description": "Enter additional Python versions, separated by commas. Use 'X.Y' or 'X.Y.Z' for a specific version"
+  },
     "installTools": {
       "type": "boolean",
       "default": true,
@@ -46,6 +51,11 @@
       "type": "string",
       "default": "",
       "description": "Configure JupyterLab to accept HTTP requests from the specified origin"
+    },
+    "packages": {
+      "type": "string",
+      "default": "",
+      "description": "Optional comma separated list of Python packages to install with pip"
     },
     "httpProxy": {
       "type": "string",
