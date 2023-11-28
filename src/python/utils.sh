@@ -13,9 +13,9 @@ install_python_package() {
     PACKAGE="$3"
     VERSION="${4:-""}"
 
-    sudo_if "${PYTHON_PATH}" -m pip uninstall --yes "${PACKAGE}"
+    sudo_if "$PYTHON_PATH -m pip uninstall --yes $PACKAGE"
 
-    install_command="-m pip install --upgrade --no-cache-dir "
+    install_command=" -m pip install --upgrade --no-cache-dir "
 
     if [ "$INSTALL_UNDER_ROOT" = false ]; then
         install_command+="--user "
@@ -27,7 +27,7 @@ install_python_package() {
       install_command+="==${VERSION}"
     fi
 
-    sudo_if "${PYTHON_PATH} ${install_command}"
+    sudo_if "$PYTHON_PATH$install_command"
 
-    sudo_if "${PYTHON_PATH}" -m pip --no-python-version-warning show "${PACKAGE}"
+    sudo_if "$PYTHON_PATH -m pip --no-python-version-warning show $PACKAGE"
 }
