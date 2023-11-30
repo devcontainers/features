@@ -158,10 +158,10 @@ SOLUTION_FILE_NAME="Oryx.sln"
 echo "Building solution '$SOLUTION_FILE_NAME'..."
 
 cd $GIT_ORYX
-${DOTNET_BINARY} build "$SOLUTION_FILE_NAME" -c Debug
+${DOTNET_BINARY} build --configuration Debug --framework net7.0 "$SOLUTION_FILE_NAME"
 
-${DOTNET_BINARY} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
-${DOTNET_BINARY} publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
+${DOTNET_BINARY} publish --configuration Release --runtime linux-x64 --output ${BUILD_SCRIPT_GENERATOR} --framework net7.0 --self-contained -property:ValidateExecutableReferencesMatchSelfContained=false $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
+${DOTNET_BINARY} publish --configuration Release --runtime linux-x64 --output ${BUILD_SCRIPT_GENERATOR} --framework net7.0 --self-contained $GIT_ORYX/src/BuildServer/BuildServer.csproj
 
 chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
