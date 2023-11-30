@@ -13,23 +13,19 @@ install_python_package() {
     PACKAGE="$3"
     VERSION="${4:-""}"
 
-    set -e
+    sudo_if "$PYTHON_PATH" -m pip uninstall --yes "$PACKAGE"
 
-    sudo_if "$PYTHON_PATH -m pip uninstall --yes $PACKAGE"
-
-    install_command=" -m pip install --upgrade --no-cache-dir "
-
-    if [ "$INSTALL_UNDER_ROOT" = false ]; then
-        install_command+="--user "
-    fi
-
-    install_command+="${PACKAGE}"
+    install_package="${PACKAGE}"
 
     if [ ! -z "${VERSION}" ]; then
-      install_command+="==${VERSION}"
+      install_package+="==${VERSION}"
     fi
 
-    sudo_if "$PYTHON_PATH$install_command"
+    if [ "$INSTALL_UNDER_ROOT" = true ]; then
+        sudo_if "$PYTHON_PATH" -m pip install --upgrade --no-cache-dir "$install_package"
+    else
+        sudo_if "$PYTHON_PATH" -m pip install --upgrade --user --no-cache-dir "$install_package"
+    fi
 
-    sudo_if "$PYTHON_PATH -m pip --no-python-version-warning show $PACKAGE"
+    sudo_if "$PYTHON_PATH" -m pip --no-python-version-warning show "$PACKAGE"
 }
