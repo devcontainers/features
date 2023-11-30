@@ -13,6 +13,8 @@ install_python_package() {
     PACKAGE="$3"
     VERSION="${4:-""}"
 
+    set -e
+
     sudo_if "$PYTHON_PATH -m pip uninstall --yes $PACKAGE"
 
     install_command=" -m pip install --upgrade --no-cache-dir "

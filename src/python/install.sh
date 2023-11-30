@@ -507,8 +507,8 @@ if [ ! -z "${PYTHON_PACKAGES}" ]; then
     IFS=","
     read -a python_packages <<< "$PYTHON_PACKAGES"
         for package in "${python_packages[@]}"; do
-          name=${test%==*}
-          version=${test#*==}
+          name=$(echo ${package} | awk -F == '{ print $1 }')
+          version=$(echo ${package} |  awk -F == '{ print $2 }')
           install_python_package $INSTALL_UNDER_ROOT $PYTHON_SRC $name $version
         done
     IFS=$OLDIFS
