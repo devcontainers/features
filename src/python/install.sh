@@ -307,19 +307,6 @@ install_using_oryx() {
     add_symlink
 }
 
-install_user_package() {
-    INSTALL_UNDER_ROOT="$1"
-    PACKAGE="$2"
-
-    if [ "$INSTALL_UNDER_ROOT" = true ]; then
-        sudo_if "${PYTHON_SRC}" -m pip install --upgrade --no-cache-dir "$PACKAGE"
-    else
-        sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
-    
-    sudo_if "${PYTHON_SRC}" -m pip show "$PACKAGE"
-    fi
-}
-
 add_user_jupyter_config() {
     CONFIG_DIR="$1"
     CONFIG_FILE="$2"
