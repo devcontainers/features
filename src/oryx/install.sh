@@ -133,12 +133,12 @@ if dotnet --version > /dev/null ; then
 fi
 
 # Oryx needs to be built with .NET 7
-if [[ "${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --version)" != *"7"* ]] ; then
-    echo "'dotnet 7' was not detected. Attempting to install .NET 7 to build oryx."
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --list-sdks)" != *"7.0."* ]] ; then
+    echo "'.NET 7.0.x' was not detected. Attempting to install .NET 7 to build oryx."
     install_dotnet_using_apt
 
     if ! dotnet --version > /dev/null ; then
-        echo "(!) Please install Dotnet before installing Oryx"
+        echo "(!) Please install .NET before installing Oryx"
         exit 1
     fi
 
