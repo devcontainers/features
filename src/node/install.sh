@@ -233,6 +233,7 @@ else
         [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
         npm install -g pnpm
         pnpm setup
+        pnpm config set store-dir $PNPM_HOME/store
     else
         echo "Skip installing pnpm because npm is missing"
     fi
