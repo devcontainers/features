@@ -92,7 +92,8 @@
         }
     },
     "install_packages_non_root": {
-        "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "remoteUser": "vscode",
         "features": {
             "python": {
                 "version": "3.11",
@@ -101,7 +102,8 @@
         }
     },
     "install_packages_versions_locked": {
-        "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "remoteUser": "vscode",
         "features": {
             "python": {
                 "version": "3.11",
@@ -110,7 +112,8 @@
         }
     },
     "install_packages_mixed": {
-        "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "remoteUser": "vscode",
         "features": {
             "python": {
                 "version": "3.11",
