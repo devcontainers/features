@@ -222,7 +222,9 @@ install_redhat_packages() {
         package_list="${package_list} zsh"
     fi
 
-    ${install_cmd} -y install ${package_list}
+    if [ -n "${package_list}" ]; then
+        ${install_cmd} -y install ${package_list}
+    fi
 
     # Get to latest versions of all packages
     if [ "${UPGRADE_PACKAGES}" = "true" ]; then
