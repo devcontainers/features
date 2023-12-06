@@ -189,11 +189,11 @@ install_redhat_packages() {
             man-db \
             strace"
 
-    # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
-    # Install 'curl' for every OS except this rockylinux:9
-    if [[ "${ID}" = "rocky" ]] && [[ "${VERSION}" != *"9."* ]]; then
-        package_list="${package_list} curl"
-    fi
+        # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
+        # Install 'curl' for every OS except this rockylinux:9
+        if [[ "${ID}" = "rocky" ]] && [[ "${VERSION}" != *"9."* ]]; then
+            package_list="${package_list} curl"
+        fi
 
         # Install OpenSSL 1.0 compat if needed
         if ${install_cmd} -q list compat-openssl10 >/dev/null 2>&1; then
@@ -222,7 +222,9 @@ install_redhat_packages() {
         package_list="${package_list} zsh"
     fi
 
-    ${install_cmd} -y install ${package_list}
+    if [ -n "${package_list}" ]; then
+        ${install_cmd} -y install ${package_list}
+    fi
 
     # Get to latest versions of all packages
     if [ "${UPGRADE_PACKAGES}" = "true" ]; then
