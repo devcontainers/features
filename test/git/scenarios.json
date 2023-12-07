@@ -43,5 +43,50 @@
                 "ppa": "false"
             }
         }
+    },
+    "install_git_from_src_centos-7": {
+        "image": "centos:centos7",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_src_alma-8": {
+        "image": "almalinux:8",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_src_alma-9": {
+        "image": "almalinux:9",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_src_alma-8-minimal": {
+        "image": "almalinux:8-minimal",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_src_alma-9-minimal": {
+        "image": "almalinux:9-minimal",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
     }
 }
