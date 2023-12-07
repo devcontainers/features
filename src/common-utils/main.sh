@@ -461,6 +461,7 @@ fi
 if [ "${INSTALL_ZSH}" = "true" ]; then
    if [ ! -f "${user_home}/.zprofile" ]; then
         touch "${user_home}/.zprofile"
+        echo 'source $HOME/.profile' >> "${user_home}/.zprofile" # TODO: Reconsider adding '.profile' to '.zprofile'
         chown ${USERNAME}:${group_name} "${user_home}/.zprofile"
     fi
 
