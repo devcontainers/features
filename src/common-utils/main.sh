@@ -459,8 +459,10 @@ fi
 
 # Optionally configure zsh and Oh My Zsh!
 if [ "${INSTALL_ZSH}" = "true" ]; then
-    if [ ! -f "${user_home}/.zprofile" ] || ! grep -Fxq 'source $HOME/.profile' "${user_home}/.zprofile" ; then
-        echo 'source $HOME/.profile' >> "${user_home}/.zprofile"
+   if [ ! -f "${user_home}/.zprofile" ]; then
+        touch "${user_home}/.zprofile"
+        echo 'source $HOME/.profile' >> "${user_home}/.zprofile" # TODO: Reconsider adding '.profile' to '.zprofile'
+        chown ${USERNAME}:${group_name} "${user_home}/.zprofile"
     fi
 
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
