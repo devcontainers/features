@@ -18,8 +18,32 @@ UPDATE_RUST="${UPDATE_RUST:-"false"}"
 
 set -e
 
+# Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
+. /etc/os-release
+# Get an adjusted ID independent of distro variants
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+    ADJUSTED_ID="debian"
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+    ADJUSTED_ID="rhel"
+else
+    echo "Linux distro ${ID} not supported."
+    exit 1
+fi
+
+if [ "${ADJUSTED_ID}" = "rhel" ]; then
+    local install_cmd=dnf
+    if ! type dnf > /dev/null 2>&1; then
+        install_cmd=yum
+    fi
+fi
+
 # Clean up
-rm -rf /var/lib/apt/lists/*
+if [ "${ADJUSTED_ID}" = "debian" ]; then
+    if [ -d /var/lib/apt/lists ]; then
+        rm -rf /var/lib/apt/lists/*
+    fi
+fi
+
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -121,36 +145,73 @@ apt_get_update()
     fi
 }
 
+rhel_update()
+{
+    echo "Running ${install_cmd} update..."
+    ${install_cmd} update -y
+}
+
 # Checks if packages are installed and installs them if not
 check_packages() {
-    if ! dpkg -s "$@" >/dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
+    if [ "${ADJUSTED_ID}" = "rhel" ]; then
+        if ! rpm -q "$@" >/dev/null 2>&1; then
+            rhel_update
+            ${install_cmd} -y install "$@"
+        fi
+    else
+        if ! dpkg -s "$@" >/dev/null 2>&1; then
+            apt_get_update
+            apt-get -y install --no-install-recommends "$@"
+        fi
     fi
 }
 
-export DEBIAN_FRONTEND=noninteractive
+if [ "${ADJUSTED_ID}" = "rhel" ]; then
+    if ! rpm -q curl ca-certificates gnupg2 lldb python3-minimal gcc libc6-dev > /dev/null 2>&1; then
+        rhel_update
+        ${install_cmd} -y install curl ca-certificates gcc libc6-dev
+        ${install_cmd} -y install lldb python3-minimal libpython3.?
+    fi
+else
+    export DEBIAN_FRONTEND=noninteractive
 
-# Install curl, lldb, python3-minimal,libpython and rust dependencies if missing
-if ! dpkg -s curl ca-certificates gnupg2 lldb python3-minimal gcc libc6-dev > /dev/null 2>&1; then
-    apt_get_update
-    apt-get -y install --no-install-recommends curl ca-certificates gcc libc6-dev
-    apt-get -y install lldb python3-minimal libpython3.?
+    # Install curl, lldb, python3-minimal,libpython and rust dependencies if missing
+    if ! dpkg -s curl ca-certificates gnupg2 lldb python3-minimal gcc libc6-dev > /dev/null 2>&1; then
+        apt_get_update
+        apt-get -y install --no-install-recommends curl ca-certificates gcc libc6-dev
+        apt-get -y install lldb python3-minimal libpython3.?
+    fi
 fi
 
-architecture="$(dpkg --print-architecture)"
-download_architecture="${architecture}"
-case ${download_architecture} in
- amd64) 
-    download_architecture="x86_64"
-    ;;
- arm64) 
-    download_architecture="aarch64"
-    ;;
- *) echo "(!) Architecture ${architecture} not supported."
-    exit 1
-    ;;
-esac
+if [ "${ADJUSTED_ID}" = "rhel" ]; then
+    architecture=$(arch)
+    download_architecture="${architecture}"
+    case ${download_architecture} in
+    x86_64)
+        download_architecture="x86_64"
+        ;;
+    aarch64)
+        download_architecture="aarch64"
+        ;;
+    *) echo "(!) Architecture ${architecture} not supported."
+        exit 1
+        ;;
+    esac
+else
+    architecture="$(dpkg --print-architecture)"
+    download_architecture="${architecture}"
+    case ${download_architecture} in
+    amd64)
+        download_architecture="x86_64"
+        ;;
+    arm64)
+        download_architecture="aarch64"
+        ;;
+    *) echo "(!) Architecture ${architecture} not supported."
+        exit 1
+        ;;
+    esac
+fi
 
 # Install Rust
 umask 0002
@@ -213,7 +274,8 @@ EOF
 chmod -R g+r+w "${RUSTUP_HOME}" "${CARGO_HOME}"
 
 # Clean up
-rm -rf /var/lib/apt/lists/*
+if [ "${ADJUSTED_ID}" = "debian" ]; then
+    rm -rf /var/lib/apt/lists/*
+fi
 
 echo "Done!"
-

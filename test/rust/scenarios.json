@@ -1,5 +1,13 @@
 {
-    "rust_at_pinned_version": {
+    "rust_at_pinned_version_fedora38": {
+        "image": "fedora:38",
+        "features": {
+            "rust": {
+                "version": "1.62.0"
+            }
+        }
+    },
+    "rust_at_pinned_version_focal": {
         "image": "ubuntu:focal",
         "features": {
             "rust": {

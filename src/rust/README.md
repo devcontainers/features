@@ -31,7 +31,7 @@ Installs Rust, common Rust utilities, and their required dependencies
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+This Feature should work on recent versions of Debian/Ubuntu and Fedora.
 
 `bash` is required to execute the `install.sh` script.
 
