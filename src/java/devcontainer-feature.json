@@ -90,7 +90,7 @@
         "4.0.16"
       ],
       "default": "latest",
-      "description": "Select or enter an Groovy version"
+      "description": "Select or enter a Groovy version"
     }
   },
   "customizations": {
