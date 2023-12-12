@@ -34,7 +34,7 @@ else
     exit 1
 fi
 
-if type atp > /dev/null 2>&1; then
+if type apt-get > /dev/null 2>&1; then
     INSTALL_CMD=apt-get
 elif type dnf > /dev/null 2>&1; then
     INSTALL_CMD=dnf
