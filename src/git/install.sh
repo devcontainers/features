@@ -34,14 +34,14 @@ else
     exit 1
 fi
 
-if [ ${ADJUSTED_ID} = "rhel" ]; then
-    if type dnf > /dev/null 2>&1; then
-        INSTALL_CMD=dnf
-    elif type microdnf > /dev/null 2>&1; then
-        INSTALL_CMD=microdnf
-    else
-        INSTALL_CMD=yum
-    fi
+if type atp > /dev/null 2>&1; then
+    INSTALL_CMD=apt-get
+elif type dnf > /dev/null 2>&1; then
+    INSTALL_CMD=dnf
+elif type microdnf > /dev/null 2>&1; then
+    INSTALL_CMD=microdnf
+else
+    INSTALL_CMD=yum
 fi
 
 # Clean up
@@ -97,7 +97,7 @@ pkg_mgr_update() {
     if type apt >/dev/null 2>&1; then
         if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
             echo "Running apt-get update..."
-            apt-get update -y
+            ${INSTALL_CMD} update -y
         fi
     elif [ ${INSTALL_CMD} = "dnf" ] || [ ${INSTALL_CMD} = "yum" ]; then
         if [ "$(find /var/cache/${INSTALL_CMD}/* | wc -l)" = "0" ]; then
@@ -110,10 +110,10 @@ pkg_mgr_update() {
 
 # Checks if packages are installed and installs them if not
 check_packages() {
-    if type apt >/dev/null 2>&1; then
+    if [ ${INSTALL_CMD} = "apt-get" ]; then
         if ! dpkg -s "$@" > /dev/null 2>&1; then
             pkg_mgr_update
-            apt-get -y install --no-install-recommends "$@"
+            ${INSTALL_CMD} -y install --no-install-recommends "$@"
         fi
     elif [ ${INSTALL_CMD} = "dnf" ] || [ ${INSTALL_CMD} = "yum" ]; then
         _num_pkgs=$(echo "$@" | tr ' ' \\012 | wc -l)
@@ -149,7 +149,11 @@ if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
         exit 0
     fi
 
-    echo "Installing git from OS apt/dnf/microdnf/yum repository"
+    if [ "$INSTALL_CMD" = "apt-get" ]; then
+        echo "Installing git from OS apt repository"
+    else
+        echo "Installing git from OS yum/dnf repository"
+    fi
     check_packages git
     # Clean up
     clean_up
@@ -162,8 +166,8 @@ if ([ "${GIT_VERSION}" = "latest" ] || [ "${GIT_VERSION}" = "lts" ] || [ "${GIT_
     check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr
     receive_gpg_keys GIT_CORE_PPA_ARCHIVE_GPG_KEY /usr/share/keyrings/gitcoreppa-archive-keyring.gpg
     echo -e "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gitcoreppa-archive-keyring.gpg] http://ppa.launchpad.net/git-core/ppa/ubuntu ${VERSION_CODENAME} main\ndeb-src [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gitcoreppa-archive-keyring.gpg] http://ppa.launchpad.net/git-core/ppa/ubuntu ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/git-core-ppa.list
-    apt-get update
-    apt-get -y install --no-install-recommends git 
+    ${INSTALL_CMD} update
+    ${INSTALL_CMD} -y install --no-install-recommends git 
     rm -rf "/tmp/tmp-gnupg"
     rm -rf /var/lib/apt/lists/*
     exit 0
