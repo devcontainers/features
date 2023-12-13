@@ -9,6 +9,8 @@
 #
 # Syntax: ./java-debian.sh [JDK version] [SDKMAN_DIR] [non-root user] [Add to rc files flag]
 
+set -x
+
 JAVA_VERSION="${VERSION:-"lts"}"
 INSTALL_GRADLE="${INSTALLGRADLE:-"false"}"
 GRADLE_VERSION="${GRADLEVERSION:-"latest"}"
@@ -28,13 +30,60 @@ ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
 set -e
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
 fi
+
+# Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
+. /etc/os-release
+# Get an adjusted ID independent of distro variants
+MAJOR_VERSION_ID=$(echo ${VERSION_ID} | cut -d . -f 1)
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+    ADJUSTED_ID="debian"
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+    ADJUSTED_ID="rhel"
+    if [[ "${ID}" = "rhel" ]] || [[ "${ID}" = *"alma"* ]] || [[ "${ID}" = *"rocky"* ]]; then
+        VERSION_CODENAME="rhel${MAJOR_VERSION_ID}"
+    else
+        VERSION_CODENAME="${ID}${MAJOR_VERSION_ID}"
+    fi
+else
+    echo "Linux distro ${ID} not supported."
+    exit 1
+fi
+
+# Setup INSTALL_CMD & PKG_MGR_CMD
+if type apt-get > /dev/null 2>&1; then
+    PKG_MGR_CMD=apt-get
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
+elif type dnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=dnf
+    INSTALL_CMD="${PKG_MGR_CMD} -y install"
+elif type microdnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=microdnf
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+else
+    PKG_MGR_CMD=yum
+    INSTALL_CMD="${PKG_MGR_CMD} -y install"
+fi
+
+# Clean up
+clean_up() {
+    case ${ADJUSTED_ID} in
+        debian)
+            rm -rf /var/lib/apt/lists/*
+            ;;
+        rhel)
+            set +e
+            ${PKG_MGR_CMD} -y remove epel-release epel-release-latest packages-microsoft-prod
+            set -e
+            rm -rf /var/cache/dnf/* /var/cache/yum/*
+            rm -f /etc/yum.repos.d/docker-ce.repo
+            ;;
+    esac
+}
+clean_up
 
 # Ensure that login shells get the correct path if the user updated the PATH using ENV.
 rm -f /etc/profile.d/00-restore-env.sh
@@ -59,31 +108,64 @@ elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
 fi
 
 updaterc() {
+    local _bashrc
+    local _zshrc
     if [ "${UPDATE_RC}" = "true" ]; then
-        echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
-        if [[ "$(cat /etc/bash.bashrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/bash.bashrc
+        case $ADJUSTED_ID in
+            debian)
+                _bashrc=/etc/bash.bashrc
+                _zshrc=/etc/zsh/zshrc
+                ;;
+            rhel)
+                _bashrc=/etc/bashrc
+                _zshrc=/etc/zshrc
+            ;;
+        esac
+        echo "Updating ${_bashrc} and ${_zshrc}..."
+        if [[ "$(cat ${_bashrc})" != *"$1"* ]]; then
+            echo -e "$1" >> "${_bashrc}"
         fi
-        if [ -f "/etc/zsh/zshrc" ] && [[ "$(cat /etc/zsh/zshrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/zsh/zshrc
+        if [ -f "${_zshrc}" ] && [[ "$(cat ${_zshrc})" != *"$1"* ]]; then
+            echo -e "$1" >> "${_zshrc}"
         fi
     fi
 }
 
-apt_get_update()
-{
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update -y
-    fi
+
+pkg_mgr_update() {
+    case $ADJUSTED_ID in
+        debian)
+            if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+                echo "Running apt-get update..."
+                apt-get update -y
+            fi
+            ;;
+        rhel)
+            if [ "$(find /var/cache/${INSTALL_CMD}/* | wc -l)" = "0" ]; then
+                echo "Running ${INSTALL_CMD} check-update ..."
+                ${INSTALL_CMD} check-update
+            fi
+            ;;
+    esac
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
-    fi
+    case ${ADJUSTED_ID} in
+        debian)
+            if ! dpkg -s "$@" > /dev/null 2>&1; then
+                pkg_mgr_update
+                apt-get -y install --no-install-recommends "$@"
+            fi
+            ;;
+        rhel) _num_pkgs=$(echo "$@" | tr ' ' \\012 | wc -l)
+            _num_installed=$(${INSTALL_CMD} -C list installed "$@" | sed '1,/^Installed/d' | wc -l)
+            if [ ${_num_pkgs} != ${_num_installed} ]; then
+                pkg_mgr_update
+                ${INSTALL_CMD} -y install "$@"
+            fi
+            ;;
+    esac
 }
 
 # Use Microsoft JDK for everything but JDK 8 and 18 (unless specified differently with jdkDistro option)
@@ -191,6 +273,6 @@ if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null; then
 fi
 
 # Clean up
-rm -rf /var/lib/apt/lists/*
+clean_up
 
 echo "Done!"

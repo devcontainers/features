@@ -59,11 +59,15 @@
     },
     "install_non_conventional_version": {
         "image": "ubuntu:focal",
-        "features":{
+        "features": {
             "java": {
                 "version": "21",
                 "jdkDistro": "graalce"
             }
         }
+    },
+    "centos-7": {
+        "image": "centos:centos7",
+        "features": {}
     }
 }
