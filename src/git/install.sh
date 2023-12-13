@@ -94,7 +94,7 @@ receive_gpg_keys() {
 }
 
 pkg_mgr_update() {
-    if type apt >/dev/null 2>&1; then
+    if [ ${INSTALL_CMD} = "apt-get" ]; then
         if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
             echo "Running apt-get update..."
             ${INSTALL_CMD} update -y
