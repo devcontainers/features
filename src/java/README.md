@@ -13,16 +13,16 @@ Installs Java, SDKMAN! (if not installed), and needed dependencies.
 
 ## Options
 
-| Options Id | Description | Type | Default Value |
-|-----|-----|-----|-----|
-| version | Select or enter a Java version to install | string | latest |
-| jdkDistro | Select or enter a JDK distribution | string | ms |
-| installGradle | Install Gradle, a build automation tool for multi-language software development | boolean | false |
-| gradleVersion | Select or enter a Gradle version | string | latest |
-| installMaven | Install Maven, a management tool for Java | boolean | false |
-| mavenVersion | Select or enter a Maven version | string | latest |
-| installAnt | Install Ant, a software tool for automating software build processes | boolean | false |
-| antVersion | Select or enter an Ant version | string | latest |
+| Options Id    | Description                                                                     | Type    | Default Value |
+| ------------- | ------------------------------------------------------------------------------- | ------- | ------------- |
+| version       | Select or enter a Java version to install                                       | string  | latest        |
+| jdkDistro     | Select or enter a JDK distribution                                              | string  | ms            |
+| installGradle | Install Gradle, a build automation tool for multi-language software development | boolean | false         |
+| gradleVersion | Select or enter a Gradle version                                                | string  | latest        |
+| installMaven  | Install Maven, a management tool for Java                                       | boolean | false         |
+| mavenVersion  | Select or enter a Maven version                                                 | string  | latest        |
+| installAnt    | Install Ant, a software tool for automating software build processes            | boolean | false         |
+| antVersion    | Select or enter an Ant version                                                  | string  | latest        |
 
 ## Customizations
 
@@ -37,7 +37,7 @@ For the Java Feature from this repository, see [NOTICE.txt](https://github.com/d
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+ Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and RockyLinux distributions with the apt, yum, dnf, or microdnf package manager installed.
 
 `bash` is required to execute the `install.sh` script.
 

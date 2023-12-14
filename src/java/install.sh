@@ -9,8 +9,6 @@
 #
 # Syntax: ./java-debian.sh [JDK version] [SDKMAN_DIR] [non-root user] [Add to rc files flag]
 
-set -x
-
 JAVA_VERSION="${VERSION:-"lts"}"
 INSTALL_GRADLE="${INSTALLGRADLE:-"false"}"
 GRADLE_VERSION="${GRADLEVERSION:-"latest"}"
@@ -137,13 +135,27 @@ pkg_mgr_update() {
         debian)
             if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
                 echo "Running apt-get update..."
-                apt-get update -y
+                ${PKG_MGR_CMD} update -y
             fi
             ;;
         rhel)
-            if [ "$(find /var/cache/${INSTALL_CMD}/* | wc -l)" = "0" ]; then
-                echo "Running ${INSTALL_CMD} check-update ..."
-                ${INSTALL_CMD} check-update
+            if [ ${PKG_MGR_CMD} = "microdnf" ]; then
+                if [ "$(ls /var/cache/yum/* 2>/dev/null | wc -l)" = 0 ]; then
+                    echo "Running ${PKG_MGR_CMD} makecache ..."
+                    ${PKG_MGR_CMD} makecache
+                fi
+            else
+                if [ "$(ls /var/cache/${PKG_MGR_CMD}/* 2>/dev/null | wc -l)" = 0 ]; then
+                    echo "Running ${PKG_MGR_CMD} check-update ..."
+                    set +e
+                    ${PKG_MGR_CMD} check-update
+                    rc=$?
+                    # centos 7 sometimes returns a status of 100 when it apears to work.
+                    if [ $rc != 0 ] && [ $rc != 100 ]; then
+                        exit 1
+                    fi
+                    set -e
+                fi
             fi
             ;;
     esac
@@ -155,14 +167,13 @@ check_packages() {
         debian)
             if ! dpkg -s "$@" > /dev/null 2>&1; then
                 pkg_mgr_update
-                apt-get -y install --no-install-recommends "$@"
+                ${INSTALL_CMD} "$@"
             fi
             ;;
-        rhel) _num_pkgs=$(echo "$@" | tr ' ' \\012 | wc -l)
-            _num_installed=$(${INSTALL_CMD} -C list installed "$@" | sed '1,/^Installed/d' | wc -l)
-            if [ ${_num_pkgs} != ${_num_installed} ]; then
+        rhel)
+            if ! rpm -q "$@" > /dev/null 2>&1; then
                 pkg_mgr_update
-                ${INSTALL_CMD} -y install "$@"
+                ${INSTALL_CMD} "$@"
             fi
             ;;
     esac
@@ -222,8 +233,19 @@ if [ "${architecture}" != "amd64" ] && [ "${architecture}" != "x86_64" ] && [ "$
     exit 1
 fi
 
-# Install dependencies
-check_packages curl ca-certificates zip unzip sed
+# Install dependencies,
+check_packages ca-certificates zip unzip sed findutils util-linux tar
+# Make sure passwd (Debian) and shadow-utils RHEL family is installed
+if [ ${ADJUSTED_ID} = "debian" ]; then
+    check_packages passwd
+elif [ ${ADJUSTED_ID} = "rhel" ]; then
+    check_packages shadow-utils
+fi
+# minimal RHEL installs may not include curl, or includes curl-minimal instead.
+# Install curl if the "curl" command is not present.
+if ! type curl > /dev/null 2>&1; then
+    check_packages curl
+fi
 
 # Install sdkman if not installed
 if [ ! -d "${SDKMAN_DIR}" ]; then
