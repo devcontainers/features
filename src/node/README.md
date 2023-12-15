@@ -13,12 +13,12 @@ Installs Node.js, nvm, yarn, pnpm, and needed dependencies.
 
 ## Options
 
-| Options Id | Description | Type | Default Value |
-|-----|-----|-----|-----|
-| version | Select or enter a Node.js version to install | string | lts |
-| nodeGypDependencies | Install dependencies to compile native node modules (node-gyp)? | boolean | true |
-| nvmInstallPath | The path where NVM will be installed. | string | /usr/local/share/nvm |
-| nvmVersion | Version of NVM to install. | string | latest |
+| Options Id          | Description                                                     | Type    | Default Value        |
+| ------------------- | --------------------------------------------------------------- | ------- | -------------------- |
+| version             | Select or enter a Node.js version to install                    | string  | lts                  |
+| nodeGypDependencies | Install dependencies to compile native node modules (node-gyp)? | boolean | true                 |
+| nvmInstallPath      | The path where NVM will be installed.                           | string  | /usr/local/share/nvm |
+| nvmVersion          | Version of NVM to install.                                      | string  | latest               |
 
 ## Customizations
 
@@ -48,7 +48,9 @@ Alternatively, you can start up an interactive shell which will in turn source `
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and RockyLinux distributions with the apt, yum, dnf, or microdnf package manager installed.
+
+RedHat 7 Family (RedHat, CentOS, etc.) must use Node versions < 18.
 
 `bash` is required to execute the `install.sh` script.
 
