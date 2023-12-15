@@ -18,6 +18,12 @@ Installs PowerShell along with needed dependencies. Useful for base Dockerfiles 
 | version | Select or enter a version of PowerShell. | string | latest |
 | modules | Optional comma separated list of PowerShell modules to install. | string | - |
 
+## Customizations
+
+### VS Code Extensions
+
+- `ms-vscode.powershell`
+
 
 
 ## OS Support

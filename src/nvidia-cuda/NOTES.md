@@ -10,13 +10,18 @@ Follow [NVIDIA's instructions to install the NVIDIA Container Toolkit](https://d
 
 ### Enable GPU passthrough
 
-Enable GPU passthrough to your devcontainer by adding `["--gpus", "all"]` to your devcontainer's `runArgs` property. Here's an example of a devcontainer with this property:
+Enable GPU passthrough to your devcontainer by using `hostRequirements`. Here's an example of a devcontainer with this property:
 
 ```json
 {
-  "runArgs": ["--gpus", "all"]
+  "hostRequirements": {
+    "gpu": "optional" 
+  }
 }
 ```
+
+> Note: Setting `gpu` property's value to `true` will work with GPU machine types, but fail with CPUs. Hence, setting it to `optional` works in both cases. See [schema](https://containers.dev/implementors/json_schema/#base-schema) for more configuration details.
+
 
 
 ## OS Support

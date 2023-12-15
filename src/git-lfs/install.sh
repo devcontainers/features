@@ -15,6 +15,7 @@ GIT_LFS_ARCHIVE_ARCHITECTURES="amd64 arm64"
 GIT_LFS_ARCHIVE_VERSION_CODENAMES="stretch buster bullseye bionic focal jammy"
 GIT_LFS_CHECKSUM_GPG_KEYS="0x88ace9b29196305ba9947552f1ba225c0223b187 0x86cd3297749375bcf8206715f54fe648088335a9 0xaa3b3450295830d2de6db90caba67be5a5795889"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
+keyserver hkp://keyserver.ubuntu.com:80
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 

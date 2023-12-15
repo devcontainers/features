@@ -16,7 +16,9 @@ Installs shared libraries for NVIDIA CUDA.
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | installCudnn | Additionally install CUDA Deep Neural Network (cuDNN) shared library | boolean | false |
+| installCudnnDev | Additionally install CUDA Deep Neural Network (cuDNN) development libraries and headers | boolean | false |
 | installNvtx | Additionally install NVIDIA Tools Extension (NVTX) | boolean | false |
+| installToolkit | Additionally install NVIDIA CUDA Toolkit | boolean | false |
 | cudaVersion | Version of CUDA to install | string | 11.8 |
 | cudnnVersion | Version of cuDNN to install | string | 8.6.0.163 |
 
@@ -32,13 +34,18 @@ Follow [NVIDIA's instructions to install the NVIDIA Container Toolkit](https://d
 
 ### Enable GPU passthrough
 
-Enable GPU passthrough to your devcontainer by adding `["--gpus", "all"]` to your devcontainer's `runArgs` property. Here's an example of a devcontainer with this property:
+Enable GPU passthrough to your devcontainer by using `hostRequirements`. Here's an example of a devcontainer with this property:
 
 ```json
 {
-  "runArgs": ["--gpus", "all"]
+  "hostRequirements": {
+    "gpu": "optional" 
+  }
 }
 ```
+
+> Note: Setting `gpu` property's value to `true` will work with GPU machine types, but fail with CPUs. Hence, setting it to `optional` works in both cases. See [schema](https://containers.dev/implementors/json_schema/#base-schema) for more configuration details.
+
 
 
 ## OS Support

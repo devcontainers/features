@@ -16,7 +16,7 @@ Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects la
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Terraform version | string | latest |
-| tflint | Tflint version | string | latest |
+| tflint | Tflint version (https://github.com/terraform-linters/tflint/releases) | string | latest |
 | terragrunt | Terragrunt version | string | latest |
 | installSentinel | Install sentinel, a language and framework for policy built to be embedded in existing software to enable fine-grained, logic-based policy decisions | boolean | false |
 | installTFsec | Install tfsec, a tool to spot potential misconfigurations for your terraform code | boolean | false |
@@ -31,6 +31,10 @@ Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects la
 - `ms-azuretools.vscode-azureterraform`
 
 
+
+## Licensing
+
+On August 10, 2023, HashiCorp announced a change of license for its products, including Terraform. After ~9 years of Terraform being open source under the MPL v2 license, it was to move under a non-open source BSL v1.1 license, starting from the next (1.6) version. See https://github.com/hashicorp/terraform/blob/main/LICENSE
 
 ## OS Support
 

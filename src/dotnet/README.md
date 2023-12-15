@@ -1,13 +1,13 @@
 
 # Dotnet CLI (dotnet)
 
-Installs the .NET CLI. Provides option of installing sdk or runtime, and option of versions to install. Uses latest version of .NET sdk as defaults to install.
+This Feature installs the latest .NET SDK, which includes the .NET CLI and the shared runtime. Options are provided to choose a different version or additional versions.
 
 ## Example Usage
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/dotnet:1": {}
+    "ghcr.io/devcontainers/features/dotnet:2": {}
 }
 ```
 
@@ -15,9 +15,10 @@ Installs the .NET CLI. Provides option of installing sdk or runtime, and option 
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| version | Select or enter a dotnet CLI version. (Available versions may vary by Linux distribution.) | string | latest |
-| runtimeOnly | Install just the dotnet runtime if true, and sdk if false. | boolean | false |
-| installUsingApt | If true, it installs using apt instead of the release URL | boolean | true |
+| version | Select or enter a .NET SDK version. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | latest |
+| additionalVersions | Enter additional .NET SDK versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
+| dotnetRuntimeVersions | Enter additional .NET runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
+| aspNetCoreRuntimeVersions | Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
 
 ## Customizations
 
@@ -25,7 +26,74 @@ Installs the .NET CLI. Provides option of installing sdk or runtime, and option 
 
 - `ms-dotnettools.csharp`
 
+## Configuration examples
 
+Installing only the latest .NET SDK version (the default).
+
+``` json
+{
+"features": {
+    "ghcr.io/devcontainers/features/dotnet:2": "latest" // or "" or {}
+}
+```
+
+Installing an additional SDK version. Multiple versions can be specified as comma-separated values.
+
+``` json
+{
+"features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+        "additionalVersions": "lts"
+    }
+}
+```
+
+Installing specific SDK versions.
+
+``` json
+{
+"features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+        "version": "6.0",
+        "additionalVersions": "7.0, 8.0"
+    }
+}
+```
+
+Installing a specific SDK feature band.
+
+``` json
+{
+"features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+        "version": "6.0.4xx",
+    }
+}
+```
+
+Installing a specific SDK patch version.
+
+``` json
+{
+"features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+        "version": "6.0.412",
+    }
+}
+```
+
+Installing only the .NET Runtime or the ASP.NET Core Runtime. (The SDK includes all runtimes so this configuration is only useful if you need to run .NET apps without building them from source.)
+
+``` json
+{
+"features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+        "version": "none",
+        "dotnetRuntimeVersions": "latest, lts",
+        "aspnetCoreRuntimeVersions": "latest, lts",
+    }
+}
+```
 
 ## OS Support
 

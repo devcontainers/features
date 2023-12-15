@@ -32,7 +32,7 @@
         }
     },
     "install_os_provided_python": {
-        "image": "mcr.microsoft.com/devcontainers/base:0-bullseye",
+        "image": "mcr.microsoft.com/devcontainers/base:1-bullseye",
         "features": {
             "python": "os-provided"
         }
@@ -52,6 +52,34 @@
         "image": "mcr.microsoft.com/oryx/build:full-debian-bullseye",
         "features": {
             "python": "3.10"
+        }
+    },
+    "install_jupyterlab_debian": {
+        "image": "debian:bullseye-slim",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
+    "install_jupyterlab_ubuntu": {
+        "image": "ubuntu:focal",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
+    "install_python_3_12": {
+        "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
+        "features": {
+            "python": {
+                "version": "3.12"
+            }
         }
     }
 }

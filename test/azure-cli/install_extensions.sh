@@ -8,6 +8,8 @@ source dev-container-features-test-lib
 # Check to make sure the user is vscode
 check "user is vscode" whoami | grep vscode
 
+check "version" az  --version
+
 # Extension-specific tests
 check "aks-preview" az extension show --name aks-preview
 check "amg" az extension show --name amg

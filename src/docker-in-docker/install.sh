@@ -5,7 +5,7 @@
 #-------------------------------------------------------------------------------------------------------------
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker-in-docker.md
-# Maintainer: The VS Code and Codespaces Teams
+# Maintainer: The Dev Container spec maintainers
 
 
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
@@ -16,8 +16,8 @@ DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
-DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal jammy"
-DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="buster bullseye bionic focal hirsute impish jammy"
+DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy"
+DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy"
 
 # Default: Exit on any failure.
 set -e
@@ -56,21 +56,6 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
 elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
     USERNAME=root
 fi
-
-# Get central common setting
-get_common_setting() {
-    if [ "${common_settings_file_loaded}" != "true" ]; then
-        curl -sfL "https://aka.ms/vscode-dev-containers/script-library/settings.env" 2>/dev/null -o /tmp/vsdc-settings.env || echo "Could not download settings file. Skipping."
-        common_settings_file_loaded=true
-    fi
-    if [ -f "/tmp/vsdc-settings.env" ]; then
-        local multi_line=""
-        if [ "$2" = "true" ]; then multi_line="-z"; fi
-        local result="$(grep ${multi_line} -oP "$1=\"?\K[^\"]+" /tmp/vsdc-settings.env | tr -d '\0')"
-        if [ ! -z "${result}" ]; then declare -g $1="${result}"; fi
-    fi
-    echo "$1=${!1}"
-}
 
 apt_get_update()
 {
@@ -137,8 +122,6 @@ architecture="$(dpkg --print-architecture)"
 
 # Check if distro is supported
 if [ "${USE_MOBY}" = "true" ]; then
-    # 'get_common_setting' allows attribute to be updated remotely
-    get_common_setting DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES
     if [[ "${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
         err "Unsupported  distribution version '${VERSION_CODENAME}'. To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS distribution"
         err "Support distributions include:  ${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}"
@@ -146,7 +129,6 @@ if [ "${USE_MOBY}" = "true" ]; then
     fi
     echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}'"
 else
-    get_common_setting DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES
     if [[ "${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
         err "Unsupported distribution version '${VERSION_CODENAME}'. To resolve, please choose a compatible OS distribution"
         err "Support distributions include:  ${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}"
@@ -177,7 +159,6 @@ if [ "${USE_MOBY}" = "true" ]; then
     cli_package_name="moby-cli"
 
     # Import key safely and import Microsoft apt repo
-    get_common_setting MICROSOFT_GPG_KEYS_URI
     curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
     echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
 else
@@ -265,7 +246,21 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
                 pip3 install --disable-pip-version-check --no-cache-dir --user pipx
                 pipx_bin=/tmp/pip-tmp/bin/pipx
             fi
-            ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
+
+            set +e
+                ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
+                exit_code=$?
+            set -e
+
+            if [ ${exit_code} -ne 0 ]; then
+                # Temporary: https://github.com/devcontainers/features/issues/616
+                # See https://github.com/yaml/pyyaml/issues/601
+                echo "(*) Failed to install docker-compose via pipx. Trying via pip3..."
+
+                export PYTHONUSERBASE=/usr/local
+                pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
+            fi
+
             rm -rf /tmp/pip-tmp
         else
             compose_v1_version="1"
@@ -349,11 +344,10 @@ tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
 dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} $(cat << 'INNEREOF'
     # explicitly remove dockerd and containerd PID file to ensure that it can start properly if it was stopped uncleanly
-    # ie: docker kill <ID>
     find /run /var/run -iname 'docker*.pid' -delete || :
     find /run /var/run -iname 'container*.pid' -delete || :
 
-    ## Dind wrapper script from docker team, adapted to a function
+    # -- Start: dind wrapper script --
     # Maintained: https://github.com/moby/moby/blob/master/hack/dind
 
     export container=docker
@@ -370,31 +364,52 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         mount -t tmpfs none /tmp
     fi
 
-    # cgroup v2: enable nesting
-    if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
-        # move the processes from the root group to the /init group,
-        # otherwise writing subtree_control fails with EBUSY.
-        # An error during moving non-existent process (i.e., "cat") is ignored.
-        mkdir -p /sys/fs/cgroup/init
-        xargs -rn1 < /sys/fs/cgroup/cgroup.procs > /sys/fs/cgroup/init/cgroup.procs || :
-        # enable controllers
-        sed -e 's/ / +/g' -e 's/^/+/' < /sys/fs/cgroup/cgroup.controllers \
-            > /sys/fs/cgroup/cgroup.subtree_control
-    fi
-    ## Dind wrapper over.
+    set_cgroup_nesting()
+    {
+        # cgroup v2: enable nesting
+        if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
+            # move the processes from the root group to the /init group,
+            # otherwise writing subtree_control fails with EBUSY.
+            # An error during moving non-existent process (i.e., "cat") is ignored.
+            mkdir -p /sys/fs/cgroup/init
+            xargs -rn1 < /sys/fs/cgroup/cgroup.procs > /sys/fs/cgroup/init/cgroup.procs || :
+            # enable controllers
+            sed -e 's/ / +/g' -e 's/^/+/' < /sys/fs/cgroup/cgroup.controllers \
+                > /sys/fs/cgroup/cgroup.subtree_control
+        fi
+    }
+
+    # Set cgroup nesting, retrying if necessary
+    retry_cgroup_nesting=0
+
+    until [ "${retry_cgroup_nesting}" -eq "5" ];
+    do
+        set +e
+            set_cgroup_nesting
+
+            if [ $? -ne 0 ]; then
+                echo "(*) cgroup v2: Failed to enable nesting, retrying..."
+            else
+                break
+            fi
+
+            retry_cgroup_nesting=`expr $retry_cgroup_nesting + 1`
+        set -e
+    done 
+
+    # -- End: dind wrapper script --
 
     # Handle DNS
     set +e
-    cat /etc/resolv.conf | grep -i 'internal.cloudapp.net'
-    if [ $? -eq 0 ] && [ "${AZURE_DNS_AUTO_DETECTION}" = "true" ]
-    then
-        echo "Setting dockerd Azure DNS."
-        CUSTOMDNS="--dns 168.63.129.16"
-    else
-        echo "Not setting dockerd DNS manually."
-        CUSTOMDNS=""
-    fi
-
+        cat /etc/resolv.conf | grep -i 'internal.cloudapp.net' > /dev/null 2>&1
+        if [ $? -eq 0 ] && [ "${AZURE_DNS_AUTO_DETECTION}" = "true" ]
+        then
+            echo "Setting dockerd Azure DNS."
+            CUSTOMDNS="--dns 168.63.129.16"
+        else
+            echo "Not setting dockerd DNS manually."
+            CUSTOMDNS=""
+        fi
     set -e
 
     if [ -z "$DOCKER_DEFAULT_ADDRESS_POOL" ]
@@ -409,14 +424,49 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 INNEREOF
 )"
 
-# Start using sudo if not invoked as root
-if [ "$(id -u)" -ne 0 ]; then
-    sudo /bin/sh -c "${dockerd_start}"
-else
-    eval "${dockerd_start}"
-fi
+sudo_if() {
+    COMMAND="$*"
 
-set +e
+    if [ "$(id -u)" -ne 0 ]; then
+        sudo $COMMAND
+    else
+        $COMMAND
+    fi
+}
+
+retry_docker_start_count=0
+docker_ok="false"
+
+until [ "${docker_ok}" = "true"  ] || [ "${retry_docker_start_count}" -eq "5" ];
+do 
+    # Start using sudo if not invoked as root
+    if [ "$(id -u)" -ne 0 ]; then
+        sudo /bin/sh -c "${dockerd_start}"
+    else
+        eval "${dockerd_start}"
+    fi
+
+    retry_count=0
+    until [ "${docker_ok}" = "true"  ] || [ "${retry_count}" -eq "5" ];
+    do
+        sleep 1s
+        set +e
+            docker info > /dev/null 2>&1 && docker_ok="true"
+        set -e
+
+        retry_count=`expr $retry_count + 1`
+    done
+    
+    if [ "${docker_ok}" != "true" ] && [ "${retry_docker_start_count}" != "4" ]; then
+        echo "(*) Failed to start docker, retrying..."
+        set +e
+            sudo_if pkill dockerd
+            sudo_if pkill containerd
+        set -e
+    fi
+    
+    retry_docker_start_count=`expr $retry_docker_start_count + 1`
+done
 
 # Execute whatever commands were passed in (if any). This allows us
 # to set this script to ENTRYPOINT while still executing the default CMD.

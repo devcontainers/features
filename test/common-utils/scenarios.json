@@ -108,12 +108,45 @@
         }
     },
     "configure_zsh_as_default_shell": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "image": "ubuntu",
         "features": {
             "common-utils": {
+                "installZsh": true,
                 "configureZshAsDefaultShell": true
             }
+        },
+        "remoteUser": "devcontainer"
+    },
+    "configure_zsh_no_template_second_step": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "postCreateCommand": "echo alias fnomockalias=testingmock >> /home/devcontainer/.zshrc",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {
+                "installZsh": true,
+                "installOhMyZshConfig": false
+            }
         }
+    },
+    "configure_zsh_no_template_first_step": {
+        "image": "debian:bullseye",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {
+                "installZsh": true,
+                "installOhMyZshConfig": false
+            }
+        }
+    },
+    "config-subdirectory": {
+        "image": "alpine",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        },
+        "mounts": [
+            "source=${localEnv:HOME},target=/home/devcontainer/.config/subdirectory,type=bind,readonly"
+        ]
     },
     "alpine-3-14": {
         "image": "alpine:3.14",
@@ -133,6 +166,7 @@
         "build": {
             "dockerfile": "Dockerfile"
         },
+        "remoteUser": "vscode",
         "features": {
             "common-utils": {
                 "username": "vscode",
@@ -141,7 +175,31 @@
                 "upgradePackages": true,
                 "installZsh": true
             }
+        }
+    },
+    "alpine-base-zsh-default": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "configureZshAsDefaultShell": true
+            }
+        }
+    },
+    "devcontainer-custom-home": {
+        "build": {
+            "dockerfile": "Dockerfile"
         },
-        "remoteUser": "vscode"
+        "remoteUser": "customUser",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "devcontainer-custom-user-default-home": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "remoteUser": "customUser",
+        "features": {
+            "common-utils": {}
+        }
     }
 }

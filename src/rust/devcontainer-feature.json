@@ -1,6 +1,6 @@
 {
     "id": "rust",
-    "version": "1.0.11",
+    "version": "1.1.1",
     "name": "Rust",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/rust",
     "description": "Installs Rust, common Rust utilities, and their required dependencies",
@@ -10,6 +10,13 @@
             "proposals": [
                 "latest",
                 "none",
+                "1.70",
+                "1.69",
+                "1.68",
+                "1.67",
+                "1.66",
+                "1.65",
+                "1.64",
                 "1.63",
                 "1.62",
                 "1.61"
@@ -32,7 +39,6 @@
         "vscode": {
             "extensions": [
                 "vadimcn.vscode-lldb",
-                "mutantdino.resourcemonitor",
                 "rust-lang.rust-analyzer",
                 "tamasfe.even-better-toml",
                 "serayuzgur.crates"

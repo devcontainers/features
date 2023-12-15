@@ -12,6 +12,7 @@ INSTALL_DIRECTLY_FROM_GITHUB_RELEASE=${INSTALLDIRECTLYFROMGITHUBRELEASE:-"true"}
 
 GITHUB_CLI_ARCHIVE_GPG_KEY=23F3D4EA75716059
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
+keyserver hkp://keyserver.ubuntu.com:80
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 

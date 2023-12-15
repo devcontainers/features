@@ -22,5 +22,13 @@
                 "installTerraformDocs": true
             }
         }
+    },
+    "older_tflint": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "tflint": "0.40.0"
+            }
+        }
     }
 }

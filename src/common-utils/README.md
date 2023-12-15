@@ -18,6 +18,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 | installZsh | Install ZSH? | boolean | true |
 | configureZshAsDefaultShell | Change default shell to ZSH? | boolean | false |
 | installOhMyZsh | Install Oh My Zsh!? | boolean | true |
+| installOhMyZshConfig | Allow installing the default dev container .zshrc templates? | boolean | true |
 | upgradePackages | Upgrade OS packages? | boolean | true |
 | username | Enter name of a non-root user to configure or none to skip | string | automatic |
 | userUid | Enter UID for non-root user | string | automatic |
@@ -27,6 +28,11 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 ## OS Support
 
 This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, RockyLinux, and Alpine Linux.
+
+## Using with dev container images
+
+This Feature is used in many of the [dev container images](https://github.com/search?q=repo%3Adevcontainers%2Fimages+%22ghcr.io%2Fdevcontainers%2Ffeatures%2Fcommon-utils%22&type=code), as a result
+these images have already allocated UID & GID 1000. Attempting to add this Feature with  UID 1000 and/or GID 1000 on top of such a dev container image will result in an error when building the dev container.
 
 ## Customizing the command prompt
 
