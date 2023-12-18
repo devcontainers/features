@@ -10,6 +10,7 @@
 PYTHON_VERSION="${VERSION:-"latest"}" # 'system' or 'os-provided' checks the base image first, else installs 'latest'
 INSTALL_PYTHON_TOOLS="${INSTALLTOOLS:-"true"}"
 OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
+ENABLE_SHARED_FROM_SOURCE="${ENABLESHARED:-"true"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
@@ -26,7 +27,13 @@ CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN="${CONFIGUREJUPYTERLABALLOWORIGIN:-""}"
 # alongside PYTHON_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
-DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv" "pytest")
+# Comma-separated list of additional tools to be installed via pipx.
+IFS="," read -r -a DEFAULT_UTILS <<< "${TOOLSTOINSTALL:-flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest}"
+
+# Comma-separated list of additional pyhton modules to install via pip.
+IFS="," read -r -a PIP_MODULES <<< "${ADDITIONALMODULES:-}"
+
+
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5 A821E680E5FA6305"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkp://keyserver.ubuntu.com:80
@@ -37,13 +44,57 @@ KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
 
 set -e
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
 fi
+
+# Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
+. /etc/os-release
+# Get an adjusted ID independent of distro variants
+MAJOR_VERSION_ID=$(echo ${VERSION_ID} | cut -d . -f 1)
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+    ADJUSTED_ID="debian"
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+    ADJUSTED_ID="rhel"
+    if [[ "${ID}" = "rhel" ]] || [[ "${ID}" = *"alma"* ]] || [[ "${ID}" = *"rocky"* ]]; then
+        VERSION_CODENAME="rhel${MAJOR_VERSION_ID}"
+    else
+        VERSION_CODENAME="${ID}${MAJOR_VERSION_ID}"
+    fi
+else
+    echo "Linux distro ${ID} not supported."
+    exit 1
+fi
+
+# Setup INSTALL_CMD & PKG_MGR_CMD
+if type apt-get > /dev/null 2>&1; then
+    PKG_MGR_CMD=apt-get
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
+elif type dnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=dnf
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+elif type microdnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=microdnf
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+else
+    PKG_MGR_CMD=yum
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --noplugins --setopt=install_weak_deps=0"
+fi
+
+# Clean up
+clean_up() {
+    case ${ADJUSTED_ID} in
+        debian)
+            rm -rf /var/lib/apt/lists/*
+            ;;
+        rhel)
+            rm -rf /var/cache/dnf/* /var/cache/yum/*
+            ;;
+    esac
+}
+clean_up
+
 
 # Ensure that login shells get the correct path if the user updated the PATH using ENV.
 rm -f /etc/profile.d/00-restore-env.sh
@@ -68,13 +119,24 @@ elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
 fi
 
 updaterc() {
+    local _bashrc
+    local _zshrc
     if [ "${UPDATE_RC}" = "true" ]; then
-        echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
-        if [[ "$(cat /etc/bash.bashrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/bash.bashrc
+        case $ADJUSTED_ID in
+            debian) echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
+                _bashrc=/etc/bash.bashrc
+                _zshrc=/etc/zsh/zshrc
+                ;;
+            rhel) echo "Updating /etc/bashrc and /etc/zshrc..."
+                _bashrc=/etc/bashrc
+                _zshrc=/etc/zshrc
+            ;;
+        esac
+        if [[ "$(cat ${_bashrc})" != *"$1"* ]]; then
+            echo -e "$1" >> ${_bashrc}
         fi
-        if [ -f "/etc/zsh/zshrc" ] && [[ "$(cat /etc/zsh/zshrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/zsh/zshrc
+        if [ -f "${_zshrc}" ] && [[ "$(cat ${_zshrc})" != *"$1"* ]]; then
+            echo -e "$1" >> ${_zshrc}
         fi
     fi
 }
@@ -95,15 +157,27 @@ receive_gpg_keys() {
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
-    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    # echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
     # GPG key download sometimes fails for some reason and retrying fixes it.
     local retry_count=0
     local gpg_ok="false"
     set +e
+    num_keys=$(echo "${PYTHON_SOURCE_GPG_KEYS}" | wc -w)
     until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
     do
-        echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+        # Because some older oses/base images don't support/have dirmngr we loop over
+        # keyservers and stop when we've loaded them all
+        for keyserver in $(echo "${GPG_KEY_SERVERS}" | sed -e 's/keyserver//; /pgp.com/d;') ; do
+            echo "(*) Downloading GPG keys from ${keyserver} ..."
+            echo "${keys}" | xargs -n 1 gpg --keyserver ${keyserver} ${keyring_args} --recv-keys 2>&1
+            downloaded_keys=$(gpg --fingerprint  | grep "fingerprint" | wc -l)
+            if [ ${num_keys} = ${downloaded_keys} ]; then
+                gpg_ok="true"
+                break
+            fi
+        done
+        # echo "(*) Downloading GPG key..."
+        # ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
         if [ "${gpg_ok}" != "true" ]; then
             echo "(*) Failed getting key, retring in 10s..."
             (( retry_count++ ))
@@ -189,20 +263,52 @@ oryx_install() {
     fi
 }
 
-apt_get_update()
-{
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update -y
-    fi
+pkg_mgr_update() {
+    case $ADJUSTED_ID in
+        debian)
+            if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+                echo "Running apt-get update..."
+                ${PKG_MGR_CMD} update -y
+            fi
+            ;;
+        rhel)
+            if [ ${PKG_MGR_CMD} = "microdnf" ]; then
+                if [ "$(ls /var/cache/yum/* 2>/dev/null | wc -l)" = 0 ]; then
+                    echo "Running ${PKG_MGR_CMD} makecache ..."
+                    ${PKG_MGR_CMD} makecache
+                fi
+            else
+                if [ "$(ls /var/cache/${PKG_MGR_CMD}/* 2>/dev/null | wc -l)" = 0 ]; then
+                    echo "Running ${PKG_MGR_CMD} check-update ..."
+                    set +e
+                    ${PKG_MGR_CMD} check-update
+                    rc=$?
+                    if [ $rc != 0 ] && [ $rc != 100 ]; then
+                        exit 1
+                    fi
+                    set -e
+                fi
+            fi
+            ;;
+    esac
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
-    fi
+    case ${ADJUSTED_ID} in
+        debian)
+            if ! dpkg -s "$@" > /dev/null 2>&1; then
+                pkg_mgr_update
+                ${INSTALL_CMD} "$@"
+            fi
+            ;;
+        rhel)
+            if ! rpm -q "$@" > /dev/null 2>&1; then
+                pkg_mgr_update
+                ${INSTALL_CMD} "$@"
+            fi
+            ;;
+    esac
 }
 
 add_symlink() {
@@ -218,13 +324,79 @@ add_symlink() {
     fi
 }
 
+install_openssl11() {
+    local _prefix=$1
+    mkdir /tmp/openssl11
+    (
+    cd /tmp/openssl11
+    curl -L -f -O https://www.openssl.org/source/openssl-1.1.1w.tar.gz
+    tar xzf openssl-1.1.1w.tar.gz
+    cd openssl-1.1.*
+    ./config --prefix=${_prefix} --openssldir=${_prefix}
+    make -j $(nproc)
+    make install_dev
+    )
+    rm -rf /tmp/openssl11
+}
+
+install_gnupg22() {
+    local _prefix=$1
+    yum-builddep -y gnupg2 
+    check_packages bzip2
+    mkdir -p /tmp/gnupg22 && cd /tmp/gnupg22
+    gpg --list-keys
+    gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 249B39D24F25E3B6 04376F3EE0856959 2071B08A33BD3F06 8A861B1C7EFD60D9
+
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.31.tar.gz.sig && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.31.tar.gz && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.8.3.tar.gz && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.8.3.tar.gz.sig && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libassuan/libassuan-2.5.1.tar.bz2 && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libassuan/libassuan-2.5.1.tar.bz2.sig && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libksba/libksba-1.3.5.tar.bz2 && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libksba/libksba-1.3.5.tar.bz2.sig && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/npth/npth-1.5.tar.bz2 && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/npth/npth-1.5.tar.bz2.sig && \
+    # curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/pinentry/pinentry-1.1.0.tar.bz2 && \
+    # curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/pinentry/pinentry-1.1.0.tar.bz2.sig && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/gnupg/gnupg-2.2.9.tar.bz2 && \
+    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/gnupg/gnupg-2.2.9.tar.bz2.sig && \
+    gpg --verify libgpg-error-1.31.tar.gz.sig && tar -xzf libgpg-error-1.31.tar.gz && \
+    gpg --verify libgcrypt-1.8.3.tar.gz.sig && tar -xzf libgcrypt-1.8.3.tar.gz && \
+    gpg --verify libassuan-2.5.1.tar.bz2.sig && tar -xjf libassuan-2.5.1.tar.bz2 && \
+    gpg --verify libksba-1.3.5.tar.bz2.sig && tar -xjf libksba-1.3.5.tar.bz2 && \
+    gpg --verify npth-1.5.tar.bz2.sig && tar -xjf npth-1.5.tar.bz2 && \
+    # gpg --verify pinentry-1.1.0.tar.bz2.sig && tar -xjf pinentry-1.1.0.tar.bz2 && \
+    gpg --verify gnupg-2.2.9.tar.bz2.sig && tar -xjf gnupg-2.2.9.tar.bz2 && \
+    cd libgpg-error-1.31/ && ./configure --prefix=${_prefix} && make && make install && cd ../ && \
+    cd libgcrypt-1.8.3 && ./configure --prefix=${_prefix} --with-libgpg-error-prefix=${_prefix} && make && make install && cd ../ && \
+    cd libassuan-2.5.1 && ./configure --prefix=${_prefix} --with-libgpg-error-prefix=${_prefix} && make && make install && cd ../ && \
+    cd libksba-1.3.5 && ./configure --prefix=${_prefix} && make && make install && cd ../ && \
+    cd npth-1.5 && ./configure --prefix=${_prefix} && make && make install && cd ../ && \
+    # cd pinentry-1.1.0 && ./configure --prefix=${_prefix} --enable-pinentry-curses --disable-pinentry-qt4 && \
+    # make && make install && cd ../ && \
+    cd gnupg-2.2.9 && LDFLAGS="-Wl,-rpath=${_prefix}/lib" ./configure --prefix=${_prefix} \
+        --with-agent-pgm=${_prefix}/bin/gpg-agent \
+        --with-dirmngr-pgm=${_prefix}/bin/dirmngr \
+        --with-libgpg-error-prefix=${_prefix} \
+        --with-libgcrypt-prefix=${_prefix} \
+        --with-libassuan-prefix=${_prefix} \
+        --with-ksba-prefix=${_prefix} \
+        --with-npth-prefix=${_prefix} \
+        && make && make install && cd ..
+    # Without the line below, gpg2 might fail to create / import secret keys !!! 
+    if [ -d ~/.gnugp ]; then rm -ri ~/.gnugp; fi
+    gpgconf --kill gpg-agent || true
+    # tidy up
+    rm -rf cd /tmp/gnupg22
+}
+
 install_from_source() {
     VERSION=$1 
     echo "(*) Building Python ${VERSION} from source..."
     # Install prereqs if missing
-    check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev libncurses5-dev \
-                libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
-                libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
+    check_packages ${REQUIRED_PKGS}
+
     if ! type git > /dev/null 2>&1; then
         check_packages git
     fi
@@ -239,6 +411,18 @@ install_from_source() {
         exit 1
     fi
 
+    # Some platforms/os versions need openssl11 & gpg2.22 installed because they're available
+    # via common package repositories, for now rhel-7 family, use case statement to 
+    # make it easy to expand
+    case ${VERSION_CODENAME} in
+        centos7|rhel7)
+            install_openssl11 ${INSTALL_PATH}
+            install_gnupg22 /usr/local/gnupg22
+            ADDL_CONFIG_ARGS="--with-openssl=${INSTALL_PATH}"
+            export LDFLAGS="-Wl,-rpath=${INSTALL_PATH}/lib"
+            ;;
+    esac
+
     # Download tgz of source
     mkdir -p /tmp/python-src ${INSTALL_PATH}
     cd /tmp/python-src
@@ -248,13 +432,19 @@ install_from_source() {
     curl -sSL -o "/tmp/python-src/${tgz_filename}" "${tgz_url}"
 
     # Verify signature
+    set -x
     receive_gpg_keys PYTHON_SOURCE_GPG_KEYS
+    set +x
     echo "Downloading ${tgz_filename}.asc..."
     curl -sSL -o "/tmp/python-src/${tgz_filename}.asc" "${tgz_url}.asc"
     gpg --verify "${tgz_filename}.asc"
 
     # Update min protocol for testing only - https://bugs.python.org/issue41561
-    cp /etc/ssl/openssl.cnf /tmp/python-src/
+    if [ -f /etc/pki/tls/openssl.cnf ]; then
+        cp /etc/pki/tls/openssl.cnf /tmp/python-src/
+    else
+        cp /etc/ssl/openssl.cnf /tmp/python-src/
+    fi
     sed -i -E 's/MinProtocol[=\ ]+.*/MinProtocol = TLSv1.0/g' /tmp/python-src/openssl.cnf
     export OPENSSL_CONF=/tmp/python-src/openssl.cnf
 
@@ -262,7 +452,13 @@ install_from_source() {
     tar -xzf "/tmp/python-src/${tgz_filename}" -C "/tmp/python-src" --strip-components=1
     local config_args=""
     if [ "${OPTIMIZE_BUILD_FROM_SOURCE}" = "true" ]; then
-        config_args="--enable-optimizations"
+        config_args="${config_args} --enable-optimizations"
+    fi
+    if [ "${ENABLESHARED}" = "true" ]; then
+        config_args=" ${config_args} --enable-shared"
+    fi
+    if [ -n "${ADDL_CONFIG_ARGS}" ]; then
+        config_args="${config_args} ${ADDL_CONFIG_ARGS}"
     fi
     ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
     make -j 8
@@ -355,7 +551,7 @@ install_python() {
         fi
 
         should_install_from_source=false
-    elif [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
+    elif [ ${ADJUSTED_ID} = "debian" ] && [ "$(dpkg --print-architecture)" = "amd64" ] && [ "${USE_ORYX_IF_AVAILABLE}" = "true" ] && type oryx > /dev/null 2>&1; then
         install_using_oryx $version || should_install_from_source=true
     else
         should_install_from_source=true
@@ -369,9 +565,77 @@ install_python() {
 export DEBIAN_FRONTEND=noninteractive
 
 # General requirements
-check_packages curl ca-certificates gnupg2 tar make gcc libssl-dev zlib1g-dev libncurses5-dev \
-            libbz2-dev libreadline-dev libxml2-dev xz-utils libgdbm-dev tk-dev dirmngr \
-            libxmlsec1-dev libsqlite3-dev libffi-dev liblzma-dev uuid-dev 
+
+REQUIRED_PKGS=""
+case ${ADJUSTED_ID} in
+    debian)
+        REQUIRED_PKGS="${REQUIRED_PKGS} \
+            ca-certificates \
+            curl \
+            dirmngr \
+            gcc \
+            gnupg2 \
+            libbz2-dev \
+            libffi-dev \
+            libgdbm-dev \
+            liblzma-dev \
+            libncurses5-dev \
+            libreadline-dev \
+            libsqlite3-dev \
+            libssl-dev \
+            libxml2-dev \
+            libxmlsec1-dev \
+            make \
+            tar \
+            tk-dev \
+            uuid-dev \
+            xz-utils \
+            zlib1g-dev"
+        ;;
+    rhel)
+        REQUIRED_PKGS="${REQUIRED_PKGS} \
+            bzip2-devel \
+            curl \
+            ca-certificates \
+            gcc \
+            gdbm-devel \
+            gnupg2 \
+            libffi-devel \
+            libxml2-devel \
+            make \
+            ncurses-devel \
+            openssl-devel \
+            readline-devel \
+            sqlite-devel \
+            tar \
+            tk-devel \
+            uuid-devel \
+            which \
+            xmlsec1-devel \
+            xz-devel \
+            xz \
+            zlib-devel"
+        ;;
+esac
+
+# setup for finding some devel packages:
+# rhel9 family
+#   - dnf install -y 'dnf-command(config-manager)'
+#   - dnf config-manager --set-enabled crb
+# rhel8 family
+#   - dnf install -y 'dnf-command(config-manager)'
+#   - dnf config-manager --set-enabled powertools
+if [ ${ADJUSTED_ID} = "rhel" ]; then
+    if [ ${MAJOR_VERSION_ID} = "8" ]; then
+        ${INSTALL_CMD} 'dnf-command(config-manager)'
+        dnf config-manager --set-enabled powertools
+    elif [ ${MAJOR_VERSION_ID} = "9" ]; then
+        ${INSTALL_CMD} 'dnf-command(config-manager)'
+        dnf config-manager --set-enabled crb
+    fi
+fi
+
+check_packages ${REQUIRED_PKGS}
 
 
 # Install Python from source if needed
@@ -454,6 +718,14 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
             echo "${util} already installed. Skipping."
         fi
     done
+    # Install modules
+    if [[ ${#PIP_MODULES[@]} -gt 0 ]]; then
+        echo "Installing Python modules..."
+        export PIP_CACHE_DIR=/tmp/pip-tmp/cache
+        for module in "${PIP_MODULES[@]}"; do
+            pip3 install "${module}"
+        done
+    fi
     rm -rf /tmp/pip-tmp
 
     updaterc "export PIPX_HOME=\"${PIPX_HOME}\""
@@ -492,6 +764,6 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
 fi
 
 # Clean up
-rm -rf /var/lib/apt/lists/*
+clean_up
 
 echo "Done!"

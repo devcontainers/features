@@ -81,5 +81,29 @@
                 "version": "3.12"
             }
         }
+    },
+    "centos-7": {
+        "image": "centos:centos7",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "alma-8": {
+        "image": "almalinux:8",
+        "features": {
+            "python": {
+                "version": "latest"
+            }
+        }
+    },
+    "alma-9": {
+        "image": "almalinux:9",
+        "features": {
+            "python": {
+                "version": "latest"
+            }
+        }
     }
 }

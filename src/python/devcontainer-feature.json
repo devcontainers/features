@@ -25,12 +25,27 @@
     "installTools": {
       "type": "boolean",
       "default": true,
-      "description": "Install common Python tools like pylint"
+      "description": "Install common Python tools like pylint, override list using 'toolsToInstall'"
+    },
+    "toolsToInstall": {
+      "type": "string",
+      "default": "flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest,pylint",
+      "description": "Comma-separated list of tools to install when installTools is true"
+    },
+    "additionalModules": {
+      "type": "string",
+      "default": "",
+      "description": "Comma-separated list of modules to install via PIP (not pipx)"
     },
     "optimize": {
       "type": "boolean",
       "default": false,
       "description": "Optimize Python for performance when compiled (slow)"
+    },
+    "enableShared": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable building a shared Python library"
     },
     "installPath": {
       "type": "string",
@@ -71,7 +86,7 @@
     }
   },
   "installsAfter": [
-      "ghcr.io/devcontainers/features/common-utils",
-      "ghcr.io/devcontainers/features/oryx"
+    "ghcr.io/devcontainers/features/common-utils",
+    "ghcr.io/devcontainers/features/oryx"
   ]
 }
