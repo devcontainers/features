@@ -1,6 +1,6 @@
 {
     "id": "ruby",
-    "version": "1.2.0", // TODO - Is this a major or a minor update? Major, probably.
+    "version": "1.3.0",
     "name": "Ruby",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/ruby",
     "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
