@@ -10,7 +10,6 @@
     },
     "install_gem": {
         "image": "mcr.microsoft.com/devcontainers/base:bullseye",
-        "remoteUser": "vscode",
         "features": {
             "ruby": {
                 "version": "latest"
