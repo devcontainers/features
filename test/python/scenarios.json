@@ -82,6 +82,25 @@
             }
         }
     },
+    "install_alternate_tools": {
+        "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
+        "features": {
+            "python": {
+                "version": "3.12",
+                "toolsToInstall": "ruff,mypy,bandit,pipenv,virtualenv,pytest"
+            }
+        }
+    },
+    "install_pip_modules": {
+        "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
+        "features": {
+            "python": {
+                "version": "3.12",
+                "installTools": false,
+                "additionalModules": "click,ldap3"
+            }
+        }
+    },
     "centos-7": {
         "image": "centos:centos7",
         "features": {
@@ -94,7 +113,15 @@
         "image": "almalinux:8",
         "features": {
             "python": {
-                "version": "latest"
+                "version": "3.11"
+            }
+        }
+    },
+    "alma-8-minimal": {
+        "image": "almalinux:8-minimal",
+        "features": {
+            "python": {
+                "version": "3.11"
             }
         }
     },
@@ -102,7 +129,41 @@
         "image": "almalinux:9",
         "features": {
             "python": {
-                "version": "latest"
+                "version": "3.11"
+            }
+        }
+    },
+    "alma-9-minimal": {
+        "image": "almalinux:9-minimal",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "alma-9-system": {
+        "image": "almalinux:9",
+        "features": {
+            "python": {
+                "version": "system"
+            }
+        }
+    },
+    "install_python_shared_lib_deb": {
+        "image": "ubuntu:focal",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "enableShared": true
+            }
+        }
+    },
+    "install_python_shared_lib_rhel": {
+        "image": "almalinux:9",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "enableShared": true
             }
         }
     }

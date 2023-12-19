@@ -44,7 +44,7 @@
     },
     "enableShared": {
       "type": "boolean",
-      "default": true,
+      "default": false,
       "description": "Enable building a shared Python library"
     },
     "installPath": {

@@ -10,7 +10,7 @@
 PYTHON_VERSION="${VERSION:-"latest"}" # 'system' or 'os-provided' checks the base image first, else installs 'latest'
 INSTALL_PYTHON_TOOLS="${INSTALLTOOLS:-"true"}"
 OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
-ENABLE_SHARED_FROM_SOURCE="${ENABLESHARED:-"true"}"
+ENABLE_SHARED_FROM_SOURCE="${ENABLESHARED:-"false"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
@@ -26,6 +26,10 @@ CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN="${CONFIGUREJUPYTERLABALLOWORIGIN:-""}"
 # Comma-separated list of python versions to be installed
 # alongside PYTHON_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
+
+GPG_INSTALL_PATH=/usr/local/gnupg22
+# GPG_CMD will be over-ridden if we need to install gpt2.22 ito GPG_INSTALL_PATH
+GPG_CMD=gpg
 
 # Comma-separated list of additional tools to be installed via pipx.
 IFS="," read -r -a DEFAULT_UTILS <<< "${TOOLSTOINSTALL:-flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest}"
@@ -67,19 +71,29 @@ else
     exit 1
 fi
 
+# To find some devel packages, some rhel need to enable specific extra repos
+INSTALL_CMD_ADDL_REPO=""
+if [ ${ADJUSTED_ID} = "rhel" ]; then
+    if [ ${MAJOR_VERSION_ID} = "8" ]; then
+        INSTALL_CMD_ADDL_REPOS="--enablerepo powertools"
+    elif [ ${MAJOR_VERSION_ID} = "9" ]; then
+        INSTALL_CMD_ADDL_REPOS="--enablerepo crb"
+    fi
+fi
+
 # Setup INSTALL_CMD & PKG_MGR_CMD
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
     INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
 elif type dnf > /dev/null 2>&1; then
     PKG_MGR_CMD=dnf
-    INSTALL_CMD="${PKG_MGR_CMD} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+    INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
 elif type microdnf > /dev/null 2>&1; then
     PKG_MGR_CMD=microdnf
-    INSTALL_CMD="${PKG_MGR_CMD} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+    INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
 else
     PKG_MGR_CMD=yum
-    INSTALL_CMD="${PKG_MGR_CMD} -y install --noplugins --setopt=install_weak_deps=0"
+    INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --noplugins --setopt=install_weak_deps=0"
 fi
 
 # Clean up
@@ -90,6 +104,8 @@ clean_up() {
             ;;
         rhel)
             rm -rf /var/cache/dnf/* /var/cache/yum/*
+            rm -rf /tmp/yum.log
+            rm -rf ${GPG_INSTALL_PATH}
             ;;
     esac
 }
@@ -142,9 +158,11 @@ updaterc() {
 }
 
 # Import the specified key in a variable name passed in as 
+# Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
     local keys=${!1}
     local keyring_args=""
+    local gpg_cmd="gpg"
     if [ ! -z "$2" ]; then
         mkdir -p "$(dirname \"$2\")"
         keyring_args="--no-default-keyring --keyring $2"
@@ -157,27 +175,15 @@ receive_gpg_keys() {
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
-    # echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
     # GPG key download sometimes fails for some reason and retrying fixes it.
     local retry_count=0
     local gpg_ok="false"
     set +e
-    num_keys=$(echo "${PYTHON_SOURCE_GPG_KEYS}" | wc -w)
     until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
     do
-        # Because some older oses/base images don't support/have dirmngr we loop over
-        # keyservers and stop when we've loaded them all
-        for keyserver in $(echo "${GPG_KEY_SERVERS}" | sed -e 's/keyserver//; /pgp.com/d;') ; do
-            echo "(*) Downloading GPG keys from ${keyserver} ..."
-            echo "${keys}" | xargs -n 1 gpg --keyserver ${keyserver} ${keyring_args} --recv-keys 2>&1
-            downloaded_keys=$(gpg --fingerprint  | grep "fingerprint" | wc -l)
-            if [ ${num_keys} = ${downloaded_keys} ]; then
-                gpg_ok="true"
-                break
-            fi
-        done
-        # echo "(*) Downloading GPG key..."
-        # ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+        echo "(*) Downloading GPG key..."
+        ( echo "${keys}" | xargs -n 1 ${GPG_CMD} -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
         if [ "${gpg_ok}" != "true" ]; then
             echo "(*) Failed getting key, retring in 10s..."
             (( retry_count++ ))
@@ -394,9 +400,6 @@ install_gnupg22() {
 install_from_source() {
     VERSION=$1 
     echo "(*) Building Python ${VERSION} from source..."
-    # Install prereqs if missing
-    check_packages ${REQUIRED_PKGS}
-
     if ! type git > /dev/null 2>&1; then
         check_packages git
     fi
@@ -416,10 +419,10 @@ install_from_source() {
     # make it easy to expand
     case ${VERSION_CODENAME} in
         centos7|rhel7)
+            install_gnupg22 ${GPG_INSTALL_PATH}
+            GPG_CMD=${GPG_INSTALL_PATH}/bin/gpg
             install_openssl11 ${INSTALL_PATH}
-            install_gnupg22 /usr/local/gnupg22
-            ADDL_CONFIG_ARGS="--with-openssl=${INSTALL_PATH}"
-            export LDFLAGS="-Wl,-rpath=${INSTALL_PATH}/lib"
+            ADDL_CONFIG_ARGS="--with-openssl=${INSTALL_PATH} --with-openssl-rpath=${INSTALL_PATH}/lib"
             ;;
     esac
 
@@ -432,12 +435,10 @@ install_from_source() {
     curl -sSL -o "/tmp/python-src/${tgz_filename}" "${tgz_url}"
 
     # Verify signature
-    set -x
     receive_gpg_keys PYTHON_SOURCE_GPG_KEYS
-    set +x
     echo "Downloading ${tgz_filename}.asc..."
     curl -sSL -o "/tmp/python-src/${tgz_filename}.asc" "${tgz_url}.asc"
-    gpg --verify "${tgz_filename}.asc"
+    ${GPG_CMD} --verify "${tgz_filename}.asc"
 
     # Update min protocol for testing only - https://bugs.python.org/issue41561
     if [ -f /etc/pki/tls/openssl.cnf ]; then
@@ -454,8 +455,12 @@ install_from_source() {
     if [ "${OPTIMIZE_BUILD_FROM_SOURCE}" = "true" ]; then
         config_args="${config_args} --enable-optimizations"
     fi
+    set -x
     if [ "${ENABLESHARED}" = "true" ]; then
         config_args=" ${config_args} --enable-shared"
+        # need double-$: LDFLAGS ends up in Makefile $$ becomes $ when evaluated.
+        # backslash needed for shell that Make calls escape the $.
+        export LDFLAGS="${LDFLAGS} -Wl,-rpath="'\$$ORIGIN'"/../lib"
     fi
     if [ -n "${ADDL_CONFIG_ARGS}" ]; then
         config_args="${config_args} ${ADDL_CONFIG_ARGS}"
@@ -463,6 +468,7 @@ install_from_source() {
     ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
     make -j 8
     make install
+    set +x
     cd /tmp
     rm -rf /tmp/python-src ${GNUPGHOME} /tmp/vscdc-settings.env
 
@@ -532,7 +538,11 @@ install_python() {
     version=$1
     # If the os-provided versions are "good enough", detect that and bail out.
     if [ ${version} = "os-provided" ] || [ ${version} = "system" ]; then
-        check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
+        if [ ${ADJUSTED_ID} = "debian" ]; then
+            check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
+        else
+            check_packages python3 python3-pip python3-devel python3-tkinter
+        fi
         INSTALL_PATH="/usr"
 
         local current_bin_path="${CURRENT_PATH}/bin"
@@ -557,7 +567,9 @@ install_python() {
         should_install_from_source=true
     fi
     if [ "${should_install_from_source}" = "true" ]; then
+        set -x
         install_from_source $version
+        set +x
     fi
 }
 
@@ -595,8 +607,8 @@ case ${ADJUSTED_ID} in
     rhel)
         REQUIRED_PKGS="${REQUIRED_PKGS} \
             bzip2-devel \
-            curl \
             ca-certificates \
+            findutils \
             gcc \
             gdbm-devel \
             gnupg2 \
@@ -606,6 +618,7 @@ case ${ADJUSTED_ID} in
             ncurses-devel \
             openssl-devel \
             readline-devel \
+            shadow-utils \
             sqlite-devel \
             tar \
             tk-devel \
@@ -615,28 +628,14 @@ case ${ADJUSTED_ID} in
             xz-devel \
             xz \
             zlib-devel"
+        if ! type curl >/dev/null 2>&1; then
+            REQUIRED_PKGS="${REQUIRED_PKGS} \
+                curl"
+        fi
         ;;
 esac
 
-# setup for finding some devel packages:
-# rhel9 family
-#   - dnf install -y 'dnf-command(config-manager)'
-#   - dnf config-manager --set-enabled crb
-# rhel8 family
-#   - dnf install -y 'dnf-command(config-manager)'
-#   - dnf config-manager --set-enabled powertools
-if [ ${ADJUSTED_ID} = "rhel" ]; then
-    if [ ${MAJOR_VERSION_ID} = "8" ]; then
-        ${INSTALL_CMD} 'dnf-command(config-manager)'
-        dnf config-manager --set-enabled powertools
-    elif [ ${MAJOR_VERSION_ID} = "9" ]; then
-        ${INSTALL_CMD} 'dnf-command(config-manager)'
-        dnf config-manager --set-enabled crb
-    fi
-fi
-
 check_packages ${REQUIRED_PKGS}
-
 
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
@@ -702,7 +701,6 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     fi
 
     # Install tools
-    echo "Installing Python tools..."
     export PYTHONUSERBASE=/tmp/pip-tmp
     export PIP_CACHE_DIR=/tmp/pip-tmp/cache
     PIPX_DIR=""
@@ -718,19 +716,22 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
             echo "${util} already installed. Skipping."
         fi
     done
-    # Install modules
-    if [[ ${#PIP_MODULES[@]} -gt 0 ]]; then
-        echo "Installing Python modules..."
-        export PIP_CACHE_DIR=/tmp/pip-tmp/cache
-        for module in "${PIP_MODULES[@]}"; do
-            pip3 install "${module}"
-        done
-    fi
     rm -rf /tmp/pip-tmp
 
     updaterc "export PIPX_HOME=\"${PIPX_HOME}\""
     updaterc "export PIPX_BIN_DIR=\"${PIPX_BIN_DIR}\""
     updaterc "if [[ \"\${PATH}\" != *\"\${PIPX_BIN_DIR}\"* ]]; then export PATH=\"\${PATH}:\${PIPX_BIN_DIR}\"; fi"
+fi
+
+# Install modules via pip
+if [[ ${#PIP_MODULES[@]} -gt 0 ]]; then
+    echo "Installing Python modules..."
+    export PYTHONUSERBASE=/tmp/pip-tmp
+    export PIP_CACHE_DIR=/tmp/pip-tmp/cache
+    for module in "${PIP_MODULES[@]}"; do
+        pip3 install "${module}"
+    done
+    rm -rf /tmp/pip-tmp
 fi
 
 # Install JupyterLab if needed
