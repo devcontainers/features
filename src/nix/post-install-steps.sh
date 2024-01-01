@@ -20,10 +20,10 @@ if [ ! -z "${PACKAGES}" ] && [ "${PACKAGES}" != "none" ]; then
   if [ "${USEATTRPATH}" = "true" ]; then
     PACKAGES=$(add_nixpkgs_prefix "$PACKAGES")
     echo "Installing packages \"${PACKAGES}\" in profile..."
-    nix-env -iA "${PACKAGES}"
+    nix-env -iA ${PACKAGES}
   else
     echo "Installing packages \"${PACKAGES}\" in profile..."
-    nix-env --install "${PACKAGES}"
+    nix-env --install ${PACKAGES}
   fi
 fi
 

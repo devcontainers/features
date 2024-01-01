@@ -81,6 +81,17 @@
             }
         }
     },
+    "packages-use-attr-path": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "nix": {
+                "packages": "nodePackages.nodejs,nixpkgs.vim,nixpkgs.yarn",
+                "useAttrPath": true
+            }
+        }
+    },
+
     "flake": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "remoteUser": "vscode",
