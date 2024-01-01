@@ -3,7 +3,7 @@
     "version": "1.1.3",
     "name": "Nix Package Manager",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/nix",
-    "description": "Installs the Nix package manager and optionally a set of packages.",  
+    "description": "Installs the Nix package manager and optionally a set of packages.",
     "options": {
         "version": {
             "type": "string",
@@ -20,6 +20,11 @@
             "type": "string",
             "default": "",
             "description": "Optional comma separated list of Nix packages to install in profile."
+        },
+        "useAttrPath": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable this option to use exact attribute path of the package in the Nixpkgs repository, aligning with the nix-env -iA command."
         },
         "flakeUri": {
             "type": "string",
