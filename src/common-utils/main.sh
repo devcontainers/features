@@ -300,6 +300,53 @@ install_alpine_packages() {
     PACKAGES_ALREADY_INSTALLED="true"
 }
 
+# Arch Linux packages
+install_arch_packages() {
+    if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
+        pacman -Sy --noconfirm --noprogressbar \
+            openssh \
+            gnupg \
+            procps \
+            lsof \
+            htop \
+            net-tools \
+            psmisc \
+            curl \
+            wget \
+            rsync \
+            ca-certificates \
+            unzip \
+            zip \
+            nano \
+            vim \
+            less \
+            jq \
+            gcc \
+            tzdata \
+            zlib \
+            sudo \
+            coreutils \
+            sed \
+            grep \
+            which \
+            ncdu \
+            shadow \
+            strace
+
+        # Install git if not already installed (may be more recent than distro version)
+        if ! type git > /dev/null 2>&1; then
+            pacman -Sy --noconfirm --noprogressbar git
+        fi
+    fi
+
+    # Install zsh if needed
+    if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
+        pacman -Sy --noconfirm --noprogressbar zsh
+    fi
+
+    PACKAGES_ALREADY_INSTALLED="true"
+}
+
 # ******************
 # ** Main section **
 # ******************
@@ -330,6 +377,8 @@ elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_L
     ADJUSTED_ID="rhel"
 elif [ "${ID}" = "alpine" ]; then
     ADJUSTED_ID="alpine"
+elif [ "${ID}" = "arch" ]; then
+    ADJUSTED_ID="arch"
 else
     echo "Linux distro ${ID} not supported."
     exit 1
@@ -345,6 +394,9 @@ case "${ADJUSTED_ID}" in
         ;;
     "alpine")
         install_alpine_packages
+        ;;
+    "arch")
+        install_arch_packages
         ;;
 esac
 
@@ -446,6 +498,9 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
             global_rc_path="/etc/bash/bashrc"
             # /etc/bash/bashrc does not exist in alpine 3.14 & 3.15
             mkdir -p /etc/bash
+            ;;
+        "arch")
+            global_rc_path="/etc/bash.bashrc"
             ;;
     esac
     cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${global_rc_path}
