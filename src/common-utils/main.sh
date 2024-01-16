@@ -189,11 +189,11 @@ install_redhat_packages() {
             man-db \
             strace"
 
-    # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
-    # Install 'curl' for every OS except this rockylinux:9
-    if [[ "${ID}" = "rocky" ]] && [[ "${VERSION}" != *"9."* ]]; then
-        package_list="${package_list} curl"
-    fi
+        # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
+        # Install 'curl' for every OS except this rockylinux:9
+        if [[ "${ID}" = "rocky" ]] && [[ "${VERSION}" != *"9."* ]]; then
+            package_list="${package_list} curl"
+        fi
 
         # Install OpenSSL 1.0 compat if needed
         if ${install_cmd} -q list compat-openssl10 >/dev/null 2>&1; then
@@ -222,7 +222,9 @@ install_redhat_packages() {
         package_list="${package_list} zsh"
     fi
 
-    ${install_cmd} -y install ${package_list}
+    if [ -n "${package_list}" ]; then
+        ${install_cmd} -y install ${package_list}
+    fi
 
     # Get to latest versions of all packages
     if [ "${UPGRADE_PACKAGES}" = "true" ]; then
@@ -263,7 +265,6 @@ install_alpine_packages() {
             libstdc++ \
             krb5-libs \
             libintl \
-            libssl1.1 \
             lttng-ust \
             tzdata \
             userspace-rcu \
@@ -276,6 +277,12 @@ install_alpine_packages() {
             ncdu \
             shadow \
             strace
+
+        # # Include libssl1.1 if available (not available for 3.19 and newer)
+        LIBSSL1_PKG=libssl1.1
+        if [[ $(apk search --no-cache -a $LIBSSL1_PKG | grep $LIBSSL1_PKG) ]]; then
+            apk add --no-cache $LIBSSL1_PKG
+        fi
 
         # Install man pages - package name varies between 3.12 and earlier versions
         if apk info man > /dev/null 2>&1; then
@@ -457,8 +464,10 @@ fi
 
 # Optionally configure zsh and Oh My Zsh!
 if [ "${INSTALL_ZSH}" = "true" ]; then
-    if [ ! -f "${user_home}/.zprofile" ] || ! grep -Fxq 'source $HOME/.profile' "${user_home}/.zprofile" ; then
-        echo 'source $HOME/.profile' >> "${user_home}/.zprofile"
+   if [ ! -f "${user_home}/.zprofile" ]; then
+        touch "${user_home}/.zprofile"
+        echo 'source $HOME/.profile' >> "${user_home}/.zprofile" # TODO: Reconsider adding '.profile' to '.zprofile'
+        chown ${USERNAME}:${group_name} "${user_home}/.zprofile"
     fi
 
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
