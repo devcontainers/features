@@ -265,7 +265,6 @@ install_alpine_packages() {
             libstdc++ \
             krb5-libs \
             libintl \
-            libssl1.1 \
             lttng-ust \
             tzdata \
             userspace-rcu \
@@ -278,6 +277,12 @@ install_alpine_packages() {
             ncdu \
             shadow \
             strace
+
+        # # Include libssl1.1 if available (not available for 3.19 and newer)
+        LIBSSL1_PKG=libssl1.1
+        if [[ $(apk search --no-cache -a $LIBSSL1_PKG | grep $LIBSSL1_PKG) ]]; then
+            apk add --no-cache $LIBSSL1_PKG
+        fi
 
         # Install man pages - package name varies between 3.12 and earlier versions
         if apk info man > /dev/null 2>&1; then
