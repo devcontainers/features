@@ -35,6 +35,7 @@ check "which pycodestyle" bash -c "which pycodestyle | grep /usr/local/py-utils/
 check "which pydocstyle" bash -c "which pydocstyle | grep /usr/local/py-utils/bin/pydocstyle"
 check "which pylint" bash -c "which pylint | grep /usr/local/py-utils/bin/pylint"
 check "which pytest" bash -c "which pytest | grep /usr/local/py-utils/bin/pytest"
+check "which libpython" bash -c "ldd \$(which python) | grep 'libpython3.*so'"
 
 # Report result
 reportResults
