@@ -34,7 +34,7 @@
     },
     "shared": {
       "type": "boolean",
-      "default": false,
+      "default": true,
       "description": "Build Python with the shared library files."
     },
     "installPath": {
