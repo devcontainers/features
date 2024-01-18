@@ -21,7 +21,7 @@
             "default": "",
             "description": "Optional comma separated list of Nix packages to install in profile."
         },
-        "useAttrPath": {
+        "useAttributePath": {
             "type": "boolean",
             "default": false,
             "description": "Enable this option to use exact attribute path of the package in the Nixpkgs repository, aligning with the nix-env -iA command."

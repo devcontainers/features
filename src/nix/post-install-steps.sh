@@ -17,7 +17,7 @@ add_nixpkgs_prefix() {
 
 # Install list of packages in profile if specified.
 if [ ! -z "${PACKAGES}" ] && [ "${PACKAGES}" != "none" ]; then
-  if [ "${USEATTRPATH}" = "true" ]; then
+  if [ "${USEATTRIBUTEPATH}" = "true" ]; then
     PACKAGES=$(add_nixpkgs_prefix "$PACKAGES")
     echo "Installing packages \"${PACKAGES}\" in profile..."
     nix-env -iA ${PACKAGES}
