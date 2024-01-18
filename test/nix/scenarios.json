@@ -87,7 +87,7 @@
         "features": {
             "nix": {
                 "packages": "nodePackages.nodejs,nixpkgs.vim,nixpkgs.yarn",
-                "useAttrPath": true
+                "useAttributePath": true
             }
         }
     },
