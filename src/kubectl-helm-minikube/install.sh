@@ -148,7 +148,7 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     kubectl completion bash > /etc/bash_completion.d/kubectl
 
     # kubectl zsh completion
-    if [ -e "${USERHOME}}/.oh-my-zsh" ]; then
+    if [ -e "${USERHOME}/.oh-my-zsh" ]; then
         mkdir -p "${USERHOME}/.oh-my-zsh/completions"
         kubectl completion zsh > "${USERHOME}/.oh-my-zsh/completions/_kubectl"
         chown -R "${USERNAME}" "${USERHOME}/.oh-my-zsh"
