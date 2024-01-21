@@ -1,6 +1,6 @@
 {
   "id": "java",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "name": "Java (via SDKMAN!)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/java",
   "description": "Installs Java, SDKMAN! (if not installed), and needed dependencies.",
@@ -79,7 +79,7 @@
     "installGroovy": {
       "type": "boolean",
       "default": false,
-      "description": "Install Groovy, powerful, optionally typed and dynamic language"
+      "description": "Install Groovy, powerful, optionally typed and dynamic language with static-typing and static compilation capabilities"
     },
     "groovyVersion": {
       "type": "string",
