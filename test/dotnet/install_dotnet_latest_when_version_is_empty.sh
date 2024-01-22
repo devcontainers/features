@@ -18,10 +18,6 @@ expected=$(fetch_latest_version)
 check "Latest .NET SDK version installed" \
 is_dotnet_sdk_version_installed "$expected"
 
-# Expect this check to fail in November 2023 when .NET 8.0 becomes GA
-check "It is a flavor of .NET 7.0" \
-is_dotnet_sdk_version_installed "7.0"
-
 check "Build and run example project" \
 dotnet run --project projects/net7.0
 
