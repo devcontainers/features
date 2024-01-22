@@ -8,6 +8,7 @@ cd "${FEATURE_DIR}"
 VERSION="${VERSION:-"latest"}"
 MULTIUSER="${MULTIUSER:-"true"}"
 PACKAGES="${PACKAGES//,/ }"
+USEATTRIBUTEPATH="${USEATTRIBUTEPATH:-"false"}"
 FLAKEURI="${FLAKEURI:-""}"
 EXTRANIXCONFIG="${EXTRANIXCONFIG:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -68,7 +69,7 @@ else
             exit 1
         fi
         echo "(*) Performing single-user install..."
-        echo -e "\n**NOTE: Nix will only work for user ${USERNAME} on Linux if the host machine user's UID is $(id -u ${USERNAME}). You will need to chown /nix otherwise.**\n"    
+        echo -e "\n**NOTE: Nix will only work for user ${USERNAME} on Linux if the host machine user's UID is $(id -u ${USERNAME}). You will need to chown /nix otherwise.**\n"
         # Install per https://nixos.org/manual/nix/stable/installation/installing-binary.html#single-user-installation
         mkdir -p /nix
         chown ${USERNAME} /nix ${tmpdir}
@@ -79,14 +80,14 @@ else
         '
         update_rc_file "$home_dir/.bashrc" "${snippet}"
         update_rc_file "$home_dir/.zshenv" "${snippet}"
-        update_rc_file "$home_dir/.profile" "${snippet}"    
+        update_rc_file "$home_dir/.profile" "${snippet}"
     fi
     rm -rf "${tmpdir}" "/tmp/tmp-gnupg"
 fi
 
 # Set nix config
 mkdir -p /etc/nix
-create_or_update_file /etc/nix/nix.conf 'sandbox = false' 
+create_or_update_file /etc/nix/nix.conf 'sandbox = false'
 if  [ ! -z "${FLAKEURI}" ] && [ "${FLAKEURI}" != "none" ]; then
     create_or_update_file /etc/nix/nix.conf 'experimental-features = nix-command flakes'
 fi

@@ -48,6 +48,7 @@ install_debian_packages() {
         ca-certificates \
         unzip \
         bzip2 \
+        xz-utils \
         zip \
         nano \
         vim-tiny \
@@ -173,6 +174,7 @@ install_redhat_packages() {
             ca-certificates \
             rsync \
             unzip \
+            xz \
             zip \
             nano \
             vim-minimal \
@@ -256,6 +258,7 @@ install_alpine_packages() {
             rsync \
             ca-certificates \
             unzip \
+            xz \
             zip \
             nano \
             vim \
