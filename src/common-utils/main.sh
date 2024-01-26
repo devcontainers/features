@@ -155,9 +155,12 @@ install_debian_packages() {
 install_redhat_packages() {
     local package_list=""
     local remove_epel="false"
-    local install_cmd=dnf
-    if ! type dnf > /dev/null 2>&1; then
-        install_cmd=yum
+    local install_cmd=microdnf
+    if ! type microdnf > /dev/null 2>&1; then
+        install_cmd=dnf
+        if ! type dnf > /dev/null 2>&1; then
+            install_cmd=yum
+        fi
     fi
 
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
