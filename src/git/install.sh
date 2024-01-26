@@ -36,12 +36,14 @@ fi
 
 if type apt-get > /dev/null 2>&1; then
     INSTALL_CMD=apt-get
-elif type dnf > /dev/null 2>&1; then
-    INSTALL_CMD=dnf
 elif type microdnf > /dev/null 2>&1; then
     INSTALL_CMD=microdnf
-else
+elif type dnf > /dev/null 2>&1; then
+    INSTALL_CMD=dnf
+elif type yum > /dev/null 2>&1; then
     INSTALL_CMD=yum
+else
+    echo "Error...."
 fi
 
 # Clean up
@@ -198,9 +200,13 @@ elif [ "${ADJUSTED_ID}" = "rhel" ]; then
         check_packages gcc
     fi
 
-    check_packages libcurl-devel expat-devel gettext-devel openssl-devel perl-devel zlib-devel cmake pcre2-devel tar gzip
+
+    check_packages libcurl-devel expat-devel gettext-devel openssl-devel perl-devel zlib-devel cmake pcre2-devel tar gzip ca-certificates
     if [ $VERSION_ID -lt "9" ]; then
         check_packages curl
+    fi
+    if [ $ID = "mariner" ]; then
+        check_packages glibc-devel kernel-headers binutils
     fi
 fi
 

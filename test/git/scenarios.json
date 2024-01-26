@@ -88,5 +88,41 @@
                 "ppa": "false"
             }
         }
+    },
+    "install_git_from_src_rocky-8": {
+        "image": "rockylinux:8",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_src_rocky-9": {
+        "image": "rockylinux:9",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_src_fedora": {
+        "image": "fedora",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_src_mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
     }
 }
