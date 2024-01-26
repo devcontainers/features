@@ -43,7 +43,8 @@ elif type dnf > /dev/null 2>&1; then
 elif type yum > /dev/null 2>&1; then
     INSTALL_CMD=yum
 else
-    echo "Error...."
+    echo "(Error) Unable to find a supported package manager."
+    exit 1
 fi
 
 # Clean up
