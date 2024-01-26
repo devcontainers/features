@@ -71,24 +71,6 @@
             }
         }
     },
-    "install_git_from_src_alma-8-minimal": {
-        "image": "almalinux:8-minimal",
-        "features": {
-            "git": {
-                "version": "latest",
-                "ppa": "false"
-            }
-        }
-    },
-    "install_git_from_src_alma-9-minimal": {
-        "image": "almalinux:9-minimal",
-        "features": {
-            "git": {
-                "version": "latest",
-                "ppa": "false"
-            }
-        }
-    },
     "install_git_from_src_rocky-8": {
         "image": "rockylinux:8",
         "features": {
