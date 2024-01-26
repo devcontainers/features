@@ -203,7 +203,7 @@ elif [ "${ADJUSTED_ID}" = "rhel" ]; then
 
 
     check_packages libcurl-devel expat-devel gettext-devel openssl-devel perl-devel zlib-devel cmake pcre2-devel tar gzip ca-certificates
-    if [ $VERSION_ID -lt "9" ]; then
+    if ! type curl > /dev/null 2>&1; then
         check_packages curl
     fi
     if [ $ID = "mariner" ]; then
