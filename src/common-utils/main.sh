@@ -48,6 +48,7 @@ install_debian_packages() {
         ca-certificates \
         unzip \
         bzip2 \
+        xz-utils \
         zip \
         nano \
         vim-tiny \
@@ -173,6 +174,7 @@ install_redhat_packages() {
             ca-certificates \
             rsync \
             unzip \
+            xz \
             zip \
             nano \
             vim-minimal \
@@ -256,6 +258,7 @@ install_alpine_packages() {
             rsync \
             ca-certificates \
             unzip \
+            xz \
             zip \
             nano \
             vim \
@@ -265,7 +268,6 @@ install_alpine_packages() {
             libstdc++ \
             krb5-libs \
             libintl \
-            libssl1.1 \
             lttng-ust \
             tzdata \
             userspace-rcu \
@@ -278,6 +280,12 @@ install_alpine_packages() {
             ncdu \
             shadow \
             strace
+
+        # # Include libssl1.1 if available (not available for 3.19 and newer)
+        LIBSSL1_PKG=libssl1.1
+        if [[ $(apk search --no-cache -a $LIBSSL1_PKG | grep $LIBSSL1_PKG) ]]; then
+            apk add --no-cache $LIBSSL1_PKG
+        fi
 
         # Install man pages - package name varies between 3.12 and earlier versions
         if apk info man > /dev/null 2>&1; then
@@ -459,8 +467,10 @@ fi
 
 # Optionally configure zsh and Oh My Zsh!
 if [ "${INSTALL_ZSH}" = "true" ]; then
-    if [ ! -f "${user_home}/.zprofile" ] || ! grep -Fxq 'source $HOME/.profile' "${user_home}/.zprofile" ; then
-        echo 'source $HOME/.profile' >> "${user_home}/.zprofile"
+   if [ ! -f "${user_home}/.zprofile" ]; then
+        touch "${user_home}/.zprofile"
+        echo 'source $HOME/.profile' >> "${user_home}/.zprofile" # TODO: Reconsider adding '.profile' to '.zprofile'
+        chown ${USERNAME}:${group_name} "${user_home}/.zprofile"
     fi
 
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then

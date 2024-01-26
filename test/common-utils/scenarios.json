@@ -190,6 +190,13 @@
             "common-utils": {}
         }
     },
+    "alpine-3-18": {
+        "image": "alpine:3.18",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
     "devcontainer-info": {
         "build": {
             "dockerfile": "Dockerfile"

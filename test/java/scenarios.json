@@ -3,7 +3,7 @@
         "image": "ubuntu:focal",
         "features": {
             "java": {
-                "version": "19",
+                "version": "21",
                 "jdkDistro": "open"
             }
         }
@@ -17,7 +17,7 @@
             }
         }
     },
-    "install_ant_and_gradle_and_maven_for_user": {
+    "install_ant_and_gradle_and_maven_and_groovy_for_user": {
         "image": "ubuntu:focal",
         "remoteUser": "vscode",
         "features": {
@@ -28,22 +28,24 @@
                 "version": "latest",
                 "installAnt": true,
                 "installGradle": true,
-                "installMaven": true
+                "installMaven": true,
+                "installGroovy": true
             }
         }
     },
-    "install_ant_and_gradle_and_maven": {
+    "install_ant_and_gradle_and_maven_and_groovy": {
         "image": "ubuntu:focal",
         "features": {
             "java": {
                 "version": "latest",
                 "installAnt": true,
                 "installGradle": true,
-                "installMaven": true
+                "installMaven": true,
+                "installGroovy": true
             }
         }
     },
-    "install_ant_and_gradle_and_maven_with_specific_version": {
+    "install_ant_and_gradle_and_maven_and_groovy_with_specific_version": {
         "image": "ubuntu:focal",
         "features": {
             "java": {
@@ -53,13 +55,15 @@
                 "installGradle": "true",
                 "gradleVersion": "6.8.3",
                 "installMaven": "true",
-                "mavenVersion": "3.6.3"
+                "mavenVersion": "3.6.3",
+                "installGroovy": "true",
+                "groovyVersion": "2.5.22"
             }
         }
     },
     "install_non_conventional_version": {
         "image": "ubuntu:focal",
-        "features":{
+        "features": {
             "java": {
                 "version": "21",
                 "jdkDistro": "graalce"
