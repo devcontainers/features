@@ -157,6 +157,9 @@ if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
     else
         echo "Installing git from OS yum/dnf repository"
     fi
+    if [ $ID = "mariner" ]; then
+        check_packages ca-certificates
+    fi
     check_packages git
     # Clean up
     clean_up
