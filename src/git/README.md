@@ -16,13 +16,13 @@ Install an up-to-date version of Git, built from source as needed. Useful for wh
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter a Git version. | string | os-provided |
-| ppa | Install from PPA if available | boolean | true |
+| ppa | Install from PPA if available (only supported for Ubuntu distributions) | boolean | true |
 
 
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and RockyLinux distributions with the `apt`, `yum`, `dnf`, or `microdnf` package manager installed.
 
 `bash` is required to execute the `install.sh` script.
 
