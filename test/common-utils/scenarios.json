@@ -41,6 +41,34 @@
             "common-utils": {}
         }
     },
+    "alma-8": {
+        "image": "almalinux:8",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "alma-9": {
+        "image": "almalinux:9",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "alma-8-minimal": {
+        "image": "almalinux:8-minimal",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "alma-9-minimal": {
+        "image": "almalinux:9-minimal",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
     "rocky-8": {
         "image": "rockylinux:8",
         "remoteUser": "devcontainer",
@@ -50,6 +78,20 @@
     },
     "rocky-9": {
         "image": "rockylinux:9",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "rocky-8-minimal": {
+        "image": "rockylinux:8-minimal",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
+    "rocky-9-minimal": {
+        "image": "rockylinux:9-minimal",
         "remoteUser": "devcontainer",
         "features": {
             "common-utils": {}
