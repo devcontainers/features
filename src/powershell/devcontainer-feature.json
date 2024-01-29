@@ -19,6 +19,11 @@
             "type": "string",
             "default": "",
             "description": "Optional comma separated list of PowerShell modules to install."
+        },
+        "powershellProfileURL ": {
+            "type": "string",
+            "default": "",
+            "description": "Optional URL to download PowerShell profile."
         }
     },
     "customizations": {
