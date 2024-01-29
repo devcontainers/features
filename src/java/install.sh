@@ -286,22 +286,22 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
 fi
 
 # Install Ant
-if [[ "${INSTALL_ANT}" = "true" ]] && ! ant -version > /dev/null; then
+if [[ "${INSTALL_ANT}" = "true" ]] && ! ant -version > /dev/null 2>&1; then
     sdk_install ant ${ANT_VERSION}
 fi
 
 # Install Gradle
-if [[ "${INSTALL_GRADLE}" = "true" ]] && ! gradle --version > /dev/null; then
+if [[ "${INSTALL_GRADLE}" = "true" ]] && ! gradle --version > /dev/null 2>&1; then
     sdk_install gradle ${GRADLE_VERSION}
 fi
 
 # Install Maven
-if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null; then
+if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null 2>&1; then
     sdk_install maven ${MAVEN_VERSION}
 fi
 
 # Install Groovy
-if [[ "${INSTALL_GROOVY}" = "true" ]] && ! groovy --version > /dev/null; then
+if [[ "${INSTALL_GROOVY}" = "true" ]] && ! groovy --version > /dev/null 2>&1; then
     sdk_install groovy "${GROOVY_VERSION}"
 fi
 
