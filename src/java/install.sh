@@ -57,27 +57,31 @@ fi
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
     INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
-elif type dnf > /dev/null 2>&1; then
-    PKG_MGR_CMD=dnf
-    INSTALL_CMD="${PKG_MGR_CMD} -y install"
 elif type microdnf > /dev/null 2>&1; then
     PKG_MGR_CMD=microdnf
     INSTALL_CMD="${PKG_MGR_CMD} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
-else
+elif type dnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=dnf
+    INSTALL_CMD="${PKG_MGR_CMD} -y install"
+elif type yum > /dev/null 2>&1; then
     PKG_MGR_CMD=yum
     INSTALL_CMD="${PKG_MGR_CMD} -y install"
+else
+    echo "(Error) Unable to find a supported package manager."
+    exit 1
 fi
 
 # Clean up
 clean_up() {
+    local pkg
     case ${ADJUSTED_ID} in
         debian)
             rm -rf /var/lib/apt/lists/*
             ;;
         rhel)
-            set +e
-            ${PKG_MGR_CMD} -y remove epel-release epel-release-latest packages-microsoft-prod
-            set -e
+            for pkg in epel-release epel-release-latest packages-microsoft-prod; do
+                ${PKG_MGR_CMD} -y remove $pkg 2>/dev/null || /bin/true
+            done
             rm -rf /var/cache/dnf/* /var/cache/yum/*
             rm -f /etc/yum.repos.d/docker-ce.repo
             ;;
