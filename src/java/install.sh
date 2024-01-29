@@ -16,6 +16,8 @@ INSTALL_MAVEN="${INSTALLMAVEN:-"false"}"
 MAVEN_VERSION="${MAVENVERSION:-"latest"}"
 INSTALL_ANT="${INSTALLANT:-"false"}"
 ANT_VERSION="${ANTVERSION:-"latest"}"
+INSTALL_GROOVY="${INSTALLGROOVY:-"false"}"
+GROOVY_VERSION="${GROOVYVERSION:-"latest"}"
 JDK_DISTRO="${JDKDISTRO}"
 
 export SDKMAN_DIR="${SDKMAN_DIR:-"/usr/local/sdkman"}"
@@ -188,6 +190,11 @@ fi
 # Install Maven
 if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null; then
     sdk_install maven ${MAVEN_VERSION}
+fi
+
+# Install Groovy
+if [[ "${INSTALL_GROOVY}" = "true" ]] && ! groovy --version > /dev/null; then
+    sdk_install groovy "${GROOVY_VERSION}"
 fi
 
 # Clean up

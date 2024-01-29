@@ -23,6 +23,8 @@ Installs Java, SDKMAN! (if not installed), and needed dependencies.
 | mavenVersion | Select or enter a Maven version | string | latest |
 | installAnt | Install Ant, a software tool for automating software build processes | boolean | false |
 | antVersion | Select or enter an Ant version | string | latest |
+| installGroovy | Install Groovy, powerful, optionally typed and dynamic language with static-typing and static compilation capabilities | boolean | false |
+| groovyVersion | Select or enter a Groovy version | string | latest |
 
 ## Customizations
 

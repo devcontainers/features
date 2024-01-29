@@ -48,6 +48,7 @@ install_debian_packages() {
         ca-certificates \
         unzip \
         bzip2 \
+        xz-utils \
         zip \
         nano \
         vim-tiny \
@@ -154,9 +155,12 @@ install_debian_packages() {
 install_redhat_packages() {
     local package_list=""
     local remove_epel="false"
-    local install_cmd=dnf
-    if ! type dnf > /dev/null 2>&1; then
-        install_cmd=yum
+    local install_cmd=microdnf
+    if ! type microdnf > /dev/null 2>&1; then
+        install_cmd=dnf
+        if ! type dnf > /dev/null 2>&1; then
+            install_cmd=yum
+        fi
     fi
 
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
@@ -173,6 +177,7 @@ install_redhat_packages() {
             ca-certificates \
             rsync \
             unzip \
+            xz \
             zip \
             nano \
             vim-minimal \
@@ -256,6 +261,7 @@ install_alpine_packages() {
             rsync \
             ca-certificates \
             unzip \
+            xz \
             zip \
             nano \
             vim \
@@ -265,7 +271,6 @@ install_alpine_packages() {
             libstdc++ \
             krb5-libs \
             libintl \
-            libssl1.1 \
             lttng-ust \
             tzdata \
             userspace-rcu \
@@ -278,6 +283,12 @@ install_alpine_packages() {
             ncdu \
             shadow \
             strace
+
+        # # Include libssl1.1 if available (not available for 3.19 and newer)
+        LIBSSL1_PKG=libssl1.1
+        if [[ $(apk search --no-cache -a $LIBSSL1_PKG | grep $LIBSSL1_PKG) ]]; then
+            apk add --no-cache $LIBSSL1_PKG
+        fi
 
         # Install man pages - package name varies between 3.12 and earlier versions
         if apk info man > /dev/null 2>&1; then
