@@ -136,7 +136,7 @@ updaterc() {
 }
 
 
-pkg_mgr_update() {
+pkg_manager_update() {
     case $ADJUSTED_ID in
         debian)
             if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
@@ -154,12 +154,14 @@ pkg_mgr_update() {
                 if [ "$(ls /var/cache/${PKG_MGR_CMD}/* 2>/dev/null | wc -l)" = 0 ]; then
                     echo "Running ${PKG_MGR_CMD} check-update ..."
                     set +e
-                    ${PKG_MGR_CMD} check-update
-                    rc=$?
-                    # centos 7 sometimes returns a status of 100 when it apears to work.
-                    if [ $rc != 0 ] && [ $rc != 100 ]; then
-                        exit 1
-                    fi
+                        stderr_messages=$(${PKG_MGR_CMD} -q check-update 2>&1)
+                        rc=$?
+                        # centos 7 sometimes returns a status of 100 when it apears to work.
+                        if [ $rc != 0 ] && [ $rc != 100 ]; then
+                            echo "(Error) ${PKG_MGR_CMD} check-update produced the following error message(s):"
+                            echo "${stderr_messages}"
+                            exit 1
+                        fi
                     set -e
                 fi
             fi
@@ -172,13 +174,13 @@ check_packages() {
     case ${ADJUSTED_ID} in
         debian)
             if ! dpkg -s "$@" > /dev/null 2>&1; then
-                pkg_mgr_update
+                pkg_manager_update
                 ${INSTALL_CMD} "$@"
             fi
             ;;
         rhel)
             if ! rpm -q "$@" > /dev/null 2>&1; then
-                pkg_mgr_update
+                pkg_manager_update
                 ${INSTALL_CMD} "$@"
             fi
             ;;
