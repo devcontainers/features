@@ -460,13 +460,10 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     VULNERABLE_VERSIONS=("3.10" "3.11")
     RUN_TIME_PY_VER_DETECT=$(python --version 2>&1)
     PY_MAJOR_MINOR_VER=${RUN_TIME_PY_VER_DETECT:7:4};
-
-    for vv in "${VULNERABLE_VERSIONS[@]}"; do
-        if [ "${PY_MAJOR_MINOR_VER}" == "${vv}" ]; then
-            rm -rf  ${PIPX_HOME}/shared/lib/"python${vv}"/site-packages/setuptools-65.5.0.dist-info
-            rm -rf ${PYTHON_INSTALL_PATH}/"${VERSION}"/lib/python${vv}/site-packages/setuptools-65.5.0.dist-info
-        fi
-    done
+    if [[ ${VULNERABLE_VERSIONS[@]} =~ $PY_MAJOR_MINOR_VER ]]; then
+        rm -rf  ${PIPX_HOME}/shared/lib/"python${PY_MAJOR_MINOR_VER}"/site-packages/setuptools-65.5.0.dist-info
+        rm -rf ${PYTHON_INSTALL_PATH}/"${VERSION}"/lib/python${PY_MAJOR_MINOR_VER}/site-packages/setuptools-65.5.0.dist-info
+    fi
 
     rm -rf /tmp/pip-tmp
 
