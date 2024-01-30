@@ -23,7 +23,7 @@
         "powershellProfileURL ": {
             "type": "string",
             "default": "",
-            "description": "Optional URL to download PowerShell profile."
+            "description": "Optional (publicly accessible) URL to download PowerShell profile."
         }
     },
     "customizations": {
