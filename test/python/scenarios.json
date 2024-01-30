@@ -141,11 +141,43 @@
             }
         }
     },
-    "alma-9-system": {
-        "image": "almalinux:9",
+    "rocky-8": {
+        "image": "rockylinux:8",
         "features": {
             "python": {
-                "version": "system"
+                "version": "3.11"
+            }
+        }
+    },
+    "rocky-8-minimal": {
+        "image": "rockylinux:8-minimal",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "rocky-9": {
+        "image": "rockylinux:9",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "rocky-9-minimal": {
+        "image": "rockylinux:9-minimal",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "fedora": {
+        "image": "fedora",
+        "features": {
+            "python": {
+                "version": "3.11"
             }
         }
     },

@@ -18,7 +18,6 @@ Installs the provided version of Python, as well as PIPX, and other common Pytho
 | version | Select a Python version to install. | string | os-provided |
 | installTools | Install common Python tools like pylint | boolean | true |
 | optimize | Optimize Python for performance when compiled (slow) | boolean | false |
-| enableShared | Enable building a shared Python library | boolean | false |
 | installPath | The path where python will be installed. | string | /usr/local/python |
 | installJupyterlab | Install JupyterLab, a web-based interactive development environment for notebooks | boolean | false |
 | configureJupyterlabAllowOrigin | Configure JupyterLab to accept HTTP requests from the specified origin | string | - |
@@ -35,7 +34,7 @@ Installs the provided version of Python, as well as PIPX, and other common Pytho
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and RockyLinux distributions with the apt, yum, dnf, or microdnf package manager installed.
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
 
 `bash` is required to execute the `install.sh` script.
 

@@ -85,11 +85,11 @@ fi
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
     INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
-elif type dnf > /dev/null 2>&1; then
-    PKG_MGR_CMD=dnf
-    INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
 elif type microdnf > /dev/null 2>&1; then
     PKG_MGR_CMD=microdnf
+    INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+elif type dnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=dnf
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
 else
     PKG_MGR_CMD=yum
@@ -112,27 +112,6 @@ clean_up() {
 clean_up
 
 
-# Ensure that login shells get the correct path if the user updated the PATH using ENV.
-rm -f /etc/profile.d/00-restore-env.sh
-echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
-chmod +x /etc/profile.d/00-restore-env.sh
-
-# Determine the appropriate non-root user
-if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-    USERNAME=""
-    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
-            break
-        fi
-    done
-    if [ "${USERNAME}" = "" ]; then
-        USERNAME=root
-    fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
-    USERNAME=root
-fi
 
 updaterc() {
     local _bashrc
@@ -573,6 +552,33 @@ install_python() {
     fi
 }
 
+# Ensure that login shells get the correct path if the user updated the PATH using ENV.
+rm -f /etc/profile.d/00-restore-env.sh
+echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
+chmod +x /etc/profile.d/00-restore-env.sh
+
+# Some distributions do not install awk by default (e.g. Mariner)
+if ! type awk >/dev/null 2>&1; then
+    check_packages awk
+fi
+
+# Determine the appropriate non-root user
+if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
+    USERNAME=""
+    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
+        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+            USERNAME=${CURRENT_USER}
+            break
+        fi
+    done
+    if [ "${USERNAME}" = "" ]; then
+        USERNAME=root
+    fi
+elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
+    USERNAME=root
+fi
+
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
@@ -621,7 +627,6 @@ case ${ADJUSTED_ID} in
             shadow-utils \
             sqlite-devel \
             tar \
-            tk-devel \
             uuid-devel \
             which \
             xmlsec1-devel \
@@ -631,6 +636,10 @@ case ${ADJUSTED_ID} in
         if ! type curl >/dev/null 2>&1; then
             REQUIRED_PKGS="${REQUIRED_PKGS} \
                 curl"
+        fi
+        if [ "${ID}" != "mariner" ]; then
+            REQUIRED_PKGS="${REQUIRED_PKGS} \
+                tk-devel"
         fi
         ;;
 esac
