@@ -16,15 +16,50 @@ keyserver hkp://keyserver.ubuntu.com:80
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
-set -e
-
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
 fi
+
+# Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
+. /etc/os-release
+# Get an adjusted ID independent of distro variants
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+    ADJUSTED_ID="debian"
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+    ADJUSTED_ID="rhel"
+    VERSION_CODENAME="${ID}{$VERSION_ID}"
+else
+    echo "Linux distro ${ID} not supported."
+    exit 1
+fi
+
+if type apt-get > /dev/null 2>&1; then
+    INSTALL_CMD=apt-get
+elif type microdnf > /dev/null 2>&1; then
+    INSTALL_CMD=microdnf
+elif type dnf > /dev/null 2>&1; then
+    INSTALL_CMD=dnf
+elif type yum > /dev/null 2>&1; then
+    INSTALL_CMD=yum
+else
+    echo "(Error) Unable to find a supported package manager."
+    exit 1
+fi
+
+# Clean up
+clean_up() {
+    case $ADJUSTED_ID in
+        debian)
+            rm -rf /var/lib/apt/lists/*
+            ;;
+        rhel)
+            rm -rf /var/cache/dnf/*
+            rm -rf /var/cache/yum/*
+            ;;
+    esac
+}
+clean_up
 
 # Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
@@ -61,40 +96,73 @@ receive_gpg_keys() {
     fi
 }
 
-apt_get_update()
-{
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update -y
+pkg_mgr_update() {
+    if [ ${INSTALL_CMD} = "apt-get" ]; then
+        if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+            echo "Running apt-get update..."
+            ${INSTALL_CMD} update -y
+        fi
+    elif [ ${INSTALL_CMD} = "dnf" ] || [ ${INSTALL_CMD} = "yum" ]; then
+        if [ "$(find /var/cache/${INSTALL_CMD}/* | wc -l)" = "0" ]; then
+            echo "Running ${INSTALL_CMD} check-update ..."
+            ${INSTALL_CMD} check-update
+        fi
     fi
 }
 
+
 # Checks if packages are installed and installs them if not
 check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
+    if [ ${INSTALL_CMD} = "apt-get" ]; then
+        if ! dpkg -s "$@" > /dev/null 2>&1; then
+            pkg_mgr_update
+            ${INSTALL_CMD} -y install --no-install-recommends "$@"
+        fi
+    elif [ ${INSTALL_CMD} = "dnf" ] || [ ${INSTALL_CMD} = "yum" ]; then
+        _num_pkgs=$(echo "$@" | tr ' ' \\012 | wc -l)
+        _num_installed=$(${INSTALL_CMD} -C list installed "$@" | sed '1,/^Installed/d' | wc -l)
+        if [ ${_num_pkgs} != ${_num_installed} ]; then
+            pkg_mgr_update
+            ${INSTALL_CMD} -y install "$@"
+        fi
+    elif [ ${INSTALL_CMD} = "microdnf" ]; then
+        ${INSTALL_CMD} -y install \
+            --refresh \
+            --best \
+            --nodocs \
+            --noplugins \
+            --setopt=install_weak_deps=0 \
+            "$@"
+    else
+        echo "Linux distro ${ID} not supported."
+        exit 1
     fi
 }
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Source /etc/os-release to get OS info
-. /etc/os-release
+# Debian / Ubuntu packages
 
 # If the os provided version is "good enough", just install that.
 if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
     if type git > /dev/null 2>&1; then
         echo "Detected existing system install: $(git version)"
         # Clean up
-        rm -rf /var/lib/apt/lists/*
+        clean_up
         exit 0
     fi
 
-    echo "Installing git from OS apt repository"
+    if [ "$INSTALL_CMD" = "apt-get" ]; then
+        echo "Installing git from OS apt repository"
+    else
+        echo "Installing git from OS yum/dnf repository"
+    fi
+    if [ $ID = "mariner" ]; then
+        check_packages ca-certificates
+    fi
     check_packages git
     # Clean up
-    rm -rf /var/lib/apt/lists/*
+    clean_up
     exit 0
 fi
 
@@ -104,15 +172,47 @@ if ([ "${GIT_VERSION}" = "latest" ] || [ "${GIT_VERSION}" = "lts" ] || [ "${GIT_
     check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr
     receive_gpg_keys GIT_CORE_PPA_ARCHIVE_GPG_KEY /usr/share/keyrings/gitcoreppa-archive-keyring.gpg
     echo -e "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gitcoreppa-archive-keyring.gpg] http://ppa.launchpad.net/git-core/ppa/ubuntu ${VERSION_CODENAME} main\ndeb-src [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gitcoreppa-archive-keyring.gpg] http://ppa.launchpad.net/git-core/ppa/ubuntu ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/git-core-ppa.list
-    apt-get update
-    apt-get -y install --no-install-recommends git 
+    ${INSTALL_CMD} update
+    ${INSTALL_CMD} -y install --no-install-recommends git 
     rm -rf "/tmp/tmp-gnupg"
     rm -rf /var/lib/apt/lists/*
     exit 0
 fi
 
 # Install required packages to build if missing
-check_packages build-essential curl ca-certificates tar gettext libssl-dev zlib1g-dev libcurl?-openssl-dev libexpat1-dev
+if [ "${ADJUSTED_ID}" = "debian" ]; then
+
+    check_packages build-essential curl ca-certificates tar gettext libssl-dev zlib1g-dev libcurl?-openssl-dev libexpat1-dev
+
+    check_packages libpcre2-dev
+
+    if [ "${VERSION_CODENAME}" = "focal" ] || [ "${VERSION_CODENAME}" = "bullseye" ]; then
+        check_packages libpcre2-posix2
+    elif [ "${VERSION_CODENAME}" = "bionic" ] || [ "${VERSION_CODENAME}" = "buster" ]; then
+        check_packages libpcre2-posix0
+    else
+        check_packages libpcre2-posix3
+    fi
+
+elif [ "${ADJUSTED_ID}" = "rhel" ]; then
+
+    if [ $VERSION_CODENAME = "centos7" ]; then
+        check_packages centos-release-scl 
+        check_packages devtoolset-11
+        source /opt/rh/devtoolset-11/enable
+    else
+        check_packages gcc
+    fi
+
+
+    check_packages libcurl-devel expat-devel gettext-devel openssl-devel perl-devel zlib-devel cmake pcre2-devel tar gzip ca-certificates
+    if ! type curl > /dev/null 2>&1; then
+        check_packages curl
+    fi
+    if [ $ID = "mariner" ]; then
+        check_packages glibc-devel kernel-headers binutils
+    fi
+fi
 
 # Partial version matching
 if [ "$(echo "${GIT_VERSION}" | grep -o '\.' | wc -l)" != "2" ]; then
@@ -131,21 +231,11 @@ if [ "$(echo "${GIT_VERSION}" | grep -o '\.' | wc -l)" != "2" ]; then
     fi
 fi
 
-check_packages libpcre2-dev
-
-if [ "${VERSION_CODENAME}" = "focal" ] || [ "${VERSION_CODENAME}" = "bullseye" ]; then
-    check_packages libpcre2-posix2
-elif [ "${VERSION_CODENAME}" = "bionic" ] || [ "${VERSION_CODENAME}" = "buster" ]; then
-    check_packages libpcre2-posix0
-else
-    check_packages libpcre2-posix3
-fi
-
 echo "Downloading source for ${GIT_VERSION}..."
 curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
 echo "Building..."
 cd /tmp/git-${GIT_VERSION}
 make -s USE_LIBPCRE=YesPlease prefix=/usr/local sysconfdir=/etc all && make -s USE_LIBPCRE=YesPlease prefix=/usr/local sysconfdir=/etc install 2>&1
 rm -rf /tmp/git-${GIT_VERSION}
-rm -rf /var/lib/apt/lists/*
+clean_up
 echo "Done!"
