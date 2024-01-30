@@ -39,7 +39,7 @@ For the Java Feature from this repository, see [NOTICE.txt](https://github.com/d
 
 ## OS Support
 
- Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and RockyLinux distributions with the apt, yum, dnf, or microdnf package manager installed.
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
 
 `bash` is required to execute the `install.sh` script.
 
