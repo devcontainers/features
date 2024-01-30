@@ -48,12 +48,12 @@ fi
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
     INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
-elif type dnf > /dev/null 2>&1; then
-    PKG_MGR_CMD=dnf
-    INSTALL_CMD="${PKG_MGR_CMD} -y install"
 elif type microdnf > /dev/null 2>&1; then
     PKG_MGR_CMD=microdnf
     INSTALL_CMD="${PKG_MGR_CMD} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+elif type dnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=dnf
+    INSTALL_CMD="${PKG_MGR_CMD} -y install"
 else
     PKG_MGR_CMD=yum
     INSTALL_CMD="${PKG_MGR_CMD} -y install"
@@ -77,23 +77,6 @@ clean_up
 rm -f /etc/profile.d/00-restore-env.sh
 echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
 chmod +x /etc/profile.d/00-restore-env.sh
-
-# Determine the appropriate non-root user
-if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-    USERNAME=""
-    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
-            break
-        fi
-    done
-    if [ "${USERNAME}" = "" ]; then
-        USERNAME=root
-    fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
-    USERNAME=root
-fi
 
 updaterc() {
     local _bashrc
@@ -152,6 +135,7 @@ pkg_mgr_update() {
 
 # Checks if packages are installed and installs them if not
 check_packages() {
+    echo "Checking packages: $@ ..."
     case ${ADJUSTED_ID} in
         debian)
             if ! dpkg -s "$@" > /dev/null 2>&1; then
@@ -204,7 +188,7 @@ find_version_from_git_tags() {
 
 install_yarn() {
     if [ "${ADJUSTED_ID}" = "debian" ]; then
-        # for backward compatiblity with devcontainer features, install yarn
+        # for backward compatiblity with existing devcontainer features, install yarn
         # via apt-get on Debian systems
         if ! type yarn >/dev/null 2>&1; then
             # Import key safely (new method rather than deprecated apt-key approach) and install
@@ -236,6 +220,30 @@ install_yarn() {
         fi
     fi
 }
+
+# Mariner does not have awk installed by default, this can cause
+# problems is username is auto* and later when we try to install
+# node via npm.
+if ! type awk >/dev/null 2>&1; then
+    check_packages awk
+fi
+
+# Determine the appropriate non-root user
+if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
+    USERNAME=""
+    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
+        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+            USERNAME=${CURRENT_USER}
+            break
+        fi
+    done
+    if [ "${USERNAME}" = "" ]; then
+        USERNAME=root
+    fi
+elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
+    USERNAME=root
+fi
 
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
@@ -285,6 +293,10 @@ umask 0002
 # Do not update profile - we'll do this manually
 export PROFILE=/dev/null
 curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash
+
+type awk
+echo $PATH
+
 source "${NVM_DIR}/nvm.sh"
 if [ "${NODE_VERSION}" != "" ]; then
     nvm alias default "${NODE_VERSION}"

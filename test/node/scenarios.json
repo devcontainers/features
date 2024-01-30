@@ -8,6 +8,15 @@
             }
         }
     },
+    "install_additional_node_on_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "node": {
+                "version": "lts",
+                "additionalVersions": "v17.9.1,v14.19.3"
+            }
+        }
+    },
     "non_root_user": {
         "image": "mcr.microsoft.com/devcontainers/base",
         "remoteUser": "vscode",
@@ -28,7 +37,27 @@
             }
         }
     },
+    "zsh_default_on_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "node": {
+                "version": "lts"
+            },
+            "common-utils": {
+                "configureZshAsDefaultShell": true
+            }
+        }
+    },
     "version_none": {
+        "image": "mcr.microsoft.com/devcontainers/base",
+        "remoteUser": "vscode",
+        "features": {
+            "node": {
+                "version": "none"
+            }
+        }
+    },
+    "version_none_on_rhel_family": {
         "image": "mcr.microsoft.com/devcontainers/base",
         "remoteUser": "vscode",
         "features": {
@@ -47,6 +76,14 @@
     },
     "install_nvm_0.39": {
         "image": "mcr.microsoft.com/devcontainers/base",
+        "features": {
+            "node": {
+                "nvmVersion": "0.39"
+            }
+        }
+    },
+    "install_nvm_0.39_on_rhel_family": {
+        "image": "almalinux:8",
         "features": {
             "node": {
                 "nvmVersion": "0.39"
@@ -87,6 +124,54 @@
     },
     "alma-9-minimal": {
         "image": "almalinux:9-minimal",
+        "features": {
+            "node": {
+                "version": "lts"
+            }
+        }
+    },
+    "rocky-8": {
+        "image": "rockylinux:8",
+        "features": {
+            "node": {
+                "version": "lts"
+            }
+        }
+    },
+    "rocky-8-minimal": {
+        "image": "rockylinux:8-minimal",
+        "features": {
+            "node": {
+                "version": "lts"
+            }
+        }
+    },
+    "rocky-9": {
+        "image": "rockylinux:9",
+        "features": {
+            "node": {
+                "version": "lts"
+            }
+        }
+    },
+    "rocky-9-minimal": {
+        "image": "rockylinux:9-minimal",
+        "features": {
+            "node": {
+                "version": "lts"
+            }
+        }
+    },
+    "fedora": {
+        "image": "fedora",
+        "features": {
+            "node": {
+                "version": "lts"
+            }
+        }
+    },
+    "mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
         "features": {
             "node": {
                 "version": "lts"

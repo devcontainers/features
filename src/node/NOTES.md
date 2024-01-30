@@ -20,7 +20,7 @@ Alternatively, you can start up an interactive shell which will in turn source `
 
 ## OS Support
 
-Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and RockyLinux distributions with the apt, yum, dnf, or microdnf package manager installed.
+Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and Rocky Linux distributions with the apt, yum, dnf, or microdnf package manager installed.
 
 RedHat 7 Family (RedHat, CentOS, etc.) must use Node versions < 18.
 
