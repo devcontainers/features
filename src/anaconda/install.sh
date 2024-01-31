@@ -97,7 +97,8 @@ if ! conda --version &> /dev/null ; then
         CONDA_VERSION="2021.11"
     fi
 
-    su --login -c "wget -q https://repo.anaconda.com/archive/Anaconda3-${CONDA_VERSION}-Linux-x86_64.sh -O /tmp/anaconda-install.sh \
+    su --login -c "export http_proxy=${http_proxy:-} && export https_proxy=${https_proxy:-} \
+        && wget -q https://repo.anaconda.com/archive/Anaconda3-${CONDA_VERSION}-Linux-x86_64.sh -O /tmp/anaconda-install.sh \
         && /bin/bash /tmp/anaconda-install.sh -u -b -p ${CONDA_DIR}" ${USERNAME} 2>&1 
     
     if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
