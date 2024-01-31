@@ -26,9 +26,9 @@ mkdir -p /opt/oryx
 echo "vso-focal" >> /opt/oryx/.imagetype
 
 mkdir -p /opt/dotnet/lts
-cp -R /usr/local/dotnet/current/dotnet /opt/dotnet/lts
-cp -R /usr/local/dotnet/current/LICENSE.txt /opt/dotnet/lts
-cp -R /usr/local/dotnet/current/ThirdPartyNotices.txt /opt/dotnet/lts
+cp -R /usr/share/dotnet/dotnet /opt/dotnet/lts
+cp -R /usr/share/dotnet/LICENSE.txt /opt/dotnet/lts
+cp -R /usr/share/dotnet/ThirdPartyNotices.txt /opt/dotnet/lts
 
 # Install platforms with oryx build tool
 check "oryx-install-dotnet-2.1-universal" oryx prep --skip-detection --platforms-and-versions dotnet=2.1.30
