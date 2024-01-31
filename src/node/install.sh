@@ -120,12 +120,14 @@ pkg_mgr_update() {
                 if [ "$(ls /var/cache/${PKG_MGR_CMD}/* 2>/dev/null | wc -l)" = 0 ]; then
                     echo "Running ${PKG_MGR_CMD} check-update ..."
                     set +e
-                    ${PKG_MGR_CMD} check-update
-                    rc=$?
-                    # centos 7 sometimes returns a status of 100 when it apears to work.
-                    if [ $rc != 0 ] && [ $rc != 100 ]; then
-                        exit 1
-                    fi
+                        stderr_messages=$(${PKG_MGR_CMD} -q check-update 2>&1)
+                        rc=$?
+                        # centos 7 sometimes returns a status of 100 when it apears to work.
+                        if [ $rc != 0 ] && [ $rc != 100 ]; then
+                            echo "(Error) ${PKG_MGR_CMD} check-update produced the following error message(s):"
+                            echo "${stderr_messages}"
+                            exit 1
+                        fi
                     set -e
                 fi
             fi
@@ -200,7 +202,7 @@ install_yarn() {
         fi
     else
         local _ver=${1:-node}
-        # on non-debian systems, prefer corepack, fallback to npm based install...
+        # on non-debian systems, prefer corepack, fallback to npm based installation of yarn...
         # Try to leverage corepack if possible
         # From https://yarnpkg.com:
         # The preferred way to manage Yarn is by-project and through Corepack, a tool
@@ -292,9 +294,6 @@ umask 0002
 # Do not update profile - we'll do this manually
 export PROFILE=/dev/null
 curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash
-
-type awk
-echo $PATH
 
 source "${NVM_DIR}/nvm.sh"
 if [ "${NODE_VERSION}" != "" ]; then
