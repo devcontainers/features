@@ -21,61 +21,136 @@ UPDATE_RC="${UPDATE_RC:-"true"}"
 
 set -e
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
 fi
+
+# Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
+. /etc/os-release
+# Get an adjusted ID independent of distro variants
+MAJOR_VERSION_ID=$(echo ${VERSION_ID} | cut -d . -f 1)
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+    ADJUSTED_ID="debian"
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+    ADJUSTED_ID="rhel"
+    if [[ "${ID}" = "rhel" ]] || [[ "${ID}" = *"alma"* ]] || [[ "${ID}" = *"rocky"* ]]; then
+        VERSION_CODENAME="rhel${MAJOR_VERSION_ID}"
+    else
+        VERSION_CODENAME="${ID}${MAJOR_VERSION_ID}"
+    fi
+else
+    echo "Linux distro ${ID} not supported."
+    exit 1
+fi
+
+# Setup INSTALL_CMD & PKG_MGR_CMD
+if type apt-get > /dev/null 2>&1; then
+    PKG_MGR_CMD=apt-get
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
+elif type microdnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=microdnf
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+elif type dnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=dnf
+    INSTALL_CMD="${PKG_MGR_CMD} -y install"
+else
+    PKG_MGR_CMD=yum
+    INSTALL_CMD="${PKG_MGR_CMD} -y install"
+fi
+
+# Clean up
+clean_up() {
+    case ${ADJUSTED_ID} in
+        debian)
+            rm -rf /var/lib/apt/lists/*
+            ;;
+        rhel)
+            rm -rf /var/cache/dnf/* /var/cache/yum/*
+            rm -f /etc/yum.repos.d/yarn.repo
+            ;;
+    esac
+}
+clean_up
 
 # Ensure that login shells get the correct path if the user updated the PATH using ENV.
 rm -f /etc/profile.d/00-restore-env.sh
 echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
 chmod +x /etc/profile.d/00-restore-env.sh
 
-# Determine the appropriate non-root user
-if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-    USERNAME=""
-    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
-            break
-        fi
-    done
-    if [ "${USERNAME}" = "" ]; then
-        USERNAME=root
-    fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
-    USERNAME=root
-fi
-
 updaterc() {
+    local _bashrc
+    local _zshrc
     if [ "${UPDATE_RC}" = "true" ]; then
-        echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
-        if [[ "$(cat /etc/bash.bashrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/bash.bashrc
+        case $ADJUSTED_ID in
+            debian)
+                _bashrc=/etc/bash.bashrc
+                _zshrc=/etc/zsh/zshrc
+                ;;
+            rhel)
+                _bashrc=/etc/bashrc
+                _zshrc=/etc/zshrc
+            ;;
+        esac
+        echo "Updating ${_bashrc} and ${_zshrc}..."
+        if [[ "$(cat ${_bashrc})" != *"$1"* ]]; then
+            echo -e "$1" >> "${_bashrc}"
         fi
-        if [ -f "/etc/zsh/zshrc" ] && [[ "$(cat /etc/zsh/zshrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/zsh/zshrc
+        if [ -f "${_zshrc}" ] && [[ "$(cat ${_zshrc})" != *"$1"* ]]; then
+            echo -e "$1" >> "${_zshrc}"
         fi
     fi
 }
 
-apt_get_update() {
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update -y
-    fi
+pkg_mgr_update() {
+    case $ADJUSTED_ID in
+        debian)
+            if [ "$(find /var/lib/apt/lists/* 2>/dev/null | wc -l)" = "0" ]; then
+                echo "Running apt-get update..."
+                ${PKG_MGR_CMD} update -y
+            fi
+            ;;
+        rhel)
+            if [ ${PKG_MGR_CMD} = "microdnf" ]; then
+                if [ "$(ls /var/cache/yum/* 2>/dev/null | wc -l)" = 0 ]; then
+                    echo "Running ${PKG_MGR_CMD} makecache ..."
+                    ${PKG_MGR_CMD} makecache
+                fi
+            else
+                if [ "$(ls /var/cache/${PKG_MGR_CMD}/* 2>/dev/null | wc -l)" = 0 ]; then
+                    echo "Running ${PKG_MGR_CMD} check-update ..."
+                    set +e
+                        stderr_messages=$(${PKG_MGR_CMD} -q check-update 2>&1)
+                        rc=$?
+                        # centos 7 sometimes returns a status of 100 when it apears to work.
+                        if [ $rc != 0 ] && [ $rc != 100 ]; then
+                            echo "(Error) ${PKG_MGR_CMD} check-update produced the following error message(s):"
+                            echo "${stderr_messages}"
+                            exit 1
+                        fi
+                    set -e
+                fi
+            fi
+            ;;
+    esac
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
-    fi
+    case ${ADJUSTED_ID} in
+        debian)
+            if ! dpkg -s "$@" > /dev/null 2>&1; then
+                pkg_mgr_update
+                ${INSTALL_CMD} "$@"
+            fi
+            ;;
+        rhel)
+            if ! rpm -q "$@" > /dev/null 2>&1; then
+                pkg_mgr_update
+                ${INSTALL_CMD} "$@"
+            fi
+            ;;
+    esac
 }
 
 # Figure out correct version of a three part version number is not passed
@@ -112,33 +187,93 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+install_yarn() {
+    if [ "${ADJUSTED_ID}" = "debian" ]; then
+        # for backward compatiblity with existing devcontainer features, install yarn
+        # via apt-get on Debian systems
+        if ! type yarn >/dev/null 2>&1; then
+            # Import key safely (new method rather than deprecated apt-key approach) and install
+            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor > /usr/share/keyrings/yarn-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
+            apt-get update
+            apt-get -y install --no-install-recommends yarn
+        else
+            echo "Yarn is already installed."
+        fi
+    else
+        local _ver=${1:-node}
+        # on non-debian systems, prefer corepack, fallback to npm based installation of yarn...
+        # Try to leverage corepack if possible
+        # From https://yarnpkg.com:
+        # The preferred way to manage Yarn is by-project and through Corepack, a tool
+        # shipped by default with Node.js. Modern releases of Yarn aren't meant to be
+        # installed globally, or from npm.
+        if ! bash -c ". '${NVM_DIR}/nvm.sh' && nvm use ${_ver} && type yarn >/dev/null 2>&1"; then
+            if bash -c ". '${NVM_DIR}/nvm.sh' && nvm use ${_ver} && type corepack >/dev/null 2>&1"; then
+                su ${USERNAME} -c "umask 0002 && . '${NVM_DIR}/nvm.sh' && nvm use ${_ver} && corepack enable"
+            fi
+            if ! bash -c ". '${NVM_DIR}/nvm.sh' && nvm use ${_ver} && type yarn >/dev/null 2>&1"; then
+                # Yum/DNF want to install nodejs dependencies, we'll use NPM to install yarn
+                su ${USERNAME} -c "umask 0002 && . '${NVM_DIR}/nvm.sh' && nvm use ${_ver} && npm install --global yarn"
+            fi
+        else 
+            echo "Yarn already installed."
+        fi
+    fi
+}
+
+# Mariner does not have awk installed by default, this can cause
+# problems is username is auto* and later when we try to install
+# node via npm.
+if ! type awk >/dev/null 2>&1; then
+    check_packages awk
+fi
+
+# Determine the appropriate non-root user
+if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
+    USERNAME=""
+    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
+        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+            USERNAME=${CURRENT_USER}
+            break
+        fi
+    done
+    if [ "${USERNAME}" = "" ]; then
+        USERNAME=root
+    fi
+elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
+    USERNAME=root
+fi
+
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
-. /etc/os-release
-if [[ "bionic" = *"${VERSION_CODENAME}"* ]]; then
-    if [[ "${NODE_VERSION}" =~ "18" ]] || [[ "${NODE_VERSION}" = "lts" ]]; then
-        echo "(!) Unsupported distribution version '${VERSION_CODENAME}' for Node 18. Details: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442"
+if ( [ -n "${VERSION_CODENAME}" ] && [[ "bionic" = *"${VERSION_CODENAME}"* ]] ) || [[ "rhel7" = *"${ADJUSTED_ID}${MAJOR_VERSION_ID}"* ]]; then
+    node_major_version=$(echo "${NODE_VERSION}" | cut -d . -f 1)
+    if [[ "${node_major_version}" -ge 18 ]] || [[ "${NODE_VERSION}" = "lts" ]] || [[ "${NODE_VERSION}" = "latest" ]]; then
+        echo "(!) Unsupported distribution version '${VERSION_CODENAME}' for Node >= 18. Details: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442"
         exit 1
     fi
 fi
 
 # Install dependencies
-check_packages apt-transport-https curl ca-certificates tar gnupg2 dirmngr
+case ${ADJUSTED_ID} in
+    debian)
+        check_packages apt-transport-https curl ca-certificates tar gnupg2 dirmngr
+        ;;
+    rhel)
+        check_packages ca-certificates tar gnupg2 which findutils util-linux tar
+        # minimal RHEL installs may not include curl, or includes curl-minimal instead.
+        # Install curl if the "curl" command is not present.
+        if ! type curl > /dev/null 2>&1; then
+            check_packages curl
+        fi
+        ;;
+esac
 
 if ! type git > /dev/null 2>&1; then
     check_packages git
-fi
-
-# Install yarn
-if type yarn > /dev/null 2>&1; then
-    echo "Yarn already installed."
-else
-    # Import key safely (new method rather than deprecated apt-key approach) and install
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor > /usr/share/keyrings/yarn-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-    apt-get update
-    apt-get -y install --no-install-recommends yarn
 fi
 
 # Adjust node version if required
@@ -159,6 +294,7 @@ umask 0002
 # Do not update profile - we'll do this manually
 export PROFILE=/dev/null
 curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash
+
 source "${NVM_DIR}/nvm.sh"
 if [ "${NODE_VERSION}" != "" ]; then
     nvm alias default "${NODE_VERSION}"
@@ -204,6 +340,9 @@ else
     fi
 fi
 
+# Possibly install yarn (puts yarn in per-Node install on RHEL, uses system yarn on Debian)
+install_yarn
+
 # Additional node versions to be installed but not be set as
 # default we can assume the nvm is the group owner of the nvm
 # directory and the sticky bit on directories so any installed
@@ -214,6 +353,8 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for ver in "${additional_versions[@]}"; do
             su ${USERNAME} -c "umask 0002 && . '$NVM_DIR/nvm.sh' && nvm install '${ver}'"
+            # possibly install yarn (puts yarn in per-Node install on RHEL, uses system yarn on Debian)
+            install_yarn "${ver}"
         done
 
         # Ensure $NODE_VERSION is on the $PATH
@@ -224,14 +365,17 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
 fi
 
 # Install pnpm
-if type pnpm > /dev/null 2>&1; then
+if bash -c ". '${NVM_DIR}/nvm.sh' && type pnpm >/dev/null 2>&1"; then
     echo "pnpm already installed."
 else
-    if type npm > /dev/null 2>&1; then
-        [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
-        [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
-        [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
-        npm install -g pnpm
+    if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
+        (
+            . "${NVM_DIR}/nvm.sh"
+            [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
+            [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
+            [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
+            npm install -g pnpm
+        )
     else
         echo "Skip installing pnpm because npm is missing"
     fi
@@ -248,21 +392,29 @@ if [ "${INSTALL_TOOLS_FOR_NODE_GYP}" = "true" ]; then
         to_install="${to_install} gcc"
     fi
     if ! type g++ > /dev/null 2>&1; then
-        to_install="${to_install} g++"
+        if [ ${ADJUSTED_ID} = "debian" ]; then
+            to_install="${to_install} g++"
+        elif [ ${ADJUSTED_ID} = "rhel" ]; then
+            to_install="${to_install} gcc-c++"
+        fi
     fi
     if ! type python3 > /dev/null 2>&1; then
-        to_install="${to_install} python3-minimal"
+        if [ ${ADJUSTED_ID} = "debian" ]; then
+            to_install="${to_install} python3-minimal"
+        elif [ ${ADJUSTED_ID} = "rhel" ]; then
+            to_install="${to_install} python3"
+        fi
     fi
     if [ ! -z "${to_install}" ]; then
-        apt_get_update
-        apt-get -y install ${to_install}
+        pkg_mgr_update
+        check_packages ${to_install}
     fi
 fi
 
 
 # Clean up
 su ${USERNAME} -c "umask 0002 && . '$NVM_DIR/nvm.sh' && nvm clear-cache"
-rm -rf /var/lib/apt/lists/*
+clean_up
 
 # Ensure privs are correct for installed node versions. Unfortunately the
 # way nvm installs node versions pulls privs from the tar which does not
