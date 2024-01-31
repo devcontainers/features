@@ -132,8 +132,10 @@ if dotnet --version > /dev/null ; then
     DOTNET_BINARY=$(which dotnet)
 fi
 
+MAJOR_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 1)
+
 # Oryx needs to be built with .NET 8
-if [[ "${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --version)" != *"8"* ]] ; then
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] ; then
     echo "'dotnet 8' was not detected. Attempting to install .NET 8 to build oryx."
     install_dotnet_using_apt
 
