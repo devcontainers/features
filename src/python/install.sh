@@ -26,6 +26,13 @@ CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN="${CONFIGUREJUPYTERLABALLOWORIGIN:-""}"
 # alongside PYTHON_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
+# Comma-separated list of packages to be installed
+# to Python version specified in PYTHON_VERSION
+PYTHON_PACKAGES="${PACKAGES:-""}"
+
+# Import common utils
+. ./utils.sh
+
 DEFAULT_UTILS=("pylint" "flake8" "autopep8" "black" "yapf" "mypy" "pydocstyle" "pycodestyle" "bandit" "pipenv" "virtualenv" "pytest")
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5 A821E680E5FA6305"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
@@ -300,26 +307,6 @@ install_using_oryx() {
     add_symlink
 }
 
-sudo_if() {
-    COMMAND="$*"
-    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
-        su - "$USERNAME" -c "$COMMAND"
-    else
-        $COMMAND
-    fi
-}
-
-install_user_package() {
-    INSTALL_UNDER_ROOT="$1"
-    PACKAGE="$2"
-
-    if [ "$INSTALL_UNDER_ROOT" = true ]; then
-        sudo_if "${PYTHON_SRC}" -m pip install --upgrade --no-cache-dir "$PACKAGE"
-    else
-        sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
-    fi
-}
-
 add_user_jupyter_config() {
     CONFIG_DIR="$1"
     CONFIG_FILE="$2"
@@ -473,8 +460,8 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         INSTALL_UNDER_ROOT=false
     fi
 
-    install_user_package $INSTALL_UNDER_ROOT jupyterlab
-    install_user_package $INSTALL_UNDER_ROOT jupyterlab-git
+    install_python_package $INSTALL_UNDER_ROOT $PYTHON_SRC jupyterlab
+    install_python_package $INSTALL_UNDER_ROOT $PYTHON_SRC jupyterlab-git
 
     # Configure JupyterLab if needed
     if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
@@ -489,6 +476,29 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
         add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
     fi
+fi
+
+# Install pacakages if needed
+if [ ! -z "${PYTHON_PACKAGES}" ]; then
+    if [ -z "${PYTHON_SRC}" ]; then
+        echo "(!) Could not install packages. Python not found."
+        exit 1
+    fi
+
+    INSTALL_UNDER_ROOT=true
+    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
+        INSTALL_UNDER_ROOT=false
+    fi
+
+    OLDIFS=$IFS
+    IFS=","
+    read -a python_packages <<< "$PYTHON_PACKAGES"
+        for package in "${python_packages[@]}"; do
+          name=$(echo ${package} | awk -F == '{ print $1 }')
+          version=$(echo ${package} |  awk -F == '{ print $2 }')
+          install_python_package $INSTALL_UNDER_ROOT $PYTHON_SRC $name $version
+        done
+    IFS=$OLDIFS
 fi
 
 # Clean up
