@@ -32,6 +32,11 @@
       "default": false,
       "description": "Optimize Python for performance when compiled (slow)"
     },
+    "shared": {
+      "type": "boolean",
+      "default": true,
+      "description": "Build Python with the shared library files."
+    },
     "installPath": {
       "type": "string",
       "default": "/usr/local/python",

@@ -10,6 +10,7 @@
 PYTHON_VERSION="${VERSION:-"latest"}" # 'system' or 'os-provided' checks the base image first, else installs 'latest'
 INSTALL_PYTHON_TOOLS="${INSTALLTOOLS:-"true"}"
 OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
+SHARED_LIBS="${SHARED:-"true"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
@@ -264,7 +265,11 @@ install_from_source() {
     if [ "${OPTIMIZE_BUILD_FROM_SOURCE}" = "true" ]; then
         config_args="--enable-optimizations"
     fi
-    ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
+    local shared_libs=""
+    if [ "${SHARED_LIBS}" = "true" ]; then
+        shared_libs="--enable-shared"
+    fi
+    ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args} ${shared_libs}
     make -j 8
     make install
     cd /tmp
