@@ -150,26 +150,6 @@
             }
         }
     },
-    "install_pip_modules": {
-        "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
-        "features": {
-            "python": {
-                "version": "3.12",
-                "installTools": false,
-                "additionalModules": "click,ldap3"
-            }
-        }
-    },
-    "install_pip_modules_rhel_family": {
-        "image": "almalinux:8",
-        "features": {
-            "python": {
-                "version": "3.12",
-                "installTools": false,
-                "additionalModules": "click,ldap3"
-            }
-        }
-    },
     "centos-7": {
         "image": "centos:centos7",
         "features": {

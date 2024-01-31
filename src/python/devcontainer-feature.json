@@ -32,11 +32,6 @@
       "default": "flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest,pylint",
       "description": "Comma-separated list of tools to install when installTools is true"
     },
-    "additionalModules": {
-      "type": "string",
-      "default": "",
-      "description": "Comma-separated list of modules to install via PIP (not pipx)"
-    },
     "optimize": {
       "type": "boolean",
       "default": false,
