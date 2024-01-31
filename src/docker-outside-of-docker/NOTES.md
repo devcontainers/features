@@ -36,7 +36,7 @@ services:
 
 - The defaults value `./` is added so that the `docker-compose.yaml` file can work when it is run outside of the container
 
-### Change the workspace to `${localWorkspaceFolder}`
+### 2. Change the workspace to `${localWorkspaceFolder}`
 
 - This is useful if we don't want to edit the `docker-compose.yaml` file
 
