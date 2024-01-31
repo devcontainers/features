@@ -135,7 +135,6 @@ pkg_mgr_update() {
 
 # Checks if packages are installed and installs them if not
 check_packages() {
-    echo "Checking packages: $@ ..."
     case ${ADJUSTED_ID} in
         debian)
             if ! dpkg -s "$@" > /dev/null 2>&1; then
