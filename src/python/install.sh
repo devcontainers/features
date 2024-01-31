@@ -342,8 +342,6 @@ install_gnupg22() {
     curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libksba/libksba-1.3.5.tar.bz2.sig && \
     curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/npth/npth-1.5.tar.bz2 && \
     curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/npth/npth-1.5.tar.bz2.sig && \
-    # curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/pinentry/pinentry-1.1.0.tar.bz2 && \
-    # curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/pinentry/pinentry-1.1.0.tar.bz2.sig && \
     curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/gnupg/gnupg-2.2.9.tar.bz2 && \
     curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/gnupg/gnupg-2.2.9.tar.bz2.sig && \
     gpg --verify libgpg-error-1.31.tar.gz.sig && tar -xzf libgpg-error-1.31.tar.gz && \
@@ -351,15 +349,12 @@ install_gnupg22() {
     gpg --verify libassuan-2.5.1.tar.bz2.sig && tar -xjf libassuan-2.5.1.tar.bz2 && \
     gpg --verify libksba-1.3.5.tar.bz2.sig && tar -xjf libksba-1.3.5.tar.bz2 && \
     gpg --verify npth-1.5.tar.bz2.sig && tar -xjf npth-1.5.tar.bz2 && \
-    # gpg --verify pinentry-1.1.0.tar.bz2.sig && tar -xjf pinentry-1.1.0.tar.bz2 && \
     gpg --verify gnupg-2.2.9.tar.bz2.sig && tar -xjf gnupg-2.2.9.tar.bz2 && \
     cd libgpg-error-1.31/ && ./configure --prefix=${_prefix} && make && make install && cd ../ && \
     cd libgcrypt-1.8.3 && ./configure --prefix=${_prefix} --with-libgpg-error-prefix=${_prefix} && make && make install && cd ../ && \
     cd libassuan-2.5.1 && ./configure --prefix=${_prefix} --with-libgpg-error-prefix=${_prefix} && make && make install && cd ../ && \
     cd libksba-1.3.5 && ./configure --prefix=${_prefix} && make && make install && cd ../ && \
     cd npth-1.5 && ./configure --prefix=${_prefix} && make && make install && cd ../ && \
-    # cd pinentry-1.1.0 && ./configure --prefix=${_prefix} --enable-pinentry-curses --disable-pinentry-qt4 && \
-    # make && make install && cd ../ && \
     cd gnupg-2.2.9 && LDFLAGS="-Wl,-rpath=${_prefix}/lib" ./configure --prefix=${_prefix} \
         --with-agent-pgm=${_prefix}/bin/gpg-agent \
         --with-dirmngr-pgm=${_prefix}/bin/dirmngr \
@@ -627,6 +622,7 @@ case ${ADJUSTED_ID} in
             shadow-utils \
             sqlite-devel \
             tar \
+            tk-devel \
             uuid-devel \
             which \
             xmlsec1-devel \
@@ -636,10 +632,6 @@ case ${ADJUSTED_ID} in
         if ! type curl >/dev/null 2>&1; then
             REQUIRED_PKGS="${REQUIRED_PKGS} \
                 curl"
-        fi
-        if [ "${ID}" != "mariner" ]; then
-            REQUIRED_PKGS="${REQUIRED_PKGS} \
-                tk-devel"
         fi
         ;;
 esac
