@@ -8,10 +8,33 @@
             }
         }
     },
+    "install_additional_python_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "additionalVersions": "3.8,3.9.13,3.10.5"
+            }
+        }
+    },
     "install_jupyterlab": {
         "image": "mcr.microsoft.com/devcontainers/base:focal",
         "remoteUser": "vscode",
         "features": {
+            "python": {
+                "version": "latest",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
+    "install_jupyterlab_rhel_family": {
+        "image": "almalinux:8",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
             "python": {
                 "version": "latest",
                 "installJupyterlab": true,
@@ -31,8 +54,35 @@
             }
         }
     },
+    "install_additional_jupyterlab_rhel_family": {
+        "image": "almalinux:8",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
+            "python": {
+                "version": "latest",
+                "additionalVersions": "3.9",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
     "install_os_provided_python": {
         "image": "mcr.microsoft.com/devcontainers/base:1-bullseye",
+        "features": {
+            "python": "os-provided"
+        }
+    },
+    "install_os_provided_python_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "python": "os-provided"
+        }
+    },
+    "install_os_provided_python_mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
         "features": {
             "python": "os-provided"
         }
@@ -91,8 +141,27 @@
             }
         }
     },
+    "install_alternate_tools_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "python": {
+                "version": "3.12",
+                "toolsToInstall": "ruff,mypy,bandit,pipenv,virtualenv,pytest"
+            }
+        }
+    },
     "install_pip_modules": {
         "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
+        "features": {
+            "python": {
+                "version": "3.12",
+                "installTools": false,
+                "additionalModules": "click,ldap3"
+            }
+        }
+    },
+    "install_pip_modules_rhel_family": {
+        "image": "almalinux:8",
         "features": {
             "python": {
                 "version": "3.12",
@@ -190,8 +259,8 @@
             }
         }
     },
-    "install_python_shared_lib_rhel": {
-        "image": "almalinux:9",
+    "install_python_shared_lib_rhel_family": {
+        "image": "almalinux:8",
         "features": {
             "python": {
                 "version": "3.11",
