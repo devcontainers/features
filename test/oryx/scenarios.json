@@ -3,8 +3,18 @@
         "image": "ubuntu:focal",
         "features": {
             "dotnet": {
-                "version": "7",
-                "installUsingApt": "false"
+                "version": "8.0",
+                "dotnetRuntimeVersions": "7.0",
+                "aspNetCoreRuntimeVersions": "7.0"
+            },
+            "oryx": {}
+        }
+    },
+    "install_older_dotnet_and_oryx": {
+        "image": "ubuntu:focal",
+        "features": {
+            "dotnet": {
+                "version": "7.0"
             },
             "oryx": {}
         }
@@ -13,8 +23,7 @@
         "image": "ubuntu:focal",
         "features": {
             "dotnet": {
-                "version": "6",
-                "installUsingApt": "false"
+                "version": "6"
             },
             "oryx": {}
         }
@@ -28,8 +37,7 @@
                 "useOryxIfAvailable": "false"
             },
             "dotnet": {
-                "version": "7",
-                "installUsingApt": "false"
+                "version": "8.0"
             },
             "oryx": {}
         }
