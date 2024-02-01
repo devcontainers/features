@@ -317,13 +317,16 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     cd /tmp && wget "https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}"
 
-    mkdir -p ${_REMOTE_USER_HOME}/.docker/cli-plugins
-    mv ${buildx_file_name} ${_REMOTE_USER_HOME}/.docker/cli-plugins/docker-buildx
-    chmod +x ${_REMOTE_USER_HOME}/.docker/cli-plugins/docker-buildx
+    docker_home="/usr/libexec/docker"
+    cli_plugins_dir="${docker_home}/cli-plugins"
 
-    chown -R "${USERNAME}:docker" "${_REMOTE_USER_HOME}/.docker"
-    chmod -R g+r+w "${_REMOTE_USER_HOME}/.docker"
-    find "${_REMOTE_USER_HOME}/.docker" -type d -print0 | xargs -n 1 -0 chmod g+s
+    mkdir -p ${cli_plugins_dir}
+    mv ${buildx_file_name} ${cli_plugins_dir}/docker-buildx
+    chmod +x ${cli_plugins_dir}/docker-buildx
+
+    chown -R "${USERNAME}:docker" "${docker_home}"
+    chmod -R g+r+w "${docker_home}"
+    find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
 
 tee /usr/local/share/docker-init.sh > /dev/null \
