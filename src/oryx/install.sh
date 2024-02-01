@@ -74,7 +74,7 @@ install_dotnet_using_apt() {
     echo "Attempting to auto-install dotnet..."
     install_from_microsoft_feed=false
     apt_get_update
-    DOTNET_INSTALLATION_PACKAGE="dotnet7"
+    DOTNET_INSTALLATION_PACKAGE="dotnet8"
     apt-get -yq install $DOTNET_INSTALLATION_PACKAGE || install_from_microsoft_feed="true"
 
     if [ "${install_from_microsoft_feed}" = "true" ]; then
@@ -82,7 +82,7 @@ install_dotnet_using_apt() {
         curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
         echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
         apt-get update -y
-        DOTNET_INSTALLATION_PACKAGE="dotnet-sdk-7.0"
+        DOTNET_INSTALLATION_PACKAGE="dotnet-sdk-8.0"
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq $DOTNET_INSTALLATION_PACKAGE
     fi
 
@@ -132,9 +132,11 @@ if dotnet --version > /dev/null ; then
     DOTNET_BINARY=$(which dotnet)
 fi
 
-# Oryx needs to be built with .NET 7
-if [[ "${DOTNET_BINARY}" = "" ]] || [[ "$(dotnet --version)" != *"7"* ]] ; then
-    echo "'dotnet 7' was not detected. Attempting to install .NET 7 to build oryx."
+MAJOR_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 1)
+
+# Oryx needs to be built with .NET 8
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] ; then
+    echo "'dotnet 8' was not detected. Attempting to install .NET 8 to build oryx."
     install_dotnet_using_apt
 
     if ! dotnet --version > /dev/null ; then

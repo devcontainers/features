@@ -69,5 +69,142 @@
                 "jdkDistro": "graalce"
             }
         }
+    },
+    "install_from_non_default_distro_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "java": {
+                "version": "21",
+                "jdkDistro": "open"
+            }
+        }
+    },
+    "install_additional_java_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "java": {
+                "version": "11",
+                "additionalVersions": "17,8"
+            }
+        }
+    },
+    "install_ant_and_gradle_and_maven_and_groovy_for_user_rhel_family": {
+        "image": "almalinux:8",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
+            "java": {
+                "version": "latest",
+                "installAnt": true,
+                "installGradle": true,
+                "installMaven": true,
+                "installGroovy": true
+            }
+        }
+    },
+    "install_ant_and_gradle_and_maven_and_groovy_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "java": {
+                "version": "latest",
+                "installAnt": true,
+                "installGradle": true,
+                "installMaven": true,
+                "installGroovy": true
+            }
+        }
+    },
+    "install_ant_and_gradle_and_maven_and_groovy_with_specific_version_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "java": {
+                "version": "latest",
+                "installAnt": "true",
+                "antVersion": "1.10.12",
+                "installGradle": "true",
+                "gradleVersion": "6.8.3",
+                "installMaven": "true",
+                "mavenVersion": "3.6.3",
+                "installGroovy": "true",
+                "groovyVersion": "2.5.22"
+            }
+        }
+    },
+    "install_non_conventional_version_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "java": {
+                "version": "21",
+                "jdkDistro": "graalce"
+            }
+        }
+    },
+    "centos-7": {
+        "image": "centos:centos7",
+        "features": {
+            "java": {}
+        }
+    },
+    "alma-8": {
+        "image": "almalinux:8",
+        "features": {
+            "java": {}
+        }
+    },
+    "alma-8-minimal": {
+        "image": "almalinux:8-minimal",
+        "features": {
+            "java": {}
+        }
+    },
+    "alma-9": {
+        "image": "almalinux:9",
+        "features": {
+            "java": {}
+        }
+    },
+    "alma-9-minimal": {
+        "image": "almalinux:9-minimal",
+        "features": {
+            "java": {}
+        }
+    },
+    "rocky-8": {
+        "image": "rockylinux:8",
+        "features": {
+            "java": {}
+        }
+    },
+    "rocky-8-minimal": {
+        "image": "rockylinux:8-minimal",
+        "features": {
+            "java": {}
+        }
+    },
+    "rocky-9": {
+        "image": "rockylinux:9",
+        "features": {
+            "java": {}
+        }
+    },
+    "rocky-9-minimal": {
+        "image": "rockylinux:9-minimal",
+        "features": {
+            "java": {}
+        }
+    },
+    "mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+        "features": {
+            "java": {}
+        }
+    },
+    "fedora": {
+        "image": "fedora",
+        "features": {
+            "java": {}
+        }
     }
 }

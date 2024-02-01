@@ -68,6 +68,15 @@
         },
         "remoteUser": "node"
     },
+    "docker_buildx": {
+        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+        "features": {
+            "docker-in-docker": {
+                "moby": false,
+                "installDockerBuildx": true
+            }
+        }
+    },
     // DO NOT REMOVE: This scenario is used by the docker-in-docker-stress-test workflow
     "docker_with_on_create_command": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
