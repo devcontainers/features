@@ -512,7 +512,11 @@ install_python() {
         if [ ${ADJUSTED_ID} = "debian" ]; then
             check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
         else
-            check_packages python3 python3-pip python3-devel python3-tkinter
+            if [ ${ID} != "mariner" ]; then
+                check_packages python3 python3-pip python3-devel python3-tkinter
+            else
+                check_packages python3 python3-pip python3-devel
+            fi
         fi
         INSTALL_PATH="/usr"
 
@@ -619,7 +623,6 @@ case ${ADJUSTED_ID} in
             shadow-utils \
             sqlite-devel \
             tar \
-            tk-devel \
             uuid-devel \
             which \
             xmlsec1-devel \
@@ -629,6 +632,11 @@ case ${ADJUSTED_ID} in
         if ! type curl >/dev/null 2>&1; then
             REQUIRED_PKGS="${REQUIRED_PKGS} \
                 curl"
+        fi
+        # Mariner does not have tk-devel package available
+        if [ ${ID} != "mariner" ]; then
+            REQUIRED_PKGS="${REQUIRED_PKGS} \
+                tk-devel"
         fi
         ;;
 esac
@@ -693,7 +701,7 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     find "${PIPX_HOME}" -type d -print0 | xargs -0 -n 1 chmod g+s
 
     # Update pip if not using os provided python
-    if [[ $(python --version) != "" ]] || [[ ${PYTHON_VERSION} != "os-provided" ]] && [[ ${PYTHON_VERSION} != "system" ]] && [[ ${PYTHON_VERSION} != "none" ]]; then
+    if [[ $(python --version 2>/dev/null) != "" ]] && [[ ${PYTHON_VERSION} != "os-provided" ]] && [[ ${PYTHON_VERSION} != "system" ]] && [[ ${PYTHON_VERSION} != "none" ]]; then
         echo "Updating pip..."
         python -m pip install --no-cache-dir --upgrade pip
     fi
@@ -703,7 +711,15 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     export PIP_CACHE_DIR=/tmp/pip-tmp/cache
     PIPX_DIR=""
     if ! type pipx > /dev/null 2>&1; then
-        pip3 install --disable-pip-version-check --no-cache-dir --user pipx 2>&1
+        break_system_packages=""
+        if [ ${ADJUSTED_ID} = "debian" ] && [ ${MAJOR_VERSION_ID} -ge 12 ]; then
+            # Debian versions >= 12 require that we use pip with the "--break-system-packages"
+            # option to avoid errors... This does not really breack system packages due
+            # to the setting of PYTHONUSERBASE above, but does get us past Debian checks for
+            # installing python packages into the system python install.
+            break_system_packages="--break-system-packages"
+        fi
+        pip3 install ${break_system_packages} --disable-pip-version-check --no-cache-dir --user pipx 2>&1
         /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
         PIPX_DIR="/tmp/pip-tmp/bin/"
     fi
