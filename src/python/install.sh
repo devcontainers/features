@@ -546,6 +546,21 @@ install_python() {
     fi
 }
 
+python_is_externally_managed() {
+    local _python_cmd=$1
+    local python_stdlib_dir=$(
+        ${_python_cmd} -c '
+import sys
+import sysconfig
+sys.prefix == sys.base_prefix and print(sysconfig.get_path("stdlib", sysconfig.get_default_scheme()))'
+    )
+    if [ -f ${python_stdlib_dir}/EXTERNALLY-MANAGED ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Ensure that login shells get the correct path if the user updated the PATH using ENV.
 rm -f /etc/profile.d/00-restore-env.sh
 echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
@@ -709,12 +724,13 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
     export PIP_CACHE_DIR=/tmp/pip-tmp/cache
     PIPX_DIR=""
     if ! type pipx > /dev/null 2>&1; then
-        break_system_packages=""
-        if [ ${ADJUSTED_ID} = "debian" ] && [ ${MAJOR_VERSION_ID} -ge 12 ]; then
-            # Debian versions >= 12 require that we use pip with the "--break-system-packages"
-            # option to avoid errors... This does not really breack system packages due
-            # to the setting of PYTHONUSERBASE above, but does get us past Debian checks for
-            # installing python packages into the system python install.
+        
+        # python install is marked as externally managed, we need to pass
+        # pip a "--break-system-packages" option to avoid errors... This does not
+        # really breack system packages dueto the setting of PYTHONUSERBASE above,
+        # but does get us past checks for installing python packages into the
+        # system python install.
+        if python_is_externally_managed ${PYTHON_SRC}; then
             break_system_packages="--break-system-packages"
         fi
         pip3 install ${break_system_packages} --disable-pip-version-check --no-cache-dir --user pipx 2>&1
