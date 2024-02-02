@@ -744,6 +744,16 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
             echo "${util} already installed. Skipping."
         fi
     done
+    
+    # Temporary: Removes “setup tools” metadata directory due to https://github.com/advisories/GHSA-r9hx-vwmv-q579
+
+    VULNERABLE_VERSIONS=("3.10" "3.11")
+    RUN_TIME_PY_VER_DETECT=$(python --version 2>&1)
+    PY_MAJOR_MINOR_VER=${RUN_TIME_PY_VER_DETECT:7:4};
+    if [[ ${VULNERABLE_VERSIONS[*]} =~ $PY_MAJOR_MINOR_VER ]]; then
+        rm -rf  ${PIPX_HOME}/shared/lib/"python${PY_MAJOR_MINOR_VER}"/site-packages/setuptools-65.5.0.dist-info
+    fi
+
     rm -rf /tmp/pip-tmp
 
     updaterc "export PIPX_HOME=\"${PIPX_HOME}\""
