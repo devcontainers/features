@@ -542,9 +542,7 @@ install_python() {
         should_install_from_source=true
     fi
     if [ "${should_install_from_source}" = "true" ]; then
-        set -x
         install_from_source $version
-        set +x
     fi
 }
 
@@ -684,7 +682,7 @@ else
 fi
 
 # Install Python tools if needed
-if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; then
+if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
     echo 'Installing Python tools...'
     export PIPX_BIN_DIR="${PIPX_HOME}/bin"
     PATH="${PATH}:${PIPX_BIN_DIR}"
@@ -701,9 +699,9 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     find "${PIPX_HOME}" -type d -print0 | xargs -0 -n 1 chmod g+s
 
     # Update pip if not using os provided python
-    if [[ $(python --version 2>/dev/null) != "" ]] && [[ ${PYTHON_VERSION} != "os-provided" ]] && [[ ${PYTHON_VERSION} != "system" ]] && [[ ${PYTHON_VERSION} != "none" ]]; then
+    if [[ -n "${PYTHON_SRC}" ]] && [[ ${PYTHON_VERSION} != "os-provided" ]] && [[ ${PYTHON_VERSION} != "system" ]] && [[ ${PYTHON_VERSION} != "none" ]]; then
         echo "Updating pip..."
-        python -m pip install --no-cache-dir --upgrade pip
+        ${PYTHON_SRC} -m pip install --no-cache-dir --upgrade pip
     fi
 
     # Install tools
