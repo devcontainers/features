@@ -460,7 +460,7 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ $(python --version) != "" ]]; 
     VULNERABLE_VERSIONS=("3.10" "3.11")
     RUN_TIME_PY_VER_DETECT=$(python --version 2>&1)
     PY_MAJOR_MINOR_VER=${RUN_TIME_PY_VER_DETECT:7:4};
-    if [[ ${VULNERABLE_VERSIONS[@]} =~ $PY_MAJOR_MINOR_VER ]]; then
+    if [[ ${VULNERABLE_VERSIONS[*]} =~ $PY_MAJOR_MINOR_VER ]]; then
         rm -rf  ${PIPX_HOME}/shared/lib/"python${PY_MAJOR_MINOR_VER}"/site-packages/setuptools-65.5.0.dist-info
     fi
 
