@@ -68,9 +68,9 @@ else
     exit 1
 fi
 
-# To find some devel packages, some rhel need to enable specific extra repos
+# To find some devel packages, some rhel need to enable specific extra repos, but not on RedHat ubi images...
 INSTALL_CMD_ADDL_REPO=""
-if [ ${ADJUSTED_ID} = "rhel" ]; then
+if [ ${ADJUSTED_ID} = "rhel" ] && [ ${ID} != "rhel" ]; then
     if [ ${MAJOR_VERSION_ID} = "8" ]; then
         INSTALL_CMD_ADDL_REPOS="--enablerepo powertools"
     elif [ ${MAJOR_VERSION_ID} = "9" ]; then
@@ -625,20 +625,16 @@ case ${ADJUSTED_ID} in
             ca-certificates \
             findutils \
             gcc \
-            gdbm-devel \
             gnupg2 \
             libffi-devel \
             libxml2-devel \
             make \
             ncurses-devel \
             openssl-devel \
-            readline-devel \
             shadow-utils \
             sqlite-devel \
             tar \
-            uuid-devel \
             which \
-            xmlsec1-devel \
             xz-devel \
             xz \
             zlib-devel"
@@ -646,10 +642,19 @@ case ${ADJUSTED_ID} in
             REQUIRED_PKGS="${REQUIRED_PKGS} \
                 curl"
         fi
-        # Mariner does not have tk-devel package available
-        if [ ${ID} != "mariner" ]; then
+        # Mariner does not have tk-devel package available, RedHat ubi8 and ubi9 do not have tk-devel
+        if [ ${ID} != "mariner" ] && [ ${ID} != "rhel" ]; then
             REQUIRED_PKGS="${REQUIRED_PKGS} \
                 tk-devel"
+        fi
+        # Redhat ubi8 and ubi9 do not have some packages by default, only add them
+        # if we're not on RedHat ...
+        if [ ${ID} != "rhel" ]; then
+            REQUIRED_PKGS="${REQUIRED_PKGS} \
+                gdbm-devel \
+                readline-devel \
+                uuid-devel \
+                xmlsec1-devel"
         fi
         ;;
 esac
@@ -692,6 +697,9 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     find "${PYTHON_INSTALL_PATH}" -type d -print0 | xargs -0 -n 1 chmod g+s
 
     PYTHON_SRC="${INSTALL_PATH}/bin/python3"
+    if ! type pip >/dev/null 2>&1 && type pip3 >/dev/null 2>&1; then
+        ln -s /usr/bin/pip3 /usr/bin/pip
+    fi
 else
     PYTHON_SRC=$(which python)
 fi
@@ -748,7 +756,7 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
     # Temporary: Removes “setup tools” metadata directory due to https://github.com/advisories/GHSA-r9hx-vwmv-q579
 
     VULNERABLE_VERSIONS=("3.10" "3.11")
-    RUN_TIME_PY_VER_DETECT=$(python --version 2>&1)
+    RUN_TIME_PY_VER_DETECT=$(${PYTHON_SRC} --version 2>&1)
     PY_MAJOR_MINOR_VER=${RUN_TIME_PY_VER_DETECT:7:4};
     if [[ ${VULNERABLE_VERSIONS[*]} =~ $PY_MAJOR_MINOR_VER ]]; then
         rm -rf  ${PIPX_HOME}/shared/lib/"python${PY_MAJOR_MINOR_VER}"/site-packages/setuptools-65.5.0.dist-info

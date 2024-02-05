@@ -87,7 +87,7 @@
             }
         }
     },
-    "install_os_provided_python": {
+    "install_os_provided_python_deb": {
         "image": "mcr.microsoft.com/devcontainers/base:1-bullseye",
         "features": {
             "python": "os-provided"
