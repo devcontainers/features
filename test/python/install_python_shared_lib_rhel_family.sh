@@ -36,5 +36,10 @@ check "which pydocstyle" bash -c "which pydocstyle | grep /usr/local/py-utils/bi
 check "which pylint" bash -c "which pylint | grep /usr/local/py-utils/bin/pylint"
 check "which pytest" bash -c "which pytest | grep /usr/local/py-utils/bin/pytest"
 
+# Check compiled with "--enable-shared" -- python truth is opposite of the shells
+#   therefore we negate the check to get a '0' exit code when the python
+#   has been compiled with --enable-shared
+check "python shared library" /usr/local/python/bin/python -c 'import sys; import sysconfig; sys.exit(sysconfig.get_config_vars("Py_ENABLE_SHARED") != [1])'
+
 # Report result
 reportResults

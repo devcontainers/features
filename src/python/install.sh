@@ -27,9 +27,11 @@ CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN="${CONFIGUREJUPYTERLABALLOWORIGIN:-""}"
 # alongside PYTHON_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
-GPG_INSTALL_PATH=/usr/local/gnupg22
-# GPG_CMD will be over-ridden if we need to install gpt2.22 ito GPG_INSTALL_PATH
-GPG_CMD=gpg
+# Comma-sparated list of packages to be installed
+PYTHON_PACKAGES="${PACKAGES:-""}"
+
+# Import common utils
+. ./utils.sh
 
 # Comma-separated list of additional tools to be installed via pipx.
 IFS="," read -r -a DEFAULT_UTILS <<< "${TOOLSTOINSTALL:-flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest}"
@@ -134,7 +136,6 @@ updaterc() {
 }
 
 # Import the specified key in a variable name passed in as 
-# Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
     local keys=${!1}
     local keyring_args=""
@@ -159,7 +160,53 @@ receive_gpg_keys() {
     until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
     do
         echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 ${GPG_CMD} -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+        if [ "${gpg_ok}" != "true" ]; then
+            echo "(*) Failed getting key, retring in 10s..."
+            (( retry_count++ ))
+            sleep 10s
+        fi
+    done
+    set -e
+    if [ "${gpg_ok}" = "false" ]; then
+        echo "(!) Failed to get gpg key."
+        exit 1
+    fi
+}
+# RHEL7/CentOS7 has an older gpg that does not have dirmngr
+# Iterate through keyservers until we have all the keys downloaded
+receive_gpg_keys_centos7() {
+    local keys=${!1}
+    local keyring_args=""
+    local gpg_cmd="gpg"
+    if [ ! -z "$2" ]; then
+        mkdir -p "$(dirname \"$2\")"
+        keyring_args="--no-default-keyring --keyring $2"
+    fi
+    if [ ! -z "${KEYSERVER_PROXY}" ]; then
+        keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
+    fi
+
+    # Use a temporary location for gpg keys to avoid polluting image
+    export GNUPGHOME="/tmp/tmp-gnupg"
+    mkdir -p ${GNUPGHOME}
+    chmod 700 ${GNUPGHOME}
+    # GPG key download sometimes fails for some reason and retrying fixes it.
+    local retry_count=0
+    local gpg_ok="false"
+    num_keys=$(echo ${keys} | wc -w)
+    set +e
+    set -x
+    echo "(*) Downloading GPG keys..."
+    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; do
+        for keyserver in ${GPG_KEY_SERVERS}; do
+            ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys --keyserver=${keyserver} ) 2>&1
+            downloaded_keys=$(gpg --list-keys | grep ^pub | wc -l)
+            if [[ ${num_keys} = ${downloaded_keys} ]]; then
+                gpg_ok="true"
+                break
+            fi
+        done
         if [ "${gpg_ok}" != "true" ]; then
             echo "(*) Failed getting key, retring in 10s..."
             (( retry_count++ ))
@@ -306,66 +353,19 @@ add_symlink() {
     fi
 }
 
-install_openssl11() {
+install_openssl3() {
     local _prefix=$1
-    mkdir /tmp/openssl11
+    mkdir /tmp/openssl3
     (
-    cd /tmp/openssl11
-    curl -L -f -O https://www.openssl.org/source/openssl-1.1.1w.tar.gz
-    tar xzf openssl-1.1.1w.tar.gz
-    cd openssl-1.1.*
-    ./config --prefix=${_prefix} --openssldir=${_prefix}
-    make -j $(nproc)
-    make install_dev
+        cd /tmp/openssl3
+        curl -L -f -O https://www.openssl.org/source/openssl-3.0.8.tar.gz
+        tar xzf openssl-3.0.8.tar.gz
+        cd openssl-*
+        ./config --prefix=${_prefix} --openssldir=${_prefix}
+        make -j $(nproc)
+        make install_dev
     )
-    rm -rf /tmp/openssl11
-}
-
-install_gnupg22() {
-    local _prefix=$1
-    yum-builddep -y gnupg2 
-    check_packages bzip2
-    mkdir -p /tmp/gnupg22 && cd /tmp/gnupg22
-    gpg --list-keys
-    gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 249B39D24F25E3B6 04376F3EE0856959 2071B08A33BD3F06 8A861B1C7EFD60D9
-
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.31.tar.gz.sig && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.31.tar.gz && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.8.3.tar.gz && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.8.3.tar.gz.sig && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libassuan/libassuan-2.5.1.tar.bz2 && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libassuan/libassuan-2.5.1.tar.bz2.sig && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libksba/libksba-1.3.5.tar.bz2 && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/libksba/libksba-1.3.5.tar.bz2.sig && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/npth/npth-1.5.tar.bz2 && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/npth/npth-1.5.tar.bz2.sig && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/gnupg/gnupg-2.2.9.tar.bz2 && \
-    curl -sLfO -C - https://www.gnupg.org/ftp/gcrypt/gnupg/gnupg-2.2.9.tar.bz2.sig && \
-    gpg --verify libgpg-error-1.31.tar.gz.sig && tar -xzf libgpg-error-1.31.tar.gz && \
-    gpg --verify libgcrypt-1.8.3.tar.gz.sig && tar -xzf libgcrypt-1.8.3.tar.gz && \
-    gpg --verify libassuan-2.5.1.tar.bz2.sig && tar -xjf libassuan-2.5.1.tar.bz2 && \
-    gpg --verify libksba-1.3.5.tar.bz2.sig && tar -xjf libksba-1.3.5.tar.bz2 && \
-    gpg --verify npth-1.5.tar.bz2.sig && tar -xjf npth-1.5.tar.bz2 && \
-    gpg --verify gnupg-2.2.9.tar.bz2.sig && tar -xjf gnupg-2.2.9.tar.bz2 && \
-    cd libgpg-error-1.31/ && ./configure --prefix=${_prefix} && make && make install && cd ../ && \
-    cd libgcrypt-1.8.3 && ./configure --prefix=${_prefix} --with-libgpg-error-prefix=${_prefix} && make && make install && cd ../ && \
-    cd libassuan-2.5.1 && ./configure --prefix=${_prefix} --with-libgpg-error-prefix=${_prefix} && make && make install && cd ../ && \
-    cd libksba-1.3.5 && ./configure --prefix=${_prefix} && make && make install && cd ../ && \
-    cd npth-1.5 && ./configure --prefix=${_prefix} && make && make install && cd ../ && \
-    cd gnupg-2.2.9 && LDFLAGS="-Wl,-rpath=${_prefix}/lib" ./configure --prefix=${_prefix} \
-        --with-agent-pgm=${_prefix}/bin/gpg-agent \
-        --with-dirmngr-pgm=${_prefix}/bin/dirmngr \
-        --with-libgpg-error-prefix=${_prefix} \
-        --with-libgcrypt-prefix=${_prefix} \
-        --with-libassuan-prefix=${_prefix} \
-        --with-ksba-prefix=${_prefix} \
-        --with-npth-prefix=${_prefix} \
-        && make && make install && cd ..
-    # Without the line below, gpg2 might fail to create / import secret keys !!! 
-    if [ -d ~/.gnugp ]; then rm -ri ~/.gnugp; fi
-    gpgconf --kill gpg-agent || true
-    # tidy up
-    rm -rf cd /tmp/gnupg22
+    rm -rf /tmp/openssl3
 }
 
 install_from_source() {
@@ -385,14 +385,13 @@ install_from_source() {
         exit 1
     fi
 
-    # Some platforms/os versions need openssl11 & gpg2.22 installed because they're available
+    # Some platforms/os versions need modern versions of openssl installed
     # via common package repositories, for now rhel-7 family, use case statement to 
     # make it easy to expand
     case ${VERSION_CODENAME} in
         centos7|rhel7)
-            install_gnupg22 ${GPG_INSTALL_PATH}
-            GPG_CMD=${GPG_INSTALL_PATH}/bin/gpg
-            install_openssl11 ${INSTALL_PATH}
+            check_packages perl-IPC-Cmd
+            install_openssl3 ${INSTALL_PATH}
             ADDL_CONFIG_ARGS="--with-openssl=${INSTALL_PATH} --with-openssl-rpath=${INSTALL_PATH}/lib"
             ;;
     esac
@@ -406,10 +405,14 @@ install_from_source() {
     curl -sSL -o "/tmp/python-src/${tgz_filename}" "${tgz_url}"
 
     # Verify signature
-    receive_gpg_keys PYTHON_SOURCE_GPG_KEYS
+    if [[ ${VERSION_CODENAME} = "centos7" ]] || [[ ${VERSION_CODENAME} = "rhel7" ]]; then
+        receive_gpg_keys_centos7 PYTHON_SOURCE_GPG_KEYS
+    else
+        receive_gpg_keys PYTHON_SOURCE_GPG_KEYS
+    fi
     echo "Downloading ${tgz_filename}.asc..."
     curl -sSL -o "/tmp/python-src/${tgz_filename}.asc" "${tgz_url}.asc"
-    ${GPG_CMD} --verify "${tgz_filename}.asc"
+    gpg --verify "${tgz_filename}.asc"
 
     # Update min protocol for testing only - https://bugs.python.org/issue41561
     if [ -f /etc/pki/tls/openssl.cnf ]; then
@@ -426,7 +429,6 @@ install_from_source() {
     if [ "${OPTIMIZE_BUILD_FROM_SOURCE}" = "true" ]; then
         config_args="${config_args} --enable-optimizations"
     fi
-    set -x
     if [ "${ENABLESHARED}" = "true" ]; then
         config_args=" ${config_args} --enable-shared"
         # need double-$: LDFLAGS ends up in Makefile $$ becomes $ when evaluated.
@@ -473,25 +475,6 @@ install_using_oryx() {
     add_symlink
 }
 
-sudo_if() {
-    COMMAND="$*"
-    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
-        su - "$USERNAME" -c "$COMMAND"
-    else
-        $COMMAND
-    fi
-}
-
-install_user_package() {
-    INSTALL_UNDER_ROOT="$1"
-    PACKAGE="$2"
-
-    if [ "$INSTALL_UNDER_ROOT" = true ]; then
-        sudo_if "${PYTHON_SRC}" -m pip install --upgrade --no-cache-dir "$PACKAGE"
-    else
-        sudo_if "${PYTHON_SRC}" -m pip install --user --upgrade --no-cache-dir "$PACKAGE"
-    fi
-}
 
 add_user_jupyter_config() {
     CONFIG_DIR="$1"
@@ -732,18 +715,13 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
     export PIP_CACHE_DIR=/tmp/pip-tmp/cache
     PIPX_DIR=""
     if ! type pipx > /dev/null 2>&1; then
-        
-        # python install is marked as externally managed, we need to pass
-        # pip a "--break-system-packages" option to avoid errors... This does not
-        # really breack system packages dueto the setting of PYTHONUSERBASE above,
-        # but does get us past checks for installing python packages into the
-        # system python install.
         if python_is_externally_managed ${PYTHON_SRC}; then
-            break_system_packages="--break-system-packages"
+            check_packages pipx
+        else
+            pip3 install ${break_system_packages} --disable-pip-version-check --no-cache-dir --user pipx 2>&1
+            /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
+            PIPX_DIR="/tmp/pip-tmp/bin/"
         fi
-        pip3 install ${break_system_packages} --disable-pip-version-check --no-cache-dir --user pipx 2>&1
-        /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
-        PIPX_DIR="/tmp/pip-tmp/bin/"
     fi
     for util in "${DEFAULT_UTILS[@]}"; do
         if ! type ${util} > /dev/null 2>&1; then
@@ -769,6 +747,8 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
     updaterc "if [[ \"\${PATH}\" != *\"\${PIPX_BIN_DIR}\"* ]]; then export PATH=\"\${PATH}:\${PIPX_BIN_DIR}\"; fi"
 fi
 
+set -x
+
 # Install JupyterLab if needed
 if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
     if [ -z "${PYTHON_SRC}" ]; then
@@ -781,8 +761,8 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         INSTALL_UNDER_ROOT=false
     fi
 
-    install_user_package $INSTALL_UNDER_ROOT jupyterlab
-    install_user_package $INSTALL_UNDER_ROOT jupyterlab-git
+    install_python_package $INSTALL_UNDER_ROOT $PYTHON_SRC jupyterlab
+    install_python_package $INSTALL_UNDER_ROOT $PYTHON_SRC jupyterlab-git
 
     # Configure JupyterLab if needed
     if [ -n "${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}" ]; then
@@ -797,6 +777,24 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
         add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
     fi
+fi
+
+# Install pacakages if needed
+if [ ! -z "${PYTHON_PACKAGES}" ]; then
+    if [ -z "${PYTHON_SRC}" ]; then
+        echo "(!) Could not install packages. Python not found."
+        exit 1
+    fi
+
+    INSTALL_UNDER_ROOT=true
+    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
+        INSTALL_UNDER_ROOT=false
+    fi
+
+    IFS="," read -a python_packages <<< "$PYTHON_PACKAGES"
+    for package in "${python_packages[@]}"; do
+        install_python_package $INSTALL_UNDER_ROOT $PYTHON_SRC $package
+    done
 fi
 
 # Clean up

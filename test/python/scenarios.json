@@ -208,38 +208,6 @@
             }
         }
     },
-    "rocky-8": {
-        "image": "rockylinux:8",
-        "features": {
-            "python": {
-                "version": "3.11"
-            }
-        }
-    },
-    "rocky-8-minimal": {
-        "image": "rockylinux:8-minimal",
-        "features": {
-            "python": {
-                "version": "3.11"
-            }
-        }
-    },
-    "rocky-9": {
-        "image": "rockylinux:9",
-        "features": {
-            "python": {
-                "version": "3.11"
-            }
-        }
-    },
-    "rocky-9-minimal": {
-        "image": "rockylinux:9-minimal",
-        "features": {
-            "python": {
-                "version": "3.11"
-            }
-        }
-    },
     "fedora": {
         "image": "fedora",
         "features": {
@@ -263,6 +231,45 @@
             "python": {
                 "version": "3.11",
                 "enableShared": true
+            }
+        }
+    },
+    "install_packages_root": {
+        "image": "debian:bullseye-slim",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "packages": "jupyterlab,jupyterlab-git"
+            }
+        }
+    },
+    "install_packages_non_root": {
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "remoteUser": "vscode",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "packages": "jupyterlab,jupyterlab-git"
+            }
+        }
+    },
+    "install_packages_versions_locked": {
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "remoteUser": "vscode",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "packages": "cryptography==41.0.5,jupyterlab==4.0.8,jupyterlab-git==0.43.0"
+            }
+        }
+    },
+    "install_packages_mixed": {
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "remoteUser": "vscode",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "packages": "cryptography==41.0.5,jupyterlab,jupyterlab-git==0.43.0"
             }
         }
     }
