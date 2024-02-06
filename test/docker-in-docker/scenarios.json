@@ -77,6 +77,16 @@
             }
         }
     },
+    "docker_python_bookworm": {
+        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "v2"
+            }
+        }
+    },
     // DO NOT REMOVE: This scenario is used by the docker-in-docker-stress-test workflow
     "docker_with_on_create_command": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",

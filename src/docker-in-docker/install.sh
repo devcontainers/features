@@ -233,7 +233,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         if [ "${target_compose_arch}" = "amd64" ]; then
             target_compose_arch="x86_64"
         fi
-        if [ "${target_compose_arch}" != "x86_64" ]; then
+        if [ "${target_compose_arch}" != "x86_64" ] && [ "${VERSION_CODENAME}" != "bookworm" ]; then
             # Use pip to get a version that runs on this architecture
             check_packages python3-minimal python3-pip libffi-dev python3-venv
             export PIPX_HOME=/usr/local/pipx
