@@ -25,17 +25,12 @@
     "installTools": {
       "type": "boolean",
       "default": true,
-      "description": "Install common Python tools like pylint, override list using 'toolsToInstall'. These are insatalled in virtual environments using pipx. The default list of tools is found in the `toolsToInstall` option."
+      "description": "Flag indicating whether or not to install the tools specified via the 'toolsToInstall' option. Default is 'true'."
     },
     "toolsToInstall": {
       "type": "string",
       "default": "flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest,pylint",
-      "description": "Comma-separated list of tools to install when installTools is true"
-    },
-    "packages": {
-      "type": "string",
-      "default": "",
-      "description": "Optional comma separated list of Python packages to install with pip."
+      "description": "Comma-separated list of tools to install when 'installTools' is true. Defaults to a set of common Python tools like pylint."
     },
     "optimize": {
       "type": "boolean",

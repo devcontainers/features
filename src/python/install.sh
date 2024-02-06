@@ -27,12 +27,6 @@ CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN="${CONFIGUREJUPYTERLABALLOWORIGIN:-""}"
 # alongside PYTHON_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
-# Comma-sparated list of packages to be installed
-PYTHON_PACKAGES="${PACKAGES:-""}"
-
-# Import common utils
-. ./utils.sh
-
 # Comma-separated list of additional tools to be installed via pipx.
 IFS="," read -r -a DEFAULT_UTILS <<< "${TOOLSTOINSTALL:-flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest}"
 
