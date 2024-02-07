@@ -105,7 +105,7 @@ install_debian_packages() {
     # Needed for adding manpages-posix and manpages-posix-dev which are non-free packages in Debian
     if [ "${ADD_NON_FREE_PACKAGES}" = "true" ]; then
         if [ ! -e "/etc/apt/sources.list" ]; then 
-            sed -i -E "s/Components: main/components: main contrib non-free/" /etc/apt/sources.list.d/debian.sources
+            sed -i -E "s/Components: main/Components: main contrib non-free/g" /etc/apt/sources.list.d/debian.sources
         else
             # Bring in variables from /etc/os-release like VERSION_CODENAME
             sed -i -E "s/deb http:\/\/(deb|httpredir)\.debian\.org\/debian ${VERSION_CODENAME} main/deb http:\/\/\1\.debian\.org\/debian ${VERSION_CODENAME} main contrib non-free/" /etc/apt/sources.list
