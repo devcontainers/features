@@ -1,4 +1,22 @@
 {
+    "install_python310_setuptools_vulnerability": {
+        "image": "python:3.10",
+        "features": {
+            "python": {
+                "version": "none",
+                "installTools": true
+            }
+        }
+    },
+    "install_python311_setuptools_vulnerability": {
+        "image": "python:3.11",
+        "features": {
+            "python": {
+                "version": "none",
+                "installTools": true
+            }
+        }
+    },
     "install_additional_python": {
         "image": "ubuntu:focal",
         "features": {
