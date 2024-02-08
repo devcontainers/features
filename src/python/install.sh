@@ -190,23 +190,22 @@ receive_gpg_keys_centos7() {
     local gpg_ok="false"
     num_keys=$(echo ${keys} | wc -w)
     set +e
-    set -x
-    echo "(*) Downloading GPG keys..."
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; do
-        for keyserver in ${GPG_KEY_SERVERS}; do
-            ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys --keyserver=${keyserver} ) 2>&1
-            downloaded_keys=$(gpg --list-keys | grep ^pub | wc -l)
-            if [[ ${num_keys} = ${downloaded_keys} ]]; then
-                gpg_ok="true"
-                break
+        echo "(*) Downloading GPG keys..."
+        until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; do
+            for keyserver in $(echo "${GPG_KEY_SERVERS}" | sed 's/keyserver //'); do
+                ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys --keyserver=${keyserver} ) 2>&1
+                downloaded_keys=$(gpg --list-keys | grep ^pub | wc -l)
+                if [[ ${num_keys} = ${downloaded_keys} ]]; then
+                    gpg_ok="true"
+                    break
+                fi
+            done
+            if [ "${gpg_ok}" != "true" ]; then
+                echo "(*) Failed getting key, retring in 10s..."
+                (( retry_count++ ))
+                sleep 10s
             fi
         done
-        if [ "${gpg_ok}" != "true" ]; then
-            echo "(*) Failed getting key, retring in 10s..."
-            (( retry_count++ ))
-            sleep 10s
-        fi
-    done
     set -e
     if [ "${gpg_ok}" = "false" ]; then
         echo "(!) Failed to get gpg key."
@@ -352,10 +351,16 @@ install_openssl3() {
     mkdir /tmp/openssl3
     (
         cd /tmp/openssl3
-        curl -L -f -O https://www.openssl.org/source/openssl-3.0.8.tar.gz
-        tar xzf openssl-3.0.8.tar.gz
-        cd openssl-*
-        ./config --prefix=${_prefix} --openssldir=${_prefix}
+        openssl3_version="3.0"
+        # Find version using soft match
+        find_version_from_git_tags openssl3_version "https://github.com/openssl/openssl" "openssl-"
+        local tgz_filename="openssl-${openssl3_version}.tar.gz" 
+        local tgz_url="https://github.com/openssl/openssl/releases/download/openssl-${openssl3_version}/${tgz_filename}"
+        echo "Downloading ${tgz_filename}..."
+        curl -sSL -o "/tmp/openssl3/${tgz_filename}" "${tgz_url}"
+        tar xzf ${tgz_filename}
+        cd openssl-${openssl3_version}
+        ./config --prefix=${_prefix} --openssldir=${_prefix} --libdir=lib
         make -j $(nproc)
         make install_dev
     )
@@ -363,7 +368,7 @@ install_openssl3() {
 }
 
 install_from_source() {
-    VERSION=$1 
+    VERSION=$1  
     echo "(*) Building Python ${VERSION} from source..."
     if ! type git > /dev/null 2>&1; then
         check_packages git
@@ -435,7 +440,7 @@ install_from_source() {
     ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
     make -j 8
     make install
-    set +x
+
     cd /tmp
     rm -rf /tmp/python-src ${GNUPGHOME} /tmp/vscdc-settings.env
 
@@ -731,7 +736,7 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
         if python_is_externally_managed ${PYTHON_SRC}; then
             check_packages pipx
         else
-            pip3 install ${break_system_packages} --disable-pip-version-check --no-cache-dir --user pipx 2>&1
+            pip3 install --disable-pip-version-check --no-cache-dir --user pipx 2>&1
             /tmp/pip-tmp/bin/pipx install --pip-args=--no-cache-dir pipx
             PIPX_DIR="/tmp/pip-tmp/bin/"
         fi
@@ -759,8 +764,6 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
     updaterc "export PIPX_BIN_DIR=\"${PIPX_BIN_DIR}\""
     updaterc "if [[ \"\${PATH}\" != *\"\${PIPX_BIN_DIR}\"* ]]; then export PATH=\"\${PATH}:\${PIPX_BIN_DIR}\"; fi"
 fi
-
-set -x
 
 # Install JupyterLab if needed
 if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
