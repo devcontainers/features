@@ -67,7 +67,7 @@ jobs:
 
   test-scenarios:
     needs: [detect-changes]
-    runs-on: ubuntu-latest
+    runs-on: devcontainer-image-builder-ubuntu
     continue-on-error: true
     strategy:
       matrix:

@@ -1,6 +1,6 @@
 {
   "id": "python",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "name": "Python",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python",
   "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab is conditionally installed with the python feature. Note: May require source code compilation.",
@@ -25,12 +25,22 @@
     "installTools": {
       "type": "boolean",
       "default": true,
-      "description": "Install common Python tools like pylint"
+      "description": "Flag indicating whether or not to install the tools specified via the 'toolsToInstall' option. Default is 'true'."
+    },
+    "toolsToInstall": {
+      "type": "string",
+      "default": "flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest,pylint",
+      "description": "Comma-separated list of tools to install when 'installTools' is true. Defaults to a set of common Python tools like pylint."
     },
     "optimize": {
       "type": "boolean",
       "default": false,
       "description": "Optimize Python for performance when compiled (slow)"
+    },
+    "enableShared": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable building a shared Python library"
     },
     "installPath": {
       "type": "string",
@@ -71,7 +81,7 @@
     }
   },
   "installsAfter": [
-      "ghcr.io/devcontainers/features/common-utils",
-      "ghcr.io/devcontainers/features/oryx"
+    "ghcr.io/devcontainers/features/common-utils",
+    "ghcr.io/devcontainers/features/oryx"
   ]
 }

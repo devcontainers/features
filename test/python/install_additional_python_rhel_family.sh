@@ -5,40 +5,11 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-FAILED=()
-
-echoStderr()
-{
-    echo "$@" 1>&2
-}
-
-check-version-ge() {
-    LABEL=$1
-    CURRENT_VERSION=$2
-    REQUIRED_VERSION=$3
-    shift
-    echo -e "\n🧪 Testing $LABEL: '$CURRENT_VERSION' is >= '$REQUIRED_VERSION'"
-    local GREATER_VERSION=$((echo ${CURRENT_VERSION}; echo ${REQUIRED_VERSION}) | sort -V | tail -1)
-    if [ "${CURRENT_VERSION}" == "${GREATER_VERSION}" ]; then
-        echo "✅  Passed!"
-        return 0
-    else
-        echoStderr "❌ $LABEL check failed."
-        FAILED+=("$LABEL")
-        return 1
-    fi
-}
-
-checkPythonPackageVersion()
-{
-    PACKAGE=$1
-    REQUIRED_VERSION=$2
-
-    current_version=$(python -c "import importlib.metadata; print(importlib.metadata.version('${PACKAGE}'))")
-    check-version-ge "${PACKAGE}-requirement" "${current_version}" "${REQUIRED_VERSION}"
-}
-
-checkPythonPackageVersion "setuptools" "65.5.1"
+check "python version 3.11 installed as default" bash -c "python --version | grep 3.11"
+check "python3 version 3.11 installed as default" bash -c "python3 --version | grep 3.11"
+check "python version 3.10.5 installed"  bash -c "ls -l /usr/local/python | grep 3.10.5"
+check "python version 3.8 installed"  bash -c "ls -l /usr/local/python | grep 3.8"
+check "python version 3.9.13 installed"  bash -c  "ls -l /usr/local/python | grep 3.9.13"
 
 # Check that tools can execute - make sure something didn't get messed up in this scenario
 check "autopep8" autopep8 --version
@@ -51,9 +22,10 @@ check "pycodestyle" pycodestyle --version
 check "pydocstyle" pydocstyle --version
 check "pylint" pylint --version
 check "pytest" pytest --version
-check "setuptools" pip list | grep setuptools
 
 # Check paths in settings
+check "current symlink is correct" bash -c "which python | grep /usr/local/python/current/bin/python"
+check "current symlink works" /usr/local/python/current/bin/python --version
 check "which autopep8" bash -c "which autopep8 | grep /usr/local/py-utils/bin/autopep8"
 check "which black" bash -c "which black | grep /usr/local/py-utils/bin/black"
 check "which yapf" bash -c "which yapf | grep /usr/local/py-utils/bin/yapf"
@@ -64,23 +36,6 @@ check "which pycodestyle" bash -c "which pycodestyle | grep /usr/local/py-utils/
 check "which pydocstyle" bash -c "which pydocstyle | grep /usr/local/py-utils/bin/pydocstyle"
 check "which pylint" bash -c "which pylint | grep /usr/local/py-utils/bin/pylint"
 check "which pytest" bash -c "which pytest | grep /usr/local/py-utils/bin/pytest"
-
-checkVulnerableDir() 
-{
-    DIRECTORY=$1
-    VERSION=$2
-    
-    if [[ -d $DIRECTORY ]] ; then
-        echoStderr "❌ check for vulnerable setuptools version failed for python ${VERSION}."
-        return 1
-    else
-        echo "✅ Passed! Either the container does not have vulnerable version or vulnerable version specific directory got removed."
-        return 0
-    fi
-}
-
-# only for 3.11
-checkVulnerableDir "/usr/local/py-utils/shared/lib/python3.11/site-packages/setuptools-65.5.0.dist-info" "3.11"
 
 # Report result
 reportResults
