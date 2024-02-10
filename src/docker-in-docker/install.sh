@@ -216,7 +216,6 @@ if [ "${USE_MOBY}" = "true" ]; then
             apt-cache madison moby-buildx | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
             exit 1
         fi
-        buildx_version_suffix="=${MOBY_BUILDX_VERSION}"
         echo "buildx_version_suffix ${buildx_version_suffix}"
     fi
 fi
