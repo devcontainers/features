@@ -178,11 +178,6 @@ fi
 apt-get update
 
 # Helper to find appropriate package versions
-# Call inside a subshell to prevent missing packages from exiting the main process
-# Examples:
-#   optional_package_suffix=$(get_package_version_suffix "some-skippable-package" "0.0.1")
-#   required_package_suffix=get_package_version_suffix "some-required-package" "0.0.1"
-#
 get_package_version_suffix() {
     local package_name=$1
     local package_version=$2
@@ -207,7 +202,7 @@ get_package_version_suffix() {
             exit 1
         fi
 
-        echo "${package_name} package version suffix: ${package_version_suffix}"
+        err "${package_name} package version suffix: ${package_version_suffix}"
         echo $package_version_suffix
     fi
 }
@@ -216,10 +211,10 @@ get_package_version_suffix() {
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
 else
-    # Determine required packages and versions
-    engine_version_suffix=get_package_version_suffix "${engine_package_name}" "${DOCKER_VERSION}"
-    cli_version_suffix=get_package_version_suffix "${cli_package_name}" "${DOCKER_VERSION}"
-    required_packages="${cli_package_name}${cli_version_suffix} ${engine_package_name}${engine_version_suffix}"
+    # Determine required packages and versions. Exit if they cannot be found.
+    engine_version_suffix=$(get_package_version_suffix "${engine_package_name}" "${DOCKER_VERSION}") || exit 1
+    cli_version_suffix=$(get_package_version_suffix "${cli_package_name}" "${DOCKER_VERSION}") || exit 1
+    required_packages="${cli_package_name}${cli_version_suffix} ${engine_package_name}${engine_version_suffix}" || exit 1
 
     # Moby always uses buildx
     if [ "${USE_MOBY}" = "true" ]; then
@@ -240,7 +235,7 @@ else
     fi
     set -e
 
-    # Install compose
+    # Install optional package, compose
     compose_version_suffix=$(get_package_verson_suffix "${compose_package_name}" "${COMPOSE_PACKAGE_VERSION}")
     apt-get -y install --no-install-recommends ${compose_package_name}${compose_version_suffix} || err "Package ${compose_package_name}${compose_version_suffix} (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
 fi
