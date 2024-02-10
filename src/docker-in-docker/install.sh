@@ -10,7 +10,7 @@
 
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
-MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
+MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION}"
 DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v1"}" # v1 or v2 or none
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL}"
@@ -199,20 +199,20 @@ else
     echo "cli_version_suffix ${cli_version_suffix}"
 fi
 
-# Buildx version matching
-if [ "${MOBY_BUILDX_VERSION}" = "latest" ]; then
-    # Empty, meaning grab whatever "latest" is in apt repo
-    buildx_version_suffix=""
-else
-    buildx_version_suffix="=${MOBY_BUILDX_VERSION}"
-    echo "buildx_version_suffix ${buildx_version_suffix}"
-fi
-
 # Install Docker / Moby CLI if not already installed
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
 else
     if [ "${USE_MOBY}" = "true" ]; then
+        # Buildx version matching
+        if [ "${MOBY_BUILDX_VERSION}" = "latest" ]; then
+            # Empty, meaning grab whatever "latest" is in apt repo
+            buildx_version_suffix=""
+        else
+            buildx_version_suffix="=${MOBY_BUILDX_VERSION}"
+            echo "buildx_version_suffix ${buildx_version_suffix}"
+        fi
+
         # Install engine
         set +e # Handle error gracefully
             apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
