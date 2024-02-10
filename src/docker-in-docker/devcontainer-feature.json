@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "2.9.0",
+    "version": "2.10.0",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -19,11 +19,6 @@
             "type": "boolean",
             "default": true,
             "description": "Install OSS Moby build instead of Docker CE"
-        },
-        "mobyBuildxVersion": {
-            "type": "string",
-            "default": "0.12.0",
-            "description": "Install a specific version of moby-buildx when using Moby. (2024-02-09: Microsoft's Package Manifest has mismatching filesize and SHA for 0.12.1; default is last known good version)"
         },
         "dockerDashComposeVersion": {
             "type": "string",
@@ -50,6 +45,16 @@
             "type": "boolean",
             "default": true,
             "description": "Install Docker Buildx"
+        },
+        "mobyBuildxVersion": {
+            "type": "string",
+            "default": "0.12.0",
+            "description": "Install a specific version of the moby-buildx package when using Moby. (2024-02-09: Microsoft's Package manifest has mismatching filesize and SHA for 0.12.1; the default is set to 0.12.0, the most recent working version)"
+        },
+        "composePackageVersion": {
+            "type": "string",
+            "default": "latest",
+            "description": "Install a specific version of the compose package (moby-compose for Moby, docker-compose-plugin for Docker). Note that this is the package version installed on the OS and not the Docker Compose version specified in 'dockerDashComposeVersion'"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",

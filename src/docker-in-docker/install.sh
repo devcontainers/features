@@ -10,12 +10,13 @@
 
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
-MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION}"
 DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v1"}" # v1 or v2 or none
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
+MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION}"
+COMPOSE_PACKAGE_VERSION="${COMPOSEPACKAGEVERSION}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy"
@@ -154,10 +155,10 @@ fi
 
 # Set up the necessary apt repos (either Microsoft's or Docker's)
 if [ "${USE_MOBY}" = "true" ]; then
-
     # Name of open source engine/cli
     engine_package_name="moby-engine"
     cli_package_name="moby-cli"
+    compose_package_name="moby-compose"
 
     # Import key safely and import Microsoft apt repo
     curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
@@ -166,6 +167,7 @@ else
     # Name of licensed engine/cli
     engine_package_name="docker-ce"
     cli_package_name="docker-ce-cli"
+    compose_package_name="docker-compose-plugin"
 
     # Import key safely and import Docker apt repo
     curl -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
@@ -175,72 +177,72 @@ fi
 # Refresh apt lists
 apt-get update
 
-# Soft version matching
-if [ "${DOCKER_VERSION}" = "latest" ] || [ "${DOCKER_VERSION}" = "lts" ] || [ "${DOCKER_VERSION}" = "stable" ]; then
-    # Empty, meaning grab whatever "latest" is in apt repo
-    engine_version_suffix=""
-    cli_version_suffix=""
-else
-    # Fetch a valid version from the apt-cache (eg: the Microsoft repo appends +azure, breakfix, etc...)
-    docker_version_dot_escaped="${DOCKER_VERSION//./\\.}"
-    docker_version_dot_plus_escaped="${docker_version_dot_escaped//+/\\+}"
-    # Regex needs to handle debian package version number format: https://www.systutorials.com/docs/linux/man/5-deb-version/
-    docker_version_regex="^(.+:)?${docker_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
-    set +e # Don't exit if finding version fails - will handle gracefully
-        cli_version_suffix="=$(apt-cache madison ${cli_package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${docker_version_regex}")"
-        engine_version_suffix="=$(apt-cache madison ${engine_package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${docker_version_regex}")"
-    set -e
-    if [ -z "${engine_version_suffix}" ] || [ "${engine_version_suffix}" = "=" ] || [ -z "${cli_version_suffix}" ] || [ "${cli_version_suffix}" = "=" ] ; then
-        err "No full or partial Docker / Moby version match found for \"${DOCKER_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
-        apt-cache madison ${cli_package_name} | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
-        exit 1
-    fi
-    echo "engine_version_suffix ${engine_version_suffix}"
-    echo "cli_version_suffix ${cli_version_suffix}"
-fi
+# Helper to find appropriate package versions
+# Call inside a subshell to prevent missing packages from exiting the main process
+# Examples:
+#   optional_package_suffix=$(get_package_version_suffix "some-skippable-package" "0.0.1")
+#   required_package_suffix=get_package_version_suffix "some-required-package" "0.0.1"
+#
+get_package_version_suffix() {
+    local package_name=$1
+    local package_version=$2
 
-# Version matching for moby-buildx
-if [ "${USE_MOBY}" = "true" ]; then
-    if [ "${MOBY_BUILDX_VERSION}" = "latest" ]; then
+    if [ "${package_version}" = "latest" ] || [ "${package_version}" = "lts" ] || [ "${package_version}" = "stable" ]; then
         # Empty, meaning grab whatever "latest" is in apt repo
-        buildx_version_suffix=""
+        echo ""
     else
-        buildx_version_dot_escaped="${MOBY_BUILDX_VERSION//./\\.}"
-        buildx_version_dot_plus_escaped="${buildx_version_dot_escaped//+/\\+}"
-        buildx_version_regex="^(.+:)?${buildx_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
-        set +e
-            buildx_version_suffix="=$(apt-cache madison moby-buildx | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${buildx_version_regex}")"
+        # Fetch a valid version from the apt-cache (eg: the Microsoft repo appends +azure, breakfix, etc...)
+        # Regex needs to handle debian package version number format: https://www.systutorials.com/docs/linux/man/5-deb-version/
+        local package_version_dot_escaped="${package_version//./\\.}"
+        local package_version_dot_plus_escaped="${package_version_dot_escaped//+/\\+}"
+        local package_version_regex="^(.+:)?${package_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
+
+        set +e # Catch errors so we can show more useful output
+        local package_version_suffix="=$(apt-cache madison ${package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${package_version_regex}")"
         set -e
-        if [ -z "${buildx_version_suffix}" ] || [ "${buildx_version_suffix}" = "=" ]; then
-            err "No full or partial moby-buildx version match found for \"${MOBY_BUILDX_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
-            apt-cache madison moby-buildx | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
+
+        if [ -z "${package_version_suffix}" ] || [ "${package_version_suffix}" = "=" ]; then
+            err "No full or partial ${package_name} version match found for \"${package_version}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
+            apt-cache madison ${package_name} | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
             exit 1
         fi
-        echo "buildx_version_suffix ${buildx_version_suffix}"
+
+        echo "${package_name} package version suffix: ${package_version_suffix}"
+        echo $package_version_suffix
     fi
-fi
+}
 
 # Install Docker / Moby CLI if not already installed
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
 else
-    if [ "${USE_MOBY}" = "true" ]; then
-        # Install engine
-        set +e # Handle error gracefully
-            apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
-            if [ $? -ne 0 ]; then
-                err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-20.04')."
-                exit 1
-            fi
-        set -e
+    # Determine required packages and versions
+    engine_version_suffix=get_package_version_suffix "${engine_package_name}" "${DOCKER_VERSION}"
+    cli_version_suffix=get_package_version_suffix "${cli_package_name}" "${DOCKER_VERSION}"
+    required_packages="${cli_package_name}${cli_version_suffix} ${engine_package_name}${engine_version_suffix}"
 
-        # Install compose
-        apt-get -y install --no-install-recommends moby-compose || err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
-    else
-        apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}
-        # Install compose
-        apt-get -y install --no-install-recommends docker-compose-plugin || echo "(*) Package docker-compose-plugin (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+    # Moby always uses buildx
+    if [ "${USE_MOBY}" = "true" ]; then
+        moby_buildx_version_suffix=get_package_version_suffix "moby-buildx" "${MOBY_BUILDX_VERSION}"
+        required_packages="${required_packages} moby-buildx${moby_buildx_version_suffix}"
     fi
+
+    # Install required packages (engine, CLI, and moby-buildx if moby)
+    set +e
+    apt-get -y install --no-install-recommends ${required_packages}
+    if [ $? -ne 0 ]; then
+        if [ "${USE_MOBY}" = "true" ]; then
+            err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-20.04')."
+        else
+            err "Packages for Docker not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, choose compatible OS and package versions in your devcontainer.json file."
+        fi
+        exit 1
+    fi
+    set -e
+
+    # Install compose
+    compose_version_suffix=$(get_package_verson_suffix "${compose_package_name}" "${COMPOSE_PACKAGE_VERSION}")
+    apt-get -y install --no-install-recommends ${compose_package_name}${compose_version_suffix} || err "Package ${compose_package_name}${compose_version_suffix} (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
 fi
 
 echo "Finished installing docker / moby!"
