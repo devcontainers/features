@@ -199,20 +199,33 @@ else
     echo "cli_version_suffix ${cli_version_suffix}"
 fi
 
+# Version matching for moby-buildx
+if [ "${USE_MOBY}" = "true" ]; then
+    if [ "${MOBY_BUILDX_VERSION}" = "latest" ]; then
+        # Empty, meaning grab whatever "latest" is in apt repo
+        buildx_version_suffix=""
+    else
+        buildx_version_dot_escaped="${MOBY_BUILDX_VERSION//./\\.}"
+        buildx_version_dot_plus_escaped="${buildx_version_dot_escaped//+/\\+}"
+        buildx_version_regex="^(.+:)?${buildx_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
+        set +e
+            buildx_version_suffix="=$(apt-cache madison moby-buildx | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${buildx_version_regex}")"
+        set -e
+        if [ -z "${buildx_version_suffix}" ] || [ "${buildx_version_suffix}" = "=" ]; then
+            err "No full or partial moby-buildx version match found for \"${MOBY_BUILDX_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
+            apt-cache madison moby-buildx | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
+            exit 1
+        fi
+        buildx_version_suffix="=${MOBY_BUILDX_VERSION}"
+        echo "buildx_version_suffix ${buildx_version_suffix}"
+    fi
+fi
+
 # Install Docker / Moby CLI if not already installed
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
 else
     if [ "${USE_MOBY}" = "true" ]; then
-        # Buildx version matching
-        if [ "${MOBY_BUILDX_VERSION}" = "latest" ]; then
-            # Empty, meaning grab whatever "latest" is in apt repo
-            buildx_version_suffix=""
-        else
-            buildx_version_suffix="=${MOBY_BUILDX_VERSION}"
-            echo "buildx_version_suffix ${buildx_version_suffix}"
-        fi
-
         # Install engine
         set +e # Handle error gracefully
             apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
