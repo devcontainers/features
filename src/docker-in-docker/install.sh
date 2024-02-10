@@ -214,11 +214,11 @@ else
     # Determine required packages and versions. Exit if they cannot be found.
     engine_version_suffix=$(get_package_version_suffix "${engine_package_name}" "${DOCKER_VERSION}") || exit 1
     cli_version_suffix=$(get_package_version_suffix "${cli_package_name}" "${DOCKER_VERSION}") || exit 1
-    required_packages="${cli_package_name}${cli_version_suffix} ${engine_package_name}${engine_version_suffix}" || exit 1
+    required_packages="${cli_package_name}${cli_version_suffix} ${engine_package_name}${engine_version_suffix}"
 
     # Moby always uses buildx
     if [ "${USE_MOBY}" = "true" ]; then
-        moby_buildx_version_suffix=get_package_version_suffix "moby-buildx" "${MOBY_BUILDX_VERSION}"
+        moby_buildx_version_suffix=$(get_package_version_suffix "moby-buildx" "${MOBY_BUILDX_VERSION}") || exit 1
         required_packages="${required_packages} moby-buildx${moby_buildx_version_suffix}"
     fi
 
