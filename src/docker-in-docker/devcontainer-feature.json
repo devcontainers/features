@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "2.8.1",
+    "version": "2.9.0",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -19,6 +19,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install OSS Moby build instead of Docker CE"
+        },
+        "mobyBuildxVersion": {
+            "type": "string",
+            "default": "0.12.0",
+            "description": "Install a specific version of moby-buildx when using Moby. (2024-02-09: Microsoft's Package Manifest has mismatching filesize and SHA for 0.12.1; default is last known good version)"
         },
         "dockerDashComposeVersion": {
             "type": "string",

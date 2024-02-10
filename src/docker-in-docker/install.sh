@@ -10,6 +10,7 @@
 
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
+MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION}"
 DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v1"}" # v1 or v2 or none
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL}"
@@ -81,7 +82,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -198,6 +199,27 @@ else
     echo "cli_version_suffix ${cli_version_suffix}"
 fi
 
+# Version matching for moby-buildx
+if [ "${USE_MOBY}" = "true" ]; then
+    if [ "${MOBY_BUILDX_VERSION}" = "latest" ]; then
+        # Empty, meaning grab whatever "latest" is in apt repo
+        buildx_version_suffix=""
+    else
+        buildx_version_dot_escaped="${MOBY_BUILDX_VERSION//./\\.}"
+        buildx_version_dot_plus_escaped="${buildx_version_dot_escaped//+/\\+}"
+        buildx_version_regex="^(.+:)?${buildx_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
+        set +e
+            buildx_version_suffix="=$(apt-cache madison moby-buildx | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${buildx_version_regex}")"
+        set -e
+        if [ -z "${buildx_version_suffix}" ] || [ "${buildx_version_suffix}" = "=" ]; then
+            err "No full or partial moby-buildx version match found for \"${MOBY_BUILDX_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
+            apt-cache madison moby-buildx | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
+            exit 1
+        fi
+        echo "buildx_version_suffix ${buildx_version_suffix}"
+    fi
+fi
+
 # Install Docker / Moby CLI if not already installed
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
@@ -205,7 +227,7 @@ else
     if [ "${USE_MOBY}" = "true" ]; then
         # Install engine
         set +e # Handle error gracefully
-            apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx moby-engine${engine_version_suffix}
+            apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
             if [ $? -ne 0 ]; then
                 err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-20.04')."
                 exit 1
@@ -399,7 +421,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 
             retry_cgroup_nesting=`expr $retry_cgroup_nesting + 1`
         set -e
-    done 
+    done
 
     # -- End: dind wrapper script --
 
@@ -442,7 +464,7 @@ retry_docker_start_count=0
 docker_ok="false"
 
 until [ "${docker_ok}" = "true"  ] || [ "${retry_docker_start_count}" -eq "5" ];
-do 
+do
     # Start using sudo if not invoked as root
     if [ "$(id -u)" -ne 0 ]; then
         sudo /bin/sh -c "${dockerd_start}"
@@ -460,7 +482,7 @@ do
 
         retry_count=`expr $retry_count + 1`
     done
-    
+
     if [ "${docker_ok}" != "true" ] && [ "${retry_docker_start_count}" != "4" ]; then
         echo "(*) Failed to start docker, retrying..."
         set +e
@@ -468,7 +490,7 @@ do
             sudo_if pkill containerd
         set -e
     fi
-    
+
     retry_docker_start_count=`expr $retry_docker_start_count + 1`
 done
 
