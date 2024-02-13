@@ -135,8 +135,7 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
-apt_get_update()
-{
+apt_get_update() {
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
         echo "Running apt-get update..."
         apt-get update -y
@@ -149,6 +148,64 @@ check_packages() {
         apt_get_update
         apt-get -y install --no-install-recommends "$@"
     fi
+}
+
+#install_rubybuild() {
+#}
+
+#install_rbenv() {
+#}
+
+install_rvm() {
+    if rvm --version > /dev/null; then
+        echo "Ruby Version Manager already exists."
+    else
+        RVM_GPG_KEYS="409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
+        receive_gpg_keys RVM_GPG_KEYS
+
+        # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
+        if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
+            groupadd -r rvm
+        fi
+
+        curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} 2>&1
+        usermod -aG rvm ${USERNAME}
+        source /usr/local/rvm/scripts/rvm
+        rvm fix-permissions system
+        rm -rf ${GNUPGHOME}
+    fi
+
+    if [ "${RUBY_VERSION}" = "none" ]; then
+        echo "No Ruby version specified. Skipping Ruby installation."
+    else
+        find_version_from_git_tags RUBY_VERSION "https://github.com/ruby/ruby" "tags/v" "_"
+        source /usr/local/rvm/scripts/rvm
+        rvm install ruby ${RUBY_VERSION}
+        rvm use ${RUBY_VERSION}
+    fi
+
+    if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
+        echo "Installing additional Ruby versions."
+        OLDIFS=$IFS
+        IFS=","
+            read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+            for version in "${additional_versions[@]}"; do
+                # Figure out correct version of a three part version number is not passed
+                find_version_from_git_tags version "https://github.com/ruby/ruby" "tags/v" "_"
+                source /usr/local/rvm/scripts/rvm
+                rvm install ruby ${version}
+            done
+        IFS=$OLDIFS
+    fi
+
+    # VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
+    updaterc "if ! grep rvm_silence_path_mismatch_check_flag \$HOME/.rvmrc > /dev/null 2>&1; then echo 'rvm_silence_path_mismatch_check_flag=1' >> \$HOME/.rvmrc; fi\nsource /usr/local/rvm/scripts/rvm > /dev/null 2>&1"
+
+    chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
+    chmod -R g+r+w "/usr/local/rvm/"
+    find "/usr/local/rvm/" -type d | xargs -n 1 chmod g+s
+
+    rvm cleanup all
 }
 
 # Ensure apt is in non-interactive to avoid prompts
@@ -169,71 +226,10 @@ if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
 
-# Figure out correct version of a three part version number is not passed
-find_version_from_git_tags RUBY_VERSION "https://github.com/ruby/ruby" "tags/v" "_"
-
-# Just install Ruby if RVM already installed
-if rvm --version > /dev/null; then
-    echo "Ruby Version Manager already exists."
-    if [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
-        echo "(!) Ruby is already installed with version ${RUBY_VERSION}."
-    elif [ "${RUBY_VERSION}" != "none" ]; then
-        echo "Installing specified Ruby version."
-        su ${USERNAME} -c "rvm install ruby ${RUBY_VERSION}"
-    fi
-else
-    # Install RVM
-    RVM_GPG_KEYS="409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
-    receive_gpg_keys RVM_GPG_KEYS
-    # Determine appropriate settings for rvm installer
-    if [ "${RUBY_VERSION}" = "none" ]; then
-        RVM_INSTALL_ARGS=""
-    elif [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
-        echo "(!) Ruby is already installed with version ${RUBY_VERSION}."
-        RVM_INSTALL_ARGS=""
-    else
-        if [ "${RUBY_VERSION}" = "latest" ] || [ "${RUBY_VERSION}" = "current" ] || [ "${RUBY_VERSION}" = "lts" ]; then
-            RVM_INSTALL_ARGS="--ruby"
-            RUBY_VERSION=""
-        else
-            RVM_INSTALL_ARGS="--ruby=${RUBY_VERSION}"
-        fi
-    fi
-    # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
-    if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
-        groupadd -r rvm
-    fi
-    # Install rvm
-    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} 2>&1
-    usermod -aG rvm ${USERNAME}
-    source /usr/local/rvm/scripts/rvm
-    rvm fix-permissions system
-    rm -rf ${GNUPGHOME}
-fi
-
-# VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
-updaterc "if ! grep rvm_silence_path_mismatch_check_flag \$HOME/.rvmrc > /dev/null 2>&1; then echo 'rvm_silence_path_mismatch_check_flag=1' >> \$HOME/.rvmrc; fi\nsource /usr/local/rvm/scripts/rvm > /dev/null 2>&1"
-
-# Additional ruby versions to be installed but not be set as default.
-if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
-    OLDIFS=$IFS
-    IFS=","
-        read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-        for version in "${additional_versions[@]}"; do
-            # Figure out correct version of a three part version number is not passed
-            find_version_from_git_tags version "https://github.com/ruby/ruby" "tags/v" "_"
-            source /usr/local/rvm/scripts/rvm
-            rvm install ruby ${version}
-        done
-    IFS=$OLDIFS
-fi
-
-chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
-chmod -R g+r+w "/usr/local/rvm/"
-find "/usr/local/rvm/" -type d | xargs -n 1 chmod g+s
+## TODO INSTALL THE RIGHT STUFF HERE
+install_rvm
 
 # Clean up
-rvm cleanup all
 rm -rf /var/lib/apt/lists/*
 
 echo "Done!"

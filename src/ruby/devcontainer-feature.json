@@ -1,10 +1,20 @@
 {
     "id": "ruby",
-    "version": "1.3.0",
+    "version": "2.0.0",
     "name": "Ruby",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/ruby",
-    "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
+    "description": "Installs Ruby and needed dependencies.",
     "options": {
+        "versionManager": {
+            "type": "string",
+            "proposals": [
+                "none",
+                "rbenv",
+                "rvm"
+            ],
+            "default": "rbenv",
+            "description": "Select or enter a version manager to use"
+        },
         "version": {
             "type": "string",
             "proposals": [
