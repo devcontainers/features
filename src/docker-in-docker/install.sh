@@ -236,7 +236,7 @@ else
     set -e
 
     # Install optional package, compose
-    compose_version_suffix=$(get_package_verson_suffix "${compose_package_name}" "${COMPOSE_PACKAGE_VERSION}")
+    compose_version_suffix=$(get_package_version_suffix "${compose_package_name}" "${COMPOSE_PACKAGE_VERSION}")
     apt-get -y install --no-install-recommends ${compose_package_name}${compose_version_suffix} || err "Package ${compose_package_name}${compose_version_suffix} (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
 fi
 
