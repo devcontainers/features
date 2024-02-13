@@ -23,6 +23,8 @@ Installs Java, SDKMAN! (if not installed), and needed dependencies.
 | mavenVersion | Select or enter a Maven version | string | latest |
 | installAnt | Install Ant, a software tool for automating software build processes | boolean | false |
 | antVersion | Select or enter an Ant version | string | latest |
+| installGroovy | Install Groovy, powerful, optionally typed and dynamic language with static-typing and static compilation capabilities | boolean | false |
+| groovyVersion | Select or enter a Groovy version | string | latest |
 
 ## Customizations
 
@@ -37,7 +39,7 @@ For the Java Feature from this repository, see [NOTICE.txt](https://github.com/d
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and RockyLinux distributions with the `apt`, `yum`, `dnf`, or `microdnf` package manager installed.
 
 `bash` is required to execute the `install.sh` script.
 

@@ -8,6 +8,9 @@ jobs:
   fetch-latest-dotnet-install:
     runs-on: ubuntu-latest
     environment: documentation # grants access to secrets.PAT, for creating pull requests
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v3
 

@@ -1,6 +1,33 @@
 {
+    "install_python310_setuptools_vulnerability": {
+        "image": "python:3.10",
+        "features": {
+            "python": {
+                "version": "none",
+                "installTools": true
+            }
+        }
+    },
+    "install_python311_setuptools_vulnerability": {
+        "image": "python:3.11",
+        "features": {
+            "python": {
+                "version": "none",
+                "installTools": true
+            }
+        }
+    },
     "install_additional_python": {
         "image": "ubuntu:focal",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "additionalVersions": "3.8,3.9.13,3.10.5"
+            }
+        }
+    },
+    "install_additional_python_rhel_family": {
+        "image": "almalinux:8",
         "features": {
             "python": {
                 "version": "3.11",
@@ -12,6 +39,20 @@
         "image": "mcr.microsoft.com/devcontainers/base:focal",
         "remoteUser": "vscode",
         "features": {
+            "python": {
+                "version": "latest",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
+    "install_jupyterlab_rhel_family": {
+        "image": "almalinux:8",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
             "python": {
                 "version": "latest",
                 "installJupyterlab": true,
@@ -31,8 +72,35 @@
             }
         }
     },
-    "install_os_provided_python": {
+    "install_additional_jupyterlab_rhel_family": {
+        "image": "almalinux:8",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
+            "python": {
+                "version": "latest",
+                "additionalVersions": "3.9",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
+    "install_os_provided_python_deb": {
         "image": "mcr.microsoft.com/devcontainers/base:1-bullseye",
+        "features": {
+            "python": "os-provided"
+        }
+    },
+    "install_os_provided_python_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "python": "os-provided"
+        }
+    },
+    "install_os_provided_python_mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
         "features": {
             "python": "os-provided"
         }
@@ -79,6 +147,90 @@
         "features": {
             "python": {
                 "version": "3.12"
+            }
+        }
+    },
+    "install_alternate_tools": {
+        "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
+        "features": {
+            "python": {
+                "version": "3.12",
+                "toolsToInstall": "ruff,mypy,bandit,pipenv,virtualenv,pytest"
+            }
+        }
+    },
+    "install_alternate_tools_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "python": {
+                "version": "3.12",
+                "toolsToInstall": "ruff,mypy,bandit,pipenv,virtualenv,pytest"
+            }
+        }
+    },
+    "centos-7": {
+        "image": "centos:centos7",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "alma-8": {
+        "image": "almalinux:8",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "alma-8-minimal": {
+        "image": "almalinux:8-minimal",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "alma-9": {
+        "image": "almalinux:9",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "alma-9-minimal": {
+        "image": "almalinux:9-minimal",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "fedora": {
+        "image": "fedora",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
+    "install_python_shared_lib_deb": {
+        "image": "ubuntu:focal",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "enableShared": true
+            }
+        }
+    },
+    "install_python_shared_lib_rhel_family": {
+        "image": "almalinux:8",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "enableShared": true
             }
         }
     }
