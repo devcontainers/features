@@ -185,12 +185,14 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Install curl, tar, git, other dependencies if missing
+check_packages ca-certificates gnupg2 tar gcc make pkg-config
+
 if [ $ADJUSTED_ID = "debian" ]; then
-    check_packages ca-certificates gnupg2 tar g++ gcc libc6-dev make pkg-config
+    check_packages g++ libc6-dev
 else
-check_packages ca-certificates gnupg2 tar gcc-c++ gcc glibc-devel make pkg-config
+    check_packages gcc-c++ glibc-devel
 fi
+# Install curl, git, other dependencies if missing
 if ! type curl > /dev/null 2>&1; then
     check_packages curl
 fi
