@@ -20,35 +20,59 @@ GO_GPG_KEY_URI="https://dl.google.com/linux/linux_signing_key.pub"
 
 set -e
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
 fi
 
-# Ensure that login shells get the correct path if the user updated the PATH using ENV.
-rm -f /etc/profile.d/00-restore-env.sh
-echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
-chmod +x /etc/profile.d/00-restore-env.sh
-
-# Determine the appropriate non-root user
-if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-    USERNAME=""
-    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
-            break
-        fi
-    done
-    if [ "${USERNAME}" = "" ]; then
-        USERNAME=root
+# Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
+. /etc/os-release
+# Get an adjusted ID independent of distro variants
+MAJOR_VERSION_ID=$(echo ${VERSION_ID} | cut -d . -f 1)
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+    ADJUSTED_ID="debian"
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+    ADJUSTED_ID="rhel"
+    if [[ "${ID}" = "rhel" ]] || [[ "${ID}" = *"alma"* ]] || [[ "${ID}" = *"rocky"* ]]; then
+        VERSION_CODENAME="rhel${MAJOR_VERSION_ID}"
+    else
+        VERSION_CODENAME="${ID}${MAJOR_VERSION_ID}"
     fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
-    USERNAME=root
+else
+    echo "Linux distro ${ID} not supported."
+    exit 1
 fi
+
+# Setup INSTALL_CMD & PKG_MGR_CMD
+if type apt-get > /dev/null 2>&1; then
+    PKG_MGR_CMD=apt-get
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
+elif type microdnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=microdnf
+    INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+elif type dnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=dnf
+    INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+else
+    PKG_MGR_CMD=yum
+    INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --noplugins --setopt=install_weak_deps=0"
+fi
+
+# Clean up
+clean_up() {
+    case ${ADJUSTED_ID} in
+        debian)
+            rm -rf /var/lib/apt/lists/*
+            ;;
+        rhel)
+            rm -rf /var/cache/dnf/* /var/cache/yum/*
+            rm -rf /tmp/yum.log
+            rm -rf ${GPG_INSTALL_PATH}
+            ;;
+    esac
+}
+clean_up
+
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -84,28 +108,107 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
-apt_get_update()
-{
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update -y
-    fi
+pkg_mgr_update() {
+    case $ADJUSTED_ID in
+        debian)
+            if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+                echo "Running apt-get update..."
+                ${PKG_MGR_CMD} update -y
+            fi
+            ;;
+        rhel)
+            if [ ${PKG_MGR_CMD} = "microdnf" ]; then
+                if [ "$(ls /var/cache/yum/* 2>/dev/null | wc -l)" = 0 ]; then
+                    echo "Running ${PKG_MGR_CMD} makecache ..."
+                    ${PKG_MGR_CMD} makecache
+                fi
+            else
+                if [ "$(ls /var/cache/${PKG_MGR_CMD}/* 2>/dev/null | wc -l)" = 0 ]; then
+                    echo "Running ${PKG_MGR_CMD} check-update ..."
+                    set +e
+                    ${PKG_MGR_CMD} check-update
+                    rc=$?
+                    if [ $rc != 0 ] && [ $rc != 100 ]; then
+                        exit 1
+                    fi
+                    set -e
+                fi
+            fi
+            ;;
+    esac
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
-    fi
+    case ${ADJUSTED_ID} in
+        debian)
+            if ! dpkg -s "$@" > /dev/null 2>&1; then
+                pkg_mgr_update
+                ${INSTALL_CMD} "$@"
+            fi
+            ;;
+        rhel)
+            if ! rpm -q "$@" > /dev/null 2>&1; then
+                pkg_mgr_update
+                ${INSTALL_CMD} "$@"
+            fi
+            ;;
+    esac
 }
+
+# Ensure that login shells get the correct path if the user updated the PATH using ENV.
+rm -f /etc/profile.d/00-restore-env.sh
+echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
+chmod +x /etc/profile.d/00-restore-env.sh
+
+# Some distributions do not install awk by default (e.g. Mariner)
+if ! type awk >/dev/null 2>&1; then
+    check_packages awk
+fi
+
+# Determine the appropriate non-root user
+if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
+    USERNAME=""
+    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
+        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+            USERNAME=${CURRENT_USER}
+            break
+        fi
+    done
+    if [ "${USERNAME}" = "" ]; then
+        USERNAME=root
+    fi
+elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
+    USERNAME=root
+fi
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Install curl, tar, git, other dependencies if missing
-check_packages curl ca-certificates gnupg2 tar g++ gcc libc6-dev make pkg-config
+check_packages ca-certificates gnupg2 tar gcc make pkg-config
+
+if [ $ADJUSTED_ID = "debian" ]; then
+    check_packages g++ libc6-dev
+else
+    check_packages gcc-c++ glibc-devel
+fi
+# Install curl, git, other dependencies if missing
+if ! type curl > /dev/null 2>&1; then
+    check_packages curl
+fi
 if ! type git > /dev/null 2>&1; then
     check_packages git
+fi
+# Some systems, e.g. Mariner, still a few more packages
+if ! type as > /dev/null 2>&1; then
+    check_packages binutils
+fi
+if ! [ -f /usr/include/linux/errno.h ]; then
+    check_packages kernel-headers
+fi
+# Minimal RHEL install may need findutils installed
+if ! [ -f /usr/bin/find ]; then
+    check_packages findutils
 fi
 
 # Get closest match for version number specified
@@ -128,7 +231,7 @@ fi
 usermod -a -G golang "${USERNAME}"
 mkdir -p "${TARGET_GOROOT}" "${TARGET_GOPATH}"
 
-if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version)" != *"${TARGET_GO_VERSION}"* ]]; then
+if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version 2>/dev/null)" != *"${TARGET_GO_VERSION}"* ]]; then
     # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
@@ -230,6 +333,6 @@ find "${TARGET_GOROOT}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${TARGET_GOPATH}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
 # Clean up
-rm -rf /var/lib/apt/lists/*
+clean_up
 
 echo "Done!"
