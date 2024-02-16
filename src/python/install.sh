@@ -756,6 +756,36 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
     PY_MAJOR_MINOR_VER=${RUN_TIME_PY_VER_DETECT:7:4};
     if [[ ${VULNERABLE_VERSIONS[*]} =~ $PY_MAJOR_MINOR_VER ]]; then
         rm -rf  ${PIPX_HOME}/shared/lib/"python${PY_MAJOR_MINOR_VER}"/site-packages/setuptools-65.5.0.dist-info
+        if [[ -e "/usr/local/lib/python${PY_MAJOR_MINOR_VER}/ensurepip/_bundled/setuptools-65.5.0-py3-none-any.whl" ]]; then 
+            # remove the vulnerable setuptools-65.5.0-py3-none-any.whl file
+            rm /usr/local/lib/python${PY_MAJOR_MINOR_VER}/ensurepip/_bundled/setuptools-65.5.0-py3-none-any.whl
+            # create and change to the setuptools_downloaded directory
+            mkdir setuptools_downloaded
+            cd setuptools_downloaded
+            # download the source distribution for setuptools using pip 
+            pip download setuptools --no-binary :all:
+            ## extract the version from the filename of the downloaded contents
+            # extract the filename of the setuptools-*.tar.gz file
+            filename=$(find . -maxdepth 1 -type f)
+            # Remove .tar.gz extension
+            vers=${filename%.tar.gz}
+            # Remove "./setuptools-" prefix
+            vers=${vers#./setuptools-}
+            # create a directory to store unpacked contents of the source distribution
+            mkdir setuptools_src_dist
+            # extract the contents inside the new directory
+            tar -xzf $filename -C ./setuptools_src_dist
+            # move to the setuptools-* directory inside /setuptools_src_dist
+            cd setuptools_src_dist/"setuptools-${vers}"/
+            # look for setup.py file in the current directory and create a wheel file
+            python setup.py bdist_wheel
+            # move inside the dist directory in pwd
+            cd dist
+            # copy this file to the ensurepip/_bundled directory 
+            cp setuptools-"${vers}"-py3-none-any.whl /usr/local/lib/python${PY_MAJOR_MINOR_VER}/ensurepip/_bundled/
+            # replace the version in __init__.py file with the installed version
+            sed -i "s/_SETUPTOOLS_VERSION = \"65\.5\.0\"/_SETUPTOOLS_VERSION = "\"${vers}"\"/g" /usr/local/lib/"python${PY_MAJOR_MINOR_VER}"/ensurepip/__init__.py
+        fi
     fi
 
     rm -rf /tmp/pip-tmp
