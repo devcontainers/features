@@ -4,7 +4,8 @@
         "features": {
             "python": {
                 "version": "none",
-                "installTools": true
+                "installTools": true,
+                "skipVulnerabilityPatching": false
             }
         }
     },
@@ -13,7 +14,8 @@
         "features": {
             "python": {
                 "version": "none",
-                "installTools": true
+                "installTools": true,
+                "skipVulnerabilityPatching": false
             }
         }
     },
