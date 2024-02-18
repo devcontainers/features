@@ -19,6 +19,7 @@ INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy"
+FALLBACK="${FALLBACK:-"false"}" # fallback to previous version, for testing purpose only
 
 # Default: Exit on any failure.
 set -e
@@ -139,7 +140,7 @@ else
 fi
 
 # Install dependencies
-check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget
+check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget jq
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
@@ -332,13 +333,63 @@ fi
 
 usermod -aG docker ${USERNAME}
 
+# Function to fetch the latest version of the plugin
+get_latest_version() {
+    repo_url=$1
+    curl -s "$repo_url/latest" | jq -r '.tag_name'
+}
+
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    latest_version="$1"
+    repo_url=$2
+    curl -s "$repo_url" | jq -r --arg latest "$latest_version" '.[].tag_name | select(. != $latest)' | sort -rV | head -n 1
+}
+
+# Function to change the patch number in a semver version
+change_patch_number() {
+    local version="$1"  # Input version
+    local new_patch="$2"  # New patch number
+    # Extract major, minor, and current patch numbers
+    local major=$(echo "$version" | cut -d. -f1)
+    local minor=$(echo "$version" | cut -d. -f2)
+    local current_patch=$(echo "$version" | cut -d. -f3)
+    # Construct the new version with the updated patch number
+    local new_version="$major.$minor.$new_patch"
+    echo "$new_version"
+}
+
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
     find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
-
     echo "(*) Installing buildx ${buildx_version}..."
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
-    cd /tmp && wget "https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}"
+    if [ $FALLBACK = "true" ]; then # flag to initiate testing of fallback feature
+        set -x # for getting detailed logs in case of a failure - flag to mark start of code
+        new_patch_number="42" # for testing a tag not found scenario for docker/buildx plugin
+        buildx_version_fallback_test=$(change_patch_number "$buildx_version" "$new_patch_number") # for testing a tag not found scenario for docker/buildx plugin
+        buildx_file_name="buildx-v${buildx_version_fallback_test}.linux-${architecture}"
+        buildx_version=$buildx_version_fallback_test
+    fi 
+    cd /tmp
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || {
+        wget_exit_code=$?
+        if [ $wget_exit_code -ne 0 ]; then # means wget command to fetch latest version failed
+            if [ $wget_exit_code -eq 8 ]; then  # failure due to 404: Not Found.
+                echo "wget command failed with HTTP error 404 Not Found"
+                repo_url="https://api.github.com/repos/docker/buildx/releases" # GitHub repository URL
+                latest_version=$(get_latest_version "${repo_url}")  # can take latest_version from fn get_latest_version
+                # latest_version="v${buildx_version}" # can also take latest_version from fn find_version_from_git_tags
+                previous_version=$(get_previous_version "${latest_version}" "${repo_url}")
+                buildx_file_name="buildx-${previous_version}.linux-${architecture}"
+                wget https://github.com/docker/buildx/releases/download/${previous_version}/${buildx_file_name}
+            else
+                echo "Wget failed with exit code: $wget_exit_code"
+            fi
+        else 
+            echo -e "Latest Version Fetch - Succeeded.\n"
+        fi
+    }
 
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"
@@ -350,6 +401,7 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     chown -R "${USERNAME}:docker" "${docker_home}"
     chmod -R g+r+w "${docker_home}"
     find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
+    set +x # for getting detailed logs in case of a failure - flag to mark end of code
 fi
 
 tee /usr/local/share/docker-init.sh > /dev/null \
