@@ -343,7 +343,8 @@ get_latest_version() {
 get_previous_version() {
     latest_version="$1"
     repo_url=$2
-    curl -s "$repo_url" | jq -r --arg latest "$latest_version" '.[].tag_name | select(. != $latest)' | sort -rV | head -n 1
+    # curl -s "$repo_url" | jq -r --arg latest "$latest_version" '.[].tag_name | select(. != $latest)' | sort -rV | head -n 1   # this helps filter tag_names based on semver specifications, this one was incorrectly installing 0.12.0-rc2 which is the third in the list i.e seeing from top to bottom
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[1].tag_name' # this would del the assets key and then get the second encountered tag_name's value from the filtered array of objects
 }
 
 # Function to change the patch number in a semver version
