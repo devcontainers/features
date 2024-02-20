@@ -36,6 +36,11 @@
             ],
             "default": "latest",
             "description": "Version of NVM to install."
+        },
+        "npmInstallPackages": {
+            "type": "string",
+            "default": "",
+            "description": "Additional npm packages to install under the username env."
         }
     },
     "customizations": {

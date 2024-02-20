@@ -19,6 +19,7 @@ Installs Node.js, nvm, yarn, pnpm, and needed dependencies.
 | nodeGypDependencies | Install dependencies to compile native node modules (node-gyp)? | boolean | true |
 | nvmInstallPath | The path where NVM will be installed. | string | /usr/local/share/nvm |
 | nvmVersion | Version of NVM to install. | string | latest |
+| npmInstallPackages | NPM Packages to install in the user global environment. | string | |
 
 ## Customizations
 
