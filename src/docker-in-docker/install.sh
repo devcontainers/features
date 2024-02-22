@@ -139,7 +139,7 @@ else
 fi
 
 # Install dependencies
-check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget
+check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget jq
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
@@ -332,14 +332,36 @@ fi
 
 usermod -aG docker ${USERNAME}
 
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    repo_url=$1
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[1].tag_name' # this would del the assets key and then get the second encountered tag_name's value from the filtered array of objects
+}
+
+install_previous_version_artifacts() {
+    wget_exit_code=$?
+    if [ $wget_exit_code -eq 8 ]; then  # failure due to 404: Not Found.
+        echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
+        repo_url="https://api.github.com/repos/docker/buildx/releases" # GitHub repository URL
+        previous_version=$(get_previous_version "${repo_url}")
+        buildx_file_name="buildx-${previous_version}.linux-${architecture}"
+        echo -e "\nAttempting to install ${previous_version}"
+        wget https://github.com/docker/buildx/releases/download/${previous_version}/${buildx_file_name}
+    else
+        echo "(!) Failed to download docker buildx with exit code: $wget_exit_code"
+        exit 1
+    fi
+}
+ 
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
     find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
-
     echo "(*) Installing buildx ${buildx_version}..."
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
-    cd /tmp && wget "https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}"
-
+    
+    cd /tmp
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || install_previous_version_artifacts
+    
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"
 
