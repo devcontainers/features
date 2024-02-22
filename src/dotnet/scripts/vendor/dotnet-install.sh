@@ -303,6 +303,11 @@ get_machine_architecture() {
             return 0
             ;;
         aarch64|arm64)
+            if [ "$(getconf LONG_BIT)" -lt 64 ]; then
+                # This is 32-bit OS running on 64-bit CPU (for example Raspberry Pi OS)
+                echo "arm"
+                return 0
+            fi
             echo "arm64"
             return 0
             ;;
