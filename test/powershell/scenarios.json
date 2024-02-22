@@ -3,7 +3,8 @@
     "image": "mcr.microsoft.com/devcontainers/base:jammy",
     "features": {
       "powershell": {
-        "modules": "az.resources, az.storage"
+        "modules": "az.resources, az.storage",
+        "powershellProfileURL": "https://raw.githubusercontent.com/nebula-it/features/patch-2/test/powershell/testProfile.ps1"
       }
     }
   }
