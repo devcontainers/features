@@ -293,6 +293,7 @@ fi
 chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
 chmod -R g+r+w "/usr/local/rvm/"
 find "/usr/local/rvm/" -type d | xargs -n 1 chmod g+s
+chown -R "${USERNAME}:rvm" "/usr/local/rvm/gems/ruby-*/extensions/*"
 
 # Clean up
 rvm cleanup all
