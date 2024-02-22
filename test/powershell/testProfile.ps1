@@ -1,0 +1,1 @@
+$env:ProfileLoaded = $true
