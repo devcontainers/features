@@ -1,4 +1,14 @@
 {
+    "install_python310_skipVulnerabilityPatching_true": {
+        "image": "python:3.10",
+        "features": {
+            "python": {
+                "version": "none",
+                "installTools": true,
+                "skipVulnerabilityPatching": true
+            }
+        }
+    },
     "install_python310_setuptools_vulnerability": {
         "image": "python:3.10",
         "features": {
