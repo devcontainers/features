@@ -1,6 +1,79 @@
 {
+    "install_go_alma-8": {
+        "image": "almalinux:8",
+        "features": {
+            "go": {
+                "version": "latest",
+                "golangciLintVersion": "1.50.0"
+            }
+        }
+    },
+    "install_go_alma-8-minimal": {
+        "image": "almalinux:8-minimal",
+        "features": {
+            "go": {
+                "version": "latest",
+                "golangciLintVersion": "1.50.0"
+            }
+        }
+    },
+    "install_go_alma-9": {
+        "image": "almalinux:9",
+        "features": {
+            "go": {
+                "version": "latest",
+                "golangciLintVersion": "1.50.0"
+            }
+        }
+    },
+    "install_go_alma-9-minimal": {
+        "image": "almalinux:9-minimal",
+        "features": {
+            "go": {
+                "version": "latest",
+                "golangciLintVersion": "1.50.0"
+            }
+        }
+    },
+    "install_go_centos-7": {
+        "image": "centos:centos7",
+        "features": {
+            "go": {
+                "version": "latest",
+                "golangciLintVersion": "1.50.0"
+            }
+        }
+    },
+    "install_go_fedora": {
+        "image": "fedora",
+        "features": {
+            "go": {
+                "version": "latest",
+                "golangciLintVersion": "1.50.0"
+            }
+        }
+    },
+    "install_go_mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+        "features": {
+            "go": {
+                "version": "latest",
+                "golangciLintVersion": "1.50.0"
+            }
+        }
+    },
     "install_go_tool_in_postCreate": {
         "image": "ubuntu:focal",
+        "features": {
+            "go": {
+                "version": "latest",
+                "golangciLintVersion": "1.50.0"
+            }
+        },
+        "postCreateCommand": "go install filippo.io/mkcert@v1.4.2"
+    },
+    "install_go_tool_in_postCreate_rhel": {
+        "image": "almalinux:8",
         "features": {
             "go": {
                 "version": "latest",

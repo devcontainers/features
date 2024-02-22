@@ -11,6 +11,8 @@ check "docker-build" docker build ./
 
 check "installs docker-compose v1 install" bash -c "type docker-compose"
 check "installs compose-switch" bash -c "[[ -f /usr/local/bin/compose-switch ]]"
+check "docker-buildx" bash -c "docker buildx version"
+check "docker-buildx-path" bash -c "ls -la /usr/libexec/docker/cli-plugins/docker-buildx"
 
 # Report result
 reportResults
