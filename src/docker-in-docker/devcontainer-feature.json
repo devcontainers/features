@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "2.9.0",
+    "version": "2.10.0",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -29,11 +29,11 @@
             "type": "string",
             "enum": [
                 "none",
-                "v1",
+                "latest",
                 "v2"
             ],
-            "default": "v1",
-            "description": "Default version of Docker Compose (v1 or v2 or none)"
+            "default": "latest",
+            "description": "Default version of Docker Compose (latest, v2 or none)"
         },
         "azureDnsAutoDetection": {
             "type": "boolean",
@@ -50,6 +50,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install Docker Buildx"
+        },
+        "installDockerComposeSwitch": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install Compose Switch which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then run the latter."
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",
