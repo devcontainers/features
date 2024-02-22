@@ -338,20 +338,18 @@ get_previous_version() {
     curl -s "$repo_url" | jq -r 'del(.[].assets) | .[1].tag_name' # this would del the assets key and then get the second encountered tag_name's value from the filtered array of objects
 }
 
-fetch_previous_version() {
+install_previous_version_artifacts() {
     wget_exit_code=$?
-    if [ $wget_exit_code -ne 0 ]; then # means wget command to fetch latest version failed
-        if [ $wget_exit_code -eq 8 ]; then  # failure due to 404: Not Found.
-            echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
-            repo_url="https://api.github.com/repos/docker/buildx/releases" # GitHub repository URL
-            previous_version=$(get_previous_version "${repo_url}")
-            buildx_file_name="buildx-${previous_version}.linux-${architecture}"
-            echo -e "\nAttempting to install ${previous_version}"
-            wget https://github.com/docker/buildx/releases/download/${previous_version}/${buildx_file_name}
-        else
-            echo "(!) Failed to download docker buildx with exit code: $wget_exit_code"
-            exit 1
-        fi
+    if [ $wget_exit_code -eq 8 ]; then  # failure due to 404: Not Found.
+        echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
+        repo_url="https://api.github.com/repos/docker/buildx/releases" # GitHub repository URL
+        previous_version=$(get_previous_version "${repo_url}")
+        buildx_file_name="buildx-${previous_version}.linux-${architecture}"
+        echo -e "\nAttempting to install ${previous_version}"
+        wget https://github.com/docker/buildx/releases/download/${previous_version}/${buildx_file_name}
+    else
+        echo "(!) Failed to download docker buildx with exit code: $wget_exit_code"
+        exit 1
     fi
 }
  
@@ -362,7 +360,7 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     
     cd /tmp
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || fetch_previous_version
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || install_previous_version_artifacts
     
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"

@@ -5,7 +5,16 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
+# Definition specific tests before test for fallback
+HL="\033[1;33m"
+N="\033[0;37m"
+echo -e "\n👉${HL} docker/buildx version as installed by docker-in-docker feature${N}"
+check "docker-buildx" docker buildx version
+check "docker-build" docker build ./
+check "docker-buildx" bash -c "docker buildx version"
+check "docker-buildx-path" bash -c "ls -la /usr/libexec/docker/cli-plugins/docker-buildx"
 
+echo -e "\n👉${HL} Creating a scenario for fallback${N}\n"
 # Code to test the made up scenario when latest version of docker/buildx fails on wget command for fetching the artifacts
 repo_url="https://api.github.com/repos/docker/buildx/releases" # GitHub repository URL
 architecture="$(dpkg --print-architecture)"
@@ -41,7 +50,7 @@ change_version_to_fail() {
     echo "${buildx_version_fallback_test}"
 }
 
-fetch_previous_version() {
+install_previous_version_artifacts() {
     wget_exit_code=$?
     if [ $wget_exit_code -ne 0 ]; then # means wget command to fetch latest version failed
         if [ $wget_exit_code -eq 8 ]; then  # failure due to 404: Not Found.
@@ -62,7 +71,7 @@ buildx_file_name="buildx-${test_version}.linux-${architecture}"
 buildx_version=$test_version
 
 # This wget command will fail as the wrong version won't fetch artifact
-wget https://github.com/docker/buildx/releases/download/${buildx_version}/${buildx_file_name} || fetch_previous_version
+wget https://github.com/docker/buildx/releases/download/${buildx_version}/${buildx_file_name} || install_previous_version_artifacts
 
 docker_home="/usr/libexec/docker"
 cli_plugins_dir="${docker_home}/cli-plugins"
@@ -75,7 +84,8 @@ chown -R "${USERNAME}:docker" "${docker_home}"
 chmod -R g+r+w "${docker_home}"
 find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
-# Definition specific tests
+# Definition specific tests after test for fallback
+echo -e "\n👉${HL} docker/buildx version as installed by test for fallback${N}"
 check "docker-buildx" docker buildx version
 check "docker-build" docker build ./
 check "docker-buildx" bash -c "docker buildx version"
