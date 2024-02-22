@@ -302,18 +302,22 @@ fi
 
 # Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
 if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /dev/null 2>&1; then
-    echo "(*) Installing compose-switch..."
-    current_compose_path="$(which docker-compose)"
-    target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
-    compose_switch_version="latest"
-    find_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch"
-    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
-    chmod +x /usr/local/bin/compose-switch
-    # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
-    # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
-    mv "${current_compose_path}" "${target_compose_path}"
-    update-alternatives --install ${docker_compose_path} docker-compose /usr/local/bin/compose-switch 99
-    update-alternatives --install ${docker_compose_path} docker-compose "${target_compose_path}" 1
+    if type docker-compose > /dev/null 2>&1; then
+        echo "(*) Installing compose-switch..."
+        current_compose_path="$(which docker-compose)"
+        target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
+        compose_switch_version="latest"
+        find_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch"
+        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
+        chmod +x /usr/local/bin/compose-switch
+        # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
+        # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
+        mv "${current_compose_path}" "${target_compose_path}"
+        update-alternatives --install ${docker_compose_path} docker-compose /usr/local/bin/compose-switch 99
+        update-alternatives --install ${docker_compose_path} docker-compose "${target_compose_path}" 1
+    else
+        err "Skipping installation of compose-switch as docker compose is unavailable..."
+    fi
 fi
 
 # If init file already exists, exit

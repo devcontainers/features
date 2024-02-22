@@ -54,7 +54,7 @@
         "installDockerComposeSwitch": {
             "type": "boolean",
             "default": true,
-            "description": "Install Compose Switch which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then run the latter."
+            "description": "Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then run the latter."
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",
