@@ -46,8 +46,8 @@ fetch_previous_version() {
     if [ $wget_exit_code -ne 0 ]; then # means wget command to fetch latest version failed
         if [ $wget_exit_code -eq 8 ]; then  # failure due to 404: Not Found.
             echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx ${buildx_version}..."
-            echo -e "\nAttempting to install ${previous_version}"
             previous_version=$(get_previous_version)
+            echo -e "\nAttempting to install ${previous_version}"
             buildx_file_name="buildx-${previous_version}.linux-${architecture}"
             wget https://github.com/docker/buildx/releases/download/${previous_version}/${buildx_file_name}
         else
