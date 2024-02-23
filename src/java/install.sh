@@ -18,7 +18,7 @@ INSTALL_ANT="${INSTALLANT:-"false"}"
 ANT_VERSION="${ANTVERSION:-"latest"}"
 INSTALL_GROOVY="${INSTALLGROOVY:-"false"}"
 GROOVY_VERSION="${GROOVYVERSION:-"latest"}"
-JDK_DISTRO="${JDKDISTRO}"
+JDK_DISTRO="${JDKDISTRO:-"ms"}"
 
 export SDKMAN_DIR="${SDKMAN_DIR:-"/usr/local/sdkman"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
