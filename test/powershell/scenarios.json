@@ -4,7 +4,7 @@
     "features": {
       "powershell": {
         "modules": "az.resources, az.storage",
-        "powershellProfileURL": "https://raw.githubusercontent.com/nebula-it/features/patch-2/test/powershell/testProfile.ps1"
+        "powershellProfileURL": "https://raw.githubusercontent.com/codspace/powershell-profile/main/Test-Profile.ps1"
       }
     }
   }
