@@ -12,6 +12,7 @@ check "docker-ps" bash -c "docker ps"
 check "log-exists" bash -c "ls /tmp/dockerd.log"
 check "log-for-completion" bash -c "cat /tmp/dockerd.log | grep 'Daemon has completed initialization'"
 check "log-contents" bash -c "cat /tmp/dockerd.log | grep 'API listen on /var/run/docker.sock'"
+check "moby-buildx" bash -c "dpkg-query -W moby-buildx"
 
 # Report result
 reportResults
