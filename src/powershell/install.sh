@@ -13,7 +13,7 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 POWERSHELL_VERSION=${VERSION:-"latest"}
-POWERSHELL_MODULES="${MODULES}"
+POWERSHELL_MODULES="${MODULES:-""}"
 POWERSHELL_PROFILE_URL="${PROFILE_URL}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
