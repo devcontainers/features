@@ -122,6 +122,12 @@ case $architecture in
     *) echo "(!) Architecture $architecture unsupported"; exit 1 ;;
 esac
 
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    repo_url=$1
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[1].tag_name' # this would del the assets key and then get the second encountered tag_name's value from the filtered array of objects
+}
+
 if [ ${KUBECTL_VERSION} != "none" ]; then
     # Install the kubectl, verify checksum
     echo "Downloading kubectl..."
@@ -135,6 +141,16 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     fi
     curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl"
     chmod 0755 /usr/local/bin/kubectl
+    if [ -e "/usr/local/bin/kubectl" ]; then
+        if grep -q "The specified key does not exist." "/usr/local/bin/kubectl"; then 
+            echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx ${KUBECTL_VERSION}..."
+            repo_url=https://api.github.com/repos/kubernetes/kubernetes/releases
+            requested_version=$(get_previous_version "${repo_url}")
+            echo -e "\nAttempting to install ${requested_version}"
+            curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${requested_version}/bin/linux/${architecture}/kubectl"
+            KUBECTL_VERSION="${requested_version}"
+        fi
+    fi
     if [ "$KUBECTL_SHA256" = "automatic" ]; then
         KUBECTL_SHA256="$(curl -sSL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
     fi
@@ -167,6 +183,18 @@ if [ ${HELM_VERSION} != "none" ]; then
     tmp_helm_filename="/tmp/helm/${helm_filename}"
     curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
     curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
+    output=$(cat /tmp/helm/"${helm_filename}.asc")
+    if [[ "${output}" == *"Not Found"* ]]; then
+        echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx ${HELM_VERSION}..."
+        repo_url=https://api.github.com/repos/helm/helm/releases
+        requested_version=$(get_previous_version "${repo_url}")
+        echo -e "\nAttempting to install ${requested_version}"
+        helm_filename="helm-${requested_version}-linux-${architecture}.tar.gz"
+        tmp_helm_filename="/tmp/helm/${helm_filename}"
+        curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
+        curl -sSL "https://github.com/helm/helm/releases/download/${requested_version}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
+        HELM_VERSION=${requested_version}
+    fi
     export GNUPGHOME="/tmp/helm/gnupg"
     mkdir -p "${GNUPGHOME}"
     chmod 700 ${GNUPGHOME}
@@ -215,6 +243,16 @@ if [ "${MINIKUBE_VERSION}" != "none" ]; then
     # latest is also valid in the download URLs 
     curl -sSL -o /usr/local/bin/minikube "https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-${architecture}"    
     chmod 0755 /usr/local/bin/minikube
+    if [ -e "/usr/local/bin/minikube" ]; then
+        if grep -q "The specified key does not exist." "/usr/local/bin/minikube"; then 
+            echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx ${MINIKUBE_VERSION}..."
+            repo_url=https://api.github.com/repos/kubernetes/minikube/releases
+            requested_version=$(get_previous_version "${repo_url}")
+            echo -e "\nAttempting to install ${requested_version}"
+            curl -sSL -o /usr/local/bin/minikube "https://storage.googleapis.com/minikube/releases/${requested_version}/minikube-linux-${architecture}"    
+            MINIKUBE_VERSION="${requested_version}"
+        fi
+    fi
     if [ "$MINIKUBE_SHA256" = "automatic" ]; then
         MINIKUBE_SHA256="$(curl -sSL "https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-${architecture}.sha256")"
     fi
