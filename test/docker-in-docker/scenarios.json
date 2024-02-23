@@ -87,6 +87,17 @@
             }
         }
     },
+    "docker_build_fallback_buildx": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "installDockerBuildx": true,
+                "moby": "false",
+                "dockerDashComposeVersion": "v2"
+            }
+        }
+    },
     // DO NOT REMOVE: This scenario is used by the docker-in-docker-stress-test workflow
     "docker_with_on_create_command": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
