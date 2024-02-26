@@ -70,6 +70,25 @@ check_packages() {
     fi
 }
 
+install_dotnet_with_script()
+{
+    local version="$1"
+    DOTNET_SCRIPTS=$(dirname "${BASH_SOURCE[0]}")
+    DOTNET_INSTALL_SCRIPT="$DOTNET_SCRIPTS/vendor/dotnet-install.sh"
+    DOTNET_INSTALL_DIR='/usr/share/dotnet'
+
+    check_packages icu-devtools
+
+    "$DOTNET_INSTALL_SCRIPT" \
+        --version "$version" \
+        --install-dir "$DOTNET_INSTALL_DIR" \
+        --no-path
+
+    DOTNET_BINARY="dotnet"
+    export PATH="${PATH}:/usr/share/dotnet"
+    DOTNET_BINARY_INSTALLATION="/usr/share/dotnet/sdk/${version}"
+}
+
 install_dotnet_using_apt() {
     echo "Attempting to auto-install dotnet..."
     install_from_microsoft_feed=false
@@ -86,6 +105,7 @@ install_dotnet_using_apt() {
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq $DOTNET_INSTALLATION_PACKAGE
     fi
 
+    DOTNET_BINARY="/usr/bin/dotnet"
     echo -e "Finished attempt to install dotnet.  Sdks installed:\n"
     dotnet --list-sdks
 
@@ -126,25 +146,32 @@ usermod -a -G oryx "${USERNAME}"
 
 # Required to decide if we want to clean up dotnet later.
 DOTNET_INSTALLATION_PACKAGE=""
+DOTNET_BINARY_INSTALLATION=""
 DOTNET_BINARY=""
 
 if dotnet --version > /dev/null ; then
     DOTNET_BINARY=$(which dotnet)
 fi
 
-MAJOR_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 1)
+DOTNET_VERSION=$(dotnet --version)
+MAJOR_VERSION_ID=$(${DOTNET_VERSION} | cut -d . -f 1)
+PATCH_VERSION_ID=$(${DOTNET_VERSION} | cut -d . -f 3)
 
 # Oryx needs to be built with .NET 8
-if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] ; then
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] || [[ $MAJOR_VERSION_ID = "8" && ${PATCH_VERSION_ID} -le "101" ]] ; then
     echo "'dotnet 8' was not detected. Attempting to install .NET 8 to build oryx."
-    install_dotnet_using_apt
+
+    # The oryx build fails with .Net 8.0.201, see https://github.com/devcontainers/images/issues/974
+    # Pinning it to a working version until the upstream Oryx repo updates the dependency
+    # install_dotnet_using_apt
+    PINNED_SDK_VERSION="8.0.101"
+    install_dotnet_with_script ${PINNED_SDK_VERSION}
 
     if ! dotnet --version > /dev/null ; then
         echo "(!) Please install Dotnet before installing Oryx"
         exit 1
     fi
 
-    DOTNET_BINARY="/usr/bin/dotnet"
 fi
 
 BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
@@ -155,6 +182,11 @@ mkdir -p ${BUILD_SCRIPT_GENERATOR}
 mkdir -p ${ORYX}
 
 git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
+
+if [[ "${DOTNET_BINARY_INSTALLATION}" != "" ]]; then
+    cd $GIT_ORYX
+    dotnet new globaljson --sdk-version ${PINNED_SDK_VERSION}
+fi
 
 SOLUTION_FILE_NAME="Oryx.sln"
 echo "Building solution '$SOLUTION_FILE_NAME'..."
@@ -202,6 +234,12 @@ rm -rf /root/.local/share/NuGet
 if [[ "${DOTNET_INSTALLATION_PACKAGE}" != "" ]]; then
     apt purge -yq $DOTNET_INSTALLATION_PACKAGE
 fi
+
+if [[ "${DOTNET_BINARY_INSTALLATION}" != "" ]]; then
+    rm -f ${GIT_ORYX}/global.json
+    rm -rf ${DOTNET_BINARY_INSTALLATION}
+fi
+
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
