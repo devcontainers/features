@@ -73,8 +73,8 @@ check_packages() {
 install_dotnet_with_script()
 {
     local version="$1"
-    DOTNET_SCRIPTS=$(dirname "${BASH_SOURCE[0]}")
-    DOTNET_INSTALL_SCRIPT="$DOTNET_SCRIPTS/vendor/dotnet-install.sh"
+    CURRENT_DIR=$(dirname "${BASH_SOURCE[0]}")
+    DOTNET_INSTALL_SCRIPT="$CURRENT_DIR/scripts/vendor/dotnet-install.sh"
     DOTNET_INSTALL_DIR='/usr/share/dotnet'
 
     check_packages icu-devtools
@@ -153,9 +153,8 @@ if dotnet --version > /dev/null ; then
     DOTNET_BINARY=$(which dotnet)
 fi
 
-DOTNET_VERSION=$(dotnet --version)
-MAJOR_VERSION_ID=$(${DOTNET_VERSION} | cut -d . -f 1)
-PATCH_VERSION_ID=$(${DOTNET_VERSION} | cut -d . -f 3)
+MAJOR_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 1)
+PATCH_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 3)
 
 # Oryx needs to be built with .NET 8
 if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] || [[ $MAJOR_VERSION_ID = "8" && ${PATCH_VERSION_ID} -le "101" ]] ; then
