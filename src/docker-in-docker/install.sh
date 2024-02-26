@@ -10,10 +10,10 @@
 
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
-MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" #v2 or none
+MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" #latest, v2 or none
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
-DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL}"
+DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
@@ -140,7 +140,7 @@ else
 fi
 
 # Install dependencies
-check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget
+check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget jq
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
@@ -229,11 +229,13 @@ else
         # Install engine
         set +e # Handle error gracefully
             apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
-            if [ $? -ne 0 ]; then
-                err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-20.04')."
-                exit 1
-            fi
-        set -e
+            exit_code=$?
+        set -e    
+        
+        if [ ${exit_code} -ne 0 ]; then
+            err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-20.04')."
+            exit 1
+        fi
 
         # Install compose
         apt-get -y install --no-install-recommends moby-compose || err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
@@ -335,13 +337,38 @@ fi
 
 usermod -aG docker ${USERNAME}
 
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    repo_url=$1
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[1].tag_name' # this would del the assets key and then get the second encountered tag_name's value from the filtered array of objects
+}
+
+install_previous_version_artifacts() {
+    wget_exit_code=$?
+    if [ $wget_exit_code -eq 8 ]; then  # failure due to 404: Not Found.
+        echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
+        repo_url="https://api.github.com/repos/docker/buildx/releases" # GitHub repository URL
+        previous_version=$(get_previous_version "${repo_url}")
+        buildx_file_name="buildx-${previous_version}.linux-${architecture}"
+        echo -e "\nAttempting to install ${previous_version}"
+        wget https://github.com/docker/buildx/releases/download/${previous_version}/${buildx_file_name}
+    else
+        echo "(!) Failed to download docker buildx with exit code: $wget_exit_code"
+        exit 1
+    fi
+}
+ 
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
     find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
-
     echo "(*) Installing buildx ${buildx_version}..."
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
-    cd /tmp && wget "https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}"
+    
+    cd /tmp
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || install_previous_version_artifacts
+    
+    docker_home="/usr/libexec/docker"
+    cli_plugins_dir="${docker_home}/cli-plugins"
 
     mkdir -p ${cli_plugins_dir}
     mv ${buildx_file_name} ${cli_plugins_dir}/docker-buildx
