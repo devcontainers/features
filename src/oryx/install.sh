@@ -157,7 +157,7 @@ MAJOR_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 1)
 PATCH_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 3)
 
 # Oryx needs to be built with .NET 8
-if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] || [[ $MAJOR_VERSION_ID = "8" && ${PATCH_VERSION_ID} -le "101" ]] ; then
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] || [[ $MAJOR_VERSION_ID = "8" && ${PATCH_VERSION_ID} -ge "101" ]] ; then
     echo "'dotnet 8' was not detected. Attempting to install .NET 8 to build oryx."
 
     # The oryx build fails with .Net 8.0.201, see https://github.com/devcontainers/images/issues/974
