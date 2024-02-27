@@ -11,11 +11,12 @@
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v1"}" # v1 or v2 or none
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" #latest, v2 or none
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
+INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy"
@@ -247,75 +248,77 @@ fi
 
 echo "Finished installing docker / moby!"
 
+docker_home="/usr/libexec/docker"
+cli_plugins_dir="${docker_home}/cli-plugins"
+
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
-    # Install Docker Compose if not already installed and is on a supported architecture
-    if type docker-compose > /dev/null 2>&1; then
-        echo "Docker Compose v1 already installed."
-    else
-        target_compose_arch="${architecture}"
-        if [ "${target_compose_arch}" = "amd64" ]; then
-            target_compose_arch="x86_64"
-        fi
-        # https://github.com/devcontainers/features/issues/832
-        if [ "${target_compose_arch}" != "x86_64" ] && [ "${VERSION_CODENAME}" != "bookworm" ]; then
+    case "${architecture}" in
+        amd64) target_compose_arch=x86_64 ;;
+        arm64) target_compose_arch=aarch64 ;;
+        *)
+            echo "(!) Docker in docker does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
+            exit 1
+    esac
+
+    docker_compose_path="/usr/local/bin/docker-compose"
+    if [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
+        err "The final Compose V1 release, version 1.29.2, was May 10, 2021. These packages haven't received any security updates since then. Use at your own risk."
+        INSTALL_DOCKER_COMPOSE_SWITCH="false"
+
+        if [ "${target_compose_arch}" = "x86_64" ]; then
+            echo "(*) Installing docker compose v1..."
+            curl -fsSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64" -o ${docker_compose_path}
+            chmod +x ${docker_compose_path}
+
+            # Download the SHA256 checksum
+            DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64.sha256" | awk '{print $1}')"
+            echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
+            sha256sum -c docker-compose.sha256sum --ignore-missing
+        elif [ "${VERSION_CODENAME}" = "bookworm" ]; then
+            err "Docker compose v1 is unavailable for 'bookworm' on Arm64. Kindly switch to use v2"
+            exit 1
+        else
             # Use pip to get a version that runs on this architecture
             check_packages python3-minimal python3-pip libffi-dev python3-venv
-            export PIPX_HOME=/usr/local/pipx
-            mkdir -p ${PIPX_HOME}
-            export PIPX_BIN_DIR=/usr/local/bin
-            export PYTHONUSERBASE=/tmp/pip-tmp
-            export PIP_CACHE_DIR=/tmp/pip-tmp/cache
-            pipx_bin=pipx
-            if ! type pipx > /dev/null 2>&1; then
-                pip3 install --disable-pip-version-check --no-cache-dir --user pipx
-                pipx_bin=/tmp/pip-tmp/bin/pipx
-            fi
-
-            set +e
-                ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
-                exit_code=$?
-            set -e
-
-            if [ ${exit_code} -ne 0 ]; then
-                # Temporary: https://github.com/devcontainers/features/issues/616
-                # See https://github.com/yaml/pyyaml/issues/601
-                echo "(*) Failed to install docker-compose via pipx. Trying via pip3..."
-
-                export PYTHONUSERBASE=/usr/local
-                pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
-            fi
-
-            rm -rf /tmp/pip-tmp
-        else
-            compose_v1_version="1"
-            find_version_from_git_tags compose_v1_version "https://github.com/docker/compose" "tags/"
-            echo "(*) Installing docker-compose ${compose_v1_version}..."
-            curl -fsSL "https://github.com/docker/compose/releases/download/${compose_v1_version}/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
-            chmod +x /usr/local/bin/docker-compose
+            echo "(*) Installing docker compose v1 via pip..."
+            export PYTHONUSERBASE=/usr/local
+            pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
         fi
-    fi
+    else
+        compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
+        find_version_from_git_tags compose_version "https://github.com/docker/compose" "tags/v"
+        echo "(*) Installing docker-compose ${compose_version}..."
+        curl -L "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
+        chmod +x ${docker_compose_path}
 
-    # Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
-    current_v1_compose_path="$(which docker-compose)"
-    target_v1_compose_path="$(dirname "${current_v1_compose_path}")/docker-compose-v1"
-    if ! type compose-switch > /dev/null 2>&1; then
+        # Download the SHA256 checksum
+        DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}.sha256" | awk '{print $1}')"
+        echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
+        sha256sum -c docker-compose.sha256sum --ignore-missing
+
+        mkdir -p ${cli_plugins_dir}
+        cp ${docker_compose_path} ${cli_plugins_dir}
+    fi
+fi
+
+# Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
+if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /dev/null 2>&1; then
+    if type docker-compose > /dev/null 2>&1; then
         echo "(*) Installing compose-switch..."
+        current_compose_path="$(which docker-compose)"
+        target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
         compose_switch_version="latest"
         find_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch"
         curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
         chmod +x /usr/local/bin/compose-switch
         # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
-
         # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
-        mv "${current_v1_compose_path}" "${target_v1_compose_path}"
-        update-alternatives --install /usr/local/bin/docker-compose docker-compose /usr/local/bin/compose-switch 99
-        update-alternatives --install /usr/local/bin/docker-compose docker-compose "${target_v1_compose_path}" 1
-    fi
-    if [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
-        update-alternatives --set docker-compose "${target_v1_compose_path}"
+        mv "${current_compose_path}" "${target_compose_path}"
+        update-alternatives --install ${docker_compose_path} docker-compose /usr/local/bin/compose-switch 99
+        update-alternatives --install ${docker_compose_path} docker-compose "${target_compose_path}" 1
     else
-        update-alternatives --set docker-compose /usr/local/bin/compose-switch
+        err "Skipping installation of compose-switch as docker compose is unavailable..."
     fi
 fi
 
