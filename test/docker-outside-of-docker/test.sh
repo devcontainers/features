@@ -10,6 +10,7 @@ check "docker compose" bash -c "docker compose version"
 check "docker-compose" bash -c "docker-compose --version"
 
 check "docker-ps" bash -c "docker ps >/dev/null"
+check "moby-buildx" bash -c "dpkg-query -W moby-buildx"
 
 # Report result
 reportResults
