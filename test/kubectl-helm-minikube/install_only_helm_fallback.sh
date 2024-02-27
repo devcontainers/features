@@ -61,15 +61,15 @@ get_previous_version() {
 }
 
 latest_version=$(get_latest_version)
-HELM_VERSION="$(change_patch_number ${latest_version} xyz)"
+NON_EXISTING_PATCH_VERSION="xyz"
+HELM_VERSION="$(change_patch_number ${latest_version} ${NON_EXISTING_PATCH_VERSION})"
 echo -e "\n👉${HL} Trying to install HELM_VERSION = ${HELM_VERSION}${N}"; 
 sudo mkdir -p /tmp/helm
 helm_filename="helm-${HELM_VERSION}-linux-${architecture}.tar.gz"
 tmp_helm_filename="/tmp/helm/${helm_filename}"
 sudo curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
 sudo curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
-output=$(sudo cat /tmp/helm/"${helm_filename}.asc")
-if [[ "${output}" == *"Not Found"* ]]; then
+if grep -q "BlobNotFound" "/tmp/helm/${helm_filename}"; then
     echo -e "\n(!) Failed to fetch the latest artifacts for helm ${HELM_VERSION}..."
     requested_version=$(get_previous_version)
     echo -e "\nAttempting to install ${requested_version}"

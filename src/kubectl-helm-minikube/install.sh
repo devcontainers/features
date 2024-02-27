@@ -174,8 +174,7 @@ if [ ${HELM_VERSION} != "none" ]; then
     tmp_helm_filename="/tmp/helm/${helm_filename}"
     curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
     curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
-        output=$(cat /tmp/helm/"${helm_filename}.asc")
-    if [[ "${output}" == *"Not Found"* ]]; then
+    if grep -q "BlobNotFound" "${tmp_helm_filename}"; then
         echo -e "\n(!) Failed to fetch the latest artifacts for helm ${HELM_VERSION}..."
         repo_url=https://api.github.com/repos/helm/helm/releases
         requested_version=$(get_previous_version "${repo_url}")
