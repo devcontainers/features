@@ -60,24 +60,26 @@ get_previous_version() {
     curl -s "$repo_url" | jq -r 'del(.[].assets) | .[1].tag_name' 
 }
 
+get_helm() {
+    HELM_VERSION=$1
+    helm_filename="helm-${HELM_VERSION}-linux-${architecture}.tar.gz"
+    tmp_helm_filename="/tmp/helm/${helm_filename}"
+    sudo curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
+    sudo curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
+}
+
 latest_version=$(get_latest_version)
 NON_EXISTING_PATCH_VERSION="xyz"
 HELM_VERSION="$(change_patch_number ${latest_version} ${NON_EXISTING_PATCH_VERSION})"
 echo -e "\n👉${HL} Trying to install HELM_VERSION = ${HELM_VERSION}${N}"; 
 sudo mkdir -p /tmp/helm
-helm_filename="helm-${HELM_VERSION}-linux-${architecture}.tar.gz"
-tmp_helm_filename="/tmp/helm/${helm_filename}"
-sudo curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
-sudo curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
+get_helm "${HELM_VERSION}"
 if grep -q "BlobNotFound" "/tmp/helm/${helm_filename}"; then
     echo -e "\n(!) Failed to fetch the latest artifacts for helm ${HELM_VERSION}..."
     requested_version=$(get_previous_version)
     echo -e "\nAttempting to install ${requested_version}"
-    helm_filename="helm-${requested_version}-linux-${architecture}.tar.gz"
-    tmp_helm_filename="/tmp/helm/${helm_filename}"
-    sudo curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
-    sudo curl -sSL "https://github.com/helm/helm/releases/download/${requested_version}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
     HELM_VERSION=${requested_version}
+    get_helm "${HELM_VERSION}"
 fi
 export GNUPGHOME="/tmp/helm/gnupg"
 sudo mkdir -p "${GNUPGHOME}"

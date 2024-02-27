@@ -162,6 +162,14 @@ get_previous_version() {
     curl -s "$repo_url" | jq -r 'del(.[].assets) | .[1].tag_name' 
 }
 
+get_helm() {
+    HELM_VERSION=$1
+    helm_filename="helm-${HELM_VERSION}-linux-${architecture}.tar.gz"
+    tmp_helm_filename="/tmp/helm/${helm_filename}"
+    curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
+    curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
+}
+
 if [ ${HELM_VERSION} != "none" ]; then
     # Install Helm, verify signature and checksum
     echo "Downloading Helm..."
@@ -170,20 +178,14 @@ if [ ${HELM_VERSION} != "none" ]; then
         HELM_VERSION="v${HELM_VERSION}"
     fi
     mkdir -p /tmp/helm
-    helm_filename="helm-${HELM_VERSION}-linux-${architecture}.tar.gz"
-    tmp_helm_filename="/tmp/helm/${helm_filename}"
-    curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
-    curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
+    get_helm "${HELM_VERSION}"
     if grep -q "BlobNotFound" "${tmp_helm_filename}"; then
         echo -e "\n(!) Failed to fetch the latest artifacts for helm ${HELM_VERSION}..."
         repo_url=https://api.github.com/repos/helm/helm/releases
         requested_version=$(get_previous_version "${repo_url}")
         echo -e "\nAttempting to install ${requested_version}"
-        helm_filename="helm-${requested_version}-linux-${architecture}.tar.gz"
-        tmp_helm_filename="/tmp/helm/${helm_filename}"
-        curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
-        curl -sSL "https://github.com/helm/helm/releases/download/${requested_version}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
         HELM_VERSION=${requested_version}
+        get_helm "${HELM_VERSION}"
     fi
     export GNUPGHOME="/tmp/helm/gnupg"
     mkdir -p "${GNUPGHOME}"
