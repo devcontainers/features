@@ -87,6 +87,26 @@
             }
         }
     },
+    "docker_compose_v1": {
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "v1"
+            }
+        }
+    },
+    "docker_compose_v2": {
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "v2"
+            }
+        }
+    },
     "docker_build_fallback_buildx": {
         "image": "ubuntu:focal",
         "features": {
@@ -95,6 +115,14 @@
                 "installDockerBuildx": true,
                 "moby": "false",
                 "dockerDashComposeVersion": "v2"
+            }
+        }
+    },
+    "docker_specific_moby_buildx": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-in-docker": {
+                "mobyBuildxVersion": "0.12.0"
             }
         }
     },
