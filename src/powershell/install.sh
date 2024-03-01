@@ -12,6 +12,8 @@ set -e
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
+USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+
 POWERSHELL_VERSION=${VERSION:-"latest"}
 POWERSHELL_MODULES="${MODULES:-""}"
 POWERSHELL_PROFILE_URL="${PROFILE_URL}"
