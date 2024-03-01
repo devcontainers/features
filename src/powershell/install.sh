@@ -182,7 +182,7 @@ fi
 # If URL for powershell profile is provided, download it to '/opt/microsoft/powershell/7/profile.ps1'
 if [ -n "$POWERSHELL_PROFILE_URL" ]; then
     echo "Downloading PowerShell Profile from: $POWERSHELL_PROFILE_URL"
-    su ${USERNAME} -c 'curl -sSL -o "/opt/microsoft/powershell/7/profile.ps1" "$POWERSHELL_PROFILE_URL"'
+    su ${USERNAME} -c "curl -sSL -o '/opt/microsoft/powershell/7/profile.ps1' '$POWERSHELL_PROFILE_URL'"
 fi
 
 # Clean up
