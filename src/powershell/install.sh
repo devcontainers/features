@@ -169,7 +169,7 @@ if [ -n "$POWERSHELL_PROFILE_URL" ]; then
     echo "Downloading PowerShell Profile from: $POWERSHELL_PROFILE_URL"
     # Get profile path from currently installed pwsh
     profilePath=$(pwsh -noni -c '$PROFILE.AllUsersAllHosts')
-    sudo curl -sSL -o "$profilePath" "$POWERSHELL_PROFILE_URL"
+    sudo -E curl -sSL -o "$profilePath" "$POWERSHELL_PROFILE_URL"
 fi
 
 # Clean up
