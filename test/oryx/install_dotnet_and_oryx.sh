@@ -5,6 +5,9 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
+# Runtimes are listed twice due to 'Microsoft.NETCore.App' and 'Microsoft.AspNetCore.App'
+check "two versions of dotnet runtimes are present" bash -c "[ $(dotnet --list-runtimes | wc -l) -eq 4 ]"
+
 check "Oryx version" oryx --version
 check "Dotnet is not removed if it is not installed by the Oryx Feature" dotnet --version
 
