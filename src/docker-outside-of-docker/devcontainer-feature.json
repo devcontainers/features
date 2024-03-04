@@ -39,6 +39,20 @@
             "type": "boolean",
             "default": true,
             "description": "Install Docker Buildx"
+        },
+        "dockerOnDockerShimVersion": {
+            "type": "string",
+            "enum": [
+                "latest",
+                "none"
+            ],
+            "default": "latest",
+            "description": "Docker on Docker shim version to install (specific version, latest or none)"
+        },
+        "useDockerOnDockerShimAsDocker": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to use the Docker on Docker shim as the default Docker CLI or not. If disabled, the Docker on Docker shim is available as `dond`"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",
