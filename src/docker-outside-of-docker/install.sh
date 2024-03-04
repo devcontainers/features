@@ -274,7 +274,7 @@ if [ "${DOND_SHIM_VERSION}" != "none" ]; then
         if [ "${DOND_SHIM_VERSION}" = "latest" ]; then
             DOND_SHIM_VERSION=$(basename "$(curl -fsSL -o /dev/null -w "%{url_effective}" "https://github.com/felipecrs/docker-on-docker-shim/releases/latest")")
         fi
-        curl -fsSL "https://github.com/felipecrs/docker-on-docker-shim/raw/v${DOND_SHIM_VERSION}/dond" -o /usr/local/bin/dond
+        curl -fsSL "https://github.com/felipecrs/docker-on-docker-shim/raw/v${DOND_SHIM_VERSION#v}/dond" -o /usr/local/bin/dond
         chmod +x /usr/local/bin/dond
 
         if [ "${USE_DOND_SHIM_AS_DOCKER}" = "true" ]; then
