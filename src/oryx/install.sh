@@ -86,7 +86,6 @@ install_dotnet_with_script()
 
     DOTNET_BINARY="dotnet"
     export PATH="${PATH}:/usr/share/dotnet"
-    DOTNET_BINARY_INSTALLATION="/usr/share/dotnet/sdk/${version}"
 }
 
 install_dotnet_using_apt() {
@@ -146,7 +145,6 @@ usermod -a -G oryx "${USERNAME}"
 
 # Required to decide if we want to clean up dotnet later.
 DOTNET_INSTALLATION_PACKAGE=""
-DOTNET_BINARY_INSTALLATION=""
 DOTNET_BINARY=""
 
 if dotnet --version > /dev/null ; then
@@ -156,6 +154,7 @@ fi
 MAJOR_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 1)
 PATCH_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 3)
 
+PINNED_SDK_VERSION=""
 # Oryx needs to be built with .NET 8
 if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] || [[ $MAJOR_VERSION_ID = "8" && ${PATCH_VERSION_ID} -ge "101" ]] ; then
     echo "'dotnet 8' was not detected. Attempting to install .NET 8 to build oryx."
@@ -182,7 +181,7 @@ mkdir -p ${ORYX}
 
 git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
 
-if [[ "${DOTNET_BINARY_INSTALLATION}" != "" ]]; then
+if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     cd $GIT_ORYX
     dotnet new globaljson --sdk-version ${PINNED_SDK_VERSION}
 fi
@@ -234,9 +233,14 @@ if [[ "${DOTNET_INSTALLATION_PACKAGE}" != "" ]]; then
     apt purge -yq $DOTNET_INSTALLATION_PACKAGE
 fi
 
-if [[ "${DOTNET_BINARY_INSTALLATION}" != "" ]]; then
+if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     rm -f ${GIT_ORYX}/global.json
-    rm -rf ${DOTNET_BINARY_INSTALLATION}
+    rm -rf /usr/share/dotnet/sdk/$PINNED_SDK_VERSION
+
+    # Extract the major, minor version and the first digit of the patch version
+    MAJOR_MINOR_PATCH1_VERSION=${PINNED_SDK_VERSION%??}
+    rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/$MAJOR_MINOR_PATCH1_VERSION
+    rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$MAJOR_MINOR_PATCH1_VERSION
 fi
 
 
