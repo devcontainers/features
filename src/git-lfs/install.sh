@@ -134,6 +134,7 @@ install_using_apt() {
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     repo_url=$1
+    check_packages jq
     curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name'
 }
 
