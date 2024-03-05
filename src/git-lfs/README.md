@@ -17,6 +17,7 @@ Installs Git Large File Support (Git LFS) along with needed dependencies. Useful
 |-----|-----|-----|-----|
 | version | Select version of Git LFS to install | string | latest |
 | autoPull | Automatically pull LFS files when creating the container.  When false, running 'git lfs pull' in the container will have the same effect. | boolean | true |
+| installDirectlyFromGitHubRelease | Installs 'git-lfs' from GitHub releases instead of package manager feeds | boolean | false |
 
 
 
