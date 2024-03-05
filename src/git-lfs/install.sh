@@ -134,7 +134,6 @@ install_using_apt() {
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     repo_url=$1
-    check_packages jq
     curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name'
 }
 
@@ -187,7 +186,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Install git, curl, gpg, dirmngr and debian-archive-keyring if missing
 . /etc/os-release
-check_packages curl ca-certificates gnupg2 dirmngr apt-transport-https
+check_packages curl ca-certificates gnupg2 dirmngr apt-transport-https jq
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
