@@ -1,6 +1,6 @@
 {
     "id": "powershell",
-    "version": "1.3.2",
+    "version": "1.3.3",
     "name": "PowerShell",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/powershell",
     "description": "Installs PowerShell along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
@@ -20,7 +20,7 @@
             "default": "",
             "description": "Optional comma separated list of PowerShell modules to install."
         },
-        "powershellProfileURL ": {
+        "powershellProfileURL": {
             "type": "string",
             "default": "",
             "description": "Optional (publicly accessible) URL to download PowerShell profile."

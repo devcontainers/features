@@ -12,11 +12,9 @@ set -e
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
-USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
-
 POWERSHELL_VERSION=${VERSION:-"latest"}
 POWERSHELL_MODULES="${MODULES:-""}"
-POWERSHELL_PROFILE_URL="${PROFILE_URL}"
+POWERSHELL_PROFILE_URL="${POWERSHELLPROFILEURL}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 POWERSHELL_ARCHIVE_ARCHITECTURES="amd64"
@@ -165,26 +163,13 @@ if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
     done
 fi
 
- # Determine the appropriate non-root user 
- if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then 
-     USERNAME="" 
-     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)") 
-     for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do 
-         if id -u ${CURRENT_USER} > /dev/null 2>&1; then 
-             USERNAME=${CURRENT_USER} 
-             break 
-         fi 
-     done 
-     if [ "${USERNAME}" = "" ]; then 
-         USERNAME=root 
-     fi 
- elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then 
-     USERNAME=root 
- fi 
+
 # If URL for powershell profile is provided, download it to '/opt/microsoft/powershell/7/profile.ps1'
 if [ -n "$POWERSHELL_PROFILE_URL" ]; then
     echo "Downloading PowerShell Profile from: $POWERSHELL_PROFILE_URL"
-    su ${USERNAME} -c "curl -sSL -o '/opt/microsoft/powershell/7/profile.ps1' '$POWERSHELL_PROFILE_URL'"
+    # Get profile path from currently installed pwsh
+    profilePath=$(pwsh -noni -c '$PROFILE.AllUsersAllHosts')
+    sudo -E curl -sSL -o "$profilePath" "$POWERSHELL_PROFILE_URL"
 fi
 
 # Clean up
