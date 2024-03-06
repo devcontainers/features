@@ -124,5 +124,13 @@
             }
         },
         "remoteUser": "node"
+    },
+    "docker_specific_moby_buildx": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-outside-of-docker": {
+                "mobyBuildxVersion": "0.12.0"
+            }
+        }
     }
 }

@@ -8,5 +8,15 @@
                 "minikube": "none"
             }
         }
+    },
+    "install_only_helm_fallback": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "kubectl-helm-minikube": {
+                "version": "none",
+                "helm": "latest",
+                "minikube": "none"
+            }
+        }
     }
 }

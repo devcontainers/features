@@ -70,6 +70,24 @@ check_packages() {
     fi
 }
 
+install_dotnet_with_script()
+{
+    local version="$1"
+    CURRENT_DIR=$(dirname "${BASH_SOURCE[0]}")
+    DOTNET_INSTALL_SCRIPT="$CURRENT_DIR/scripts/vendor/dotnet-install.sh"
+    DOTNET_INSTALL_DIR='/usr/share/dotnet'
+
+    check_packages icu-devtools
+
+    "$DOTNET_INSTALL_SCRIPT" \
+        --version "$version" \
+        --install-dir "$DOTNET_INSTALL_DIR" \
+        --no-path
+
+    DOTNET_BINARY="dotnet"
+    export PATH="${PATH}:/usr/share/dotnet"
+}
+
 install_dotnet_using_apt() {
     echo "Attempting to auto-install dotnet..."
     install_from_microsoft_feed=false
@@ -86,6 +104,7 @@ install_dotnet_using_apt() {
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE="true" apt-get install -yq $DOTNET_INSTALLATION_PACKAGE
     fi
 
+    DOTNET_BINARY="/usr/bin/dotnet"
     echo -e "Finished attempt to install dotnet.  Sdks installed:\n"
     dotnet --list-sdks
 
@@ -133,18 +152,24 @@ if dotnet --version > /dev/null ; then
 fi
 
 MAJOR_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 1)
+PATCH_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 3)
 
+PINNED_SDK_VERSION=""
 # Oryx needs to be built with .NET 8
-if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] ; then
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] || [[ $MAJOR_VERSION_ID = "8" && ${PATCH_VERSION_ID} -ge "101" ]] ; then
     echo "'dotnet 8' was not detected. Attempting to install .NET 8 to build oryx."
-    install_dotnet_using_apt
+
+    # The oryx build fails with .Net 8.0.201, see https://github.com/devcontainers/images/issues/974
+    # Pinning it to a working version until the upstream Oryx repo updates the dependency
+    # install_dotnet_using_apt
+    PINNED_SDK_VERSION="8.0.101"
+    install_dotnet_with_script ${PINNED_SDK_VERSION}
 
     if ! dotnet --version > /dev/null ; then
         echo "(!) Please install Dotnet before installing Oryx"
         exit 1
     fi
 
-    DOTNET_BINARY="/usr/bin/dotnet"
 fi
 
 BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
@@ -155,6 +180,11 @@ mkdir -p ${BUILD_SCRIPT_GENERATOR}
 mkdir -p ${ORYX}
 
 git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
+
+if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
+    cd $GIT_ORYX
+    dotnet new globaljson --sdk-version ${PINNED_SDK_VERSION}
+fi
 
 SOLUTION_FILE_NAME="Oryx.sln"
 echo "Building solution '$SOLUTION_FILE_NAME'..."
@@ -202,6 +232,17 @@ rm -rf /root/.local/share/NuGet
 if [[ "${DOTNET_INSTALLATION_PACKAGE}" != "" ]]; then
     apt purge -yq $DOTNET_INSTALLATION_PACKAGE
 fi
+
+if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
+    rm -f ${GIT_ORYX}/global.json
+    rm -rf /usr/share/dotnet/sdk/$PINNED_SDK_VERSION
+
+    # Extract the major, minor version and the first digit of the patch version
+    MAJOR_MINOR_PATCH1_VERSION=${PINNED_SDK_VERSION%??}
+    rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/$MAJOR_MINOR_PATCH1_VERSION
+    rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$MAJOR_MINOR_PATCH1_VERSION
+fi
+
 
 # Clean up
 rm -rf /var/lib/apt/lists/*

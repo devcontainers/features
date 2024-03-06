@@ -18,5 +18,15 @@
                 "autoPull": false
             }
         }
+    },
+    "use_github": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "git-lfs": {
+                "version": "latest",
+                "installDirectlyFromGitHubRelease": true
+            }
+        }
     }
 }

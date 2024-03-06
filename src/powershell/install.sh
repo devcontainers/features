@@ -13,7 +13,8 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 POWERSHELL_VERSION=${VERSION:-"latest"}
-POWERSHELL_MODULES="${MODULES}"
+POWERSHELL_MODULES="${MODULES:-""}"
+POWERSHELL_PROFILE_URL="${POWERSHELLPROFILEURL}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 POWERSHELL_ARCHIVE_ARCHITECTURES="amd64"
@@ -160,6 +161,15 @@ if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
         echo "Installing ${i}"
         pwsh -Command "Install-Module -Name ${i} -AllowClobber -Force -Scope AllUsers" || continue
     done
+fi
+
+
+# If URL for powershell profile is provided, download it to '/opt/microsoft/powershell/7/profile.ps1'
+if [ -n "$POWERSHELL_PROFILE_URL" ]; then
+    echo "Downloading PowerShell Profile from: $POWERSHELL_PROFILE_URL"
+    # Get profile path from currently installed pwsh
+    profilePath=$(pwsh -noni -c '$PROFILE.AllUsersAllHosts')
+    sudo -E curl -sSL -o "$profilePath" "$POWERSHELL_PROFILE_URL"
 fi
 
 # Clean up
