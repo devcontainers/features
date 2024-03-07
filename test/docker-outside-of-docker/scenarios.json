@@ -1,4 +1,14 @@
 {
+    "docker_build_compose_fallback": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false,
+                "dockerDashComposeVersion": "latest"
+            }
+        },
+        "containerUser": "vscode"
+    },
     "docker_init_moby": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "features": {
