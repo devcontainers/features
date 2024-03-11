@@ -26,7 +26,8 @@ get_latest_version() {
 
 # Function to fetch the previous version of the plugin
 get_previous_version() {
-    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name' # this would del the assets key and then get the second encountered tag_name's value from the filtered array of objects
+    # this would del the assets key and then get the first encountered tag_name's value from the filtered array of objects
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name' 
 }
 
 # Function to change the patch number in a semver version
