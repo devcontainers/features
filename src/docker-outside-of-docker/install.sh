@@ -99,6 +99,22 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+# Function to fetch the previous version of the plugin
+get_previous_version() {
+    repo_url=$1
+    # this would del the assets key and then get the second encountered tag_name's value from the filtered array of objects
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name' 
+}
+
+
+install_compose_switch_fallback() {
+    echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
+    previous_version=$(get_previous_version "https://api.github.com/repos/docker/compose-switch/releases")
+    echo -e "\nAttempting to install ${previous_version}"
+    compose_switch_version=${previous_version#v}
+    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose
+}
+
 # Ensure apt is in non-interactive to avoid prompts
 export DEBIAN_FRONTEND=noninteractive
 
@@ -255,7 +271,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         echo "(*) Installing compose-switch as docker-compose..."
         compose_switch_version="latest"
         find_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch"
-        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose
+        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose || install_compose_switch_fallback
         chmod +x /usr/local/bin/docker-compose
         # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
     fi
