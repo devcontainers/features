@@ -106,6 +106,29 @@ install_using_apt() {
     apt-get install -yq powershell${version_suffix} || return 1
 }
 
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    repo_url=$1
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name'
+}
+
+install_prev_pwsh() {
+    echo -e "\n(!) Failed to fetch the latest artifacts for powershell v${POWERSHELL_VERSION}..."
+    previous_version=$(get_previous_version "https://api.github.com/repos/PowerShell/PowerShell/releases")
+    echo -e "\nAttempting to install ${previous_version}"
+    POWERSHELL_VERSION="${previous_version#v}"
+    install_pwsh "${POWERSHELL_VERSION}"
+}
+
+install_pwsh() {
+    POWERSHELL_VERSION=$1
+    powershell_filename="powershell-${POWERSHELL_VERSION}-linux-${architecture}.tar.gz"
+    powershell_target_path="/opt/microsoft/powershell/$(echo ${POWERSHELL_VERSION} | grep -oE '[^\.]+' | head -n 1)"
+    mkdir -p /tmp/pwsh "${powershell_target_path}"
+    cd /tmp/pwsh
+    curl -sSL -o "${powershell_filename}" "https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}"
+}
+
 install_using_github() {
     # Fall back on direct download if no apt package exists in microsoft pool
     check_packages curl ca-certificates gnupg2 dirmngr libc6 libgcc1 libgssapi-krb5-2 libstdc++6 libunwind8 libuuid1 zlib1g libicu[0-9][0-9]
@@ -116,11 +139,11 @@ install_using_github() {
         architecture="x64"
     fi
     find_version_from_git_tags POWERSHELL_VERSION https://github.com/PowerShell/PowerShell
-    powershell_filename="powershell-${POWERSHELL_VERSION}-linux-${architecture}.tar.gz"
-    powershell_target_path="/opt/microsoft/powershell/$(echo ${POWERSHELL_VERSION} | grep -oE '[^\.]+' | head -n 1)"
-    mkdir -p /tmp/pwsh "${powershell_target_path}"
-    cd /tmp/pwsh
-    curl -sSL -o "${powershell_filename}" "https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}"
+    install_pwsh "${POWERSHELL_VERSION}"
+    if grep -q "Not Found" "${powershell_filename}"; then 
+        install_prev_pwsh
+    fi
+
     # Ugly - but only way to get sha256 is to parse release HTML. Remove newlines and tags, then look for filename followed by 64 hex characters.
     curl -sSL -o "release.html" "https://github.com/PowerShell/PowerShell/releases/tag/v${POWERSHELL_VERSION}"
     powershell_archive_sha256="$(cat release.html | tr '\n' ' ' | sed 's|<[^>]*>||g' | grep -oP "${powershell_filename}\s+\K[0-9a-fA-F]{64}" || echo '')"
