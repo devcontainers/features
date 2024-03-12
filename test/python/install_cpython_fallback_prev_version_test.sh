@@ -297,17 +297,6 @@ install_from_source() {
     echo -e "\nTrying to Install a fake version whose source binary wouldn't exist"
     VERSION="3.12.xyz"
 
-    # Some platforms/os versions need modern versions of openssl installed
-    # via common package repositories, for now rhel-7 family, use case statement to 
-    # make it easy to expand
-    case ${VERSION_CODENAME} in
-        centos7|rhel7)
-            check_packages perl-IPC-Cmd
-            install_openssl3 ${INSTALL_PATH}
-            ADDL_CONFIG_ARGS="--with-openssl=${INSTALL_PATH} --with-openssl-rpath=${INSTALL_PATH}/lib"
-            ;;
-    esac
-
     install_cpython "${VERSION}"
     if [ -f "/tmp/python-src/${cpython_tgz_filename}" ]; then
         if grep -q "404 Not Found" "/tmp/python-src/${cpython_tgz_filename}"; then
@@ -326,15 +315,6 @@ install_from_source() {
 
     echo "Downloading ${cpython_tgz_filename}.asc..."
     curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}.asc" "${cpython_tgz_url}.asc"
-
-    # Update min protocol for testing only - https://bugs.python.org/issue41561
-    if [ -f /etc/pki/tls/openssl.cnf ]; then
-        cp /etc/pki/tls/openssl.cnf /tmp/python-src/
-    else
-        cp /etc/ssl/openssl.cnf /tmp/python-src/
-    fi
-    sed -i -E 's/MinProtocol[=\ ]+.*/MinProtocol = TLSv1.0/g' /tmp/python-src/openssl.cnf
-    export OPENSSL_CONF=/tmp/python-src/openssl.cnf
 
     # Untar and build
     tar -xzf "/tmp/python-src/${cpython_tgz_filename}" -C "/tmp/python-src" --strip-components=1

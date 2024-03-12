@@ -457,8 +457,6 @@ install_from_source() {
     install_cpython "${VERSION}"
     if [ -f "/tmp/python-src/${cpython_tgz_filename}" ]; then 
         if grep -q "404 Not Found" "/tmp/python-src/${cpython_tgz_filename}"; then
-            # Use grep to search for "404 Not Found" in the file
-            echo "\"404 Not Found\" found in /tmp/python-src/${cpython_tgz_filename}. Not able to create source binary"
             install_prev_vers_cpython "${VERSION}"
         fi
     fi;
