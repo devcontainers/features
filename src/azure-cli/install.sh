@@ -17,8 +17,8 @@ AZ_EXTENSIONS=${EXTENSIONS}
 AZ_INSTALLBICEP=${INSTALLBICEP:-false}
 INSTALL_USING_PYTHON=${INSTALL_USING_PYTHON:-true}
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
-AZCLI_ARCHIVE_ARCHITECTURES="amd64"
-AZCLI_ARCHIVE_VERSION_CODENAMES="stretch buster bullseye bionic focal jammy"
+AZCLI_ARCHIVE_ARCHITECTURES="amd64 arm64"
+AZCLI_ARCHIVE_VERSION_CODENAMES="stretch bookworm buster bullseye bionic focal jammy"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -183,7 +183,7 @@ install_with_complete_python_installation() {
 
 export DEBIAN_FRONTEND=noninteractive
 
-# See if we're on x86_64 and if so, install via apt-get, otherwise use pip3
+# See if we're on x86_64 or AARCH64 and if so, install via apt-get, otherwise use pip3
 echo "(*) Installing Azure CLI..."
 . /etc/os-release
 architecture="$(dpkg --print-architecture)"

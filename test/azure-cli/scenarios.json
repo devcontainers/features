@@ -38,5 +38,15 @@
         "installUsingPython": true
       }
     }
+  },
+  "install_with_python_3_12_bookworm": {
+    "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "installUsingPython": true
+      }
+    }
   }
 }
