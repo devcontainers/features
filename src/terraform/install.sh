@@ -277,10 +277,21 @@ fi
 unzip ${terraform_filename}
 mv -f terraform /usr/local/bin/
 
-if [ "${TFLINT_VERSION}" != "none" ]; then
-    echo "Downloading tflint..."
+install_tflint() {
+    TFLINT_VERSION=$1
     TFLINT_FILENAME="tflint_linux_${architecture}.zip"
     curl -sSL -o /tmp/tf-downloads/${TFLINT_FILENAME} https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/${TFLINT_FILENAME}
+    echo "${TFLINT_FILENAME}"
+}
+
+# TFLINT_VERSION="1.2.xyz"
+if [ "${TFLINT_VERSION}" != "none" ]; then
+    echo "Downloading tflint..."
+    TFLINT_FILENAME=$(install_tflint "${TFLINT_VERSION}");
+    if grep -q "Not Found" "/tmp/tf-downloads/${TFLINT_FILENAME}"; then 
+        TFLINT_VERSION=$(install_prev_vers "tflint" "${TFLINT_VERSION}" "https://api.github.com/repos/terraform-linters/tflint/releases" | grep "The installed version")
+        TFLINT_VERSION=$(echo "${TFLINT_VERSION}" | sed 's/The installed version: //');
+    fi
     if [ "${TFLINT_SHA256}" != "dev-mode" ]; then
 
         if [ "${TFLINT_SHA256}" != "automatic" ]; then
@@ -321,10 +332,22 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
     unzip /tmp/tf-downloads/${TFLINT_FILENAME}
     mv -f tflint /usr/local/bin/
 fi
-if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
-    echo "Downloading Terragrunt..."
+
+install_terragrunt() {
+    TERRAGRUNT_VERSION=$1
     terragrunt_filename="terragrunt_linux_${architecture}"
     curl -sSL -o /tmp/tf-downloads/${terragrunt_filename} https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/${terragrunt_filename}
+    echo "${terragrunt_filename}"
+}
+
+TERRAGRUNT_VERSION="1.2.xyz"
+if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
+    echo "Downloading Terragrunt..."
+    terragrunt_filename=$(install_terragrunt "${TERRAGRUNT_VERSION}")
+    if grep -q "Not Found" "/tmp/tf-downloads/${terragrunt_filename}"; then
+        TERRAGRUNT_VERSION=$(install_prev_vers "terragrunt" "${TERRAGRUNT_VERSION}" "https://api.github.com/repos/gruntwork-io/terragrunt/releases" | grep "The installed version");
+        TERRAGRUNT_VERSION=$(echo "${TERRAGRUNT_VERSION}" | sed 's/The installed version: //');
+    fi
     if [ "${TERRAGRUNT_SHA256}" != "dev-mode" ]; then
         if [ "${TERRAGRUNT_SHA256}" = "automatic" ]; then
             curl -sSL -o terragrunt_SHA256SUMS https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/SHA256SUMS
