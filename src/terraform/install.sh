@@ -177,6 +177,37 @@ check_packages() {
     fi
 }
 
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    REPO_URL=$1
+    curl -s "${REPO_URL}/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/'
+}
+
+install_prev_vers() {
+    PKG_NAME=$1
+    FAILED_VERSION=$2
+    REPO_URL=$3
+    echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${FAILED_VERSION}..."
+    PREVIOUS_VERSION=$(get_previous_version "${REPO_URL}")
+    echo -e "\nAttempting to install ${PREVIOUS_VERSION}"
+    echo "The installed version: ${PREVIOUS_VERSION#v}"
+    INSTALLER_FN="install_${PKG_NAME}"
+    $INSTALLER_FN "${PREVIOUS_VERSION#v}"
+}
+
+install_cosign() {
+    COSIGN_VERSION=$1
+    curl -L "https://github.com/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb" -o /tmp/cosign_${COSIGN_VERSION}_${architecture}.deb
+    output=$(cat /tmp/cosign_${COSIGN_VERSION}_${architecture}.deb)
+    if [[ "$output" != *"Not Found"* ]]; then
+        dpkg -i /tmp/cosign_${COSIGN_VERSION}_${architecture}.deb
+        rm /tmp/cosign_${COSIGN_VERSION}_${architecture}.deb
+        echo "Installation of cosign succeeded with ${COSIGN_VERSION}."
+    else 
+        echo "Installation Failed."
+    fi
+}
+
 # Install 'cosign' for validating signatures
 # https://docs.sigstore.dev/cosign/overview/
 ensure_cosign() {
@@ -186,10 +217,12 @@ ensure_cosign() {
         echo "Installing cosign..."
         LATEST_COSIGN_VERSION="latest"
         find_version_from_git_tags LATEST_COSIGN_VERSION 'https://github.com/sigstore/cosign'
-        curl -L "https://github.com/sigstore/cosign/releases/latest/download/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb" -o /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
-        
-        dpkg -i /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
-        rm /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
+        # LATEST_COSIGN_VERSION="1.2.xyz"
+        INSTALL_STATUS=$(install_cosign "${LATEST_COSIGN_VERSION}");
+        if [ "${INSTALL_STATUS}" == "Installation Failed." ]; then
+            LATEST_COSIGN_VERSION=$(install_prev_vers "cosign" "${LATEST_COSIGN_VERSION}" "https://api.github.com/repos/sigstore/cosign/releases" | grep "The installed version");
+            LATEST_COSIGN_VERSION=$(echo "$LATEST_COSIGN_VERSION" | sed 's/The installed version: //')
+        fi
     fi
     if ! type cosign > /dev/null 2>&1; then
         echo "(!) Failed to install cosign."
@@ -212,13 +245,24 @@ find_version_from_git_tags TERRAFORM_VERSION 'https://github.com/hashicorp/terra
 find_version_from_git_tags TFLINT_VERSION 'https://github.com/terraform-linters/tflint'
 find_version_from_git_tags TERRAGRUNT_VERSION 'https://github.com/gruntwork-io/terragrunt'
 
+install_terraform() {
+    TERRAFORM_VERSION=$1
+    terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
+    curl -sSL -o ${terraform_filename} "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/${terraform_filename}"
+    echo "${terraform_filename}"
+}
+
+# TERRAFORM_VERSION="1.2.xyz"
 mkdir -p /tmp/tf-downloads
 cd /tmp/tf-downloads
-
 # Install Terraform, tflint, Terragrunt
 echo "Downloading terraform..."
-terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
-curl -sSL -o ${terraform_filename} "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/${terraform_filename}"
+terraform_filename=$(install_terraform "${TERRAFORM_VERSION}");
+if grep -q "The specified key does not exist." "${terraform_filename}"; then
+    TERRAFORM_VERSION=$(install_prev_vers "terraform" "${TERRAFORM_VERSION}" "https://api.github.com/repos/hashicorp/terraform/releases" | grep "The installed version");
+    TERRAFORM_VERSION=$( echo "$TERRAFORM_VERSION" | sed 's/The installed version: //');
+    terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
+fi
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
     if [ "${TERRAFORM_SHA256}" = "automatic" ]; then
         receive_gpg_keys TERRAFORM_GPG_KEY
