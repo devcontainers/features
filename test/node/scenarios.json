@@ -1,4 +1,12 @@
 {
+    "nvm_test_fallback": {
+        "image": "debian:11",
+        "features": {
+            "node": {
+                "version": "lts"
+            }
+        }
+    },
     "install_additional_node": {
         "image": "debian:11",
         "features": {
