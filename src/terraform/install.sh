@@ -340,7 +340,7 @@ install_terragrunt() {
     echo "${terragrunt_filename}"
 }
 
-TERRAGRUNT_VERSION="1.2.xyz"
+# TERRAGRUNT_VERSION="1.2.xyz"
 if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
     echo "Downloading Terragrunt..."
     terragrunt_filename=$(install_terragrunt "${TERRAGRUNT_VERSION}")
