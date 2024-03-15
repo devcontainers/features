@@ -5,9 +5,11 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-check "ruby version" ruby  --version
+check "current user" bash -c "whoami"
 
-check "gem version" gem --version
+check "version" rvm  --version
+
+check "ruby version" ruby  --version
 
 # Report result
 reportResults
