@@ -109,10 +109,68 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+# Use semver logic to decrement a version number then look for the closest match
+find_prev_version_from_git_tags() {
+    local variable_name=$1
+    local current_version=${!variable_name}
+    local repository=$2
+    # Normally a "v" is used before the version number, but support alternate cases
+    local prefix=${3:-"tags/v"}
+    # Some repositories use "_" instead of "." for version number part separation, support that
+    local separator=${4:-"."}
+    # Some tools release versions that omit the last digit (e.g. go)
+    local last_part_optional=${5:-"false"}
+    # Some repositories may have tags that include a suffix (e.g. actions/node-versions)
+    local version_suffix_regex=$6
+    # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
+    set +e
+        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+
+        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+            ((major=major-1))
+            declare -g ${variable_name}="${major}"
+            # Look for latest version from previous major release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        # Handle situations like Go's odd version pattern where "0" releases omit the last part
+        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+            ((minor=minor-1))
+            declare -g ${variable_name}="${major}.${minor}"
+            # Look for latest version from previous minor release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        else
+            ((breakfix=breakfix-1))
+            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+                declare -g ${variable_name}="${major}.${minor}"
+            else 
+                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            fi
+        fi
+    set -e
+}
+
+
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     repo_url=$1
-    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name'
+    # Fetch the response headers for the rate limit information and store them in a variable
+    headers=$(curl -s --head -H "Accept: application/json" "$repo_url")
+    # Extract the rate limit information from the headers
+    limit=$(echo "$headers" | awk '/x-ratelimit-limit/{print $2}')
+    remaining=$(echo "$headers" | awk '/x-ratelimit-remaining/{print $2}')
+    reset_epoch=$(echo "$headers" | awk '/x-ratelimit-reset/{print $2}')
+    reset_time=$(date -d@"$reset_epoch" +"%Y-%m-%d %H:%M:%S" 2>/dev/null)
+    # remove trailing \r from $remaining
+    remaining=$(echo "$remaining" | tr -d '[:space:]')
+    # convert remaining to an int value for comparison to be greater than or less than 0
+    remaining_int=$(printf "%d" "$remaining")
+    if [[ $remaining_int -gt 0 ]]; then
+        curl_output=$(curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name')
+        echo "version: ${curl_output}"
+    else
+        echo "Rate limit exceeded. Fallback implemented."
+    fi
 }
 
 install_compose_switch_fallback() {
@@ -307,9 +365,17 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
 
         if grep -q "Not Found" "${docker_compose_path}"; then
             echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
-            previous_version=$(get_previous_version "https://api.github.com/repos/docker/compose/releases")
-            echo -e "\nAttempting to install ${previous_version}"
-            compose_version=${previous_version#v}
+            output=$(get_previous_version "https://api.github.com/repos/docker/compose/releases")
+            if [[ $output == *"Rate limit exceeded. Fallback implemented."* ]]; then
+                echo "Error: Getting Previous Version by using github api failed!"
+                find_prev_version_from_git_tags compose_version "https://github.com/docker/compose" "tags/v"
+            else
+                echo "Success: Fetched fallback version from GitHub Api successfully!"
+                filtered_output=$(echo $output | grep "version:");
+                previous_version=$(echo "$filtered_output" | sed -n 's/version: //p');
+                compose_version=${previous_version#v}
+            fi
+            echo -e "\nAttempting to install ${compose_version}"
             curl -L "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
         fi
 
