@@ -180,7 +180,11 @@ check_packages() {
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     REPO_URL=$1
-    curl -s "${REPO_URL}/latest" | jq -r '.tag_name'
+    if command -v jq &> /dev/null; then
+        curl -s "${REPO_URL}/latest" | jq -r '.tag_name'
+    else 
+        curl -s "${REPO_URL}/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/'
+    fi
 }
 
 install_previous_version() {
