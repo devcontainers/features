@@ -33,19 +33,21 @@ check "tfsec version as installed by feature" tfsec --version
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     REPO_URL=$1
-    curl -s "${REPO_URL}/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/'
+    curl -s "${REPO_URL}/latest" | jq -r '.tag_name'
 }
 
-install_prev_vers() {
-    PKG_NAME=$1
-    FAILED_VERSION=$2
-    REPO_URL=$3
-    echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${FAILED_VERSION}..."
-    PREVIOUS_VERSION=$(get_previous_version "${REPO_URL}")
-    echo -e "\nAttempting to install ${PREVIOUS_VERSION}"
-    echo "The installed version: ${PREVIOUS_VERSION#v}"
+install_previous_version() {
+    local given_version=$1
+    local requested_version=${!given_version}
+    local PKG_NAME=$2
+    local REPO_URL=$3
+    echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${requested_version}..."
+    requested_version=$(get_previous_version "${REPO_URL}")
+    echo -e "\nAttempting to install ${requested_version}"
+    declare -g ${given_version}="${requested_version#v}"
     INSTALLER_FN="install_${PKG_NAME}"
-    $INSTALLER_FN "${PREVIOUS_VERSION#v}"
+    $INSTALLER_FN "${requested_version#v}"
+    echo "${given_version}=${!given_version}"
 }
 
 install_tfsec() {
@@ -63,8 +65,7 @@ try_install_tfsec_dummy_version() {
     echo "(*) Downloading TFSec... ${tfsec_filename}"
     install_tfsec "$TFSEC_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${tfsec_filename}"; then 
-        TFSEC_VERSION=$(install_prev_vers "tfsec" "${TFSEC_VERSION}" "https://api.github.com/repos/aquasecurity/tfsec/releases" | grep "The installed version");
-        TFSEC_VERSION=$(echo "${TFSEC_VERSION}" | sed 's/The installed version: //');
+        install_previous_version TFSEC_VERSION "tfsec" "https://api.github.com/repos/aquasecurity/tfsec/releases"
         tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
     fi
     if [ "${TFSEC_SHA256}" != "dev-mode" ]; then

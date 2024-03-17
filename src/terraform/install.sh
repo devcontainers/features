@@ -180,23 +180,25 @@ check_packages() {
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     REPO_URL=$1
-    curl -s "${REPO_URL}/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/'
+    curl -s "${REPO_URL}/latest" | jq -r '.tag_name'
 }
 
-install_prev_vers() {
-    PKG_NAME=$1
-    FAILED_VERSION=$2
-    REPO_URL=$3
-    echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${FAILED_VERSION}..."
-    PREVIOUS_VERSION=$(get_previous_version "${REPO_URL}")
-    echo -e "\nAttempting to install ${PREVIOUS_VERSION}"
-    echo "The installed version: ${PREVIOUS_VERSION#v}"
+install_previous_version() {
+    local given_version=$1
+    local requested_version=${!given_version}
+    local PKG_NAME=$2
+    local REPO_URL=$3
+    echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${requested_version}..."
+    requested_version=$(get_previous_version "${REPO_URL}")
+    echo -e "\nAttempting to install ${requested_version}"
+    declare -g ${given_version}="${requested_version#v}"
     INSTALLER_FN="install_${PKG_NAME}"
-    $INSTALLER_FN "${PREVIOUS_VERSION#v}"
+    $INSTALLER_FN "${requested_version#v}"
+    echo "${given_version}=${!given_version}"
 }
 
 install_cosign() {
-    COSIGN_VERSION=$1
+    local COSIGN_VERSION=$1
     curl -L "https://github.com/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb" -o /tmp/cosign_${COSIGN_VERSION}_${architecture}.deb
     output=$(cat /tmp/cosign_${COSIGN_VERSION}_${architecture}.deb)
     if [[ "$output" != *"Not Found"* ]]; then
@@ -218,9 +220,8 @@ ensure_cosign() {
         LATEST_COSIGN_VERSION="latest"
         find_version_from_git_tags LATEST_COSIGN_VERSION 'https://github.com/sigstore/cosign'
         INSTALL_STATUS=$(install_cosign "${LATEST_COSIGN_VERSION}");
-        if [ "${INSTALL_STATUS}" == "Installation Failed." ]; then
-            LATEST_COSIGN_VERSION=$(install_prev_vers "cosign" "${LATEST_COSIGN_VERSION}" "https://api.github.com/repos/sigstore/cosign/releases" | grep "The installed version");
-            LATEST_COSIGN_VERSION=$(echo "$LATEST_COSIGN_VERSION" | sed 's/The installed version: //')
+        if [[ "${INSTALL_STATUS}"=="Installation Failed." ]]; then
+            install_previous_version LATEST_COSIGN_VERSION "cosign" "https://api.github.com/repos/sigstore/cosign/releases"
         fi
     fi
     if ! type cosign > /dev/null 2>&1; then
@@ -245,7 +246,7 @@ find_version_from_git_tags TFLINT_VERSION 'https://github.com/terraform-linters/
 find_version_from_git_tags TERRAGRUNT_VERSION 'https://github.com/gruntwork-io/terragrunt'
 
 install_terraform() {
-    TERRAFORM_VERSION=$1
+    local TERRAFORM_VERSION=$1
     terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
     curl -sSL -o ${terraform_filename} "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/${terraform_filename}"
 }
@@ -257,8 +258,7 @@ echo "Downloading terraform..."
 terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
 install_terraform "$TERRAFORM_VERSION"
 if grep -q "The specified key does not exist." "${terraform_filename}"; then
-    TERRAFORM_VERSION=$(install_prev_vers "terraform" "${TERRAFORM_VERSION}" "https://api.github.com/repos/hashicorp/terraform/releases" | grep "The installed version");
-    TERRAFORM_VERSION=$(echo "$TERRAFORM_VERSION" | sed 's/The installed version: //');
+    install_previous_version TERRAFORM_VERSION "terraform" "https://api.github.com/repos/hashicorp/terraform/releases"
     terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
 fi
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
@@ -276,7 +276,7 @@ unzip ${terraform_filename}
 mv -f terraform /usr/local/bin/
 
 install_tflint() {
-    local TFLINT_VERSION=$1
+    TFLINT_VERSION=$1
     TFLINT_FILENAME="tflint_linux_${architecture}.zip"
     curl -sSL -o /tmp/tf-downloads/${TFLINT_FILENAME} https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/${TFLINT_FILENAME}
 }
@@ -286,8 +286,7 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
     TFLINT_FILENAME="tflint_linux_${architecture}.zip"
     install_tflint "$TFLINT_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${TFLINT_FILENAME}"; then 
-        TFLINT_VERSION=$(install_prev_vers "tflint" "${TFLINT_VERSION}" "https://api.github.com/repos/terraform-linters/tflint/releases" | grep "The installed version")
-        TFLINT_VERSION=$(echo "${TFLINT_VERSION}" | sed 's/The installed version: //');
+        install_previous_version TFLINT_VERSION "tflint" "https://api.github.com/repos/terraform-linters/tflint/releases"
     fi
     if [ "${TFLINT_SHA256}" != "dev-mode" ]; then
 
@@ -331,7 +330,7 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
 fi
 
 install_terragrunt() {
-    local TERRAGRUNT_VERSION=$1
+    TERRAGRUNT_VERSION=$1
     terragrunt_filename="terragrunt_linux_${architecture}"
     curl -sSL -o /tmp/tf-downloads/${terragrunt_filename} https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/${terragrunt_filename}
 }
@@ -341,8 +340,7 @@ if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
     terragrunt_filename="terragrunt_linux_${architecture}"
     install_terragrunt "$TERRAGRUNT_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${terragrunt_filename}"; then
-        TERRAGRUNT_VERSION=$(install_prev_vers "terragrunt" "${TERRAGRUNT_VERSION}" "https://api.github.com/repos/gruntwork-io/terragrunt/releases" | grep "The installed version");
-        TERRAGRUNT_VERSION=$(echo "${TERRAGRUNT_VERSION}" | sed 's/The installed version: //');
+        install_previous_version TERRAGRUNT_VERSION "terragrunt" "https://api.github.com/repos/gruntwork-io/terragrunt/releases"
     fi
     if [ "${TERRAGRUNT_SHA256}" != "dev-mode" ]; then
         if [ "${TERRAGRUNT_SHA256}" = "automatic" ]; then
@@ -382,7 +380,7 @@ if [ "${INSTALL_SENTINEL}" = "true" ]; then
 fi
 
 install_tfsec() {
-    TFSEC_VERSION=$1
+    local TFSEC_VERSION=$1
     tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
     curl -sSL -o /tmp/tf-downloads/${tfsec_filename} https://github.com/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/${tfsec_filename}
 }
@@ -394,8 +392,7 @@ if [ "${INSTALL_TFSEC}" = "true" ]; then
     echo "(*) Downloading TFSec... ${tfsec_filename}"
     install_tfsec "$TFSEC_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${tfsec_filename}"; then 
-        TFSEC_VERSION=$(install_prev_vers "tfsec" "${TFSEC_VERSION}" "https://api.github.com/repos/aquasecurity/tfsec/releases" | grep "The installed version");
-        TFSEC_VERSION=$(echo "${TFSEC_VERSION}" | sed 's/The installed version: //');
+        install_previous_version TFSEC_VERSION "tfsec" "https://api.github.com/repos/aquasecurity/tfsec/releases"
         tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
     fi
     if [ "${TFSEC_SHA256}" != "dev-mode" ]; then
@@ -413,7 +410,7 @@ if [ "${INSTALL_TFSEC}" = "true" ]; then
 fi
 
 install_tfdocs() {
-    TERRAFORM_DOCS_VERSION=$1
+    local TERRAFORM_DOCS_VERSION=$1
     tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
     curl -sSL -o /tmp/tf-downloads/${tfdocs_filename} https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/${tfdocs_filename}
 }
@@ -425,8 +422,7 @@ if [ "${INSTALL_TERRAFORM_DOCS}" = "true" ]; then
     echo "(*) Downloading Terraform docs... ${tfdocs_filename}"
     install_tfdocs "$TERRAFORM_DOCS_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${tfdocs_filename}"; then
-        TERRAFORM_DOCS_VERSION=$(install_prev_vers "tfdocs" "${TERRAFORM_DOCS_VERSION}" "https://api.github.com/repos/terraform-docs/terraform-docs/releases" | grep "The installed version");
-        TERRAFORM_DOCS_VERSION=$(echo "${TERRAFORM_DOCS_VERSION}" | sed 's/The installed version: //');
+        install_previous_version TERRAFORM_DOCS_VERSION "tfdocs" "https://api.github.com/repos/terraform-docs/terraform-docs/releases"
         tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
     fi
     if [ "${TERRAFORM_DOCS_SHA256}" != "dev-mode" ]; then
