@@ -220,7 +220,7 @@ ensure_cosign() {
         LATEST_COSIGN_VERSION="latest"
         find_version_from_git_tags LATEST_COSIGN_VERSION 'https://github.com/sigstore/cosign'
         INSTALL_STATUS=$(install_cosign "${LATEST_COSIGN_VERSION}");
-        if [[ "${INSTALL_STATUS}"=="Installation Failed." ]]; then
+        if [[ "${INSTALL_STATUS}" == "Installation Failed." ]]; then
             install_previous_version LATEST_COSIGN_VERSION "cosign" "https://api.github.com/repos/sigstore/cosign/releases"
         fi
     fi
