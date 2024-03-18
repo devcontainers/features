@@ -63,7 +63,7 @@ While the some services automates SSH setup (e.g., when using the GitHub CLI for
 
 3. Mount the remote filesystem.
 
-    - **macOS / Linux:** Use the `sshfs` command to mount the remote filesystem. The arguments are similar to the normal `ssh` command but with a few additions. For example: 
+    - **macOS / Linux:** Use the `sshfs` command to mount the remote filesystem. The arguments are similar to the normal `ssh` command but with a few additions. For example:
 
         ```
         mkdir -p ~/sshfs/devcontainer
@@ -71,8 +71,8 @@ While the some services automates SSH setup (e.g., when using the GitHub CLI for
         ```
         ...where `vscode` above is the user you are running as in the container (e.g. `codespace`, `vscode`, `node`, or `root`) and `2222` after the `-p` is the same local port you used in the `ssh` command in step 1.
 
-    - **Windows:** Press Window+R and enter the following in the "Open" field in the Run dialog: 
-    
+    - **Windows:** Press Window+R and enter the following in the "Open" field in the Run dialog:
+
         ```
         \\sshfs.r\vscode@localhost!2222\workspaces
         ```
