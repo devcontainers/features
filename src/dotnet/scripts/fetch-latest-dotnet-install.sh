@@ -8,7 +8,7 @@
 # Maintainer: The Dev Container spec maintainers
 #
 # Run this script to replace dotnet-install.sh with the latest and greatest available version
-# 
+#
 DOTNET_SCRIPTS=$(dirname "${BASH_SOURCE[0]}")
 DOTNET_INSTALL_SCRIPT="$DOTNET_SCRIPTS/vendor/dotnet-install.sh"
 

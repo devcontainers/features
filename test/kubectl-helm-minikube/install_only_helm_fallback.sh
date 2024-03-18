@@ -57,7 +57,7 @@ change_patch_number() {
 # Function to fetch the previous version of the plugin
 get_previous_version() {
     # this would del the assets key and then get the second encountered tag_name's value from the filtered array of objects
-    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name' 
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name'
 }
 
 get_helm() {
@@ -71,7 +71,7 @@ get_helm() {
 latest_version=$(get_latest_version)
 NON_EXISTING_PATCH_VERSION="xyz"
 HELM_VERSION="$(change_patch_number ${latest_version} ${NON_EXISTING_PATCH_VERSION})"
-echo -e "\n👉${HL} Trying to install HELM_VERSION = ${HELM_VERSION}${N}"; 
+echo -e "\n👉${HL} Trying to install HELM_VERSION = ${HELM_VERSION}${N}";
 sudo mkdir -p /tmp/helm
 get_helm "${HELM_VERSION}"
 if grep -q "BlobNotFound" "/tmp/helm/${helm_filename}"; then

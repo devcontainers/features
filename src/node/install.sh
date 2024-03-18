@@ -216,7 +216,7 @@ install_yarn() {
                 # Yum/DNF want to install nodejs dependencies, we'll use NPM to install yarn
                 su ${USERNAME} -c "umask 0002 && . '${NVM_DIR}/nvm.sh' && nvm use ${_ver} && npm install --global yarn"
             fi
-        else 
+        else
             echo "Yarn already installed."
         fi
     fi

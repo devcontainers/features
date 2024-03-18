@@ -61,7 +61,7 @@ clean_up() {
 }
 clean_up
 
-# Import the specified key in a variable name passed in as 
+# Import the specified key in a variable name passed in as
 receive_gpg_keys() {
     local keys=${!1}
     local keyring_args=""
@@ -79,7 +79,7 @@ receive_gpg_keys() {
     local retry_count=0
     local gpg_ok="false"
     set +e
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
+    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ];
     do
         echo "(*) Downloading GPG key..."
         ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
@@ -173,7 +173,7 @@ if ([ "${GIT_VERSION}" = "latest" ] || [ "${GIT_VERSION}" = "lts" ] || [ "${GIT_
     receive_gpg_keys GIT_CORE_PPA_ARCHIVE_GPG_KEY /usr/share/keyrings/gitcoreppa-archive-keyring.gpg
     echo -e "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gitcoreppa-archive-keyring.gpg] http://ppa.launchpad.net/git-core/ppa/ubuntu ${VERSION_CODENAME} main\ndeb-src [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gitcoreppa-archive-keyring.gpg] http://ppa.launchpad.net/git-core/ppa/ubuntu ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/git-core-ppa.list
     ${INSTALL_CMD} update
-    ${INSTALL_CMD} -y install --no-install-recommends git 
+    ${INSTALL_CMD} -y install --no-install-recommends git
     rm -rf "/tmp/tmp-gnupg"
     rm -rf /var/lib/apt/lists/*
     exit 0
@@ -197,7 +197,7 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
 elif [ "${ADJUSTED_ID}" = "rhel" ]; then
 
     if [ $VERSION_CODENAME = "centos7" ]; then
-        check_packages centos-release-scl 
+        check_packages centos-release-scl
         check_packages devtoolset-11
         source /opt/rh/devtoolset-11/enable
     else

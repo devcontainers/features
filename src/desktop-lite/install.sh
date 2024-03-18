@@ -198,7 +198,7 @@ fi
 # Install X11, fluxbox and VS Code dependencies
 check_packages ${package_list}
 
-# On newer versions of Ubuntu (22.04), 
+# On newer versions of Ubuntu (22.04),
 # we need an additional package that isn't provided in earlier versions
 if ! type vncpasswd > /dev/null 2>&1; then
     check_packages ${package_list_additional}
@@ -290,7 +290,7 @@ LOG=/tmp/container-init.log
 
 export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-"autolaunch:"}"
 export DISPLAY="${DISPLAY:-:1}"
-export VNC_RESOLUTION="${VNC_RESOLUTION:-1440x768x16}" 
+export VNC_RESOLUTION="${VNC_RESOLUTION:-1440x768x16}"
 export LANG="${LANG:-"en_US.UTF-8"}"
 export LANGUAGE="${LANGUAGE:-"en_US.UTF-8"}"
 

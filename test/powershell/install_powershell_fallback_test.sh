@@ -66,11 +66,11 @@ install_using_github() {
     fi
 
     echo -e "\nTrying to install a non-existing version for Powershell..."
-    
+
     POWERSHELL_VERSION="1.2.XYZ"
     install_pwsh "${POWERSHELL_VERSION}"
 
-    if grep -q "Not Found" "${powershell_filename}"; then 
+    if grep -q "Not Found" "${powershell_filename}"; then
         install_prev_pwsh
     fi
 

@@ -15,7 +15,7 @@ Enable GPU passthrough to your devcontainer by using `hostRequirements`. Here's 
 ```json
 {
   "hostRequirements": {
-    "gpu": "optional" 
+    "gpu": "optional"
   }
 }
 ```

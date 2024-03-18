@@ -244,8 +244,8 @@ else
         set +e # Handle error gracefully
             apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
             exit_code=$?
-        set -e    
-        
+        set -e
+
         if [ ${exit_code} -ne 0 ]; then
             err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-20.04')."
             exit 1
@@ -374,16 +374,16 @@ install_previous_version_artifacts() {
         exit 1
     fi
 }
- 
+
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
     find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
     echo "(*) Installing buildx ${buildx_version}..."
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
-    
+
     cd /tmp
     wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || install_previous_version_artifacts
-    
+
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"
 

@@ -1,7 +1,7 @@
 # Oh My Zsh! theme - partly inspired by https://github.com/ohmyzsh/ohmyzsh/blob/master/themes/robbyrussell.zsh-theme
 __zsh_prompt() {
     local prompt_username
-    if [ ! -z "${GITHUB_USER}" ]; then 
+    if [ ! -z "${GITHUB_USER}" ]; then
         prompt_username="@${GITHUB_USER}"
     else
         prompt_username="%n"

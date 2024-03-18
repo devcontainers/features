@@ -82,7 +82,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -256,11 +256,11 @@ if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version 2>/dev/null)" != *
             TARGET_GO_VERSION="${major}.${minor}"
             # Look for latest version from previous minor release
             find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true"
-        else 
+        else
             ((breakfix=breakfix-1))
             if [ "${breakfix}" = "0" ]; then
                 TARGET_GO_VERSION="${major}.${minor}"
-            else 
+            else
                 TARGET_GO_VERSION="${major}.${minor}.${breakfix}"
             fi
         fi
@@ -287,7 +287,7 @@ GO_TOOLS="\
     github.com/go-delve/delve/cmd/dlv@latest \
     github.com/fatih/gomodifytags@latest \
     github.com/haya14busa/goplay/cmd/goplay@latest \
-    github.com/cweill/gotests/gotests@latest \ 
+    github.com/cweill/gotests/gotests@latest \
     github.com/josharian/impl@latest"
 
 if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
@@ -304,7 +304,7 @@ if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
         export GO111MODULE=on
         go_install_command=get
         echo "Go version < 1.16, using go get."
-    fi 
+    fi
 
     (echo "${GO_TOOLS}" | xargs -n 1 go ${go_install_command} -v )2>&1 | tee -a /usr/local/etc/vscode-dev-containers/go.log
 

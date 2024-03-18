@@ -52,7 +52,7 @@ check_packages() {
 # Soft version matching that resolves a version for a given package in the *current apt-cache*
 # Return value is stored in first argument (the unprocessed version)
 apt_cache_version_soft_match() {
-    
+
     # Version
     local variable_name="$1"
     local requested_version=${!variable_name}
@@ -64,7 +64,7 @@ apt_cache_version_soft_match() {
     # Ensure we've exported useful variables
     . /etc/os-release
     local architecture="$(dpkg --print-architecture)"
-    
+
     dot_escaped="${requested_version//./\\.}"
     dot_plus_escaped="${dot_escaped//+/\\+}"
     # Regex needs to handle debian package version number format: https://www.systutorials.com/docs/linux/man/5-deb-version/
@@ -135,8 +135,8 @@ install_using_pip_strategy() {
 install_with_pipx() {
     echo "(*) Attempting to install globally with pipx..."
     local ver="$1"
-    export 
-    local 
+    export
+    local
 
     if ! type pipx > /dev/null 2>&1; then
         echo "(*) Installing pipx..."
@@ -207,7 +207,7 @@ if [ "${use_pip}" = "true" ]; then
     fi
 fi
 
-# If Azure CLI extensions are requested, loop through and install 
+# If Azure CLI extensions are requested, loop through and install
 if [ ${#AZ_EXTENSIONS[@]} -gt 0 ]; then
     echo "Installing Azure CLI extensions: ${AZ_EXTENSIONS}"
     extensions=(`echo ${AZ_EXTENSIONS} | tr ',' ' '`)
@@ -220,19 +220,19 @@ fi
 
 if [ "${AZ_INSTALLBICEP}" = "true" ]; then
     # Install dependencies
-    check_packages apt-transport-https curl 
-    
+    check_packages apt-transport-https curl
+
     # Properly install Azure Bicep based on current architecture
     # The `az bicep install` command installs the linux-x64 binary even on arm64 devcontainers
     # The `az bicep install --target-platform` could be a solution; however, linux-arm64 is not an allowed value for this argument yet
     # Manually installing Bicep and moving to the appropriate directory where az expects it to be
-    
+
     if [ "${architecture}" = "arm64" ]; then
         curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-arm64
-    else 
+    else
         curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
     fi
-    
+
     chmod +x ./bicep
     mv ./bicep /usr/local/bin/bicep
 

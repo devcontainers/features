@@ -17,7 +17,7 @@ check ".NET SDK 5.0.3xx installed" \
 is_dotnet_sdk_version_installed "5.0.3"
 
 check "Build and run example project" \
-dotnet run --project projects/net5.0 
+dotnet run --project projects/net5.0
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.
