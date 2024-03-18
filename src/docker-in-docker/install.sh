@@ -154,6 +154,8 @@ find_prev_version_from_git_tags() {
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     repo_url=$1
+    variable_name=$2
+    err_msg=$3
     # Fetch the response headers for the rate limit information and store them in a variable
     headers=$(curl -s --head -H "Accept: application/json" "$repo_url")
     # Extract the rate limit information from the headers
@@ -167,17 +169,25 @@ get_previous_version() {
     remaining_int=$(printf "%d" "$remaining")
     if [[ $remaining_int -gt 0 ]]; then
         curl_output=$(curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name')
-        echo "version: ${curl_output}"
+        declare -g ${variable_name}="${curl_output}"
+        echo "${variable_name}=${!variable_name}"
     else
-        echo "Rate limit exceeded. Fallback implemented."
+        declare -g ${err_msg}="Rate limit exceeded. Fallback implemented."
     fi
 }
 
 install_compose_switch_fallback() {
     echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
-    previous_version=$(get_previous_version "https://api.github.com/repos/docker/compose-switch/releases")
-    echo -e "\nAttempting to install ${previous_version}"
-    compose_switch_version=${previous_version#v}
+    err_msg=""
+    get_previous_version "https://api.github.com/repos/docker/compose-switch/releases" compose_switch_version err_msg
+    if [[ "${err_msg}" == *"Rate limit exceeded. Fallback implemented."* ]]; then
+        echo "Failure: Getting Previous Version by using github api failed!"
+        find_prev_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch" "tags/v"
+    else
+        echo "Success: Fetched fallback version from GitHub Api successfully!"
+        compose_switch_version="${compose_switch_version#v}"
+    fi
+    echo -e "\nAttempting to install ${compose_switch_version}"
     curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
 }
 
@@ -365,15 +375,14 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
 
         if grep -q "Not Found" "${docker_compose_path}"; then
             echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
-            output=$(get_previous_version "https://api.github.com/repos/docker/compose/releases")
-            if [[ $output == *"Rate limit exceeded. Fallback implemented."* ]]; then
-                echo "Error: Getting Previous Version by using github api failed!"
+            err_msg=""
+            get_previous_version "https://api.github.com/repos/docker/compose/releases" compose_version err_msg
+            if [[ "${err_msg}" == *"Rate limit exceeded. Fallback implemented."* ]]; then
+                echo "Failure: Getting Previous Version by using github api failed!"
                 find_prev_version_from_git_tags compose_version "https://github.com/docker/compose" "tags/v"
             else
                 echo "Success: Fetched fallback version from GitHub Api successfully!"
-                filtered_output=$(echo $output | grep "version:");
-                previous_version=$(echo "$filtered_output" | sed -n 's/version: //p');
-                compose_version=${previous_version#v}
+                compose_version=${compose_version#v}
             fi
             echo -e "\nAttempting to install ${compose_version}"
             curl -L "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
@@ -431,10 +440,18 @@ install_previous_version_artifacts() {
     if [ $wget_exit_code -eq 8 ]; then  # failure due to 404: Not Found.
         echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
         repo_url="https://api.github.com/repos/docker/buildx/releases" # GitHub repository URL
-        previous_version=$(get_previous_version "${repo_url}")
-        buildx_file_name="buildx-${previous_version}.linux-${architecture}"
-        echo -e "\nAttempting to install ${previous_version}"
-        wget https://github.com/docker/buildx/releases/download/${previous_version}/${buildx_file_name}
+        err_msg=""
+        get_previous_version "${repo_url}" buildx_version err_msg
+        if [[ "${err_msg}" == *"Rate limit exceeded. Fallback implemented."* ]]; then
+            echo "Failure: Getting Previous Version by using github api failed!"
+            find_prev_version_from_git_tags buildx_version "https://github.com/docker/buildx" "tags/v"
+            buildx_version="v${buildx_version}"
+        else
+            echo "Success: Fetched fallback version from GitHub Api successfully!"
+        fi
+        buildx_file_name="buildx-${buildx_version}.linux-${architecture}"
+        echo -e "\nAttempting to install ${buildx_version}"
+        wget https://github.com/docker/buildx/releases/download/${buildx_version}/${buildx_file_name}
     else
         echo "(!) Failed to download docker buildx with exit code: $wget_exit_code"
         exit 1
@@ -444,6 +461,7 @@ install_previous_version_artifacts() {
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
     find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
+    buildx_version="2.5.8"
     echo "(*) Installing buildx ${buildx_version}..."
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     

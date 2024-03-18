@@ -3,6 +3,11 @@
 # Optional: Import test library
 source dev-container-features-test-lib
 
+# Setup STDERR.
+err() {
+    echo "(!) $*" >&2
+}
+
 HL="\033[1;33m"
 N="\033[0;37m"
 echo -e "\n👉${HL} docker-compose version as installed by docker-in-docker feature${N}"
@@ -98,7 +103,9 @@ find_prev_version_from_git_tags() {
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     repo_url=$1
-    try_api=$2
+    variable_name=$2
+    err_msg=$3
+    try_api=$4
     # Fetch the response headers for the rate limit information and store them in a variable
     headers=$(curl -s --head -H "Accept: application/json" "$repo_url")
     # Extract the rate limit information from the headers
@@ -115,25 +122,26 @@ get_previous_version() {
     fi
     if [[ $remaining_int -gt 0 ]]; then
         curl_output=$(curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name')
-        echo "version: ${curl_output}"
+        declare -g ${variable_name}="${curl_output}"
+        echo "${variable_name}=${!variable_name}"
     else
-        echo "Rate limit exceeded. Fallback implemented."
+        declare -g ${err_msg}="Rate limit exceeded. Fallback implemented."
     fi
 }
 
 install_using_get_previous_version() {
     mode=$1
-    output=$(get_previous_version "https://api.github.com/repos/docker/compose/releases" "$mode")
-    if [[ $output == *"Rate limit exceeded. Fallback implemented."* ]]; then
-            echo "Error: Getting Previous Version by using github api failed!"
-            find_prev_version_from_git_tags compose_version "https://github.com/docker/compose" "tags/v"
+    echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
+    err_msg=""
+    get_previous_version "https://api.github.com/repos/docker/compose/releases" compose_version err_msg "$mode"
+    if [[ "${err_msg}" == *"Rate limit exceeded. Fallback implemented."* ]]; then
+        echo "Failure: Getting Previous Version by using github api failed!"
+        find_prev_version_from_git_tags compose_version "https://github.com/docker/compose" "tags/v"
     else
         echo "Success: Fetched fallback version from GitHub Api successfully!"
-        filtered_output=$(echo $output | grep "version:");
-        previous_version=$(echo "$filtered_output" | sed -n 's/version: //p');
-        compose_version=${previous_version#v}
+        compose_version=${compose_version#v}
     fi
-    echo -e "\nAttempting to install ${compose_version}"
+    echo -e "\nAttempting to install v${compose_version}"
     curl -L "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
 }
 
