@@ -1,6 +1,6 @@
 #!/bin/bash
 # Attempt to start daemon
-set +e 
+set +e
 if ! pidof nix-daemon > /dev/null 2>&1; then
     start_ok=false
     if [ "$(id -u)" = "0" ]; then

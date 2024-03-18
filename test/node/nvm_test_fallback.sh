@@ -10,7 +10,7 @@ set -e
 trap 'echo "Error occurred at line $LINENO"; exit 1' ERR
 source /usr/local/share/nvm/nvm.sh
 #check nvm version
-echo -e "\n✅ nvm version as installed by feature = v$(nvm --version)"; 
+echo -e "\n✅ nvm version as installed by feature = v$(nvm --version)";
 NVM_DIR="/usr/local/share/nvm"
 NODE_VERSION="lts"
 FAKE_NVM_VERSION="1.2.XYZ"
@@ -21,7 +21,7 @@ curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${FAKE_NVM_VERSION}/ins
 }
 
 #check nvm version
-echo -e "\n✅ nvm version as installed by test = v$(nvm --version)"; 
+echo -e "\n✅ nvm version as installed by test = v$(nvm --version)";
 
 # Report result
 reportResults

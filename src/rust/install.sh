@@ -56,7 +56,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -141,10 +141,10 @@ fi
 architecture="$(dpkg --print-architecture)"
 download_architecture="${architecture}"
 case ${download_architecture} in
- amd64) 
+ amd64)
     download_architecture="x86_64"
     ;;
- arm64) 
+ arm64)
     download_architecture="aarch64"
     ;;
  *) echo "(!) Architecture ${architecture} not supported."

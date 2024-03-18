@@ -37,7 +37,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -93,7 +93,7 @@ install_using_apt() {
     if [ "${POWERSHELL_VERSION}" = "latest" ] || [ "${POWERSHELL_VERSION}" = "lts" ] || [ "${POWERSHELL_VERSION}" = "stable" ]; then
         # Empty, meaning grab whatever "latest" is in apt repo
         version_suffix=""
-    else    
+    else
         version_suffix="=$(apt-cache madison powershell | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "^(${POWERSHELL_VERSION})(\.|$|\+.*|-.*)")"
 
         if [ -z ${version_suffix} ] || [ ${version_suffix} = "=" ]; then
@@ -140,7 +140,7 @@ install_using_github() {
     fi
     find_version_from_git_tags POWERSHELL_VERSION https://github.com/PowerShell/PowerShell
     install_pwsh "${POWERSHELL_VERSION}"
-    if grep -q "Not Found" "${powershell_filename}"; then 
+    if grep -q "Not Found" "${powershell_filename}"; then
         install_prev_pwsh
     fi
 
@@ -175,7 +175,7 @@ if [ "${use_github}" = "true" ]; then
     install_using_github
 fi
 
-# If PowerShell modules are requested, loop through and install 
+# If PowerShell modules are requested, loop through and install
 if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
     echo "Installing PowerShell Modules: ${POWERSHELL_MODULES}"
     modules=(`echo ${POWERSHELL_MODULES} | tr ',' ' '`)

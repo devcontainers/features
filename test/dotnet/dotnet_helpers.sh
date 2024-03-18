@@ -15,7 +15,7 @@ fetch_latest_version_in_channel() {
     else
         wget -qO- "https://dotnetcli.azureedge.net/dotnet/Sdk/$channel/latest.version"
     fi
-    
+
 }
 
 # Prints the latest dotnet version

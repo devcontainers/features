@@ -46,7 +46,7 @@ if [ "${is_jdk_8}" = "true" ]; then
     # Set current and default version to last SDK installed
     jdk_full_version="$(ls --format=single-column "${SDKMAN_DIR}/candidates/java" | sort -rV | grep -oE -m 1 "${JAVA_VERSION}\\..+" )"
     echo "(*) Setting default JDK to ${jdk_full_version}..."
-    . ${SDKMAN_DIR}/bin/sdkman-init.sh 
+    . ${SDKMAN_DIR}/bin/sdkman-init.sh
     sdk use java "${jdk_full_version}"
     sdk default java "${jdk_full_version}"
 fi

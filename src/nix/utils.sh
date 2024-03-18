@@ -103,7 +103,7 @@ find_version_from_git_tags() {
         break_fix_digit_regex="(${escaped_separator}[0-9]+)?"
     else
         break_fix_digit_regex="${escaped_separator}[0-9]+"
-    fi    
+    fi
     local version_regex="[0-9]+${escaped_separator}[0-9]+${break_fix_digit_regex}${version_suffix_regex//./\\.}"
     # If we're passed a matching version number, just return it, otherwise look for a version
     if ! echo "${requested_version}" | grep -E "^${versionMatchRegex}$" > /dev/null 2>&1; then
@@ -137,7 +137,7 @@ apt_cache_version_soft_match() {
     # Ensure we've exported useful variables
     . /etc/os-release
     local architecture="$(dpkg --print-architecture)"
-    
+
     dot_escaped="${requested_version//./\\.}"
     dot_plus_escaped="${dot_escaped//+/\\+}"
     # Regex needs to handle debian package version number format: https://www.systutorials.com/docs/linux/man/5-deb-version/
@@ -172,7 +172,7 @@ check_marker() {
     local verifier_string="$(echo "$@")"
     if [ -e "${marker_path}" ] && [ "${verifier_string}" = "$(cat ${marker_path})" ]; then
         return 1
-    else 
+    else
         return 0
     fi
 }
@@ -263,7 +263,7 @@ find_prev_version_from_git_tags() {
         ((breakfix=breakfix-1))
         if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
             declare -g ${variable_name}="${major}.${minor}"
-        else 
+        else
             declare -g ${variable_name}="${major}.${minor}.${breakfix}"
         fi
     fi

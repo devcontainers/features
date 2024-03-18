@@ -27,7 +27,7 @@ get_latest_version() {
 # Function to fetch the previous version of the plugin
 get_previous_version() {
     # this would del the assets key and then get the first encountered tag_name's value from the filtered array of objects
-    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name' 
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name'
 }
 
 # Function to change the patch number in a semver version
@@ -66,7 +66,7 @@ install_previous_version_artifacts() {
         fi
     fi
 }
-    
+
 test_version=$(change_version_to_fail "$(get_latest_version)")
 buildx_file_name="buildx-${test_version}.linux-${architecture}"
 buildx_version=$test_version

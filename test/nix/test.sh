@@ -9,7 +9,7 @@ echo "Current user UID is ${uid}."
 if [ "${uid}" != "1000" ]; then
     echo "Current user UID was adjusted."
 fi
-set +e 
+set +e
 vscode_uid="$(id -u vscode)"
 set -e
 if [ "${vscode_uid}" != "" ]; then

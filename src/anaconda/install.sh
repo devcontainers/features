@@ -88,7 +88,7 @@ if ! conda --version &> /dev/null ; then
     mkdir -p $CONDA_DIR
     chown -R "${USERNAME}:conda" "${CONDA_DIR}"
     chmod -R g+r+w "${CONDA_DIR}"
-    
+
     find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
     echo "Installing Anaconda..."
 
@@ -99,14 +99,14 @@ if ! conda --version &> /dev/null ; then
 
     su --login -c "export http_proxy=${http_proxy:-} && export https_proxy=${https_proxy:-} \
         && wget -q https://repo.anaconda.com/archive/Anaconda3-${CONDA_VERSION}-Linux-x86_64.sh -O /tmp/anaconda-install.sh \
-        && /bin/bash /tmp/anaconda-install.sh -u -b -p ${CONDA_DIR}" ${USERNAME} 2>&1 
-    
+        && /bin/bash /tmp/anaconda-install.sh -u -b -p ${CONDA_DIR}" ${USERNAME} 2>&1
+
     if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
         PATH=$PATH:${CONDA_DIR}/bin
         conda update -y conda
     fi
 
-    rm /tmp/anaconda-install.sh 
+    rm /tmp/anaconda-install.sh
     updaterc "export CONDA_DIR=${CONDA_DIR}/bin"
 fi
 

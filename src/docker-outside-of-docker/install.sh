@@ -103,7 +103,7 @@ find_version_from_git_tags() {
 get_previous_version() {
     repo_url=$1
     # this would del the assets key and then get the second encountered tag_name's value from the filtered array of objects
-    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name' 
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name'
 }
 
 

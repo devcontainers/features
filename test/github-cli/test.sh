@@ -15,7 +15,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -74,7 +74,7 @@ find_prev_version_from_git_tags() {
         ((breakfix=breakfix-1))
         if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
             declare -g ${variable_name}="${major}.${minor}"
-        else 
+        else
             declare -g ${variable_name}="${major}.${minor}.${breakfix}"
         fi
     fi

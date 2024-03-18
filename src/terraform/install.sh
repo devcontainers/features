@@ -47,7 +47,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Import the specified key in a variable name passed in as 
+# Import the specified key in a variable name passed in as
 receive_gpg_keys() {
     local keys=${!1}
     local keyring_args=""
@@ -67,7 +67,7 @@ receive_gpg_keys() {
     local retry_count=0
     local gpg_ok="false"
     set +e
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
+    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ];
     do
         echo "(*) Downloading GPG key..."
         ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
@@ -84,8 +84,8 @@ receive_gpg_keys() {
         echo "(*) Resolving GPG keyserver IP address..."
         local keyserver_ip_address=$( dig +short keyserver.ubuntu.com | head -n1 )
         echo "(*) GPG keyserver IP address $keyserver_ip_address"
-        
-        until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "3" ]; 
+
+        until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "3" ];
         do
             echo "(*) Downloading GPG key..."
             ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys --keyserver ${keyserver_ip_address}) 2>&1 && gpg_ok="true"
@@ -111,7 +111,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -187,7 +187,7 @@ ensure_cosign() {
         LATEST_COSIGN_VERSION="latest"
         find_version_from_git_tags LATEST_COSIGN_VERSION 'https://github.com/sigstore/cosign'
         curl -L "https://github.com/sigstore/cosign/releases/latest/download/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb" -o /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
-        
+
         dpkg -i /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
         rm /tmp/cosign_${LATEST_COSIGN_VERSION}_${architecture}.deb
     fi
@@ -222,7 +222,7 @@ curl -sSL -o ${terraform_filename} "https://releases.hashicorp.com/terraform/${T
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
     if [ "${TERRAFORM_SHA256}" = "automatic" ]; then
         receive_gpg_keys TERRAFORM_GPG_KEY
-        curl -sSL -o terraform_SHA256SUMS https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS 
+        curl -sSL -o terraform_SHA256SUMS https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS
         curl -sSL -o terraform_SHA256SUMS.sig https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
         gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS
     else

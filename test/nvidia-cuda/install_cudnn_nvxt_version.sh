@@ -13,4 +13,3 @@ check "cuda-11-5+nvtx" test -e '/usr/local/cuda-11.5/targets/x86_64-linux/includ
 
 # Report result
 reportResults
-    

@@ -9,7 +9,7 @@ echo "Current user UID is ${uid}."
 if [ "${uid}" != "1000" ]; then
     echo "Current user UID was adjusted."
 fi
-set +e 
+set +e
 vscode_uid="$(id -u vscode)"
 set -e
 if [ "${vscode_uid}" != "" ]; then
@@ -22,13 +22,13 @@ nix_uid="$(stat /nix -c "%u")"
 echo "/nix UID is ${nix_uid}."
 
 cat /etc/os-release
-cat /etc/nix/nix.conf 
+cat /etc/nix/nix.conf
 
 # Feature-specific tests
 # The 'check' command comes from the dev-container-features-test-lib.
 check "nix-env" type nix-env
-check "First added line" grep -E '^extra-substituters = https://foo\.cachix\.org$' /etc/nix/nix.conf 
-check "Second added line" grep -E '^extra-trusted-public-keys = foo\.cachix\.org-1:bar=$' /etc/nix/nix.conf 
+check "First added line" grep -E '^extra-substituters = https://foo\.cachix\.org$' /etc/nix/nix.conf
+check "Second added line" grep -E '^extra-trusted-public-keys = foo\.cachix\.org-1:bar=$' /etc/nix/nix.conf
 
 # Report result
 # If any of the checks above exited with a non-zero exit code, the test will fail.

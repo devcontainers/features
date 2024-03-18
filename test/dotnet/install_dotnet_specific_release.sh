@@ -19,7 +19,7 @@ check ".NET Core SDK 3.1 installed" \
 is_dotnet_sdk_version_installed "$expected"
 
 check "Build and run example project" \
-dotnet run --project projects/netcoreapp3.1 
+dotnet run --project projects/netcoreapp3.1
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.

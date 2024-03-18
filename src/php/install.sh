@@ -92,7 +92,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     echo "${!variable_name}"
     echo "$(echo "${requested_version}" | grep -o "." | wc -l)"
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
@@ -168,7 +168,7 @@ install_php() {
     PHP_MINOR_VERSION=${versions[1]}
 
     VERSION_CONFIG=""
-    if (( $(($PHP_MAJOR_VERSION)) >= 8 )) || (( $(($PHP_MAJOR_VERSION)) == 7 && $(($PHP_MINOR_VERSION)) >= 4 )); then 
+    if (( $(($PHP_MAJOR_VERSION)) >= 8 )) || (( $(($PHP_MAJOR_VERSION)) == 7 && $(($PHP_MINOR_VERSION)) >= 4 )); then
         VERSION_CONFIG="--with-pear"
     fi
 

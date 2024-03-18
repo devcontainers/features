@@ -25,7 +25,7 @@ fetch_latest_version_in_channel() {
     else
         wget -qO- "https://dotnetcli.azureedge.net/dotnet/Sdk/$channel/latest.version"
     fi
-    
+
 }
 
 # Prints the latest dotnet version
@@ -74,7 +74,7 @@ install_sdk() {
         # Assume version is an exact version string like '6.0.413' or '8.0.100-rc.2.23425.18'
         version="$inputVersion"
     fi
-    
+
     # Currently this script does not make it possible to qualify the version, 'GA' is always implied
     echo "Executing $DOTNET_INSTALL_SCRIPT --version $version --channel $channel --install-dir $DOTNET_INSTALL_DIR --no-path"
     "$DOTNET_INSTALL_SCRIPT" \
@@ -108,7 +108,7 @@ install_runtime() {
         # Assume version is an exact version string like '6.0.21' or '8.0.0-preview.7.23375.6'
         version="$inputVersion"
     fi
-    
+
     echo "Executing $DOTNET_INSTALL_SCRIPT --runtime $runtime --version $version --channel $channel --install-dir $DOTNET_INSTALL_DIR --no-path"
     "$DOTNET_INSTALL_SCRIPT" \
         --runtime "$runtime" \
