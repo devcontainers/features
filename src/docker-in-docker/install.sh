@@ -461,7 +461,6 @@ install_previous_version_artifacts() {
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
     find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
-    buildx_version="2.5.8"
     echo "(*) Installing buildx ${buildx_version}..."
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     
