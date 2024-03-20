@@ -151,17 +151,17 @@ find_prev_version_from_git_tags() {
 }
 
 fetch_use_local_function() {
-    local repo_url=$1
+    local url=$1
     local version=$2
     vers=${!version}
-    trimmed_url=$(echo $repo_url | sed 's|api.github.com/repos|github.com|' | sed 's|/releases/latest||')
-    find_prev_version_from_git_tags vers "${trimmed_url}" "tags/v"
+    find_prev_version_from_git_tags vers "$url" "tags/v"
     declare -g ${version}="${vers}"
 }
 
 fetch_use_github_api() {
-    local repo_url=$1
-    local version=$2
+    local url=$1
+    local repo_url=$2
+    local version=$3
     given_version=${!version}
     # Fetch the response headers for the rate limit information and store them in a variable  
     headers=$(curl -s --head -H "Accept: application/json" "${repo_url}")  
@@ -170,29 +170,37 @@ fetch_use_github_api() {
     # convert remaining to an int value for comparison to be greater than or less than 0  
     remaining_int=$(printf "%d" "$remaining") 
     if [[ $remaining_int -gt 0 ]]; then
-        curl_output=$(curl -s "${repo_url}" | jq -r '.tag_name')
+        curl_output=$(curl -s "$repo_url" | jq -r '.tag_name')
         declare -g ${version}="${curl_output#v}"
     else
-        fetch_use_local_function "${repo_url}" given_version
+        fetch_use_local_function "$url" given_version
         declare -g ${version}="${given_version}"
     fi
 }
 
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
-    local repo_url=$1
-    local variable_name=$2
+    local url=$1
+    local repo_url=$2
+    local variable_name=$3
     prev_version=${!variable_name}
     response=$(curl -s -o /dev/null -w "%{http_code}" "$repo_url")
     # check if github api url is not found i.e 403 error code returned
     if [ "$response" -eq 403 ]; then
         # if github api url is not found, then simply fetch using find_prev_version_from_git_tags
-        fetch_use_local_function "${repo_url}" prev_version
+        fetch_use_local_function "$url" prev_version
     else 
         # continue fetching from github api
-        fetch_use_github_api "${repo_url}" prev_version
+        fetch_use_github_api "$url" "$repo_url" prev_version
     fi
     declare -g ${variable_name}="${prev_version}"
+}
+
+form_url() {
+    local url=$1
+    api_url=${url/https:\/\/github.com/https:\/\/api.github.com\/repos}
+    api_url="$api_url/releases/latest"
+    echo "$api_url"
 }
 
 ###########################################
@@ -339,9 +347,10 @@ cli_plugins_dir="${docker_home}/cli-plugins"
 
 # fallback for docker-compose
 fallback_compose(){
+    local url=$1
+    local repo_url=$(form_url "$url")
     echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
-    repo_url="https://api.github.com/repos/docker/compose/releases/latest"
-    get_previous_version "${repo_url}" compose_version
+    get_previous_version "${url}" "${repo_url}" compose_version
     echo -e "\nAttempting to install v${compose_version}"
     curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
 }
@@ -382,9 +391,10 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         fi
     else
         compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
-        find_version_from_git_tags compose_version "https://github.com/docker/compose" "tags/v"
+        url_1="https://github.com/docker/compose"
+        find_version_from_git_tags compose_version "$url_1" "tags/v"
         echo "(*) Installing docker-compose ${compose_version}..."
-        curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || fallback_compose
+        curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || fallback_compose "$url_1"
         chmod +x ${docker_compose_path}
 
         # Download the SHA256 checksum
@@ -399,9 +409,10 @@ fi
 
 # fallback method for compose-switch
 fallback_compose-switch() {
+    local url=$1
+    local repo_url=$(form_url "$url")
     echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
-    repo_url="https://api.github.com/repos/docker/compose-switch/releases/latest"
-    get_previous_version "${repo_url}" compose_switch_version
+    get_previous_version "$url" "$repo_url" compose_switch_version
     echo -e "\nAttempting to install v${compose_switch_version}"
     curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
 }
@@ -413,8 +424,9 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
         current_compose_path="$(which docker-compose)"
         target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
         compose_switch_version="latest"
-        find_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch"
-        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || fallback_compose-switch
+        url_1="https://github.com/docker/compose-switch"
+        find_version_from_git_tags compose_switch_version "$url_1"
+        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || fallback_compose-switch "$url_1"
         chmod +x /usr/local/bin/compose-switch
         # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
         # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
@@ -443,9 +455,10 @@ usermod -aG docker ${USERNAME}
 
 # fallback for docker/buildx
 fallback_buildx() {
+    local url=$1
+    local repo_url=$(form_url "$url")
     echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
-    repo_url="https://api.github.com/repos/docker/buildx/releases/latest"
-    get_previous_version "${repo_url}" buildx_version
+    get_previous_version "$url" "$repo_url" buildx_version
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     echo -e "\nAttempting to install v${buildx_version}"
     wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
@@ -453,12 +466,13 @@ fallback_buildx() {
  
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
-    find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
+    url_1="https://github.com/docker/buildx"
+    find_version_from_git_tags buildx_version "$url_1" "refs/tags/v"
     echo "(*) Installing buildx ${buildx_version}..."
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     
     cd /tmp
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || fallback_buildx
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || fallback_buildx "$url_1"
     
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"

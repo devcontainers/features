@@ -103,61 +103,75 @@ find_prev_version_from_git_tags() {
 }
 
 fetch_use_local_function() {
-    local repo_url=$1
+    local url=$1
     local version=$2
-    try_api=$4
     vers=${!version}
-    trimmed_url=$(echo $repo_url | sed 's|api.github.com/repos|github.com|' | sed 's|/releases/latest||')
-    find_prev_version_from_git_tags vers "${trimmed_url}" "tags/v"
+    find_prev_version_from_git_tags vers "${url}" "tags/v"
     declare -g ${version}="${vers}"
 }
 
 fetch_use_github_api() {
-    local repo_url=$1
-    local version=$2
-    local try_api=$3
+    local url=$1
+    local repo_url=$2
+    local version=$3
+    local mode=$4
     given_version=${!version}
     # Fetch the response headers for the rate limit information and store them in a variable  
     headers=$(curl -s --head -H "Accept: application/json" "${repo_url}")  
     # Extract the rate limit information from the headers  
     read -r limit remaining reset_epoch <<<$(echo "$headers" | grep -oP 'x-ratelimit-(limit|remaining|reset): \K\d+' | tr '\n' ' ')
     # convert remaining to an int value for comparison to be greater than or less than 0  
-    remaining_int=$(printf "%d" "$remaining")
-    if [[ "$try_api" != "try_valid_from_api" ]]; then 
+    local remaining_int=$(printf "%d" "$remaining")
+
+    if [[ "$mode" = "install_from_local_fn" ]]; then 
         remaining_int=0
     fi 
+
     if [[ $remaining_int -gt 0 ]]; then
         curl_output=$(curl -s "${repo_url}" | jq -r '.tag_name')
         declare -g ${version}="${curl_output#v}"
     else
-        fetch_use_local_function "${repo_url}" given_version
+        fetch_use_local_function "${url}" given_version
         declare -g ${version}="${given_version}"
     fi
 }
 
+
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
-    local repo_url=$1
-    local variable_name=$2
-    local mode=$3
+    local url=$1
+    local repo_url=$2
+    local variable_name=$3
+    local mode=$4
     prev_version=${!variable_name}
     response=$(curl -s -o /dev/null -w "%{http_code}" "$repo_url")
+    if [[ "${mode}" = "install_from_failing_api" ]]; then
+        response=403
+    fi
     # check if github api url is not found i.e 403 error code returned
     if [ "$response" -eq 403 ]; then
         # if github api url is not found, then simply fetch using find_prev_version_from_git_tags
-        fetch_use_local_function "${repo_url}" prev_version
+        fetch_use_local_function "${url}" prev_version
     else 
         # continue fetching from github api
-        fetch_use_github_api "${repo_url}" prev_version "${mode}"
+        fetch_use_github_api "${url}" "${repo_url}" prev_version "${mode}"
     fi
     declare -g ${variable_name}="${prev_version}"
 }
 
+form_url() {
+    local url=$1
+    api_url=${url/https:\/\/github.com/https:\/\/api.github.com\/repos}
+    api_url="$api_url/releases/latest"
+    echo "$api_url"
+}
+
 install_using_get_previous_version() {
-    mode=$1
+    local url=$1
+    local mode=$2
+    local repo_url=$(form_url "$url")
     echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
-    repo_url="https://api.github.com/repos/docker/buildx/releases/latest"
-    get_previous_version "${repo_url}" buildx_version "${mode}"
+    get_previous_version "${url}" "${repo_url}" buildx_version "${mode}"
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     echo -e "\nAttempting to install v${buildx_version}"
     wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
@@ -165,13 +179,15 @@ install_using_get_previous_version() {
     
 install_docker_buildx() {
     mode=$1
-    echo -e "\n👉${HL} Creating a scenario for fallback${N}\n"
+    echo -e "\n${HL} Creating a scenario for fallback${N}\n"
 
     buildx_version="0.13.xyz"
     echo "(*) Installing buildx ${buildx_version}..."
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     cd /tmp
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || install_using_get_previous_version "${mode}"
+
+    url_1="https://github.com/docker/buildx"
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || install_using_get_previous_version "${url_1}" "${mode}"
     
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"
@@ -185,15 +201,22 @@ install_docker_buildx() {
     find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
 }
 
+echo -e "\n👉${HL} docker-buildx version as installed by docker-in-docker test ( installing by find_prev_version_from_git_tags api when github api-url fails with 403 ) ${N}"
+install_docker_buildx "install_from_failing_api"
+
+# Definition specific tests after test for fallback
+check "docker-buildx" docker buildx version
+check "docker-buildx" bash -c "docker buildx version"
+
 echo -e "\n👉${HL} docker-buildx version as installed by docker-in-docker test ( installing by github api ) ${N}"
-install_docker_buildx "try_valid_from_api"
+install_docker_buildx "install_from_github_api_valid"
 
 # Definition specific tests after test for fallback
 check "docker-buildx" docker buildx version
 check "docker-buildx" bash -c "docker buildx version"
 
 echo -e "\n👉${HL} docker-buildx version as installed by docker-in-docker test ( installing by find_prev_version_from_git_tags ) ${N}"
-install_docker_buildx
+install_docker_buildx "install_from_local_fn"
 
 # Definition specific tests after test for fallback
 check "docker-buildx" docker buildx version
