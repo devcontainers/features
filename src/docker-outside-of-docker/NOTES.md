@@ -8,7 +8,17 @@
 
 A common question that comes up is how you can use `bind` mounts from the Docker CLI from within the a dev container using this Feature (e.g. via `-v`). If you cannot use the [Docker-in-Docker Feature](../docker-in-docker), the only way to work around this is to use the **host**'s folder paths instead of the container's paths. There are 2 ways to do this
 
-### 1. Use the `${localWorkspaceFolder}` as environment variable in your code
+### 1. Use the Docker on Docker shim
+
+[Docker on Docker shim](https://github.com/felipecrs/docker-on-docker-shim) comes installed and enabled by default. When enabled, it will automatically translate paths within the container to their correct counterparts on the host.
+
+This allows a transparent experience when using the Docker CLI from within the devcontainer, and should work with any bind mounts you specify. Additionally, it lets you mount other directories from the container as opposed to just the workspace folder like the next methods.
+
+When `useDockerOnDockerShimAsDocker` is enabled, calling `docker` from within the container will actually call the shim. Otherwise, the shim is available as the `dond` command.
+
+One limitation however is that Docker Compose v2 will not take the shim into account, since it interacts with the Docker daemon directly instead of calling the Docker CLI.
+
+### 2. Use the `${localWorkspaceFolder}` as environment variable in your code
 
 1. Add the following to `devcontainer.json`:
 
@@ -36,7 +46,7 @@ services:
 
 - The defaults value `./` is added so that the `docker-compose.yaml` file can work when it is run outside of the container
 
-### 2. Change the workspace to `${localWorkspaceFolder}`
+### 3. Change the workspace to `${localWorkspaceFolder}`
 
 - This is useful if we don't want to edit the `docker-compose.yaml` file
 
