@@ -100,60 +100,71 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
-# Function to fetch the version released prior to the latest version
-get_previous_version() {
-    repo_url=$1
-    variable_name=$2
-    err_msg=$3
+fetch_use_local_function() {
+    local repo_url=$1
+    local version=$2
     try_api=$4
-    # Fetch the response headers for the rate limit information and store them in a variable
-    headers=$(curl -s --head -H "Accept: application/json" "$repo_url")
-    # Extract the rate limit information from the headers
-    limit=$(echo "$headers" | awk '/x-ratelimit-limit/{print $2}')
-    remaining=$(echo "$headers" | awk '/x-ratelimit-remaining/{print $2}')
-    reset_epoch=$(echo "$headers" | awk '/x-ratelimit-reset/{print $2}')
-    reset_time=$(date -d@"$reset_epoch" +"%Y-%m-%d %H:%M:%S" 2>/dev/null)
-    # remove trailing \r from $remaining
-    remaining=$(echo "$remaining" | tr -d '[:space:]')
-    # convert remaining to an int value for comparison to be greater than or less than 0
+    vers=${!version}
+    trimmed_url=$(echo $repo_url | sed 's|api.github.com/repos|github.com|' | sed 's|/releases/latest||')
+    find_prev_version_from_git_tags vers "${trimmed_url}" "tags/v"
+    declare -g ${version}="${vers}"
+}
+
+fetch_use_github_api() {
+    local repo_url=$1
+    local version=$2
+    local try_api=$3
+    given_version=${!version}
+    # Fetch the response headers for the rate limit information and store them in a variable  
+    headers=$(curl -s --head -H "Accept: application/json" "${repo_url}")  
+    # Extract the rate limit information from the headers  
+    read -r limit remaining reset_epoch <<<$(echo "$headers" | grep -oP 'x-ratelimit-(limit|remaining|reset): \K\d+' | tr '\n' ' ')
+    # convert remaining to an int value for comparison to be greater than or less than 0  
     remaining_int=$(printf "%d" "$remaining")
     if [[ "$try_api" != "try_valid_from_api" ]]; then 
         remaining_int=0
-    fi
+    fi 
     if [[ $remaining_int -gt 0 ]]; then
-        curl_output=$(curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name')
-        declare -g ${variable_name}="${curl_output}"
-        echo "${variable_name}=${!variable_name}"
+        curl_output=$(curl -s "${repo_url}" | jq -r '.tag_name')
+        declare -g ${version}="${curl_output#v}"
     else
-        declare -g ${err_msg}="Rate limit exceeded. Fallback implemented."
+        fetch_use_local_function "${repo_url}" given_version
+        declare -g ${version}="${given_version}"
     fi
+}
+
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    local repo_url=$1
+    local variable_name=$2
+    local mode=$3
+    prev_version=${!variable_name}
+    response=$(curl -s -o /dev/null -w "%{http_code}" "$repo_url")
+    # check if github api url is not found i.e 403 error code returned
+    if [ "$response" -eq 403 ]; then
+        # if github api url is not found, then simply fetch using find_prev_version_from_git_tags
+        fetch_use_local_function "${repo_url}" prev_version
+    else 
+        # continue fetching from github api
+        fetch_use_github_api "${repo_url}" prev_version "${mode}"
+    fi
+    declare -g ${variable_name}="${prev_version}"
 }
 
 install_using_get_previous_version() {
     mode=$1
     echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
-    err_msg=""
-    get_previous_version "https://api.github.com/repos/docker/compose/releases" compose_version err_msg "$mode"
-    if [[ "${err_msg}" == *"Rate limit exceeded. Fallback implemented."* ]]; then
-        echo "Failure: Getting Previous Version by using github api failed!"
-        find_prev_version_from_git_tags compose_version "https://github.com/docker/compose" "tags/v"
-    else
-        echo "Success: Fetched fallback version from GitHub Api successfully!"
-        compose_version=${compose_version#v}
-    fi
+    repo_url="https://api.github.com/repos/docker/compose/releases/latest"
+    get_previous_version "${repo_url}" compose_version "${mode}"
     echo -e "\nAttempting to install v${compose_version}"
-    curl -L "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
+    curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
 }
 
 install_docker_compose() {
     mode=$1
     compose_version="2.25.xyz"
     echo "(*) Installing docker-compose ${compose_version}..."
-    curl -L "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
-    if grep -q "Not Found" "${docker_compose_path}"; then
-        echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
-        install_using_get_previous_version "$mode"
-    fi
+    curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || install_using_get_previous_version "$mode"
 }
 
 chmod +x ${docker_compose_path}

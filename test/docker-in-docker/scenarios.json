@@ -121,9 +121,7 @@
         "features": {
             "docker-in-docker": {
                 "version": "latest",
-                "installDockerBuildx": true,
-                "moby": "false",
-                "dockerDashComposeVersion": "v2"
+                "installDockerBuildx": true
             }
         }
     },
