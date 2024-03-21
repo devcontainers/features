@@ -100,14 +100,6 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
-fetch_use_local_function() {
-    local url=$1
-    local version=$2
-    vers=${!version}
-    find_prev_version_from_git_tags vers "${url}" "tags/v"
-    declare -g ${version}="${vers}"
-}
-
 fetch_use_github_api() {
     local url=$1
     local repo_url=$2
@@ -129,7 +121,7 @@ fetch_use_github_api() {
         curl_output=$(curl -s "${repo_url}" | jq -r '.tag_name')
         declare -g ${version}="${curl_output#v}"
     else
-        fetch_use_local_function "${url}" given_version
+        find_prev_version_from_git_tags given_version "${url}" "tags/v"
         declare -g ${version}="${given_version}"
     fi
 }
@@ -148,7 +140,7 @@ get_previous_version() {
     # check if github api url is not found i.e 403 error code returned
     if [ "$response" -eq 403 ]; then
         # if github api url is not found, then simply fetch using find_prev_version_from_git_tags
-        fetch_use_local_function "${url}" prev_version
+        find_prev_version_from_git_tags prev_version "${url}" "tags/v"
     else 
         # continue fetching from github api
         fetch_use_github_api "${url}" "${repo_url}" prev_version "${mode}"
@@ -156,17 +148,15 @@ get_previous_version() {
     declare -g ${variable_name}="${prev_version}"
 }
 
-form_url() {
+get_github_api_repo_url() {
     local url=$1
-    api_url=${url/https:\/\/github.com/https:\/\/api.github.com\/repos}
-    api_url="$api_url/releases/latest"
-    echo "$api_url"
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
 install_using_get_previous_version() {
     local url=$1
     local mode=$2
-    local repo_url=$(form_url "$url")
+    local repo_url=$(get_github_api_repo_url "$url")
     echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
     get_previous_version "$url" "$repo_url" compose_version "$mode"
     echo -e "\nAttempting to install v${compose_version}"
@@ -176,9 +166,9 @@ install_using_get_previous_version() {
 install_docker_compose() {
     mode=$1
     compose_version="2.25.xyz"
-    url_1="https://github.com/docker/compose"
+    docker_compose_url="https://github.com/docker/compose"
     echo "(*) Installing docker-compose ${compose_version}..."
-    curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || install_using_get_previous_version "$url_1" "$mode"
+    curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || install_using_get_previous_version "$docker_compose_url" "$mode"
 }
 
 chmod +x ${docker_compose_path}

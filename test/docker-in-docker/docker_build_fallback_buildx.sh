@@ -131,7 +131,7 @@ fetch_use_github_api() {
         curl_output=$(curl -s "${repo_url}" | jq -r '.tag_name')
         declare -g ${version}="${curl_output#v}"
     else
-        fetch_use_local_function "${url}" given_version
+        find_prev_version_from_git_tags given_version "${url}" "tags/v"
         declare -g ${version}="${given_version}"
     fi
 }
@@ -159,17 +159,15 @@ get_previous_version() {
     declare -g ${variable_name}="${prev_version}"
 }
 
-form_url() {
+get_github_api_repo_url() {
     local url=$1
-    api_url=${url/https:\/\/github.com/https:\/\/api.github.com\/repos}
-    api_url="$api_url/releases/latest"
-    echo "$api_url"
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
 install_using_get_previous_version() {
     local url=$1
     local mode=$2
-    local repo_url=$(form_url "$url")
+    local repo_url=$(get_github_api_repo_url "$url")
     echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
     get_previous_version "${url}" "${repo_url}" buildx_version "${mode}"
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
@@ -186,8 +184,8 @@ install_docker_buildx() {
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     cd /tmp
 
-    url_1="https://github.com/docker/buildx"
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || install_using_get_previous_version "${url_1}" "${mode}"
+    docker_buildx_url="https://github.com/docker/buildx"
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || install_using_get_previous_version "${docker_buildx_url}" "${mode}"
     
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"
