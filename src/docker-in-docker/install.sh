@@ -111,7 +111,6 @@ find_version_from_git_tags() {
 
 # Use semver logic to decrement a version number then look for the closest match
 find_prev_version_from_git_tags() {
-    echo -e "\nAttempting to find latest version using Github Tags"
     local variable_name=$1
     local current_version=${!variable_name}
     local repository=$2
@@ -151,44 +150,29 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
-find_prev_version_from_github_api() {
-    local url=$1
-    local repo_url=$2
-    local version=$3
-    given_version=${!version}
-    echo -e "\nAttempting to find latest version using Github Api"
-    # Fetch the response headers for the rate limit information and store them in a variable  
-    headers=$(curl -s --head -H "Accept: application/json" "${repo_url}")  
-    # Extract the rate limit information from the headers  
-    read -r limit remaining reset_epoch <<<$(echo "$headers" | grep -oP 'x-ratelimit-(limit|remaining|reset): \K\d+' | tr '\n' ' ')
-    # convert remaining to an int value for comparison to be greater than or less than 0  
-    remaining_int=$(printf "%d" "$remaining") 
-    if [[ $remaining_int -gt 0 ]]; then
-        curl_output=$(curl -s "$repo_url" | jq -r '.tag_name')
-        declare -g ${version}="${curl_output#v}"
-    else
-        echo -e "\nAttempting to find latest version using Github Api Failed"
-        find_prev_version_from_git_tags given_version "$url" "tags/v"
-        declare -g ${version}="${given_version}"
-    fi
-}
-
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     local url=$1
     local repo_url=$2
     local variable_name=$3
     prev_version=${!variable_name}
-    response=$(curl -s -o /dev/null -w "%{http_code}" "$repo_url")
-    # check if github api url is not found i.e 403 error code returned
-    if [ "$response" -eq 403 ]; then
-        # if github api url is not found, then simply fetch using find_prev_version_from_git_tags
+    
+    echo -e "\nAttempting to find latest version using Github Api."
+
+    output=$(curl -s "$repo_url");
+    message=$(echo "$output" | jq -r '.message')
+    
+    if [[ $message == "API rate limit exceeded"* ]]; then
+        echo -e "\nAttempting to find latest version using Github Api Failed. Exceeded API Rate Limit."
+        echo -e "\nAttempting to find latest version using Github Tags."
         find_prev_version_from_git_tags prev_version "$url" "tags/v"
+        declare -g ${variable_name}="${prev_version}"
     else 
-        # continue fetching from github api
-        find_prev_version_from_github_api "$url" "$repo_url" prev_version
-    fi
-    declare -g ${variable_name}="${prev_version}"
+        echo -e "\nAttempting to find latest version using Github Api Succeeded."
+        version=$(echo "$output" | jq -r '.tag_name')
+        declare -g ${variable_name}="${version#v}"
+    fi  
+    echo "${variable_name}=${!variable_name}"
 }
 
 get_github_api_repo_url() {
