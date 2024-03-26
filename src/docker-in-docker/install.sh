@@ -157,18 +157,16 @@ get_previous_version() {
     local variable_name=$3
     prev_version=${!variable_name}
     
-    echo -e "\nAttempting to find latest version using Github Api."
-
     output=$(curl -s "$repo_url");
     message=$(echo "$output" | jq -r '.message')
     
     if [[ $message == "API rate limit exceeded"* ]]; then
-        echo -e "\nAttempting to find latest version using Github Api Failed. Exceeded API Rate Limit."
-        echo -e "\nAttempting to find latest version using Github Tags."
+        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
+        echo -e "\nAttempting to find latest version using GitHub tags."
         find_prev_version_from_git_tags prev_version "$url" "tags/v"
         declare -g ${variable_name}="${prev_version}"
     else 
-        echo -e "\nAttempting to find latest version using Github Api Succeeded."
+        echo -e "\nAttempting to find latest version using GitHub Api."
         version=$(echo "$output" | jq -r '.tag_name')
         declare -g ${variable_name}="${version#v}"
     fi  
@@ -375,7 +373,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
             if [[ $DOCKER_DASH_COMPOSE_VERSION == "latest" ]]; then 
                 fallback_compose "$docker_compose_url"
             else
-                echo -e "Error: Failed to install docker-compose with v${compose_version}" 
+                echo -e "Error: Failed to install docker-compose v${compose_version}" 
             fi
         }
 
