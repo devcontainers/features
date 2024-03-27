@@ -15,8 +15,9 @@ set_error_handler() {
 # Register the error handler function to be triggered on ERR signal
 trap 'set_error_handler' ERR
 
-# Trap errors and call the error handling function
-trap 'handle_error' ERR
+check "terragrunt version as installed by feature" terragrunt --version
+
+TERRAGRUNT_SHA256="automatic"
 
 architecture="$(uname -m)"
 case ${architecture} in
@@ -26,9 +27,6 @@ case ${architecture} in
     i?86) architecture="386";;
     *) echo "(!) Architecture ${architecture} unsupported"; exit 1 ;;
 esac
-
-# TFSec specific tests
-check "tfsec version as installed by feature" tfsec --version
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -168,47 +166,46 @@ install_previous_version() {
     echo "${given_version}=${!given_version}"
 }
 
-install_tfsec() {
-    local TFSEC_VERSION=$1
-    tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
-    curl -sSL -o /tmp/tf-downloads/${tfsec_filename} https://github.com/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/${tfsec_filename}
+
+install_terragrunt() {
+    TERRAGRUNT_VERSION=$1
+    curl -sSL -o /tmp/tf-downloads/${terragrunt_filename} https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/${terragrunt_filename}
 }
 
-try_install_tfsec_dummy_version() {
+
+try_install_dummy_terragrunt_version() {
     mode=$1
     mkdir -p /tmp/tf-downloads
     cd /tmp/tf-downloads
-    TFSEC_VERSION="1.28.XYZ"
-    echo -e "\nInstalling TFSEC dummy version.." v${TFSEC_VERSION}
-    tfsec_url='https://github.com/aquasecurity/tfsec'
-    tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
-    echo "(*) Downloading TFSec... ${tfsec_filename}"
-    install_tfsec "$TFSEC_VERSION"
-    if grep -q "Not Found" "/tmp/tf-downloads/${tfsec_filename}"; then 
-        install_previous_version TFSEC_VERSION $tfsec_url $mode
-        tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
+    terragrunt_url='https://github.com/gruntwork-io/terragrunt'
+    TERRAGRUNT_VERSION="0.55.xyz"
+    echo -e "\nAttempting to install terragrunt dummy v${TERRAGRUNT_VERSION}"
+    echo "Downloading Terragrunt... v${TERRAGRUNT_VERSION}"
+    terragrunt_filename="terragrunt_linux_${architecture}"
+    install_terragrunt "$TERRAGRUNT_VERSION"
+    if grep -q "Not Found" "/tmp/tf-downloads/${terragrunt_filename}"; then
+        install_previous_version TERRAGRUNT_VERSION $terragrunt_url $mode
     fi
-    if [ "${TFSEC_SHA256}" != "dev-mode" ]; then
-        if [ "${TFSEC_SHA256}" = "automatic" ]; then
-            curl -sSL -o tfsec_SHA256SUMS https://github.com/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/tfsec_${TFSEC_VERSION}_checksums.txt
+    if [ "${TERRAGRUNT_SHA256}" != "dev-mode" ]; then
+        if [ "${TERRAGRUNT_SHA256}" = "automatic" ]; then
+            curl -sSL -o terragrunt_SHA256SUMS https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/SHA256SUMS
         else
-            echo "${TFSEC_SHA256} *${tfsec_filename}" > tfsec_SHA256SUMS
+            echo "${TERRAGRUNT_SHA256} *${terragrunt_filename}" > terragrunt_SHA256SUMS
         fi
-        sha256sum --ignore-missing -c tfsec_SHA256SUMS
+        sha256sum --ignore-missing -c terragrunt_SHA256SUMS
     fi
-    mkdir -p /tmp/tf-downloads/tfsec
-    tar -xzf /tmp/tf-downloads/${tfsec_filename} -C /tmp/tf-downloads/tfsec
-    chmod a+x /tmp/tf-downloads/tfsec/tfsec
-    sudo mv -f /tmp/tf-downloads/tfsec/tfsec /usr/local/bin/tfsec
+    sudo chmod a+x /tmp/tf-downloads/${terragrunt_filename}
+    sudo mv -f /tmp/tf-downloads/${terragrunt_filename} /usr/local/bin/terragrunt
 }
 
-try_install_tfsec_dummy_version "mode1"
+try_install_dummy_terragrunt_version "mode1"
 
-check "tfsec version as installed by test after fallbacking from the dummy version (mode 1: install using find_prev_version_from_git_tags)" tfsec --version
+check "terragrunt version as installed by test after fallbacking from the dummy version (mode 1: install using find_prev_version_from_git_tags)" terragrunt --version
 
-try_install_tfsec_dummy_version "mode2"
+try_install_dummy_terragrunt_version "mode2"
 
-check "tfsec version as installed by test after fallbacking from the dummy version (mode 2: install using GitHub Api)" tfsec --version
+check "terragrunt version as installed by test after fallbacking from the dummy version (mode 2: install using GitHub Api)" terragrunt --version
 
 # Report result
 reportResults
+

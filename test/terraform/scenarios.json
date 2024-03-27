@@ -43,7 +43,15 @@
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
             "terraform": {
-                "terraformVersion": "latest"
+                "version": "latest"
+            }
+        }
+    },
+    "terragrunt_fallback_test": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "terragrunt": "latest"
             }
         }
     },
@@ -51,7 +59,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
             "terraform": {
-                "tflintVersion": "latest"
+                "tflint": "latest"
             }
         }
     },

@@ -13,13 +13,12 @@ check "terraform-docs version as installed by feature" terraform-docs --version
 
 TERRAFORM_DOCS_SHA256="automatic"
 
-handle_error() {
-    echo "Error occurred on line ${BASH_LINENO[0]}"
-    exit 1
+set_error_handler() {
+    echo "Error occurred on line: $LINENO"
 }
 
-# Trap errors and call the error handling function
-trap 'handle_error' ERR
+# Register the error handler function to be triggered on ERR signal
+trap 'set_error_handler' ERR
 
 architecture="$(uname -m)"
 case ${architecture} in

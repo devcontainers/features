@@ -8,13 +8,12 @@ source dev-container-features-test-lib
 # Check to make sure the user is vscode
 check "user is vscode" whoami | grep vscode
 
-handle_error() {
-    echo "Error occurred on line ${BASH_LINENO[0]}"
-    exit 1
+set_error_handler() {
+    echo "Error occurred on line: $LINENO"
 }
 
-# Trap errors and call the error handling function
-trap 'handle_error' ERR
+# Register the error handler function to be triggered on ERR signal
+trap 'set_error_handler' ERR
 
 check "terraform version as installed by feature" terraform --version
 
