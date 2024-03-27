@@ -47,6 +47,14 @@
             }
         }
     },
+    "tflint_fallback_test": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "tflintVersion": "latest"
+            }
+        }
+    },
     "older_tflint": {
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {

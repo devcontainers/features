@@ -297,9 +297,9 @@ install_cosign() {
         echo -e "\nAttempting to install ${COSIGN_VERSION}"
         cosign_filename="/tmp/cosign_${COSIGN_VERSION}_${architecture}.deb"
         cosign_url="https://github.com/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb"
-        curl -fsSL "${cosign_url}" -o $cosign_filename
+        curl -L "${cosign_url}" -o $cosign_filename
     else 
-        curl -fsSL "${cosign_url}" -o $cosign_filename
+        curl -L "${cosign_url}" -o $cosign_filename
     fi
     dpkg -i $cosign_filename
     rm $cosign_filename
