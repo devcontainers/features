@@ -275,30 +275,19 @@ install_previous_version() {
     echo "${given_version}=${!given_version}"
 }
 
-# Function to check if URL returns 404
-check_failure() {
-    local url="$1"
-    local resp_code=$2
-    local response_code=$(curl -o /dev/null -s -w "%{http_code}\n" "$url")
-    declare -g ${resp_code}="$response_code"
-}
-
 install_cosign() {
     COSIGN_VERSION=$1
     local URL=$2
     cosign_filename="/tmp/cosign_${COSIGN_VERSION}_${architecture}.deb"
     cosign_url="https://github.com/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb"
-    resp_code=200
-    check_failure "$cosign_url" resp_code
-    if [ "$resp_code" -eq 404 ] || [ "$resp_code" -eq 302 ]; then
+    curl -L "${cosign_url}" -o $cosign_filename
+    if grep -q "Not Found" "$cosign_filename"; then
         echo -e "\n(!) Failed to fetch the latest artifacts for cosign v${COSIGN_VERSION}..."
         REPO_URL=$(get_github_api_repo_url "$URL")
         get_previous_version "$URL" "$REPO_URL" COSIGN_VERSION
         echo -e "\nAttempting to install ${COSIGN_VERSION}"
         cosign_filename="/tmp/cosign_${COSIGN_VERSION}_${architecture}.deb"
         cosign_url="https://github.com/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb"
-        curl -L "${cosign_url}" -o $cosign_filename
-    else 
         curl -L "${cosign_url}" -o $cosign_filename
     fi
     dpkg -i $cosign_filename
@@ -434,7 +423,8 @@ if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
     echo "Downloading Terragrunt..."
     terragrunt_filename="terragrunt_linux_${architecture}"
     install_terragrunt "$TERRAGRUNT_VERSION"
-    if grep -q "Not Found" "/tmp/tf-downloads/${terragrunt_filename}"; then
+    output=$(cat "/tmp/tf-downloads/${terragrunt_filename}")
+    if [[ $output == "Not Found" ]]; then
         install_previous_version TERRAGRUNT_VERSION $terragrunt_url
     fi
     if [ "${TERRAGRUNT_SHA256}" != "dev-mode" ]; then
