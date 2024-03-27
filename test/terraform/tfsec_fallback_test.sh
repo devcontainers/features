@@ -27,6 +27,8 @@ case ${architecture} in
     *) echo "(!) Architecture ${architecture} unsupported"; exit 1 ;;
 esac
 
+TFSEC_SHA256="automatic"
+
 # TFSec specific tests
 check "tfsec version as installed by feature" tfsec --version
 
