@@ -35,12 +35,15 @@
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
             "terraform": {
-                "installTerraformDocs": true,
-                "terraformVersion": "latest",
-                "terragruntVersion": "latest",
-                "tflintVersion": "latest",
-                "installTFsec": true,
-                "installSentinel": true
+                "installTerraformDocs": true
+            }
+        }
+    },
+    "terraform_fallback_test": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "terraformVersion": "latest"
             }
         }
     },
