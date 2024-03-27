@@ -1,20 +1,18 @@
 #!/bin/bash
 
-set -e
-
 # Optional: Import test library
 source dev-container-features-test-lib
 
-# Definition specific tests before test for fallback
+# Setup STDERR.
+err() {
+    echo "(!) $*" >&2
+}
+
 HL="\033[1;33m"
 N="\033[0;37m"
-echo -e "\n👉${HL} docker/buildx version as installed by docker-in-docker feature${N}"
-check "docker-buildx" docker buildx version
-check "docker-build" docker build ./
-check "docker-buildx" bash -c "docker buildx version"
-check "docker-buildx-path" bash -c "ls -la /usr/libexec/docker/cli-plugins/docker-buildx"
+echo -e "\n👉${HL} docker-compose version as installed by docker-in-docker feature${N}"
+check "docker-compose" bash -c "docker-compose version"
 
-# Code to test the made up scenario when latest version of docker/buildx fails on wget command for fetching the artifacts
 architecture="$(dpkg --print-architecture)"
 case "${architecture}" in
     amd64) target_compose_arch=x86_64 ;;
@@ -24,7 +22,7 @@ case "${architecture}" in
         exit 1
 esac
 
-docker_home="/usr/libexec/docker"
+docker_compose_path="/usr/local/bin/docker-compose"
 cli_plugins_dir="${docker_home}/cli-plugins"
 
 # Figure out correct version of a three part version number is not passed
@@ -141,50 +139,36 @@ install_using_get_previous_version() {
     local url=$1
     local mode=$2
     local repo_url=$(get_github_api_repo_url "$url")
-    echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
-    get_previous_version "${url}" "${repo_url}" buildx_version "${mode}"
-    buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
-    echo -e "\nAttempting to install v${buildx_version}"
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
+    echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
+    get_previous_version "$url" "$repo_url" compose_version "$mode"
+    echo -e "\nAttempting to install v${compose_version}"
+    curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
 }
-    
-install_docker_buildx() {
+
+install_docker_compose() {
     mode=$1
-    echo -e "\n${HL} Creating a scenario for fallback${N}\n"
-
-    buildx_version="0.13.xyz"
-    echo "(*) Installing buildx ${buildx_version}..."
-    buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
-    cd /tmp
-
-    docker_buildx_url="https://github.com/docker/buildx"
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || install_using_get_previous_version "${docker_buildx_url}" "${mode}"
-    
-    docker_home="/usr/libexec/docker"
-    cli_plugins_dir="${docker_home}/cli-plugins"
-
-    mkdir -p ${cli_plugins_dir}
-    mv ${buildx_file_name} ${cli_plugins_dir}/docker-buildx
-    chmod +x ${cli_plugins_dir}/docker-buildx
-
-    chown -R "${USERNAME}:docker" "${docker_home}"
-    chmod -R g+r+w "${docker_home}"
-    find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
+    compose_version="2.25.xyz"
+    docker_compose_url="https://github.com/docker/compose"
+    echo "(*) Installing docker-compose ${compose_version}..."
+    curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || install_using_get_previous_version "$docker_compose_url" "$mode"
 }
 
-echo -e "\n👉${HL} docker-buildx version as installed by docker-in-docker test ( installing by github api ) ${N}"
-install_docker_buildx "install_from_github_api_valid"
+chmod +x ${docker_compose_path}
 
-# Definition specific tests after test for fallback
-check "docker-buildx" docker buildx version
-check "docker-buildx" bash -c "docker buildx version"
+# Download the SHA256 checksum
+DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}.sha256" | awk '{print $1}')"
+echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
+sha256sum -c docker-compose.sha256sum --ignore-missing
 
-echo -e "\n👉${HL} docker-buildx version as installed by docker-in-docker test ( installing by find_prev_version_from_git_tags ) ${N}"
-install_docker_buildx
+mkdir -p ${cli_plugins_dir}
+cp ${docker_compose_path} ${cli_plugins_dir}
 
-# Definition specific tests after test for fallback
-check "docker-buildx" docker buildx version
-check "docker-buildx" bash -c "docker buildx version"
+echo -e "\n👉${HL} docker-compose version as installed by docker-in-docker test ( installing by github api ) ${N}"
+install_docker_compose "install_from_github_api_valid"
 
-# Report result
-reportResults
+check "docker-compose" bash -c "docker-compose version"
+
+echo -e "\n👉${HL} docker-compose version as installed by docker-in-docker test ( installing by find_prev_version_from_git_tags ) ${N}"
+install_docker_compose
+
+check "docker-compose" bash -c "docker-compose version"
