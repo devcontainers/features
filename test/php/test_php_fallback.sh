@@ -82,10 +82,7 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
-install_previous_version() {
-    echo -e "\nInstalling Previous Version..."
-    PHP_VERSION=$1
-    find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+init_php_install() {
     PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
     if [ -d "${PHP_INSTALL_DIR}" ]; then
         echo "(!) PHP version ${PHP_VERSION} already exists."
@@ -109,59 +106,57 @@ install_previous_version() {
     PHP_SRC_DIR="/usr/src/php"
     mkdir -p $PHP_SRC_DIR
     cd $PHP_SRC_DIR
+}
+
+install_previous_version() {
+    echo -e "\nInstalling Previous Version..."
+    find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+    init_php_install
     wget -O php.tar.xz "$PHP_URL"
-    ln -sf /usr/local/php/8.1.27 /usr/local/php/current
-    echo 'export PATH=/usr/local/php/current/bin:$PATH' >> ~/.bashrc
-    . ~/.bashrc
 }
 
 install_php() {  
-    apt-get remove –purge php*
-    apt-get purge php*
-    apt-get autoremove
-    apt-get autoclean
-    apt-get remove dbconfig-php
-    apt-get dist-upgrade
-    # whereis php | while IFS= read -r line; do
-    #     # Remove leading and trailing whitespace from the line
-    #     line=$(echo "$line" | awk '{$1=$1};1')
-    #     # Check if the line is not empty
-    #     if [ -n "$line" ]; then
-    #         # Delete the file or directory
-    #         echo "Deleting: $line"
-    #         rm -rf "$line"
-    #     fi
-    # done
-    rm /usr/local/php/current
+    # trying to install with a possible new tag not having a released source binary yet
+    PHP_VERSION="8.3.xyz"
 
-    # trying to install a non existent fake binary for a possibly new tag which doesn't have a release yet
-    PHP_VERSION="v1.2.xyz"
-    PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
-    if [ -d "${PHP_INSTALL_DIR}" ]; then
-        echo "(!) PHP version ${PHP_VERSION} already exists."
-        exit 1
+    init_php_install
+
+    wget -O php.tar.xz "$PHP_URL" || install_previous_version
+    
+    tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR" --strip-components=1
+    cd $PHP_SRC_DIR;
+
+    # PHP 7.4+, the pecl/pear installers are officially deprecated and are removed in PHP 8+
+    # Thus, requiring an explicit "--with-pear"
+    IFS="."
+    read -a versions <<< "${PHP_VERSION}"
+    PHP_MAJOR_VERSION=${versions[0]}
+    PHP_MINOR_VERSION=${versions[1]}
+
+    VERSION_CONFIG=""
+    if (( $(($PHP_MAJOR_VERSION)) >= 8 )) || (( $(($PHP_MAJOR_VERSION)) == 7 && $(($PHP_MINOR_VERSION)) >= 4 )); then 
+        VERSION_CONFIG="--with-pear"
     fi
 
-    if ! cat /etc/group | grep -e "^php:" > /dev/null 2>&1; then
-        groupadd -r php
-    fi
-    usermod -a -G php "${USERNAME}"
+    ./configure --prefix="${PHP_INSTALL_DIR}" --with-config-file-path="$PHP_INI_DIR" --with-config-file-scan-dir="$CONF_DIR" --enable-option-checking=fatal --with-curl --with-libedit --enable-mbstring --with-openssl --with-zlib --with-password-argon2 --with-sodium=shared "$VERSION_CONFIG" EXTENSION_DIR="$PHP_EXT_DIR";
 
-    PHP_URL="https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz"
+    make -j "$(nproc)"
+    find -type f -name '*.a' -delete
+    make install
+    find "${PHP_INSTALL_DIR}" -type f -executable -exec strip --strip-all '{}' + || true
+    make clean
 
-    PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
-    CONF_DIR="${PHP_INI_DIR}/conf.d"
-    mkdir -p "${CONF_DIR}";
+    cp -v $PHP_SRC_DIR/php.ini-* "$PHP_INI_DIR/";
+    cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-    PHP_EXT_DIR="${PHP_INSTALL_DIR}/extensions"
-    mkdir -p "${PHP_EXT_DIR}"
+    # Install xdebug
+    "${PHP_INSTALL_DIR}/bin/pecl" install xdebug
+    XDEBUG_INI="${CONF_DIR}/xdebug.ini"
 
-    PHP_SRC_DIR="/usr/src/php"
-    mkdir -p $PHP_SRC_DIR
-    cd $PHP_SRC_DIR
-
-    wget -O php.tar.xz "$PHP_URL" || install_previous_version "8.2"
-    tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR"
+    echo "zend_extension=${PHP_EXT_DIR}/xdebug.so" > "${XDEBUG_INI}"
+    echo "xdebug.mode = debug" >> "${XDEBUG_INI}"
+    echo "xdebug.start_with_request = yes" >> "${XDEBUG_INI}"
+    echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
 }
 
 install_php

@@ -170,9 +170,7 @@ addcomposer() {
     "${PHP_SRC}" -r "unlink('composer-setup.php');"
 }
 
-install_previous_version() {
-    echo -e "\nInstalling Previous Version..."
-    find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+init_php_install() {
     PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
     if [ -d "${PHP_INSTALL_DIR}" ]; then
         echo "(!) PHP version ${PHP_VERSION} already exists."
@@ -183,7 +181,6 @@ install_previous_version() {
         groupadd -r php
     fi
     usermod -a -G php "${USERNAME}"
-
     PHP_URL="https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz"
 
     PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
@@ -196,33 +193,25 @@ install_previous_version() {
     PHP_SRC_DIR="/usr/src/php"
     mkdir -p $PHP_SRC_DIR
     cd $PHP_SRC_DIR
-    wget -O php.tar.xz "$PHP_URL"
+}
+
+install_previous_version() {
+    if [[ $PHP_VERSION == "latest" ]]; then 
+        echo -e "\nInstalling Previous Version..."
+        find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+        init_php_install
+        wget -O php.tar.xz "$PHP_URL"
+    else 
+        echo "Failed to install PHP v${PHP_VERSION}..."
+        exit 1
+    fi
 }
 
 install_php() {
     PHP_VERSION="$1"
-    PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
-    if [ -d "${PHP_INSTALL_DIR}" ]; then
-        echo "(!) PHP version ${PHP_VERSION} already exists."
-        exit 1
-    fi
 
-    if ! cat /etc/group | grep -e "^php:" > /dev/null 2>&1; then
-        groupadd -r php
-    fi
-    usermod -a -G php "${USERNAME}"
-    PHP_URL="https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz"
-
-    PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
-    CONF_DIR="${PHP_INI_DIR}/conf.d"
-    mkdir -p "${CONF_DIR}";
-
-    PHP_EXT_DIR="${PHP_INSTALL_DIR}/extensions"
-    mkdir -p "${PHP_EXT_DIR}"
-
-    PHP_SRC_DIR="/usr/src/php"
-    mkdir -p $PHP_SRC_DIR
-    cd $PHP_SRC_DIR
+    init_php_install
+    
     wget -O php.tar.xz "$PHP_URL" || install_previous_version
 
     tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR" --strip-components=1
