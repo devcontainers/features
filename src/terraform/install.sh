@@ -226,12 +226,12 @@ get_previous_version() {
     prev_version=${!variable_name}
     
     output=$(curl -s "$repo_url");
-    # checking if jq package exists
-    if ! command -v jq &> /dev/null
-    then
-        echo "jq could not be found, attempting to install..."
-        apt-get update && apt-get install -y jq
+
+    # install jq if not exists
+    if ! type jq > /dev/null 2>&1; then
+        check_packages jq
     fi
+    
     message=$(echo "$output" | jq -r '.message')
     
     if [[ $message == "API rate limit exceeded"* ]]; then
@@ -421,6 +421,7 @@ install_terragrunt() {
 
 if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
     echo "Downloading Terragrunt..."
+    TERRAGRUNT_VERSION="0.55.XYZ"
     terragrunt_filename="terragrunt_linux_${architecture}"
     install_terragrunt "$TERRAGRUNT_VERSION"
     output=$(cat "/tmp/tf-downloads/${terragrunt_filename}")
