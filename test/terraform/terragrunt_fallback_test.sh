@@ -183,7 +183,8 @@ try_install_dummy_terragrunt_version() {
     echo "Downloading Terragrunt... v${TERRAGRUNT_VERSION}"
     terragrunt_filename="terragrunt_linux_${architecture}"
     install_terragrunt "$TERRAGRUNT_VERSION"
-    if grep -q "Not Found" "/tmp/tf-downloads/${terragrunt_filename}"; then
+    output=$(cat "/tmp/tf-downloads/${terragrunt_filename}")
+    if [[ $output == "Not Found" ]]; then
         install_previous_version TERRAGRUNT_VERSION $terragrunt_url $mode
     fi
     if [ "${TERRAGRUNT_SHA256}" != "dev-mode" ]; then
