@@ -226,6 +226,12 @@ get_previous_version() {
     prev_version=${!variable_name}
     
     output=$(curl -s "$repo_url");
+    # checking if jq package exists
+    if ! command -v jq &> /dev/null
+    then
+        echo "jq could not be found, attempting to install..."
+        apt-get update && apt-get install -y jq
+    fi
     message=$(echo "$output" | jq -r '.message')
     
     if [[ $message == "API rate limit exceeded"* ]]; then
@@ -233,7 +239,7 @@ get_previous_version() {
         echo -e "\nAttempting to find latest version using GitHub tags."
         find_prev_version_from_git_tags prev_version "$url" "tags/v"
         declare -g ${variable_name}="${prev_version}"
-    else 
+    else
         echo -e "\nAttempting to find latest version using GitHub Api."
         version=$(echo "$output" | jq -r '.tag_name')
         declare -g ${variable_name}="${version#v}"
