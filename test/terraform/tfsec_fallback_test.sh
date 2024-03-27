@@ -107,6 +107,22 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
+apt_get_update()
+{
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
+}
+
+# Checks if packages are installed and installs them if not
+check_packages() {
+    if ! dpkg -s "$@" > /dev/null 2>&1; then
+        apt_get_update
+        apt-get -y install --no-install-recommends "$@"
+    fi
+}
+
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     local url=$1
@@ -116,11 +132,9 @@ get_previous_version() {
     prev_version=${!variable_name}
     
     output=$(curl -s "$repo_url");
-    # checking if jq package exists
-    if ! command -v jq &> /dev/null
-    then
-        echo "jq could not be found, attempting to install..."
-        apt-get update && apt-get install -y jq
+    # install jq if not exists
+    if ! type jq > /dev/null 2>&1; then
+        check_packages jq
     fi
     message=$(echo "$output" | jq -r '.message')
     if [[ "$mode" == "mode1" ]]; then
