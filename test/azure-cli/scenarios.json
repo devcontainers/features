@@ -44,8 +44,7 @@
     "user": "vscode",
     "features": {
       "azure-cli": {
-        "version": "latest",
-        "installUsingPython": true
+        "version": "latest"
       }
     }
   }
