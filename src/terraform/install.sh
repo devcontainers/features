@@ -137,6 +137,47 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+# Use semver logic to decrement a version number then look for the closest match
+find_prev_version_from_git_tags() {
+    local variable_name=$1
+    local current_version=${!variable_name}
+    local repository=$2
+    # Normally a "v" is used before the version number, but support alternate cases
+    local prefix=${3:-"tags/v"}
+    # Some repositories use "_" instead of "." for version number part separation, support that
+    local separator=${4:-"."}
+    # Some tools release versions that omit the last digit (e.g. go)
+    local last_part_optional=${5:-"false"}
+    # Some repositories may have tags that include a suffix (e.g. actions/node-versions)
+    local version_suffix_regex=$6
+    # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
+    set +e
+        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+
+        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+            ((major=major-1))
+            declare -g ${variable_name}="${major}"
+            # Look for latest version from previous major release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        # Handle situations like Go's odd version pattern where "0" releases omit the last part
+        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+            ((minor=minor-1))
+            declare -g ${variable_name}="${major}.${minor}"
+            # Look for latest version from previous minor release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        else
+            ((breakfix=breakfix-1))
+            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+                declare -g ${variable_name}="${major}.${minor}"
+            else 
+                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            fi
+        fi
+    set -e
+}
+
 find_sentinel_version_from_url() {
     local variable_name=$1
     local requested_version=${!variable_name}
@@ -179,39 +220,84 @@ check_packages() {
 
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
-    REPO_URL=$1
-    if command -v jq &> /dev/null; then
-        curl -s "${REPO_URL}/latest" | jq -r '.tag_name'
+    local url=$1
+    local repo_url=$2
+    local variable_name=$3
+    prev_version=${!variable_name}
+    
+    output=$(curl -s "$repo_url");
+    message=$(echo "$output" | jq -r '.message')
+    
+    if [[ $message == "API rate limit exceeded"* ]]; then
+        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
+        echo -e "\nAttempting to find latest version using GitHub tags."
+        find_prev_version_from_git_tags prev_version "$url" "tags/v"
+        declare -g ${variable_name}="${prev_version}"
     else 
-        curl -s "${REPO_URL}/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/'
-    fi
+        echo -e "\nAttempting to find latest version using GitHub Api."
+        version=$(echo "$output" | jq -r '.tag_name')
+        declare -g ${variable_name}="${version#v}"
+    fi  
+    echo "${variable_name}=${!variable_name}"
+}
+
+get_github_api_repo_url() {
+    local url=$1
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
+}
+
+get_pkg_name() {
+    local input_string="$1"
+    local lowercase_input="${input_string,,}"  # Convert to lowercase
+    local suffix="_version"
+    local substring="${lowercase_input%$suffix*}"  # Remove suffix and everything after it
+    echo "$substring"
 }
 
 install_previous_version() {
-    local given_version=$1
-    local requested_version=${!given_version}
-    local PKG_NAME=$2
-    local REPO_URL=$3
+    given_version=$1
+    requested_version=${!given_version}
+    local URL=$2
+    local REPO_URL=$(get_github_api_repo_url "$URL")
+    local PKG_NAME=$(get_pkg_name "${given_version}")
     echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${requested_version}..."
-    requested_version=$(get_previous_version "${REPO_URL}")
+    get_previous_version "$URL" "$REPO_URL" requested_version
     echo -e "\nAttempting to install ${requested_version}"
     declare -g ${given_version}="${requested_version#v}"
     INSTALLER_FN="install_${PKG_NAME}"
-    $INSTALLER_FN "${requested_version#v}"
+    $INSTALLER_FN "${!given_version}"
     echo "${given_version}=${!given_version}"
 }
 
+# Function to check if URL returns 404
+check_failure() {
+    local url="$1"
+    local resp_code=$2
+    local response_code=$(curl -o /dev/null -s -w "%{http_code}\n" "$url")
+    declare -g ${resp_code}="$response_code"
+}
+
 install_cosign() {
-    local COSIGN_VERSION=$1
-    curl -L "https://github.com/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb" -o /tmp/cosign_${COSIGN_VERSION}_${architecture}.deb
-    output=$(cat /tmp/cosign_${COSIGN_VERSION}_${architecture}.deb)
-    if [[ "$output" != *"Not Found"* ]]; then
-        dpkg -i /tmp/cosign_${COSIGN_VERSION}_${architecture}.deb
-        rm /tmp/cosign_${COSIGN_VERSION}_${architecture}.deb
-        echo "Installation of cosign succeeded with ${COSIGN_VERSION}."
+    COSIGN_VERSION=$1
+    local URL=$2
+    cosign_filename="/tmp/cosign_${COSIGN_VERSION}_${architecture}.deb"
+    cosign_url="https://github.com/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb"
+    resp_code=200
+    check_failure "$cosign_url" resp_code
+    if [ "$resp_code" -eq 404 ] || [ "$resp_code" -eq 302 ]; then
+        echo -e "\n(!) Failed to fetch the latest artifacts for cosign v${COSIGN_VERSION}..."
+        REPO_URL=$(get_github_api_repo_url "$URL")
+        get_previous_version "$URL" "$REPO_URL" COSIGN_VERSION
+        echo -e "\nAttempting to install ${COSIGN_VERSION}"
+        cosign_filename="/tmp/cosign_${COSIGN_VERSION}_${architecture}.deb"
+        cosign_url="https://github.com/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb"
+        curl -fsSL "${cosign_url}" -o $cosign_filename
     else 
-        echo "Installation Failed."
+        curl -fsSL "${cosign_url}" -o $cosign_filename
     fi
+    dpkg -i $cosign_filename
+    rm $cosign_filename
+    echo "Installation of cosign succeeded with ${COSIGN_VERSION}."
 }
 
 # Install 'cosign' for validating signatures
@@ -221,12 +307,10 @@ ensure_cosign() {
 
     if ! type cosign > /dev/null 2>&1; then
         echo "Installing cosign..."
-        LATEST_COSIGN_VERSION="latest"
-        find_version_from_git_tags LATEST_COSIGN_VERSION 'https://github.com/sigstore/cosign'
-        INSTALL_STATUS=$(install_cosign "${LATEST_COSIGN_VERSION}");
-        if [[ "${INSTALL_STATUS}" == "Installation Failed." ]]; then
-            install_previous_version LATEST_COSIGN_VERSION "cosign" "https://api.github.com/repos/sigstore/cosign/releases"
-        fi
+        COSIGN_VERSION="latest"
+        cosign_url='https://github.com/sigstore/cosign'
+        find_version_from_git_tags COSIGN_VERSION "${cosign_url}"
+        install_cosign "${COSIGN_VERSION}" "${cosign_url}"
     fi
     if ! type cosign > /dev/null 2>&1; then
         echo "(!) Failed to install cosign."
@@ -244,10 +328,13 @@ if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
 
+terraform_url='https://github.com/hashicorp/terraform'
+tflint_url='https://github.com/terraform-linters/tflint'
+terragrunt_url='https://github.com/gruntwork-io/terragrunt'
 # Verify requested version is available, convert latest
-find_version_from_git_tags TERRAFORM_VERSION 'https://github.com/hashicorp/terraform'
-find_version_from_git_tags TFLINT_VERSION 'https://github.com/terraform-linters/tflint'
-find_version_from_git_tags TERRAGRUNT_VERSION 'https://github.com/gruntwork-io/terragrunt'
+find_version_from_git_tags TERRAFORM_VERSION "$terraform_url"
+find_version_from_git_tags TFLINT_VERSION "$tflint_url"
+find_version_from_git_tags TERRAGRUNT_VERSION "$terragrunt_url"
 
 install_terraform() {
     local TERRAFORM_VERSION=$1
@@ -262,7 +349,7 @@ echo "Downloading terraform..."
 terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
 install_terraform "$TERRAFORM_VERSION"
 if grep -q "The specified key does not exist." "${terraform_filename}"; then
-    install_previous_version TERRAFORM_VERSION "terraform" "https://api.github.com/repos/hashicorp/terraform/releases"
+    install_previous_version TERRAFORM_VERSION $terraform_url
     terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
 fi
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
@@ -281,7 +368,6 @@ mv -f terraform /usr/local/bin/
 
 install_tflint() {
     TFLINT_VERSION=$1
-    TFLINT_FILENAME="tflint_linux_${architecture}.zip"
     curl -sSL -o /tmp/tf-downloads/${TFLINT_FILENAME} https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/${TFLINT_FILENAME}
 }
 
@@ -290,7 +376,7 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
     TFLINT_FILENAME="tflint_linux_${architecture}.zip"
     install_tflint "$TFLINT_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${TFLINT_FILENAME}"; then 
-        install_previous_version TFLINT_VERSION "tflint" "https://api.github.com/repos/terraform-linters/tflint/releases"
+        install_previous_version TFLINT_VERSION "$tflint_url"
     fi
     if [ "${TFLINT_SHA256}" != "dev-mode" ]; then
 
@@ -335,7 +421,6 @@ fi
 
 install_terragrunt() {
     TERRAGRUNT_VERSION=$1
-    terragrunt_filename="terragrunt_linux_${architecture}"
     curl -sSL -o /tmp/tf-downloads/${terragrunt_filename} https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/${terragrunt_filename}
 }
 
@@ -344,7 +429,7 @@ if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
     terragrunt_filename="terragrunt_linux_${architecture}"
     install_terragrunt "$TERRAGRUNT_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${terragrunt_filename}"; then
-        install_previous_version TERRAGRUNT_VERSION "terragrunt" "https://api.github.com/repos/gruntwork-io/terragrunt/releases"
+        install_previous_version TERRAGRUNT_VERSION $terragrunt_url
     fi
     if [ "${TERRAGRUNT_SHA256}" != "dev-mode" ]; then
         if [ "${TERRAGRUNT_SHA256}" = "automatic" ]; then
@@ -391,12 +476,13 @@ install_tfsec() {
 
 if [ "${INSTALL_TFSEC}" = "true" ]; then
     TFSEC_VERSION="latest"
-    find_version_from_git_tags TFSEC_VERSION 'https://github.com/aquasecurity/tfsec'
+    tfsec_url='https://github.com/aquasecurity/tfsec'
+    find_version_from_git_tags TFSEC_VERSION $tfsec_url
     tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
     echo "(*) Downloading TFSec... ${tfsec_filename}"
     install_tfsec "$TFSEC_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${tfsec_filename}"; then 
-        install_previous_version TFSEC_VERSION "tfsec" "https://api.github.com/repos/aquasecurity/tfsec/releases"
+        install_previous_version TFSEC_VERSION $tfsec_url
         tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
     fi
     if [ "${TFSEC_SHA256}" != "dev-mode" ]; then
@@ -413,7 +499,7 @@ if [ "${INSTALL_TFSEC}" = "true" ]; then
     mv -f /tmp/tf-downloads/tfsec/tfsec /usr/local/bin/tfsec
 fi
 
-install_tfdocs() {
+install_terraform_docs() {
     local TERRAFORM_DOCS_VERSION=$1
     tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
     curl -sSL -o /tmp/tf-downloads/${tfdocs_filename} https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/${tfdocs_filename}
@@ -421,12 +507,13 @@ install_tfdocs() {
 
 if [ "${INSTALL_TERRAFORM_DOCS}" = "true" ]; then
     TERRAFORM_DOCS_VERSION="latest"
-    find_version_from_git_tags TERRAFORM_DOCS_VERSION 'https://github.com/terraform-docs/terraform-docs'
+    terraform_docs_url='https://github.com/terraform-docs/terraform-docs'
+    find_version_from_git_tags TERRAFORM_DOCS_VERSION $terraform_docs_url
     tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
     echo "(*) Downloading Terraform docs... ${tfdocs_filename}"
-    install_tfdocs "$TERRAFORM_DOCS_VERSION"
+    install_terraform_docs "$TERRAFORM_DOCS_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${tfdocs_filename}"; then
-        install_previous_version TERRAFORM_DOCS_VERSION "tfdocs" "https://api.github.com/repos/terraform-docs/terraform-docs/releases"
+        install_previous_version TERRAFORM_DOCS_VERSION $terraform_docs_url
         tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
     fi
     if [ "${TERRAFORM_DOCS_SHA256}" != "dev-mode" ]; then
