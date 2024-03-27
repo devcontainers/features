@@ -227,10 +227,8 @@ get_previous_version() {
     
     output=$(curl -s "$repo_url");
 
-    # install jq if not exists
-    if ! type jq > /dev/null 2>&1; then
-        check_packages jq
-    fi
+    # install jq
+    check_packages jq
     
     message=$(echo "$output" | jq -r '.message')
     
@@ -252,25 +250,17 @@ get_github_api_repo_url() {
     echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
-get_pkg_name() {
-    local input_string="$1"
-    local lowercase_input="${input_string,,}"  # Convert to lowercase
-    local suffix="_version"
-    local substring="${lowercase_input%$suffix*}"  # Remove suffix and everything after it
-    echo "$substring"
-}
-
 install_previous_version() {
     given_version=$1
     requested_version=${!given_version}
     local URL=$2
+    INSTALLER_FN=$3
     local REPO_URL=$(get_github_api_repo_url "$URL")
     local PKG_NAME=$(get_pkg_name "${given_version}")
     echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${requested_version}..."
     get_previous_version "$URL" "$REPO_URL" requested_version
     echo -e "\nAttempting to install ${requested_version}"
     declare -g ${given_version}="${requested_version#v}"
-    INSTALLER_FN="install_${PKG_NAME}"
     $INSTALLER_FN "${!given_version}"
     echo "${given_version}=${!given_version}"
 }
@@ -344,7 +334,7 @@ echo "Downloading terraform..."
 terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
 install_terraform "$TERRAFORM_VERSION"
 if grep -q "The specified key does not exist." "${terraform_filename}"; then
-    install_previous_version TERRAFORM_VERSION $terraform_url
+    install_previous_version TERRAFORM_VERSION $terraform_url "install_terraform"
     terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
 fi
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
@@ -371,7 +361,7 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
     TFLINT_FILENAME="tflint_linux_${architecture}.zip"
     install_tflint "$TFLINT_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${TFLINT_FILENAME}"; then 
-        install_previous_version TFLINT_VERSION "$tflint_url"
+        install_previous_version TFLINT_VERSION "$tflint_url" "install_tflint"
     fi
     if [ "${TFLINT_SHA256}" != "dev-mode" ]; then
 
@@ -421,12 +411,11 @@ install_terragrunt() {
 
 if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
     echo "Downloading Terragrunt..."
-    TERRAGRUNT_VERSION="0.55.XYZ"
     terragrunt_filename="terragrunt_linux_${architecture}"
     install_terragrunt "$TERRAGRUNT_VERSION"
     output=$(cat "/tmp/tf-downloads/${terragrunt_filename}")
     if [[ $output == "Not Found" ]]; then
-        install_previous_version TERRAGRUNT_VERSION $terragrunt_url
+        install_previous_version TERRAGRUNT_VERSION $terragrunt_url "install_terragrunt"
     fi
     if [ "${TERRAGRUNT_SHA256}" != "dev-mode" ]; then
         if [ "${TERRAGRUNT_SHA256}" = "automatic" ]; then
@@ -479,7 +468,7 @@ if [ "${INSTALL_TFSEC}" = "true" ]; then
     echo "(*) Downloading TFSec... ${tfsec_filename}"
     install_tfsec "$TFSEC_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${tfsec_filename}"; then 
-        install_previous_version TFSEC_VERSION $tfsec_url
+        install_previous_version TFSEC_VERSION $tfsec_url "install_tfsec"
         tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
     fi
     if [ "${TFSEC_SHA256}" != "dev-mode" ]; then
@@ -510,7 +499,7 @@ if [ "${INSTALL_TERRAFORM_DOCS}" = "true" ]; then
     echo "(*) Downloading Terraform docs... ${tfdocs_filename}"
     install_terraform_docs "$TERRAFORM_DOCS_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${tfdocs_filename}"; then
-        install_previous_version TERRAFORM_DOCS_VERSION $terraform_docs_url
+        install_previous_version TERRAFORM_DOCS_VERSION $terraform_docs_url "install_terraform_docs"
         tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
     fi
     if [ "${TERRAFORM_DOCS_SHA256}" != "dev-mode" ]; then

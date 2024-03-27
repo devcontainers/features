@@ -129,10 +129,10 @@ get_previous_version() {
     prev_version=${!variable_name}
     
     output=$(curl -s "$repo_url");
-    # install jq if not exists
-    if ! type jq > /dev/null 2>&1; then
-        check_packages jq
-    fi
+
+    # install jq
+    check_packages jq
+
     message=$(echo "$output" | jq -r '.message')
     if [[ "$mode" == "mode1" ]]; then
         message="API rate limit exceeded";
@@ -157,26 +157,18 @@ get_github_api_repo_url() {
     echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
-get_pkg_name() {
-    local input_string="$1"
-    local lowercase_input="${input_string,,}"  # Convert to lowercase
-    local suffix="_version"
-    local substring="${lowercase_input%$suffix*}"  # Remove suffix and everything after it
-    echo "$substring"
-}
-
 install_previous_version() {
     given_version=$1
     requested_version=${!given_version}
     local URL=$2
     local mode=$3
+    INSTALLER_FN=$4
     local REPO_URL=$(get_github_api_repo_url "$URL")
     local PKG_NAME=$(get_pkg_name "${given_version}")
     echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${requested_version}..."
     get_previous_version "$URL" "$REPO_URL" requested_version $mode
     echo -e "\nAttempting to install ${requested_version}"
     declare -g ${given_version}="${requested_version#v}"
-    INSTALLER_FN="install_${PKG_NAME}"
     $INSTALLER_FN "${!given_version}"
     echo "${given_version}=${!given_version}"
 }
@@ -200,7 +192,7 @@ try_install_dummy_terragrunt_version() {
     install_terragrunt "$TERRAGRUNT_VERSION"
     output=$(cat "/tmp/tf-downloads/${terragrunt_filename}")
     if [[ $output == "Not Found" ]]; then
-        install_previous_version TERRAGRUNT_VERSION $terragrunt_url $mode
+        install_previous_version TERRAGRUNT_VERSION $terragrunt_url $mode "install_terragrunt"
     fi
     if [ "${TERRAGRUNT_SHA256}" != "dev-mode" ]; then
         if [ "${TERRAGRUNT_SHA256}" = "automatic" ]; then

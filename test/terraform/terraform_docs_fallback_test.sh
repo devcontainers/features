@@ -130,10 +130,8 @@ get_previous_version() {
     
     output=$(curl -s "$repo_url");
 
-    # install jq if not exists
-    if ! type jq > /dev/null 2>&1; then
-        check_packages jq
-    fi
+    # install jq
+    check_packages jq
     
     message=$(echo "$output" | jq -r '.message')
     if [[ "$mode" == "mode1" ]]; then
@@ -159,26 +157,18 @@ get_github_api_repo_url() {
     echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
-get_pkg_name() {
-    local input_string="$1"
-    local lowercase_input="${input_string,,}"  # Convert to lowercase
-    local suffix="_version"
-    local substring="${lowercase_input%$suffix*}"  # Remove suffix and everything after it
-    echo "$substring"
-}
-
 install_previous_version() {
     given_version=$1
     requested_version=${!given_version}
     local URL=$2
     local mode=$3
+    INSTALLER_FN=$4
     local REPO_URL=$(get_github_api_repo_url "$URL")
     local PKG_NAME=$(get_pkg_name "${given_version}")
     echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${requested_version}..."
     get_previous_version "$URL" "$REPO_URL" requested_version $mode
     echo -e "\nAttempting to install ${requested_version}"
     declare -g ${given_version}="${requested_version#v}"
-    INSTALLER_FN="install_${PKG_NAME}"
     $INSTALLER_FN "${!given_version}"
     echo "${given_version}=${!given_version}"
 }
@@ -201,7 +191,7 @@ try_install_terraform_docs_dummy_version() {
     echo "(*) Downloading Terraform docs... ${tfdocs_filename}"
     install_terraform_docs "$TERRAFORM_DOCS_VERSION"
     if grep -q "Not Found" "/tmp/tf-downloads/${tfdocs_filename}"; then
-        install_previous_version TERRAFORM_DOCS_VERSION $terraform_docs_url $mode
+        install_previous_version TERRAFORM_DOCS_VERSION $terraform_docs_url $mode "install_terraform_docs"
         tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
     fi
     if [ "${TERRAFORM_DOCS_SHA256}" != "dev-mode" ]; then
