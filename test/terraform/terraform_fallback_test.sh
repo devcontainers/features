@@ -1,34 +1,30 @@
 #!/bin/bash
 
-# Optional: Import test library
+set -e
+
+# Import test library for `check` command
 source dev-container-features-test-lib
 
-echo -e "\n👉 Checking version of compose-switch installed as docker-compose as installed by feature";
-check "installs compose-switch as docker-compose" bash -c "[[ -f /usr/local/bin/docker-compose ]]"
+# Check to make sure the user is vscode
+check "user is vscode" whoami | grep vscode
 
-trap 'echo "Last executed command failed at line ${LINENO}"' ERR
-
-# Fetch host/container arch.
-architecture="$(dpkg --print-architecture)"
-
-sudo mkdir -p /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-apt_get_update()
-{
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update -y
-    fi
+set_error_handler() {
+    echo "Error occurred on line: $LINENO"
 }
 
-# Checks if packages are installed and installs them if not
-check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
-    fi
-}
+# Register the error handler function to be triggered on ERR signal
+trap 'set_error_handler' ERR
+
+check "terraform version as installed by feature" terraform --version
+
+architecture="$(uname -m)"
+case ${architecture} in
+    x86_64) architecture="amd64";;
+    aarch64 | armv8*) architecture="arm64";;
+    aarch32 | armv7* | armvhf*) architecture="arm";;
+    i?86) architecture="386";;
+    *) echo "(!) Architecture ${architecture} unsupported"; exit 1 ;;
+esac
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -38,7 +34,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}
+    local last_part_optional=${5:-"false"}    
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -105,6 +101,22 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
+apt_get_update()
+{
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
+}
+
+# Checks if packages are installed and installs them if not
+check_packages() {
+    if ! dpkg -s "$@" > /dev/null 2>&1; then
+        apt_get_update
+        apt-get -y install --no-install-recommends "$@"
+    fi
+}
+
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     local url=$1
@@ -115,22 +127,21 @@ get_previous_version() {
     
     output=$(curl -s "$repo_url");
 
+    # install jq
     check_packages jq
 
     message=$(echo "$output" | jq -r '.message')
-
-    if [[ $mode == 'mode1' ]]; then
-        message="API rate limit exceeded"
-    else 
+    if [[ "$mode" == "mode1" ]]; then
+        message="API rate limit exceeded";
+    elif [[ "$mode" == "mode2" ]]; then
         message=""
-    fi
-    
+    fi 
     if [[ $message == "API rate limit exceeded"* ]]; then
         echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
         echo -e "\nAttempting to find latest version using GitHub tags."
         find_prev_version_from_git_tags prev_version "$url" "tags/v"
         declare -g ${variable_name}="${prev_version}"
-    else 
+    else
         echo -e "\nAttempting to find latest version using GitHub Api."
         version=$(echo "$output" | jq -r '.tag_name')
         declare -g ${variable_name}="${version#v}"
@@ -143,29 +154,53 @@ get_github_api_repo_url() {
     echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
-install_compose_switch_fallback() {
-    compose_switch_url=$1
-    mode=$2
-    repo_url=$(get_github_api_repo_url "${compose_switch_url}")
-    echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
-    get_previous_version "${compose_switch_url}" "${repo_url}" compose_switch_version $mode
-    echo -e "\nAttempting to install v${compose_switch_version}"
-    sudo curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose
+install_previous_version() {
+    given_version=$1
+    requested_version=${!given_version}
+    local URL=$2
+    local mode=$3
+    INSTALLER_FN=$4
+    local REPO_URL=$(get_github_api_repo_url "$URL")
+    local PKG_NAME=$(get_pkg_name "${given_version}")
+    echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${requested_version}..."
+    get_previous_version "$URL" "$REPO_URL" requested_version $mode
+    echo -e "\nAttempting to install ${requested_version}"
+    declare -g ${given_version}="${requested_version#v}"
+    $INSTALLER_FN "${!given_version}"
+    echo "${given_version}=${!given_version}"
 }
 
-install_compose-switch_as_docker-compose() {
+install_terraform() {
+    local TERRAFORM_VERSION=$1
+    terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
+    curl -sSL -o ${terraform_filename} "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/${terraform_filename}"
+}
+
+try_install_dummy_terraform_version() {
     mode=$1
-    echo "(*) Installing compose-switch as docker-compose..."
-    compose_switch_version="1.0.6"
-    compose_switch_url="https://github.com/docker/compose-switch"
-    sudo curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose || install_compose_switch_fallback "${compose_switch_url}" $mode
-    sudo chmod +x /usr/local/bin/docker-compose
+    mkdir -p /tmp/tf-downloads
+    cd /tmp/tf-downloads
+    terraform_url='https://github.com/hashicorp/terraform'
+    TERRAFORM_VERSION="1.7.xyz"
+    echo -e "\nAttempting to install dummy version for Terraform v${TERRAFORM_VERSION}..."
+    terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
+    install_terraform "$TERRAFORM_VERSION"
+    if grep -q "The specified key does not exist." "${terraform_filename}"; then
+        install_previous_version TERRAFORM_VERSION $terraform_url $mode "install_terraform"
+        terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
+    fi
+    unzip ${terraform_filename}
+    sudo mv -f terraform /usr/local/bin/
 }
 
-echo -e "\n👉 Trying to install compose-switch as docker-compose using mode 1 ( find_prev_version_from_git_tags method )";
-install_compose-switch_as_docker-compose "mode1"
-check "installs compose-switch as docker-compose mode 1" bash -c "[[ -f /usr/local/bin/docker-compose ]]"
+try_install_dummy_terraform_version "mode1"
 
-echo -e "\n👉 Trying to install compose-switch as docker-compose using mode 2 ( GitHub Api )";
-install_compose-switch_as_docker-compose "mode2"
-check "installs compose-switch as docker-compose mode 2" bash -c "[[ -f /usr/local/bin/docker-compose ]]"
+check "terraform version as installed by test after fallbacking from the dummy version (mode 1: install using find_prev_version_from_git_tags)" terraform --version
+
+try_install_dummy_terraform_version "mode2"
+
+check "terraform version as installed by test after fallbacking from the dummy version (mode 2: install using GitHub Api)" terraform --version
+
+# Report result
+reportResults
+
