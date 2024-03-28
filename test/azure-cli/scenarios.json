@@ -48,8 +48,8 @@
       }
     }
   },
-  "install_using_python_with_python_3_12_bookworm": {
-    "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+  "install_using_python_with_python_3_11_bullseye": {
+    "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bullseye",
     "user": "vscode",
     "features": {
       "azure-cli": {
