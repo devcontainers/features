@@ -15,11 +15,51 @@
             }
         }
     },
+    "tfsec_fallback_test": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "installTFsec": true
+            }
+        }
+    },
     "install_terraform_docs": {
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
             "terraform": {
                 "installTerraformDocs": true
+            }
+        }
+    },
+    "terraform_docs_fallback_test": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "installTerraformDocs": true
+            }
+        }
+    },
+    "terraform_fallback_test": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "version": "latest"
+            }
+        }
+    },
+    "terragrunt_fallback_test": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "terragrunt": "latest"
+            }
+        }
+    },
+    "tflint_fallback_test": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "tflint": "latest"
             }
         }
     },
