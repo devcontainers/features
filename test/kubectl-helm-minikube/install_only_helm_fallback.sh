@@ -31,33 +31,118 @@ case $architecture in
     i?86) architecture="386";;
     *) echo "(!) Architecture $architecture unsupported"; exit 1 ;;
 esac
-HELM_SHA256="${HELM_SHA256:-"automatic"}"
-HELM_GPG_KEYS_URI="https://raw.githubusercontent.com/helm/helm/main/KEYS"
 
-repo_url=https://api.github.com/repos/helm/helm/releases
+helm_url="https://github.com/helm/helm"
 
-# Function to fetch the latest version of the plugin
-get_latest_version() {
-    curl -s "$repo_url/latest" | jq -r '.tag_name'
+# Figure out correct version of a three part version number is not passed
+find_version_from_git_tags() {
+    local variable_name=$1
+    local requested_version=${!variable_name}
+    if [ "${requested_version}" = "none" ]; then return; fi
+    local repository=$2
+    local prefix=${3:-"tags/v"}
+    local separator=${4:-"."}
+    local last_part_optional=${5:-"false"}    
+    if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
+        local escaped_separator=${separator//./\\.}
+        local last_part
+        if [ "${last_part_optional}" = "true" ]; then
+            last_part="(${escaped_separator}[0-9]+)?"
+        else
+            last_part="${escaped_separator}[0-9]+"
+        fi
+        local regex="${prefix}\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
+        local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
+        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
+            declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
+        else
+            set +e
+            declare -g ${variable_name}="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
+            set -e
+        fi
+    fi
+    if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" > /dev/null 2>&1; then
+        echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
+        exit 1
+    fi
+    echo "${variable_name}=${!variable_name}"
 }
 
-# Function to change the patch number in a semver version
-change_patch_number() {
-    local version="$1"  # Input version
-    local new_patch="$2"  # New patch number
-    # Extract major, minor, and current patch numbers
-    local major=$(echo "$version" | cut -d. -f1)
-    local minor=$(echo "$version" | cut -d. -f2)
-    local current_patch=$(echo "$version" | cut -d. -f3)
-    # Construct the new version with the updated patch number
-    local new_version="$major.$minor.$new_patch"
-    echo "$new_version"
+# Use semver logic to decrement a version number then look for the closest match
+find_prev_version_from_git_tags() {
+    local variable_name=$1
+    local current_version=${!variable_name}
+    local repository=$2
+    # Normally a "v" is used before the version number, but support alternate cases
+    local prefix=${3:-"tags/v"}
+    # Some repositories use "_" instead of "." for version number part separation, support that
+    local separator=${4:-"."}
+    # Some tools release versions that omit the last digit (e.g. go)
+    local last_part_optional=${5:-"false"}
+    # Some repositories may have tags that include a suffix (e.g. actions/node-versions)
+    local version_suffix_regex=$6
+    # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
+    set +e
+        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+
+        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+            ((major=major-1))
+            declare -g ${variable_name}="${major}"
+            # Look for latest version from previous major release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        # Handle situations like Go's odd version pattern where "0" releases omit the last part
+        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+            ((minor=minor-1))
+            declare -g ${variable_name}="${major}.${minor}"
+            # Look for latest version from previous minor release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        else
+            ((breakfix=breakfix-1))
+            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+                declare -g ${variable_name}="${major}.${minor}"
+            else 
+                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            fi
+        fi
+    set -e
 }
 
-# Function to fetch the previous version of the plugin
+# Function to fetch the version released prior to the latest version
 get_previous_version() {
-    # this would del the assets key and then get the second encountered tag_name's value from the filtered array of objects
-    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name' 
+    local url=$1
+    local repo_url=$2
+    local variable_name=$3
+    local mode=$4
+    prev_version=${!variable_name#v}
+    
+    output=$(curl -s "$repo_url");
+
+    message=$(echo "$output" | jq -r '.message')
+
+    if [ $mode == "mode1" ]; then
+        message="API rate limit exceeded"
+    else 
+        message=""
+    fi
+
+    if [[ $message == "API rate limit exceeded"* ]]; then
+        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
+        echo -e "\nAttempting to find latest version using GitHub tags."
+        find_prev_version_from_git_tags prev_version "$url" "tags/v"
+        declare -g ${variable_name}="v${prev_version}"
+    else 
+        echo -e "\nAttempting to find latest version using GitHub Api."
+        version=$(echo "$output" | jq -r '.tag_name')
+        declare -g ${variable_name}="${version}"
+    fi  
+    echo "${variable_name}=${!variable_name}"
+}
+
+get_github_api_repo_url() {
+    local url=$1
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
 get_helm() {
@@ -68,53 +153,30 @@ get_helm() {
     sudo curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
 }
 
-latest_version=$(get_latest_version)
-NON_EXISTING_PATCH_VERSION="xyz"
-HELM_VERSION="$(change_patch_number ${latest_version} ${NON_EXISTING_PATCH_VERSION})"
-echo -e "\n👉${HL} Trying to install HELM_VERSION = ${HELM_VERSION}${N}"; 
-sudo mkdir -p /tmp/helm
-get_helm "${HELM_VERSION}"
-if grep -q "BlobNotFound" "/tmp/helm/${helm_filename}"; then
-    echo -e "\n(!) Failed to fetch the latest artifacts for helm ${HELM_VERSION}..."
-    requested_version=$(get_previous_version)
-    echo -e "\nAttempting to install ${requested_version}"
-    HELM_VERSION=${requested_version}
+install_helm() {
+    mode=$1
+    HELM_VERSION="v3.14.xyz"
+    echo -e "\n👉Trying to install HELM_VERSION = ${HELM_VERSION}"; 
+    sudo mkdir -p /tmp/helm
     get_helm "${HELM_VERSION}"
-fi
-export GNUPGHOME="/tmp/helm/gnupg"
-sudo mkdir -p "${GNUPGHOME}"
-sudo chmod 700 ${GNUPGHOME}
-sudo curl -sSL "${HELM_GPG_KEYS_URI}" -o /tmp/helm/KEYS
-sudo echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" | sudo tee ${GNUPGHOME}/dirmngr.conf >/dev/null
-sudo gpg -q --import "/tmp/helm/KEYS"
-if ! sudo gpg --verify "${tmp_helm_filename}.asc" | sudo tee ${GNUPGHOME}/verify.log 2>&1; then
-    echo "Verification failed!"
-    sudo cat /tmp/helm/gnupg/verify.log
-    exit 1
-fi
-
-if [ "${HELM_SHA256}" = "automatic" ]; then
-    sudo curl -sSL "https://get.helm.sh/${helm_filename}.sha256" -o "${tmp_helm_filename}.sha256"
-    sudo curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.sha256.asc" -o "${tmp_helm_filename}.sha256.asc"
-    if ! sudo gpg --verify "${tmp_helm_filename}.sha256.asc" | sudo tee /tmp/helm/gnupg/verify.log 2>&1; then
-        echo "Verification failed!"
-        sudo cat /tmp/helm/gnupg/verify.log
-        exit 1
+    if grep -q "BlobNotFound" "/tmp/helm/${helm_filename}"; then
+        echo -e "\n(!) Failed to fetch the latest artifacts for helm ${HELM_VERSION}..."
+        repo_url=$(get_github_api_repo_url "${helm_url}")
+        get_previous_version "${helm_url}" "${repo_url}" HELM_VERSION $mode
+        echo -e "\nAttempting to install ${HELM_VERSION}"
+        get_helm "${HELM_VERSION}"
     fi
-    HELM_SHA256="$(sudo cat "${tmp_helm_filename}.sha256")"
-fi
+}
 
-([ "${HELM_SHA256}" = "dev-mode" ] || (sudo echo "${HELM_SHA256} *${tmp_helm_filename}" | sha256sum -c -))
-sudo tar xf "${tmp_helm_filename}" -C /tmp/helm
-sudo mv -f "/tmp/helm/linux-${architecture}/helm" /usr/local/bin/
-sudo chmod 0755 /usr/local/bin/helm
-sudo rm -rf /tmp/helm
-if ! type helm > /dev/null 2>&1; then
-    echo '(!) Helm installation failed!'
-    exit 1
-fi
+echo -e "\n👉${HL} helm version as installed by test for fallback${N}: (mode1: installation using find_prev_version_using_git_tags() fn)"
+install_helm "mode1"
 
-echo -e "\n👉${HL} helm version as installed by test for fallback${N}:"
+set +e
+    check "helm version" helm version
+set -e
+
+echo -e "\n👉${HL} helm version as installed by test for fallback${N}: (mode2: installation using GitHub api)"
+install_helm "mode2"
 
 set +e
     check "helm version" helm version
