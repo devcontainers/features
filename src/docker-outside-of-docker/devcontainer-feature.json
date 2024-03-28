@@ -1,6 +1,6 @@
 {
     "id": "docker-outside-of-docker",
-    "version": "1.4.4",
+    "version": "1.4.5",
     "name": "Docker (docker-outside-of-docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-outside-of-docker",
     "description": "Re-use the host docker socket, adding the Docker CLI to a container. Feature invokes a script to enable using a forwarded Docker socket within a container to run Docker commands.",
