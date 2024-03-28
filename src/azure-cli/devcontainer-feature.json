@@ -1,6 +1,6 @@
 {
   "id": "azure-cli",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "name": "Azure CLI",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/azure-cli",
   "description": "Installs the Azure CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
