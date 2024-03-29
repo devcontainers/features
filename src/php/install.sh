@@ -196,15 +196,10 @@ init_php_install() {
 }
 
 install_previous_version() {
-    if [[ $PHP_VERSION == "latest" ]]; then 
-        echo -e "\nInstalling Previous Version..."
-        find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
-        init_php_install
-        wget -O php.tar.xz "$PHP_URL"
-    else 
-        echo "Failed to install PHP v${PHP_VERSION}..."
-        exit 1
-    fi
+    echo -e "\nInstalling Previous Version..."
+    find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+    init_php_install
+    wget -O php.tar.xz "$PHP_URL"
 }
 
 install_php() {
