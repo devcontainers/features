@@ -111,6 +111,7 @@ init_php_install() {
 install_previous_version() {
     echo -e "\nInstalling Previous Version..."
     find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+    echo -e "\nNow installing this version as a fallback previous version: ${PHP_VERSION} 🤞🏻"
     init_php_install
     wget -O php.tar.xz "$PHP_URL"
 }
@@ -159,7 +160,42 @@ install_php() {
     echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
 }
 
+apt-get purge php.*
+PHP_DIR="/usr/local/php"
+PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
+PHP_SRC_DIR="/usr/src/php"
+
 install_php
+PHP_SRC="${PHP_INSTALL_DIR}/bin/php"
+
+updaterc() {
+    echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
+    if [[ "$(cat /etc/bash.bashrc)" != *"$1"* ]]; then
+        echo -e "$1" >> /etc/bash.bashrc
+    fi
+    if [ -f "/etc/zsh/zshrc" ] && [[ "$(cat /etc/zsh/zshrc)" != *"$1"* ]]; then
+        echo -e "$1" >> /etc/zsh/zshrc
+    fi
+}
+
+if [ "${PHP_VERSION}" != "none" ]; then
+    CURRENT_DIR="${PHP_DIR}/current"
+    if [[ ! -d "${CURRENT_DIR}" ]]; then
+        ln -s -r "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
+    fi
+
+    if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${PHP_INSTALL_DIR}"* ]] ; then
+        rm "${CURRENT_DIR}"
+        ln -s -r "${PHP_INSTALL_DIR}" "${CURRENT_DIR}"
+    fi
+
+    rm -rf "${PHP_SRC_DIR}"
+    updaterc "if [[ \"\${PATH}\" != *\"${CURRENT_DIR}\"* ]]; then export PATH=\"${CURRENT_DIR}/bin:\${PATH}\"; fi"
+
+    chown -R "${USERNAME}:php" "${PHP_DIR}"
+    chmod -R g+r+w "${PHP_DIR}"
+    find "${PHP_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
+fi
 
 echo -e "\nInstalled PHP Version by Test: 👇 "; php -v;
 
