@@ -30,8 +30,6 @@ keyserver hkp://keyserver.pgp.com"
 
 set -e
 
-trap 'echo "Last executed command failed at line ${LINENO}"' ERR
-
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
