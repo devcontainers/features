@@ -32,5 +32,13 @@
                 "installComposer": true
             }
         }
+    },
+    "test_php_fallback": {
+        "image": "ubuntu:focal",
+        "features": {
+            "php": {
+                "version": "latest"
+            }
+        }
     }
 }
