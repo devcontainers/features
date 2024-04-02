@@ -196,10 +196,15 @@ init_php_install() {
 }
 
 install_previous_version() {
-    echo -e "\nInstalling Previous Version..."
-    find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
-    init_php_install
-    wget -O php.tar.xz "$PHP_URL"
+    PHP_VERSION=$1
+    if [[ "$ORIGINAL_PHP_VERSION" == "latest" ]]; then
+        find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+        echo -e "\nAttempting to install previous version v${PHP_VERSION}"
+        init_php_install
+        wget -O php.tar.xz "$PHP_URL"
+    else 
+        echo -e "\nFailed to install v$PHP_VERSION"
+    fi
 }
 
 install_php() {
@@ -207,7 +212,7 @@ install_php() {
 
     init_php_install
     
-    wget -O php.tar.xz "$PHP_URL" || install_previous_version
+    wget -O php.tar.xz "$PHP_URL" || install_previous_version "$PHP_VERSION"
 
     tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR" --strip-components=1
     cd $PHP_SRC_DIR;
@@ -266,6 +271,8 @@ if [ "${PHP_VERSION}" != "none" ]; then
     # Install dependencies
     check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
 
+    # storing value of PHP_VERSION before it changes
+    ORIGINAL_PHP_VERSION=$PHP_VERSION
     find_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
     install_php "${PHP_VERSION}"
 
