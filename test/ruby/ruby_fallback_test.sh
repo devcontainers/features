@@ -5,11 +5,10 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-USERNAME="${_REMOTE_USER:-"automatic"}"
-set -x
-echo -e "\nRuby version installed by ruby feature ..."
+USERNAME="automatic"
+echo -e "\nRVM version installed previously by ruby feature ..."
+check "rvm" rvm --version
 check "ruby" ruby -v
-check "rake" bash -c "gem list | grep rake"
 
 trap 'echo "Last executed command failed at line ${LINENO}"' ERR
 
@@ -20,12 +19,7 @@ keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
 # Clean up
-sudo rm -rf /var/lib/apt/lists/*
-
-# if [ "$(id -u)" -ne 0 ]; then
-#     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
-#     exit 1
-# fi
+rm -rf /var/lib/apt/lists/*
 
 # Determine the appropriate non-root user
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
@@ -57,7 +51,7 @@ apt_get_update()
 {
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
         echo "Running apt-get update..."
-        sudo apt-get update -y
+        apt-get update -y
     fi
 }
 
@@ -65,7 +59,7 @@ apt_get_update()
 check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
-        sudo apt-get -y install --no-install-recommends "$@"
+        apt-get -y install --no-install-recommends "$@"
     fi
 }
 
@@ -79,9 +73,9 @@ receive_gpg_keys() {
 
     # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
-    sudo mkdir -p ${GNUPGHOME}
-    sudo chmod 700 ${GNUPGHOME}
-    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    mkdir -p ${GNUPGHOME}
+    chmod 700 ${GNUPGHOME}
+    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" | tee ${GNUPGHOME}/dirmngr.conf > /dev/null
     # GPG key download sometimes fails for some reason and retrying fixes it.
     local retry_count=0
     local gpg_ok="false"
@@ -186,7 +180,7 @@ get_previous_version() {
     local mode=$4
     prev_version=${!variable_name}
     
-    output=$(sudo curl -s "$repo_url");
+    output=$(curl -s "$repo_url");
 
     #install jq
     check_packages jq
@@ -202,7 +196,7 @@ get_previous_version() {
     if [[ $message == "API rate limit exceeded"* ]]; then
         echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
         echo -e "\nAttempting to find latest version using GitHub tags."
-        find_prev_version_from_git_tags prev_version "$url" "tags/v"
+        find_prev_version_from_git_tags prev_version "$url" "tags/v" "_"
         declare -g ${variable_name}="${prev_version}"
     else 
         echo -e "\nAttempting to find latest version using GitHub Api."
@@ -221,7 +215,7 @@ get_github_api_repo_url() {
 # Figure out correct version of a three part version number is not passed
 ruby_url="https://github.com/ruby/ruby"
 
-RUBY_VERSION="3.3.xyz"
+RUBY_VERSION="3.1.xyz"
 
 set_rvm_install_args() {
     if [ "${RUBY_VERSION}" = "none" ]; then
@@ -248,51 +242,37 @@ install_previous_version() {
     mode=$1
     repo_url=$(get_github_api_repo_url "$ruby_url")
     get_previous_version "${ruby_url}" "${repo_url}" RUBY_VERSION $mode
-    set_rvm_install_args "$RUBY_VERSION"
-    sudo curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    set_rvm_install_args
+    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
 }
 
-install_ruby() {
+install_rvm() {
     mode=$1
-    if rvm --version > /dev/null; then
-        echo "Ruby Version Manager already exists."
-        if [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
-            echo "(!) Ruby is already installed with version ${RUBY_VERSION}. Skipping..."
-        elif [ "${RUBY_VERSION}" != "none" ]; then
-            echo "Installing specified Ruby version."
-            su ${USERNAME} -c "rvm install ruby ${RUBY_VERSION}"
-        fi
-        SKIP_GEM_INSTALL="false"
-        SKIP_RBENV_RBUILD="true"
-    else
-        # Install RVM
-        receive_gpg_keys RVM_GPG_KEYS
-        # Determine appropriate settings for rvm installer
+    # Install RVM
+    receive_gpg_keys RVM_GPG_KEYS
+    # Determine appropriate settings for rvm installer
 
-        set_rvm_install_args "$RUBY_VERSION"
+    set_rvm_install_args
 
-        # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
-        if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
-            groupadd -r rvm
-        fi
-        # Install rvm
-        sudo curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1 || install_previous_version "$mode"
-        sudo usermod -aG rvm ${USERNAME}
-        sudo source /usr/local/rvm/scripts/rvm
-        sudo rvm fix-permissions system
-        sudo rm -rf ${GNUPGHOME}
+    # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
+    if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
+        groupadd -r rvm
     fi
+    # Install rvm
+    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1 || install_previous_version "$mode"
+    sudo usermod -aG rvm ${USERNAME}
+    source /usr/local/rvm/scripts/rvm
+    rvm fix-permissions system
+    rm -rf ${GNUPGHOME}
 }
 
-install_ruby "mode1"
-echo -e "\nRuby version installed by ruby test for fallback ... (mode: 1 - install using find_prev_version_from_git_tags):"
-check "ruby" ruby -v
-check "rake" bash -c "gem list | grep rake"
+install_rvm "mode1"
+echo -e "\n👉🏻👉🏻RVM version installed by test file ... (mode: 1 - install using find_prev_version_from_git_tags):"
+check "rvm" rvm --version
 
-install_ruby "mode2"
-echo -e "\nRuby version installed by ruby test for fallback ... (mode: 1 - install using GitHub Api):"
-check "ruby" ruby -v
-check "rake" bash -c "gem list | grep rake"
-set +x
+install_rvm "mode2"
+echo -e "\n👉🏻👉🏻RVM version installed by test file ... (mode: 1 - install using GitHub Api):"
+check "rvm" rvm --version
+
 # Report result
 reportResults

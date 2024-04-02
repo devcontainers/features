@@ -229,11 +229,11 @@ get_previous_version() {
     check_packages jq
 
     message=$(echo "$output" | jq -r '.message')
-    
+
     if [[ $message == "API rate limit exceeded"* ]]; then
         echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
         echo -e "\nAttempting to find latest version using GitHub tags."
-        find_prev_version_from_git_tags prev_version "$url" "tags/v"
+        find_prev_version_from_git_tags prev_version "$url" "tags/v" "_"
         declare -g ${variable_name}="${prev_version}"
     else 
         echo -e "\nAttempting to find latest version using GitHub Api."
@@ -252,7 +252,6 @@ get_github_api_repo_url() {
 # Figure out correct version of a three part version number is not passed
 ruby_url="https://github.com/ruby/ruby"
 find_version_from_git_tags RUBY_VERSION $ruby_url "tags/v" "_"
-RUBY_VERSION="3.3.1"
 
 set_rvm_install_args() {
     if [ "${RUBY_VERSION}" = "none" ]; then
@@ -278,7 +277,7 @@ set_rvm_install_args() {
 install_previous_version() {
     repo_url=$(get_github_api_repo_url "$ruby_url")
     get_previous_version "${ruby_url}" "${repo_url}" RUBY_VERSION
-    set_rvm_install_args "$RUBY_VERSION"
+    set_rvm_install_args
     curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
 }
 
@@ -298,7 +297,7 @@ else
     receive_gpg_keys RVM_GPG_KEYS
     # Determine appropriate settings for rvm installer
 
-    set_rvm_install_args "$RUBY_VERSION"
+    set_rvm_install_args
 
     # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
@@ -312,7 +311,7 @@ else
     rm -rf ${GNUPGHOME}
 fi
 
-if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then
+if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then   
     # Non-root user may not have "gem" in path when script is run and no ruby version
     # is installed by rvm, so handle this by using root's default gem in this case
     ROOT_GEM="$(which gem || echo "")"
