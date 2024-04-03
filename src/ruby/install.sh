@@ -218,7 +218,7 @@ fi
 get_previous_version() {
     local url=$1
     local repo_url=$2
-    local variable_name=$3
+    variable_name=$3
     prev_version=${!variable_name}
     
     output=$(curl -s "$repo_url");
@@ -248,10 +248,12 @@ get_github_api_repo_url() {
 
 
 # Figure out correct version of a three part version number is not passed
-ruby_url="https://github.com/ruby/ruby"
-find_version_from_git_tags RUBY_VERSION $ruby_url "tags/v" "_"
+RUBY_URL="https://github.com/ruby/ruby"
+ORIGINAL_RUBY_VERSION=$RUBY_VERSION
+find_version_from_git_tags RUBY_VERSION $RUBY_URL "tags/v" "_"
 
 set_rvm_install_args() {
+    RUBY_VERSION=$1
     if [ "${RUBY_VERSION}" = "none" ]; then
         RVM_INSTALL_ARGS=""
     elif [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
@@ -273,10 +275,14 @@ set_rvm_install_args() {
 }
 
 install_previous_version() {
-    repo_url=$(get_github_api_repo_url "$ruby_url")
-    get_previous_version "${ruby_url}" "${repo_url}" RUBY_VERSION
-    set_rvm_install_args
-    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    if [[ $ORIGINAL_RUBY_VERSION == "latest" ]]; then
+        repo_url=$(get_github_api_repo_url "$RUBY_URL")
+        get_previous_version "${RUBY_URL}" "${repo_url}" RUBY_VERSION
+        set_rvm_install_args $RUBY_VERSION
+        curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    else 
+        echo "Failed to install Ruby version $ORIGINAL_RUBY_VERSION. Exiting..."
+    fi
 }
 
 # Just install Ruby if RVM already installed
@@ -294,9 +300,7 @@ else
     # Install RVM
     receive_gpg_keys RVM_GPG_KEYS
     # Determine appropriate settings for rvm installer
-
-    set_rvm_install_args
-
+    set_rvm_install_args $RUBY_VERSION
     # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
@@ -326,7 +330,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
             # Figure out correct version of a three part version number is not passed
-            find_version_from_git_tags version $ruby_url "tags/v" "_"
+            find_version_from_git_tags version $RUBY_URL "tags/v" "_"
             source /usr/local/rvm/scripts/rvm
             rvm install ruby ${version}
         done

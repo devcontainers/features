@@ -218,6 +218,7 @@ ruby_url="https://github.com/ruby/ruby"
 RUBY_VERSION="3.1.xyz"
 
 set_rvm_install_args() {
+    RUBY_VERSION=$1
     if [ "${RUBY_VERSION}" = "none" ]; then
         RVM_INSTALL_ARGS=""
     elif [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
@@ -242,7 +243,7 @@ install_previous_version() {
     mode=$1
     repo_url=$(get_github_api_repo_url "$ruby_url")
     get_previous_version "${ruby_url}" "${repo_url}" RUBY_VERSION $mode
-    set_rvm_install_args
+    set_rvm_install_args $RUBY_VERSION
     curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
 }
 
@@ -251,9 +252,7 @@ install_rvm() {
     # Install RVM
     receive_gpg_keys RVM_GPG_KEYS
     # Determine appropriate settings for rvm installer
-
-    set_rvm_install_args
-
+    set_rvm_install_args $RUBY_VERSION
     # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
