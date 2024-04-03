@@ -1,88 +1,9 @@
-#!/usr/bin/env bash
-#-------------------------------------------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
-#
-# Maintainer: The VS Code and Codespaces Teams
+#!/bin/bash
 
-set -eux
+echo -e "\nInstalled PHP Version by Feature: 👇 "; php -v;
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
-PHP_VERSION="${VERSION:-"latest"}"
-INSTALL_COMPOSER="${INSTALLCOMPOSER:-"true"}"
-OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
-
-export PHP_DIR="${PHP_DIR:-"/usr/local/php"}"
-USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
-UPDATE_RC="${UPDATE_RC:-"true"}"
-
-# Comma-separated list of php versions to be installed
-# alongside PHP_VERSION, but not set as default.
-ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
-
-export DEBIAN_FRONTEND=noninteractive
-
-if [ "$(id -u)" -ne 0 ]; then
-    echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
-    exit 1
-fi
-
-
-# Ensure that login shells get the correct path if the user updated the PATH using ENV.
-rm -f /etc/profile.d/00-restore-env.sh
-echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
-chmod +x /etc/profile.d/00-restore-env.sh
-
-# If in automatic mode, determine if a user already exists, if not use vscode
-if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-    USERNAME=""
-    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
-            break
-        fi
-    done
-    if [ "${USERNAME}" = "" ]; then
-        USERNAME=root
-    fi
-elif [ "${USERNAME}" = "none" ]; then
-    USERNAME=root
-    USER_UID=0
-    USER_GID=0
-fi
-
-architecture="$(uname -m)"
-if [ "${architecture}" != "amd64" ] && [ "${architecture}" != "x86_64" ] && [ "${architecture}" != "arm64" ] && [ "${architecture}" != "aarch64" ]; then
-    echo "(!) Architecture $architecture unsupported"
-    exit 1
-fi
-
-updaterc() {
-    if [ "${UPDATE_RC}" = "true" ]; then
-        echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
-        if [[ "$(cat /etc/bash.bashrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/bash.bashrc
-        fi
-        if [ -f "/etc/zsh/zshrc" ] && [[ "$(cat /etc/zsh/zshrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/zsh/zshrc
-        fi
-    fi
-}
-
-# Checks if packages are installed and installs them if not
-check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-            echo "Running apt-get update..."
-            apt-get update -y
-        fi
-        apt-get -y install --no-install-recommends "$@"
-    fi
-}
+USERNAME="root"
+PHP_DIR="/usr/local/php"
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -161,15 +82,6 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
-# Install PHP Composer
-addcomposer() {
-    "${PHP_SRC}" -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-    HASH="$(wget -q -O - https://composer.github.io/installer.sig)"
-    "${PHP_SRC}" -r "if (hash_file('sha384', 'composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-    "${PHP_SRC}" composer-setup.php --install-dir="/usr/local/bin" --filename=composer
-    "${PHP_SRC}" -r "unlink('composer-setup.php');"
-}
-
 init_php_install() {
     PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
     if [ -d "${PHP_INSTALL_DIR}" ]; then
@@ -181,6 +93,7 @@ init_php_install() {
         groupadd -r php
     fi
     usermod -a -G php "${USERNAME}"
+
     PHP_URL="https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz"
 
     PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
@@ -196,24 +109,21 @@ init_php_install() {
 }
 
 install_previous_version() {
-    PHP_VERSION=$1
-    if [[ "$ORIGINAL_PHP_VERSION" == "latest" ]]; then
-        find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
-        echo -e "\nAttempting to install previous version v${PHP_VERSION}"
-        init_php_install
-        wget -O php.tar.xz "$PHP_URL"
-    else 
-        echo -e "\nFailed to install v$PHP_VERSION"
-    fi
+    echo -e "\nInstalling Previous Version..."
+    find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+    echo -e "\nNow installing this version as a fallback previous version: ${PHP_VERSION} 🤞🏻"
+    init_php_install
+    wget -O php.tar.xz "$PHP_URL"
 }
 
-install_php() {
-    PHP_VERSION="$1"
+install_php() {  
+    # trying to install with a possible new tag not having a released source binary yet
+    PHP_VERSION="8.3.xyz"
 
     init_php_install
-    
-    wget -O php.tar.xz "$PHP_URL" || install_previous_version "$PHP_VERSION"
 
+    wget -O php.tar.xz "$PHP_URL" || install_previous_version
+    
     tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR" --strip-components=1
     cd $PHP_SRC_DIR;
 
@@ -250,60 +160,23 @@ install_php() {
     echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
 }
 
-if [ "${PHP_VERSION}" != "none" ]; then
-    # Persistent / runtime dependencies
-    RUNTIME_DEPS="wget ca-certificates git build-essential xz-utils curl"
+apt-get purge php.*
+PHP_DIR="/usr/local/php"
+PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
+PHP_SRC_DIR="/usr/src/php"
 
-    # PHP dependencies
-    PHP_DEPS="libssl-dev libcurl4-openssl-dev libedit-dev libsqlite3-dev libxml2-dev zlib1g-dev libsodium-dev libonig-dev"
+install_php
+PHP_SRC="${PHP_INSTALL_DIR}/bin/php"
 
-    . /etc/os-release
-
-    if [ "${VERSION_CODENAME}" = "bionic" ]; then
-        PHP_DEPS="${PHP_DEPS} libargon2-0-dev"
-    else
-        PHP_DEPS="${PHP_DEPS} libargon2-dev"
+updaterc() {
+    echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
+    if [[ "$(cat /etc/bash.bashrc)" != *"$1"* ]]; then
+        echo -e "$1" >> /etc/bash.bashrc
     fi
-
-    # Dependencies required for running "phpize"
-    PHPIZE_DEPS="autoconf dpkg-dev file g++ gcc libc-dev make pkg-config re2c"
-
-    # Install dependencies
-    check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
-
-    # storing value of PHP_VERSION before it changes
-    ORIGINAL_PHP_VERSION=$PHP_VERSION
-    find_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
-    install_php "${PHP_VERSION}"
-
-    PHP_SRC="${PHP_INSTALL_DIR}/bin/php"
-else
-    set +e
-        PHP_SRC=$(which php)
-    set -e
-fi
-
-# Install PHP Composer if needed
-if [[ "${INSTALL_COMPOSER}" = "true" ]]; then
-    if [ -z "${PHP_SRC}" ]; then
-        echo "(!) Could not install Composer. PHP not found."
-        exit 1
+    if [ -f "/etc/zsh/zshrc" ] && [[ "$(cat /etc/zsh/zshrc)" != *"$1"* ]]; then
+        echo -e "$1" >> /etc/zsh/zshrc
     fi
-
-    addcomposer
-fi
-
-# Additional php versions to be installed but not be set as default.
-if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
-    OLDIFS=$IFS
-    IFS=","
-        read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-        for version in "${additional_versions[@]}"; do
-            OVERRIDE_DEFAULT_VERSION="false"
-            install_php "${version}"
-        done
-    IFS=$OLDIFS
-fi
+}
 
 if [ "${PHP_VERSION}" != "none" ]; then
     CURRENT_DIR="${PHP_DIR}/current"
@@ -311,11 +184,9 @@ if [ "${PHP_VERSION}" != "none" ]; then
         ln -s -r "${PHP_INSTALL_DIR}" ${CURRENT_DIR}
     fi
 
-    if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
-        if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${PHP_INSTALL_DIR}"* ]] ; then
-            rm "${CURRENT_DIR}"
-            ln -s -r "${PHP_INSTALL_DIR}" "${CURRENT_DIR}"
-        fi
+    if [[ $(ls -l ${CURRENT_DIR}) != *"-> ${PHP_INSTALL_DIR}"* ]] ; then
+        rm "${CURRENT_DIR}"
+        ln -s -r "${PHP_INSTALL_DIR}" "${CURRENT_DIR}"
     fi
 
     rm -rf "${PHP_SRC_DIR}"
@@ -326,7 +197,5 @@ if [ "${PHP_VERSION}" != "none" ]; then
     find "${PHP_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
+echo -e "\nInstalled PHP Version by Test: 👇 "; php -v;
 
-echo "Done!"
