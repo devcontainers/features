@@ -35,7 +35,7 @@ check_packages() {
 
 export DEBIAN_FRONTEND=noninteractive
 
-check_packages wget ca-certificates
+check_packages wget ca-certificates liburcu6
 
 # Add NVIDIA's package repository to apt so that we can download packages
 # Always use the ubuntu2004 repo because the other repos (e.g., debian11) are missing packages
