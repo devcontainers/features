@@ -15,6 +15,7 @@ ENABLE_SHARED_FROM_SOURCE="${ENABLESHARED:-"false"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 
+export PIP_INDEX_URL=${PYPIINDEX:-"https://mirrors.aliyun.com/pypi/simple"}
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -428,7 +429,7 @@ install_cpython() {
     mkdir -p /tmp/python-src ${INSTALL_PATH}
     cd /tmp/python-src
     cpython_tgz_filename="Python-${VERSION}.tgz"
-    cpython_tgz_url="https://www.python.org/ftp/python/${VERSION}/${cpython_tgz_filename}"
+    cpython_tgz_url="https://mirror.pixelreel.net/proxy/www.python.org/ftp/python/${VERSION}/${cpython_tgz_filename}"
     echo "Downloading ${cpython_tgz_filename}..."
     curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
 }
