@@ -33,6 +33,8 @@ check_packages() {
     fi
 }
 
+export DEBIAN_FRONTEND=noninteractive
+
 check_packages wget ca-certificates
 
 # Add NVIDIA's package repository to apt so that we can download packages
