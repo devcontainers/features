@@ -564,7 +564,7 @@ chmod +rx /usr/local/bin/code
 
 # systemctl shim for Debian/Ubuntu - tells people to use 'service' if systemd is not running
 if [ "${ADJUSTED_ID}" = "debian" ]; then
-    cp -f "${FEATURE_DIR}/bin/systemctl" /usr/local/bin/systemctl
+    cp -fL "${FEATURE_DIR}/bin/systemctl" /usr/local/bin/systemctl
     chmod +rx /usr/local/bin/systemctl
 fi
 
