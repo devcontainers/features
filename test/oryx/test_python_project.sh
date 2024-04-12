@@ -28,5 +28,7 @@ check "oryx-build-python" oryx build --property python_version="${pythonVersion}
 check "oryx-build-python-installed" python3 -m pip list | grep mpmath
 check "oryx-build-python-result" python3 ./src/solve.py
 
+check "templates/8.0.1-does-not-exist" test ! -d "/usr/share/dotnet/templates/8.0.1"
+
 # Report result
 reportResults
