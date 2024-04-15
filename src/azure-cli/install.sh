@@ -190,9 +190,13 @@ architecture="$(dpkg --print-architecture)"
 CACHED_AZURE_VERSION="${AZ_VERSION}" # In case we need to fallback to pip and the apt path has modified the AZ_VERSION variable.
 if [ "${INSTALL_USING_PYTHON}" != "true" ]; then
     if [[ "${AZCLI_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${AZCLI_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
-        install_using_apt || install_using_pip_strategy
+        install_using_apt || use_pip="true"
     fi
 else
+    use_pip="true"
+fi
+
+if [ "${use_pip}" = "true" ]; then 
     AZ_VERSION=${CACHED_AZURE_VERSION}
     install_using_pip_strategy
 
