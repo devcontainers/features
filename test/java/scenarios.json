@@ -17,7 +17,7 @@
             }
         }
     },
-    "install_ant_and_gradle_and_maven_and_groovy_for_user": {
+    "install_ant_and_gradle_and_maven_and_groovy_and_sbt_for_user": {
         "image": "ubuntu:focal",
         "remoteUser": "vscode",
         "features": {
@@ -29,11 +29,12 @@
                 "installAnt": true,
                 "installGradle": true,
                 "installMaven": true,
-                "installGroovy": true
+                "installGroovy": true,
+                "installSbt": true
             }
         }
     },
-    "install_ant_and_gradle_and_maven_and_groovy": {
+    "install_ant_and_gradle_and_maven_and_groovy_and_sbt": {
         "image": "ubuntu:focal",
         "features": {
             "java": {
@@ -41,11 +42,12 @@
                 "installAnt": true,
                 "installGradle": true,
                 "installMaven": true,
-                "installGroovy": true
+                "installGroovy": true,
+                "installSbt": true
             }
         }
     },
-    "install_ant_and_gradle_and_maven_and_groovy_with_specific_version": {
+    "install_ant_and_gradle_and_maven_and_groovy_and_sbt_with_specific_version": {
         "image": "ubuntu:focal",
         "features": {
             "java": {
@@ -57,7 +59,9 @@
                 "installMaven": "true",
                 "mavenVersion": "3.6.3",
                 "installGroovy": "true",
-                "groovyVersion": "2.5.22"
+                "groovyVersion": "2.5.22",
+                "installSbt": true,
+                "sbtVersion": "1.9.8"
             }
         }
     },
@@ -88,7 +92,7 @@
             }
         }
     },
-    "install_ant_and_gradle_and_maven_and_groovy_for_user_rhel_family": {
+    "install_ant_and_gradle_and_maven_and_groovy_and_sbt_for_user_rhel_family": {
         "image": "almalinux:8",
         "remoteUser": "vscode",
         "features": {
@@ -100,7 +104,8 @@
                 "installAnt": true,
                 "installGradle": true,
                 "installMaven": true,
-                "installGroovy": true
+                "installGroovy": true,
+                "installSbt": true
             }
         }
     },

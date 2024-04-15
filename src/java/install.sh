@@ -18,6 +18,8 @@ INSTALL_ANT="${INSTALLANT:-"false"}"
 ANT_VERSION="${ANTVERSION:-"latest"}"
 INSTALL_GROOVY="${INSTALLGROOVY:-"false"}"
 GROOVY_VERSION="${GROOVYVERSION:-"latest"}"
+INSTALL_SBT="${INSTALLSBT:-"false"}"
+SBT_VERSION="${SBTVERSION:-"latest"}"
 JDK_DISTRO="${JDKDISTRO:-"ms"}"
 
 export SDKMAN_DIR="${SDKMAN_DIR:-"/usr/local/sdkman"}"
@@ -305,6 +307,11 @@ fi
 # Install Groovy
 if [[ "${INSTALL_GROOVY}" = "true" ]] && ! groovy --version > /dev/null 2>&1; then
     sdk_install groovy "${GROOVY_VERSION}"
+fi
+
+# Install sbt
+if [[ "${INSTALL_SBT}" = "true" ]] && ! sbt --script-version > /dev/null 2>&1; then
+    sdk_install sbt ${SBT_VERSION}
 fi
 
 # Clean up
