@@ -1,26 +1,16 @@
-#!/usr/bin/env bash
-#-------------------------------------------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
-#
-# Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/ruby.md
-# Maintainer: The VS Code and Codespaces Teams
+#!/bin/bash
 
-RUBY_VERSION="${VERSION:-"latest"}"
+set -e
 
-USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
-UPDATE_RC="${UPDATE_RC:-"true"}"
-INSTALL_RUBY_TOOLS="${INSTALL_RUBY_TOOLS:-"true"}"
+# Optional: Import test library
+source dev-container-features-test-lib
 
-# Comma-separated list of ruby versions to be installed (with rvm)
-# alongside RUBY_VERSION, but not set as default.
-ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
+USERNAME="automatic"
+echo -e "\nRVM version installed previously by ruby feature ..."
+check "rvm" rvm --version
+check "ruby" ruby -v
 
-# Note: ruby-debug-ide will install the right version of debase if missing and
-# installing debase directly fails on Ruby 3.1.0 as of 1/7/2022, so omitting.
-# installing ruby-debug-ide on debian fails, so omitting.
-DEFAULT_GEMS="rake"
+trap 'echo "Last executed command failed at line ${LINENO}"' ERR
 
 RVM_GPG_KEYS="409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
@@ -28,20 +18,8 @@ keyserver hkp://keyserver.ubuntu.com:80
 keyserver hkps://keys.openpgp.org
 keyserver hkp://keyserver.pgp.com"
 
-set -e
-
 # Clean up
 rm -rf /var/lib/apt/lists/*
-
-if [ "$(id -u)" -ne 0 ]; then
-    echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
-    exit 1
-fi
-
-# Ensure that login shells get the correct path if the user updated the PATH using ENV.
-rm -f /etc/profile.d/00-restore-env.sh
-echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
-chmod +x /etc/profile.d/00-restore-env.sh
 
 # Determine the appropriate non-root user
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
@@ -60,15 +38,28 @@ elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
     USERNAME=root
 fi
 
-updaterc() {
-    if [ "${UPDATE_RC}" = "true" ]; then
-        echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
-        if [[ "$(cat /etc/bash.bashrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/bash.bashrc
-        fi
-        if [ -f "/etc/zsh/zshrc" ] && [[ "$(cat /etc/zsh/zshrc)" != *"$1"* ]]; then
-            echo -e "$1" >> /etc/zsh/zshrc
-        fi
+# Ensure apt is in non-interactive to avoid prompts
+export DEBIAN_FRONTEND=noninteractive
+
+architecture="$(uname -m)"
+if [ "${architecture}" != "amd64" ] && [ "${architecture}" != "x86_64" ] && [ "${architecture}" != "arm64" ] && [ "${architecture}" != "aarch64" ]; then
+    echo "(!) Architecture $architecture unsupported"
+    exit 1
+fi
+
+apt_get_update()
+{
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
+}
+
+# Checks if packages are installed and installs them if not
+check_packages() {
+    if ! dpkg -s "$@" > /dev/null 2>&1; then
+        apt_get_update
+        apt-get -y install --no-install-recommends "$@"
     fi
 }
 
@@ -84,7 +75,7 @@ receive_gpg_keys() {
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
-    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" | tee ${GNUPGHOME}/dirmngr.conf > /dev/null
     # GPG key download sometimes fails for some reason and retrying fixes it.
     local retry_count=0
     local gpg_ok="false"
@@ -181,44 +172,12 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
-apt_get_update()
-{
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update -y
-    fi
-}
-
-# Checks if packages are installed and installs them if not
-check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
-    fi
-}
-
-# Ensure apt is in non-interactive to avoid prompts
-export DEBIAN_FRONTEND=noninteractive
-
-architecture="$(uname -m)"
-if [ "${architecture}" != "amd64" ] && [ "${architecture}" != "x86_64" ] && [ "${architecture}" != "arm64" ] && [ "${architecture}" != "aarch64" ]; then
-    echo "(!) Architecture $architecture unsupported"
-    exit 1
-fi
-
-# Install dependencies
-check_packages curl ca-certificates software-properties-common build-essential gnupg2 libreadline-dev \
-    procps dirmngr gawk autoconf automake bison libffi-dev libgdbm-dev libncurses5-dev \
-    libsqlite3-dev libtool libyaml-dev pkg-config sqlite3 zlib1g-dev libgmp-dev libssl-dev
-if ! type git > /dev/null 2>&1; then
-    check_packages git
-fi
-
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     local url=$1
     local repo_url=$2
-    variable_name=$3
+    local variable_name=$3
+    local mode=$4
     prev_version=${!variable_name}
     
     output=$(curl -s "$repo_url");
@@ -228,6 +187,12 @@ get_previous_version() {
 
     message=$(echo "$output" | jq -r '.message')
 
+    if [[ $mode == "mode1" ]]; then
+        message="API rate limit exceeded"
+    else 
+        message=""
+    fi
+    
     if [[ $message == "API rate limit exceeded"* ]]; then
         echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
         echo -e "\nAttempting to find latest version using GitHub tags."
@@ -248,9 +213,9 @@ get_github_api_repo_url() {
 
 
 # Figure out correct version of a three part version number is not passed
-RUBY_URL="https://github.com/ruby/ruby"
-ORIGINAL_RUBY_VERSION=$RUBY_VERSION
-find_version_from_git_tags RUBY_VERSION $RUBY_URL "tags/v" "_"
+ruby_url="https://github.com/ruby/ruby"
+
+RUBY_VERSION="3.1.xyz"
 
 set_rvm_install_args() {
     RUBY_VERSION=$1
@@ -275,28 +240,15 @@ set_rvm_install_args() {
 }
 
 install_previous_version() {
-    if [[ $ORIGINAL_RUBY_VERSION == "latest" ]]; then
-        repo_url=$(get_github_api_repo_url "$RUBY_URL")
-        get_previous_version "${RUBY_URL}" "${repo_url}" RUBY_VERSION
-        set_rvm_install_args $RUBY_VERSION
-        curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
-    else 
-        echo "Failed to install Ruby version $ORIGINAL_RUBY_VERSION. Exiting..."
-    fi
+    mode=$1
+    repo_url=$(get_github_api_repo_url "$ruby_url")
+    get_previous_version "${ruby_url}" "${repo_url}" RUBY_VERSION $mode
+    set_rvm_install_args $RUBY_VERSION
+    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
 }
 
-# Just install Ruby if RVM already installed
-if rvm --version > /dev/null; then
-    echo "Ruby Version Manager already exists."
-    if [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
-        echo "(!) Ruby is already installed with version ${RUBY_VERSION}. Skipping..."
-    elif [ "${RUBY_VERSION}" != "none" ]; then
-        echo "Installing specified Ruby version."
-        su ${USERNAME} -c "rvm install ruby ${RUBY_VERSION}"
-    fi
-    SKIP_GEM_INSTALL="false"
-    SKIP_RBENV_RBUILD="true"
-else
+install_rvm() {
+    mode=$1
     # Install RVM
     receive_gpg_keys RVM_GPG_KEYS
     # Determine appropriate settings for rvm installer
@@ -306,90 +258,20 @@ else
         groupadd -r rvm
     fi
     # Install rvm
-    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1 || install_previous_version
-    usermod -aG rvm ${USERNAME}
+    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1 || install_previous_version "$mode"
+    sudo usermod -aG rvm ${USERNAME}
     source /usr/local/rvm/scripts/rvm
     rvm fix-permissions system
     rm -rf ${GNUPGHOME}
-fi
+}
 
-if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then   
-    # Non-root user may not have "gem" in path when script is run and no ruby version
-    # is installed by rvm, so handle this by using root's default gem in this case
-    ROOT_GEM="$(which gem || echo "")"
-    ${ROOT_GEM} install ${DEFAULT_GEMS}
-fi
+install_rvm "mode1"
+echo -e "\n👉🏻👉🏻RVM version installed by test file ... (mode: 1 - install using find_prev_version_from_git_tags):"
+check "rvm" rvm --version
 
-# VS Code server usually first in the path, so silence annoying rvm warning (that does not apply) and then source it
-updaterc "if ! grep rvm_silence_path_mismatch_check_flag \$HOME/.rvmrc > /dev/null 2>&1; then echo 'rvm_silence_path_mismatch_check_flag=1' >> \$HOME/.rvmrc; fi\nsource /usr/local/rvm/scripts/rvm > /dev/null 2>&1"
+install_rvm "mode2"
+echo -e "\n👉🏻👉🏻RVM version installed by test file ... (mode: 1 - install using GitHub Api):"
+check "rvm" rvm --version
 
-# Additional ruby versions to be installed but not be set as default.
-if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
-    OLDIFS=$IFS
-    IFS=","
-        read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-        for version in "${additional_versions[@]}"; do
-            # Figure out correct version of a three part version number is not passed
-            find_version_from_git_tags version $RUBY_URL "tags/v" "_"
-            source /usr/local/rvm/scripts/rvm
-            rvm install ruby ${version}
-        done
-    IFS=$OLDIFS
-fi
-
-# Install rbenv/ruby-build for good measure
-if [ "${SKIP_RBENV_RBUILD}" != "true" ]; then
-
-    if [[ ! -d "/usr/local/share/rbenv" ]]; then
-        git clone --depth=1 \
-            -c core.eol=lf \
-            -c core.autocrlf=false \
-            -c fsck.zeroPaddedFilemode=ignore \
-            -c fetch.fsck.zeroPaddedFilemode=ignore \
-            -c receive.fsck.zeroPaddedFilemode=ignore \
-            https://github.com/rbenv/rbenv.git /usr/local/share/rbenv
-    fi
-
-    if [[ ! -d "/usr/local/share/ruby-build" ]]; then
-        git clone --depth=1 \
-            -c core.eol=lf \
-            -c core.autocrlf=false \
-            -c fsck.zeroPaddedFilemode=ignore \
-            -c fetch.fsck.zeroPaddedFilemode=ignore \
-            -c receive.fsck.zeroPaddedFilemode=ignore \
-            https://github.com/rbenv/ruby-build.git /usr/local/share/ruby-build
-        mkdir -p /root/.rbenv/plugins
-
-        ln -s /usr/local/share/ruby-build /root/.rbenv/plugins/ruby-build
-    fi
-
-    if [ "${USERNAME}" != "root" ]; then
-        mkdir -p /home/${USERNAME}/.rbenv/plugins
-
-        if [[ ! -d "/home/${USERNAME}/.rbenv/plugins/ruby-build" ]]; then
-            ln -s /usr/local/share/ruby-build /home/${USERNAME}/.rbenv/plugins/ruby-build
-        fi
-
-        # Oryx expects ruby to be installed in this specific path, else it breaks the oryx magic for ruby projects.
-        if [ ! -f /usr/local/rvm/gems/default/bin/ruby ]; then
-            ln -s /usr/local/rvm/rubies/default/bin/ruby /usr/local/rvm/gems/default/bin
-        fi
-
-        chown -R "${USERNAME}:rvm" "/home/${USERNAME}/.rbenv/"
-        chmod -R g+r+w "/home/${USERNAME}/.rbenv"
-        find "/home/${USERNAME}/.rbenv" -type d | xargs -n 1 chmod g+s
-    fi
-fi
-
-chown -R "${USERNAME}:rvm" "/usr/local/rvm/"
-chmod -R g+r+w "/usr/local/rvm/"
-find "/usr/local/rvm/" -type d | xargs -n 1 chmod g+s
-
-# Clean up
-rvm cleanup all
-${ROOT_GEM} cleanup
-
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
-echo "Done!"
+# Report result
+reportResults
