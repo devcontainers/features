@@ -387,8 +387,6 @@ elif [ "${NODE_VERSION}" = "latest" ]; then
     export NODE_VERSION="node"
 fi
 
-trap 'echo "Error on line $LINENO"' ERR
-
 # Install snipppet that we will run as the user
 nvm_install_snippet="$(cat << EOF
     set -e
