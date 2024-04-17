@@ -9,19 +9,151 @@ set -e
 
 trap 'echo "Error occurred at line $LINENO"; exit 1' ERR
 source /usr/local/share/nvm/nvm.sh
-#check nvm version
+
 echo -e "\n✅ nvm version as installed by feature = v$(nvm --version)"; 
 NVM_DIR="/usr/local/share/nvm"
+
 NODE_VERSION="lts"
-FAKE_NVM_VERSION="1.2.XYZ"
-curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${FAKE_NVM_VERSION}/install.sh" | bash ||  {
-    PREV_NVM_VERSION=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
-    curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/${PREV_NVM_VERSION}/install.sh" | bash
-    NVM_VERSION="${PREV_NVM_VERSION}"
+
+
+# Figure out correct version of a three part version number is not passed
+find_version_from_git_tags() {
+    local variable_name=$1
+    local requested_version=${!variable_name}
+    if [ "${requested_version}" = "none" ]; then return; fi
+    local repository=$2
+    local prefix=${3:-"tags/v"}
+    local separator=${4:-"."}
+    local last_part_optional=${5:-"false"}
+    if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
+        local escaped_separator=${separator//./\\.}
+        local last_part
+        if [ "${last_part_optional}" = "true" ]; then
+            last_part="(${escaped_separator}[0-9]+)?"
+        else
+            last_part="${escaped_separator}[0-9]+"
+        fi
+        local regex="${prefix}\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
+        local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
+        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
+            declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
+        else
+            set +e
+            declare -g ${variable_name}="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
+            set -e
+        fi
+    fi
+    if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" > /dev/null 2>&1; then
+        echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
+        exit 1
+    fi
+    echo "${variable_name}=${!variable_name}"
 }
 
-#check nvm version
-echo -e "\n✅ nvm version as installed by test = v$(nvm --version)"; 
+# Use semver logic to decrement a version number then look for the closest match
+find_prev_version_from_git_tags() {
+    local variable_name=$1
+    local current_version=${!variable_name}
+    local repository=$2
+    # Normally a "v" is used before the version number, but support alternate cases
+    local prefix=${3:-"tags/v"}
+    # Some repositories use "_" instead of "." for version number part separation, support that
+    local separator=${4:-"."}
+    # Some tools release versions that omit the last digit (e.g. go)
+    local last_part_optional=${5:-"false"}
+    # Some repositories may have tags that include a suffix (e.g. actions/node-versions)
+    local version_suffix_regex=$6
+    # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
+    set +e
+        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+
+        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+            ((major=major-1))
+            declare -g ${variable_name}="${major}"
+            # Look for latest version from previous major release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        # Handle situations like Go's odd version pattern where "0" releases omit the last part
+        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+            ((minor=minor-1))
+            declare -g ${variable_name}="${major}.${minor}"
+            # Look for latest version from previous minor release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        else
+            ((breakfix=breakfix-1))
+            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+                declare -g ${variable_name}="${major}.${minor}"
+            else 
+                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            fi
+        fi
+    set -e
+}
+
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    local url=$1
+    local repo_url=$2
+    local variable_name=$3
+    local mode=$4
+    prev_version=${!variable_name#v}
+    
+    output=$(curl -s "$repo_url");
+
+    message=$(echo "$output" | jq -r '.message')
+    if [[ $mode == "mode2" ]]; then
+        message="API rate limit exceeded"
+    else 
+        message=""
+    fi
+    if [[ $message == "API rate limit exceeded"* ]]; then
+        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
+        echo -e "\nAttempting to find latest version using GitHub tags."
+        find_prev_version_from_git_tags prev_version "$url" "tags/v"
+        declare -g "${variable_name}=${prev_version}"
+    else 
+        echo -e "\nAttempting to find latest version using GitHub Api."
+        version=$(echo "$output" | jq -r '.tag_name')
+        echo "${variable_name}=variable_name from get_previous_version"
+        echo "${version}=version from get_previous_version"
+        declare -g "${variable_name}=${version#v}"
+    fi  
+    echo "${variable_name}=${!variable_name}"
+}
+
+
+get_github_api_repo_url() {
+    local url=$1
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
+}
+
+nvm_url="https://github.com/nvm-sh/nvm"
+
+repo_url=$(get_github_api_repo_url "${nvm_url}")
+
+install_nvm() {
+    mode=$1
+    mv /usr/local/share/nvm /usr/local/share/nvm_backup
+    # attempting to install a dummy version for which no source binary would exist !!
+    NVM_VERSION="0.39.xyz" 
+    curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash ||  {
+        get_previous_version "${nvm_url}" "${repo_url}" NVM_VERSION $mode
+        echo \"Previous nvm version=$NVM_VERSION\"
+        mkdir -p /usr/local/share/nvm
+        chmod +x /usr/local/share/nvm
+        curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash
+    }
+    export NVM_DIR="/usr/local/share/nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+}
+
+install_nvm "mode1"
+echo -e "\n✅ nvm version as installed by test in mode 1 i.e. by GitHub Api = v$(nvm --version)"; 
+
+install_nvm "mode2"
+echo -e "\n✅ nvm version as installed by test in mode 2 i.e. by find_prev_version_from_git_tags fn = v$(nvm --version)"; 
 
 # Report result
 reportResults
