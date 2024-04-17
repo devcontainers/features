@@ -1,0 +1,19 @@
+{
+    "id": "bun",
+    "version": "1.0.0",
+    "name": "Bun",
+    "description": "Installs Bun. Bun is an all-in-one JavaScript runtime & toolkit designed for speed, complete with a bundler, test runner, and Node.js-compatible package manager.",
+    "installsAfter": [
+      "ghcr.io/devcontainers/features/common-utils"
+    ],
+    "options": {
+        "version": {
+            "type": "string",
+            "default": "latest",
+            "description": "The bun version to be installed"
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
+}
