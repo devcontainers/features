@@ -30,5 +30,9 @@ println("verify")
 EOF
 check "groovy works" test "$(groovy /tmp/test.groovy)" = "verify"
 
+check "sbt" sbt --script-version
+cd /tmp && sbt new scala/scala-seed.g8 --name=scala-project
+check "sbt exists" grep "build.sbt" <(ls -la /tmp/scala-project)
+
 # Report result
 reportResults
