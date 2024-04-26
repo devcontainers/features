@@ -872,7 +872,7 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
         SEARCH_STR="Defaults secure_path="
         REPLACE_STR="Defaults secure_path=/home/${USERNAME}/.local/bin"
 
-        if grep -q ${SEARCH_STR} ${SUDOERS_FILE}; then
+        if grep -qs ${SEARCH_STR} ${SUDOERS_FILE}; then
             # string found and file is present
             sed -i "s|${SEARCH_STR}|${REPLACE_STR}:|g" "${SUDOERS_FILE}"
         else
