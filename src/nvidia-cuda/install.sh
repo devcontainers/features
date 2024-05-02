@@ -12,6 +12,8 @@ INSTALL_TOOLKIT=${INSTALLTOOLKIT}
 CUDA_VERSION=${CUDAVERSION}
 CUDNN_VERSION=${CUDNNVERSION}
 
+. /etc/os-release 
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -32,6 +34,11 @@ check_packages() {
         apt-get -y install --no-install-recommends "$@"
     fi
 }
+
+if [ $VERSION_CODENAME = "bookworm" ] || [ $VERSION_CODENAME = "jammy" ] && [ $CUDA_VERSION \< 11.7 ]; then  
+    echo "(!) Unsupported distribution version '${VERSION_CODENAME}' for CUDA < 11.7"
+    exit 1
+fi  
 
 export DEBIAN_FRONTEND=noninteractive
 
