@@ -9,6 +9,7 @@
 
 GIT_LFS_VERSION=${VERSION:-"latest"}
 AUTO_PULL=${AUTOPULL:="true"}
+INSTALL_WITH_GITHUB=${INSTALLDIRECTLYFROMGITHUBRELEASE:="false"}
 
 GIT_LFS_ARCHIVE_GPG_KEY_URI="https://packagecloud.io/github/git-lfs/gpgkey"
 GIT_LFS_ARCHIVE_ARCHITECTURES="amd64 arm64"
@@ -130,14 +131,34 @@ install_using_apt() {
     git-lfs install --skip-repo
 }
 
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    repo_url=$1
+    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name'
+}
+
+install_from_release() {
+    git_lfs_filename="git-lfs-linux-${architecture}-v${GIT_LFS_VERSION}.tar.gz"
+    echo "Looking for release artfact: ${git_lfs_filename}"
+    curl -sSL -o "${git_lfs_filename}" "https://github.com/git-lfs/git-lfs/releases/download/v${GIT_LFS_VERSION}/${git_lfs_filename}"
+}
+
 install_using_github() {
     echo "(*) No apt package for ${VERSION_CODENAME} ${architecture}. Installing manually."
     mkdir -p /tmp/git-lfs
     cd /tmp/git-lfs
     find_version_from_git_tags GIT_LFS_VERSION "https://github.com/git-lfs/git-lfs"
-    git_lfs_filename="git-lfs-linux-${architecture}-v${GIT_LFS_VERSION}.tar.gz"
-    echo "Looking for release artfact: ${git_lfs_filename}"
-    curl -sSL -o "${git_lfs_filename}" "https://github.com/git-lfs/git-lfs/releases/download/v${GIT_LFS_VERSION}/${git_lfs_filename}"
+    install_from_release
+
+    if grep -q "Not Found" "${git_lfs_filename}"; then
+        echo -e "\n(!) Failed to fetch the latest artifacts for Git lfs v${GIT_LFS_VERSION}..."
+        repo_url=https://api.github.com/repos/git-lfs/git-lfs/releases
+        requested_version=$(get_previous_version "${repo_url}")
+        echo -e "\nAttempting to install ${requested_version}"
+        GIT_LFS_VERSION=${requested_version#v}
+        install_from_release
+    fi
+
     # Verify file
     curl -sSL -o "sha256sums.asc" "https://github.com/git-lfs/git-lfs/releases/download/v${GIT_LFS_VERSION}/sha256sums.asc"
     receive_gpg_keys GIT_LFS_CHECKSUM_GPG_KEYS
@@ -165,7 +186,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Install git, curl, gpg, dirmngr and debian-archive-keyring if missing
 . /etc/os-release
-check_packages curl ca-certificates gnupg2 dirmngr apt-transport-https
+check_packages curl ca-certificates gnupg2 dirmngr apt-transport-https jq
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
@@ -176,14 +197,14 @@ fi
 # Install Git LFS
 echo "Installing Git LFS..."
 architecture="$(dpkg --print-architecture)"
-if [[ "${GIT_LFS_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${GIT_LFS_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
-    install_using_apt || use_github="true"
+if [[ "${GIT_LFS_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${GIT_LFS_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${INSTALL_WITH_GITHUB}" = "false" ]]; then
+    install_using_apt || INSTALL_WITH_GITHUB="true"
 else
-    use_github="true"
+    INSTALL_WITH_GITHUB="true"
 fi
 
 # If no archive exists or apt install fails, try direct from github
-if [ "${use_github}" = "true" ]; then
+if [ "${INSTALL_WITH_GITHUB}" = "true" ]; then
     install_using_github
 fi
 

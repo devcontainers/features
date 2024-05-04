@@ -25,6 +25,9 @@ jobs:
           set -e
           echo "Start."
 
+          # Update dotnet-install for Oryx Feature as well
+          cp src/dotnet/scripts/vendor/dotnet-install.sh src/oryx/scripts/vendor/dotnet-install.sh
+
           # Configure git and Push updates
           git config --global user.email github-actions@github.com
           git config --global user.name github-actions
@@ -36,12 +39,18 @@ jobs:
 
           # Add / update and commit
           git add src/dotnet/scripts/vendor/dotnet-install.sh
+          git add src/dotnet/scripts/vendor/dotnet-install.sh
+
           git commit -m 'Automated dotnet-install script update' || export NO_UPDATES=true
 
           # Bump version and push
           if [ "$NO_UPDATES" != "true" ] ; then
               echo "$(jq --indent 4 '.version = (.version | split(".") | map(tonumber) | .[2] += 1 | join("."))' src/dotnet/devcontainer-feature.json)"  > src/dotnet/devcontainer-feature.json 
               git add src/dotnet/devcontainer-feature.json
+
+              echo "$(jq --indent 4 '.version = (.version | split(".") | map(tonumber) | .[2] += 1 | join("."))' src/oryx/devcontainer-feature.json)"  > src/oryx/devcontainer-feature.json
+              git add src/oryx/devcontainer-feature.json
+
               git commit -m 'Bump version'
               git push origin "$branch"
               gh api \

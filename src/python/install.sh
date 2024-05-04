@@ -9,6 +9,7 @@
 
 PYTHON_VERSION="${VERSION:-"latest"}" # 'system' or 'os-provided' checks the base image first, else installs 'latest'
 INSTALL_PYTHON_TOOLS="${INSTALLTOOLS:-"true"}"
+SKIP_VULNERABILITY_PATCHING="${SKIPVULNERABILITYPATCHING:-"false"}"
 OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
 ENABLE_SHARED_FROM_SOURCE="${ENABLESHARED:-"false"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
@@ -247,6 +248,48 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+# Use semver logic to decrement a version number then look for the closest match
+find_prev_version_from_git_tags() {
+    local variable_name=$1
+    local current_version=${!variable_name}
+    local repository=$2
+    # Normally a "v" is used before the version number, but support alternate cases
+    local prefix=${3:-"tags/v"}
+    # Some repositories use "_" instead of "." for version number part separation, support that
+    local separator=${4:-"."}
+    # Some tools release versions that omit the last digit (e.g. go)
+    local last_part_optional=${5:-"false"}
+    # Some repositories may have tags that include a suffix (e.g. actions/node-versions)
+    local version_suffix_regex=$6
+    # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
+    set +e
+        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+
+        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+            ((major=major-1))
+            declare -g ${variable_name}="${major}"
+            # Look for latest version from previous major release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        # Handle situations like Go's odd version pattern where "0" releases omit the last part
+        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+            ((minor=minor-1))
+            declare -g ${variable_name}="${major}.${minor}"
+            # Look for latest version from previous minor release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        else
+            ((breakfix=breakfix-1))
+            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+                declare -g ${variable_name}="${major}.${minor}"
+            else 
+                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            fi
+        fi
+    set -e
+}
+
+
 # Use Oryx to install something using a partial version match
 oryx_install() {
     local platform=$1
@@ -367,6 +410,29 @@ install_openssl3() {
     rm -rf /tmp/openssl3
 }
 
+install_prev_vers_cpython() {
+    VERSION=$1
+    echo -e "\n(!) Failed to fetch the latest artifacts for cpython ${VERSION}..."
+    find_prev_version_from_git_tags VERSION https://github.com/python/cpython
+    echo -e "\nAttempting to install ${VERSION}"
+    install_cpython "${VERSION}"
+}
+
+install_cpython() {
+    VERSION=$1
+    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
+    if [ -d "${INSTALL_PATH}" ]; then
+        echo "(!) Python version ${VERSION} already exists."
+        exit 1
+    fi
+    mkdir -p /tmp/python-src ${INSTALL_PATH}
+    cd /tmp/python-src
+    cpython_tgz_filename="Python-${VERSION}.tgz"
+    cpython_tgz_url="https://www.python.org/ftp/python/${VERSION}/${cpython_tgz_filename}"
+    echo "Downloading ${cpython_tgz_filename}..."
+    curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
+}
+
 install_from_source() {
     VERSION=$1  
     echo "(*) Building Python ${VERSION} from source..."
@@ -376,13 +442,6 @@ install_from_source() {
 
     # Find version using soft match
     find_version_from_git_tags VERSION "https://github.com/python/cpython"
-
-    INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
-    
-    if [ -d "${INSTALL_PATH}" ]; then
-        echo "(!) Python version ${VERSION} already exists."
-        exit 1
-    fi
 
     # Some platforms/os versions need modern versions of openssl installed
     # via common package repositories, for now rhel-7 family, use case statement to 
@@ -395,23 +454,21 @@ install_from_source() {
             ;;
     esac
 
-    # Download tgz of source
-    mkdir -p /tmp/python-src ${INSTALL_PATH}
-    cd /tmp/python-src
-    local tgz_filename="Python-${VERSION}.tgz"
-    local tgz_url="https://www.python.org/ftp/python/${VERSION}/${tgz_filename}"
-    echo "Downloading ${tgz_filename}..."
-    curl -sSL -o "/tmp/python-src/${tgz_filename}" "${tgz_url}"
-
+    install_cpython "${VERSION}"
+    if [ -f "/tmp/python-src/${cpython_tgz_filename}" ]; then 
+        if grep -q "404 Not Found" "/tmp/python-src/${cpython_tgz_filename}"; then
+            install_prev_vers_cpython "${VERSION}"
+        fi
+    fi;
     # Verify signature
     if [[ ${VERSION_CODENAME} = "centos7" ]] || [[ ${VERSION_CODENAME} = "rhel7" ]]; then
         receive_gpg_keys_centos7 PYTHON_SOURCE_GPG_KEYS
     else
         receive_gpg_keys PYTHON_SOURCE_GPG_KEYS
     fi
-    echo "Downloading ${tgz_filename}.asc..."
-    curl -sSL -o "/tmp/python-src/${tgz_filename}.asc" "${tgz_url}.asc"
-    gpg --verify "${tgz_filename}.asc"
+    echo "Downloading ${cpython_tgz_filename}.asc..."
+    curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}.asc" "${cpython_tgz_url}.asc"
+    gpg --verify "${cpython_tgz_filename}.asc"
 
     # Update min protocol for testing only - https://bugs.python.org/issue41561
     if [ -f /etc/pki/tls/openssl.cnf ]; then
@@ -423,7 +480,7 @@ install_from_source() {
     export OPENSSL_CONF=/tmp/python-src/openssl.cnf
 
     # Untar and build
-    tar -xzf "/tmp/python-src/${tgz_filename}" -C "/tmp/python-src" --strip-components=1
+    tar -xzf "/tmp/python-src/${cpython_tgz_filename}" -C "/tmp/python-src" --strip-components=1
     local config_args=""
     if [ "${OPTIMIZE_BUILD_FROM_SOURCE}" = "true" ]; then
         config_args="${config_args} --enable-optimizations"
@@ -750,12 +807,40 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
     done
     
     # Temporary: Removes “setup tools” metadata directory due to https://github.com/advisories/GHSA-r9hx-vwmv-q579
-
-    VULNERABLE_VERSIONS=("3.10" "3.11")
-    RUN_TIME_PY_VER_DETECT=$(${PYTHON_SRC} --version 2>&1)
-    PY_MAJOR_MINOR_VER=${RUN_TIME_PY_VER_DETECT:7:4};
-    if [[ ${VULNERABLE_VERSIONS[*]} =~ $PY_MAJOR_MINOR_VER ]]; then
-        rm -rf  ${PIPX_HOME}/shared/lib/"python${PY_MAJOR_MINOR_VER}"/site-packages/setuptools-65.5.0.dist-info
+    if [[ $SKIP_VULNERABILITY_PATCHING = "false" ]]; then 
+        VULNERABLE_VERSIONS=("3.10" "3.11")
+        RUN_TIME_PY_VER_DETECT=$(${PYTHON_SRC} --version 2>&1)
+        PY_MAJOR_MINOR_VER=${RUN_TIME_PY_VER_DETECT:7:4};
+        if [[ ${VULNERABLE_VERSIONS[*]} =~ $PY_MAJOR_MINOR_VER ]]; then
+            rm -rf  ${PIPX_HOME}/shared/lib/"python${PY_MAJOR_MINOR_VER}"/site-packages/setuptools-65.5.0.dist-info
+            if [[ -e "/usr/local/lib/python${PY_MAJOR_MINOR_VER}/ensurepip/_bundled/setuptools-65.5.0-py3-none-any.whl" ]]; then 
+                # remove the vulnerable setuptools-65.5.0-py3-none-any.whl file
+                rm /usr/local/lib/python${PY_MAJOR_MINOR_VER}/ensurepip/_bundled/setuptools-65.5.0-py3-none-any.whl
+                # create and change to the setuptools_downloaded directory
+                mkdir -p /tmp/setuptools_downloaded
+                cd /tmp/setuptools_downloaded
+                # download the source distribution for setuptools using pip 
+                pip download setuptools==65.5.1 --no-binary :all:
+                # extract the filename of the setuptools-*.tar.gz file
+                filename=$(find . -maxdepth 1 -type f)
+                # create a directory to store unpacked contents of the source distribution
+                mkdir -p /tmp/setuptools_src_dist
+                # extract the contents inside the new directory
+                tar -xzf $filename -C /tmp/setuptools_src_dist
+                # move to the setuptools-* directory inside /setuptools_src_dist
+                cd /tmp/setuptools_src_dist/setuptools-65.5.1/
+                # look for setup.py file in the current directory and create a wheel file
+                python setup.py bdist_wheel
+                # move inside the dist directory in pwd
+                cd dist
+                # copy this file to the ensurepip/_bundled directory 
+                cp setuptools-65.5.1-py3-none-any.whl /usr/local/lib/python${PY_MAJOR_MINOR_VER}/ensurepip/_bundled/
+                # replace the version in __init__.py file with the installed version
+                sed -i 's/_SETUPTOOLS_VERSION = \"65\.5\.0\"/_SETUPTOOLS_VERSION = "65.5.1"/g' /usr/local/lib/"python${PY_MAJOR_MINOR_VER}"/ensurepip/__init__.py
+                # cleanup created dir's
+                rm -rf /tmp/setuptools_downloaded /tmp/setuptools_src_dist
+            fi
+        fi
     fi
 
     rm -rf /tmp/pip-tmp

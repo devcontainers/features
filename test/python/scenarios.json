@@ -1,10 +1,31 @@
 {
+    "install_cpython_fallback_prev_version_test": {
+        "image": "python:3.12",
+        "features": {
+            "python": {
+                "version": "3.12",
+                "installTools": false,
+                "skipVulnerabilityPatching": true
+            }
+        }
+    },
+    "install_python310_skipVulnerabilityPatching_true": {
+        "image": "python:3.10",
+        "features": {
+            "python": {
+                "version": "none",
+                "installTools": true,
+                "skipVulnerabilityPatching": true
+            }
+        }
+    },
     "install_python310_setuptools_vulnerability": {
         "image": "python:3.10",
         "features": {
             "python": {
                 "version": "none",
-                "installTools": true
+                "installTools": true,
+                "skipVulnerabilityPatching": false
             }
         }
     },
@@ -13,7 +34,8 @@
         "features": {
             "python": {
                 "version": "none",
-                "installTools": true
+                "installTools": true,
+                "skipVulnerabilityPatching": false
             }
         }
     },

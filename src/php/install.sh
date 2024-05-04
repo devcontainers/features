@@ -121,6 +121,46 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+# Use semver logic to decrement a version number then look for the closest match
+find_prev_version_from_git_tags() {
+    local variable_name=$1
+    local current_version=${!variable_name}
+    local repository=$2
+    # Normally a "v" is used before the version number, but support alternate cases
+    local prefix=${3:-"tags/v"}
+    # Some repositories use "_" instead of "." for version number part separation, support that
+    local separator=${4:-"."}
+    # Some tools release versions that omit the last digit (e.g. go)
+    local last_part_optional=${5:-"false"}
+    # Some repositories may have tags that include a suffix (e.g. actions/node-versions)
+    # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
+    set +e
+        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+
+        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+            ((major=major-1))
+            declare -g ${variable_name}="${major}"
+            # Look for latest version from previous major release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        # Handle situations like Go's odd version pattern where "0" releases omit the last part
+        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+            ((minor=minor-1))
+            declare -g ${variable_name}="${major}.${minor}"
+            # Look for latest version from previous minor release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        else
+            ((breakfix=breakfix-1))
+            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+                declare -g ${variable_name}="${major}.${minor}"
+            else 
+                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            fi
+        fi
+    set -e
+}
+
 # Install PHP Composer
 addcomposer() {
     "${PHP_SRC}" -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
@@ -130,8 +170,7 @@ addcomposer() {
     "${PHP_SRC}" -r "unlink('composer-setup.php');"
 }
 
-install_php() {
-    PHP_VERSION="$1"
+init_php_install() {
     PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
     if [ -d "${PHP_INSTALL_DIR}" ]; then
         echo "(!) PHP version ${PHP_VERSION} already exists."
@@ -142,7 +181,6 @@ install_php() {
         groupadd -r php
     fi
     usermod -a -G php "${USERNAME}"
-
     PHP_URL="https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz"
 
     PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
@@ -155,7 +193,26 @@ install_php() {
     PHP_SRC_DIR="/usr/src/php"
     mkdir -p $PHP_SRC_DIR
     cd $PHP_SRC_DIR
-    wget -O php.tar.xz "$PHP_URL"
+}
+
+install_previous_version() {
+    PHP_VERSION=$1
+    if [[ "$ORIGINAL_PHP_VERSION" == "latest" ]]; then
+        find_prev_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+        echo -e "\nAttempting to install previous version v${PHP_VERSION}"
+        init_php_install
+        wget -O php.tar.xz "$PHP_URL"
+    else 
+        echo -e "\nFailed to install v$PHP_VERSION"
+    fi
+}
+
+install_php() {
+    PHP_VERSION="$1"
+
+    init_php_install
+    
+    wget -O php.tar.xz "$PHP_URL" || install_previous_version "$PHP_VERSION"
 
     tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR" --strip-components=1
     cd $PHP_SRC_DIR;
@@ -195,7 +252,7 @@ install_php() {
 
 if [ "${PHP_VERSION}" != "none" ]; then
     # Persistent / runtime dependencies
-    RUNTIME_DEPS="wget ca-certificates git build-essential xz-utils"
+    RUNTIME_DEPS="wget ca-certificates git build-essential xz-utils curl"
 
     # PHP dependencies
     PHP_DEPS="libssl-dev libcurl4-openssl-dev libedit-dev libsqlite3-dev libxml2-dev zlib1g-dev libsodium-dev libonig-dev"
@@ -214,6 +271,8 @@ if [ "${PHP_VERSION}" != "none" ]; then
     # Install dependencies
     check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
 
+    # storing value of PHP_VERSION before it changes
+    ORIGINAL_PHP_VERSION=$PHP_VERSION
     find_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
     install_php "${PHP_VERSION}"
 

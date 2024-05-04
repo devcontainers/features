@@ -140,6 +140,47 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+# Use semver logic to decrement a version number then look for the closest match
+find_prev_version_from_git_tags() {
+    local variable_name=$1
+    local current_version=${!variable_name}
+    local repository=$2
+    # Normally a "v" is used before the version number, but support alternate cases
+    local prefix=${3:-"tags/v"}
+    # Some repositories use "_" instead of "." for version number part separation, support that
+    local separator=${4:-"."}
+    # Some tools release versions that omit the last digit (e.g. go)
+    local last_part_optional=${5:-"false"}
+    # Some repositories may have tags that include a suffix (e.g. actions/node-versions)
+    local version_suffix_regex=$6
+    # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
+    set +e
+        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+
+        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+            ((major=major-1))
+            declare -g ${variable_name}="${major}"
+            # Look for latest version from previous major release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        # Handle situations like Go's odd version pattern where "0" releases omit the last part
+        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+            ((minor=minor-1))
+            declare -g ${variable_name}="${major}.${minor}"
+            # Look for latest version from previous minor release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        else
+            ((breakfix=breakfix-1))
+            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+                declare -g ${variable_name}="${major}.${minor}"
+            else 
+                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            fi
+        fi
+    set -e
+}
+
 apt_get_update()
 {
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
@@ -173,25 +214,46 @@ if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
 
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    local url=$1
+    local repo_url=$2
+    variable_name=$3
+    prev_version=${!variable_name}
+    
+    output=$(curl -s "$repo_url");
+
+    #install jq
+    check_packages jq
+
+    message=$(echo "$output" | jq -r '.message')
+
+    if [[ $message == "API rate limit exceeded"* ]]; then
+        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
+        echo -e "\nAttempting to find latest version using GitHub tags."
+        find_prev_version_from_git_tags prev_version "$url" "tags/v" "_"
+        declare -g ${variable_name}="${prev_version}"
+    else 
+        echo -e "\nAttempting to find latest version using GitHub Api."
+        version=$(echo "$output" | jq -r '.tag_name' | tr '_' '.')
+        declare -g ${variable_name}="${version#v}"
+    fi  
+    echo "${variable_name}=${!variable_name}"
+}
+
+get_github_api_repo_url() {
+    local url=$1
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
+}
+
 
 # Figure out correct version of a three part version number is not passed
-find_version_from_git_tags RUBY_VERSION "https://github.com/ruby/ruby" "tags/v" "_"
+RUBY_URL="https://github.com/ruby/ruby"
+ORIGINAL_RUBY_VERSION=$RUBY_VERSION
+find_version_from_git_tags RUBY_VERSION $RUBY_URL "tags/v" "_"
 
-# Just install Ruby if RVM already installed
-if rvm --version > /dev/null; then
-    echo "Ruby Version Manager already exists."
-    if [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
-        echo "(!) Ruby is already installed with version ${RUBY_VERSION}. Skipping..."
-    elif [ "${RUBY_VERSION}" != "none" ]; then
-        echo "Installing specified Ruby version."
-        su ${USERNAME} -c "rvm install ruby ${RUBY_VERSION}"
-    fi
-    SKIP_GEM_INSTALL="false"
-    SKIP_RBENV_RBUILD="true"
-else
-    # Install RVM
-    receive_gpg_keys RVM_GPG_KEYS
-    # Determine appropriate settings for rvm installer
+set_rvm_install_args() {
+    RUBY_VERSION=$1
     if [ "${RUBY_VERSION}" = "none" ]; then
         RVM_INSTALL_ARGS=""
     elif [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
@@ -210,19 +272,48 @@ else
             DEFAULT_GEMS=""
         fi
     fi
+}
+
+install_previous_version() {
+    if [[ $ORIGINAL_RUBY_VERSION == "latest" ]]; then
+        repo_url=$(get_github_api_repo_url "$RUBY_URL")
+        get_previous_version "${RUBY_URL}" "${repo_url}" RUBY_VERSION
+        set_rvm_install_args $RUBY_VERSION
+        curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    else 
+        echo "Failed to install Ruby version $ORIGINAL_RUBY_VERSION. Exiting..."
+    fi
+}
+
+# Just install Ruby if RVM already installed
+if rvm --version > /dev/null; then
+    echo "Ruby Version Manager already exists."
+    if [[ "$(ruby -v)" = *"${RUBY_VERSION}"* ]]; then
+        echo "(!) Ruby is already installed with version ${RUBY_VERSION}. Skipping..."
+    elif [ "${RUBY_VERSION}" != "none" ]; then
+        echo "Installing specified Ruby version."
+        su ${USERNAME} -c "rvm install ruby ${RUBY_VERSION}"
+    fi
+    SKIP_GEM_INSTALL="false"
+    SKIP_RBENV_RBUILD="true"
+else
+    # Install RVM
+    receive_gpg_keys RVM_GPG_KEYS
+    # Determine appropriate settings for rvm installer
+    set_rvm_install_args $RUBY_VERSION
     # Create rvm group as a system group to reduce the odds of conflict with local user UIDs
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
     fi
     # Install rvm
-    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1 || install_previous_version
     usermod -aG rvm ${USERNAME}
     source /usr/local/rvm/scripts/rvm
     rvm fix-permissions system
     rm -rf ${GNUPGHOME}
 fi
 
-if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then
+if [ "${INSTALL_RUBY_TOOLS}" = "true" ]; then   
     # Non-root user may not have "gem" in path when script is run and no ruby version
     # is installed by rvm, so handle this by using root's default gem in this case
     ROOT_GEM="$(which gem || echo "")"
@@ -239,7 +330,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
             # Figure out correct version of a three part version number is not passed
-            find_version_from_git_tags version "https://github.com/ruby/ruby" "tags/v" "_"
+            find_version_from_git_tags version $RUBY_URL "tags/v" "_"
             source /usr/local/rvm/scripts/rvm
             rvm install ruby ${version}
         done

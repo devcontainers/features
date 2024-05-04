@@ -17,6 +17,7 @@ Installs PowerShell along with needed dependencies. Useful for base Dockerfiles 
 |-----|-----|-----|-----|
 | version | Select or enter a version of PowerShell. | string | latest |
 | modules | Optional comma separated list of PowerShell modules to install. | string | - |
+| powershellProfileURL | Optional (publicly accessible) URL to download PowerShell profile. | string | - |
 
 ## Customizations
 

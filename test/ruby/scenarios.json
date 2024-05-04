@@ -13,5 +13,13 @@
         "features": {
             "ruby": {}
         }
+    },
+    "ruby_fallback_test": {
+        "image": "mcr.microsoft.com/devcontainers/base:bullseye",
+        "features": {
+            "ruby": {
+                "version": "latest"
+            }
+        }
     }
 }

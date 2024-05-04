@@ -1,4 +1,13 @@
 {
+    "docker_build_fallback_compose": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "dockerDashComposeVersion": "latest"
+            }
+        }
+    },
     "dockerDefaultAddressPool": {
         "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
         "remoteUser": "node",
@@ -84,6 +93,43 @@
                 "moby": true,
                 "installDockerBuildx": true,
                 "dockerDashComposeVersion": "v2"
+            }
+        }
+    },
+    "docker_compose_v1": {
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "v1"
+            }
+        }
+    },
+    "docker_compose_v2": {
+        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "v2"
+            }
+        }
+    },
+    "docker_build_fallback_buildx": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "installDockerBuildx": true
+            }
+        }
+    },
+    "docker_specific_moby_buildx": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-in-docker": {
+                "mobyBuildxVersion": "0.12.0"
             }
         }
     },
