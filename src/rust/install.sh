@@ -186,7 +186,9 @@ else
     curl -sSL --proto '=https' --tlsv1.2 "https://static.rust-lang.org/rustup/dist/${download_architecture}-unknown-linux-gnu/rustup-init" -o /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/rustup-init
     curl -sSL --proto '=https' --tlsv1.2 "https://static.rust-lang.org/rustup/dist/${download_architecture}-unknown-linux-gnu/rustup-init.sha256" -o /tmp/rustup/rustup-init.sha256
     cd /tmp/rustup
+    cp /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/rustup-init  /tmp/rustup/rustup-init
     sha256sum -c rustup-init.sha256
+    rm /tmp/rustup/rustup-init
     chmod +x target/${download_architecture}-unknown-linux-gnu/release/rustup-init
     target/${download_architecture}-unknown-linux-gnu/release/rustup-init -y --no-modify-path --profile ${RUSTUP_PROFILE} ${default_toolchain_arg}
     cd ~
