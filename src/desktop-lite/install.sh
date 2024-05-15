@@ -41,7 +41,6 @@ package_list="
     libnotify4 \
     libnss3 \
     libxss1 \
-    libasound2 \
     xfonts-base \
     xfonts-terminus \
     fonts-noto \
@@ -197,6 +196,16 @@ fi
 
 # Install X11, fluxbox and VS Code dependencies
 check_packages ${package_list}
+
+# if Ubuntu-24.04 (noble numbat) found, then install libasound2-dev else libasound2
+set -x
+. /etc/os-release
+if [ "${ID}" = "ubuntu" ] && [ "${VERSION_CODENAME}" = "noble" ]; then
+    echo "Ubuntu 24.04 Noble (Numbat) detected."
+    check_packages "libasound2-dev"
+else 
+    check_packages "libasound2"
+fi
 
 # On newer versions of Ubuntu (22.04), 
 # we need an additional package that isn't provided in earlier versions
