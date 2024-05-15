@@ -21,6 +21,16 @@ UPDATE_RC="${UPDATE_RC:-"true"}"
 
 set -e
 
+function handle_error {
+    local line_number=$1
+    local exit_code=$2
+    echo "Error occurred in script at line: $line_number, exit code: $exit_code"
+    # Additional error handling or logging can be added here
+}
+
+# Trap errors and call the custom error handler
+trap 'handle_error $LINENO $?' ERR
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -154,10 +164,27 @@ check_packages() {
 }
 
 functions_content=$(cat << 'EOF'
+#!/bin/$(basename "$SHELL")
+Shell_Type="bash"
+if [ "$(basename "$SHELL")" = "bash" ]; then
+    echo "Running in Bash"
+    Shell_Type="bash"
+elif [ "$(basename "$SHELL")" = "zsh" ]; then
+    echo "Running in Zsh"
+    Shell_Type="zsh"
+else
+    echo "Unknown shell"
+fi
+echo -e "\n<<<<< Shell_Type=${Shell_Type} >>>>> "
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
     local variable_name=$1
-    local requested_version=${!variable_name}
+    local requested_version=""
+    if [ $Shell_Type == "bash" ]; then
+        requested_version=${!variable_name}
+    else 
+        eval "requested_version=\$$variable_name"
+    fi
     if [ "${requested_version}" = "none" ]; then return; fi
     local repository=$2
     local prefix=${3:-"tags/v"}
@@ -185,13 +212,19 @@ find_version_from_git_tags() {
         echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
         exit 1
     fi
-    echo "${variable_name}=${!variable_name}"
+    # echo "${variable_name}=${!variable_name}"
 }
 
 # Use semver logic to decrement a version number then look for the closest match
 find_prev_version_from_git_tags() {
     local variable_name=$1
-    local current_version=${!variable_name}
+    local current_version=""
+    if [ $Shell_Type == "bash" ]; then
+        current_version=${!variable_name}
+    else 
+        eval "current_version=\$$variable_name"
+    fi
+    # local current_version=${!variable_name}
     local repository=$2
     # Normally a "v" is used before the version number, but support alternate cases
     local prefix=${3:-"tags/v"}
@@ -234,7 +267,13 @@ get_previous_version() {
     local url=$1
     local repo_url=$2
     local variable_name=$3
-    prev_version=${!variable_name#v}
+    local prev_version=""
+    if [ $Shell_Type == "bash" ]; then
+        prev_version=${!variable_name#v}
+    else 
+        eval "prev_version=\$$variable_name#v"
+    fi
+    # prev_version=${!variable_name#v}
     
     output=$(curl -s "$repo_url");
 
@@ -251,7 +290,7 @@ get_previous_version() {
         echo "${version}=version from get_previous_version"
         declare -g "${variable_name}=${version#v}"
     fi  
-    echo "${variable_name}=${!variable_name}"
+    # echo "${variable_name}=${!variable_name}"
 }
 
 
@@ -277,7 +316,7 @@ EOF
 )
 
 target_directory="/tmp/nvm_installation_script"
-mkdir -p "$target_directory"
+mkdir -p "$target_directory" 
 
 # Define your target script file
 target_script="$target_directory/main_script.sh"
@@ -390,14 +429,17 @@ fi
 # Install snipppet that we will run as the user
 nvm_install_snippet="$(cat << EOF
     set -e
+    set -x
     umask 0002
     # Do not update profile - we'll do this manually
     export PROFILE=/dev/null
+    source ${target_script}
     install_nvm
     source "${NVM_DIR}/nvm.sh"
     if [ "${NODE_VERSION}" != "" ]; then
         nvm alias default "${NODE_VERSION}"
     fi
+    set +x
 EOF
 )"
 
@@ -427,7 +469,8 @@ if [ ! -d "${NVM_DIR}" ]; then
     mkdir -p "${NVM_DIR}"
     chown "${USERNAME}:nvm" "${NVM_DIR}"
     chmod g+rws "${NVM_DIR}"
-    su ${USERNAME} -c "source ${target_script} && ${nvm_install_snippet}" 2>&1
+    
+    su ${USERNAME} -c "${nvm_install_snippet}" 2>&1
     # Update rc files
     if [ "${UPDATE_RC}" = "true" ]; then
         updaterc "${nvm_rc_snippet}"
