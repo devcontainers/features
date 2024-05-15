@@ -198,7 +198,6 @@ fi
 check_packages ${package_list}
 
 # if Ubuntu-24.04 (noble numbat) found, then install libasound2-dev else libasound2
-set -x
 . /etc/os-release
 if [ "${ID}" = "ubuntu" ] && [ "${VERSION_CODENAME}" = "noble" ]; then
     echo "Ubuntu 24.04 Noble (Numbat) detected."
