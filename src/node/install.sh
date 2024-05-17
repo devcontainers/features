@@ -261,7 +261,6 @@ nvm_install_snippet="$(cat << EOF
     umask 0002
     # Do not update profile - we'll do this manually
     export PROFILE=/dev/null
-    chmod +x ./bash_install_node.sh
     ./bash_install_node.sh
     source "${NVM_DIR}/nvm.sh"
     if [ "${NODE_VERSION}" != "" ]; then
