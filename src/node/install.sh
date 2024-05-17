@@ -147,6 +147,9 @@ check_packages() {
         rhel)
             if ! rpm -q "$@" > /dev/null 2>&1; then
                 pkg_mgr_update
+                if [[ "$@" == "jq" ]]; then
+                    ${INSTALL_CMD} epel-release
+                fi
                 ${INSTALL_CMD} "$@"
             fi
             ;;
