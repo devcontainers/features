@@ -255,23 +255,14 @@ elif [ "${NODE_VERSION}" = "latest" ]; then
     export NODE_VERSION="node"
 fi
 
-functions_content=$(cat << 'EOF'
-    #!/bin/bash
-    ./decide_zsh_bash.sh
-EOF
-)
-
-target_directory="/tmp/nvm_installation_script"
-mkdir -p "$target_directory" 
-target_script="$target_directory/main_script.sh"
-echo "$functions_content" > "$target_script"
-
 # Install snipppet that we will run as the user
 nvm_install_snippet="$(cat << EOF
     set -e
     umask 0002
     # Do not update profile - we'll do this manually
     export PROFILE=/dev/null
+    chmod u+x ./bash_install_node.sh
+    ./bash_install_node.sh
     source "${NVM_DIR}/nvm.sh"
     if [ "${NODE_VERSION}" != "" ]; then
         nvm alias default "${NODE_VERSION}"
@@ -306,7 +297,7 @@ if [ ! -d "${NVM_DIR}" ]; then
     chown "${USERNAME}:nvm" "${NVM_DIR}"
     chmod g+rws "${NVM_DIR}"
     
-    su ${USERNAME} -c "source ${target_script} && ${nvm_install_snippet}" 2>&1
+    su ${USERNAME} -c "source ./bash_install_node.sh && ${nvm_install_snippet}" 2>&1
     # Update rc files
     if [ "${UPDATE_RC}" = "true" ]; then
         updaterc "${nvm_rc_snippet}"
