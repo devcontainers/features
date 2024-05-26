@@ -16,10 +16,10 @@ Adds a lightweight Fluxbox based desktop to the container that can be accessed u
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Currently Unused! | string | latest |
-| noVncVersion | NoVnc Version | string | 1.2.0 |
-| password | Enter a password for desktop connections | string | vscode |
-| webPort | Enter a port for the VNC web client | string | 6080 |
-| vncPort | Enter a port for the desktop VNC server | string | 5901 |
+| noVncVersion | The noVNC version to use | string | 1.2.0 |
+| password | Enter a password for desktop connections. If `noPassword`, connections from the local host can be established without entering a password | string | vscode |
+| webPort | Enter a port for the VNC web client (noVNC) | string | 6080 |
+| vncPort | Enter a port for the desktop VNC server (TigerVNC) | string | 5901 |
 
 ## Connecting to the desktop
 
