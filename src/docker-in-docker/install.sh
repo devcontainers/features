@@ -18,8 +18,8 @@ USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
-DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy"
-DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy"
+DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy noble"
+DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy noble"
 
 # Default: Exit on any failure.
 set -e
@@ -109,18 +109,73 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
-# Function to fetch the version released prior to the latest version
-get_previous_version() {
-    repo_url=$1
-    curl -s "$repo_url" | jq -r 'del(.[].assets) | .[0].tag_name'
+# Use semver logic to decrement a version number then look for the closest match
+find_prev_version_from_git_tags() {
+    local variable_name=$1
+    local current_version=${!variable_name}
+    local repository=$2
+    # Normally a "v" is used before the version number, but support alternate cases
+    local prefix=${3:-"tags/v"}
+    # Some repositories use "_" instead of "." for version number part separation, support that
+    local separator=${4:-"."}
+    # Some tools release versions that omit the last digit (e.g. go)
+    local last_part_optional=${5:-"false"}
+    # Some repositories may have tags that include a suffix (e.g. actions/node-versions)
+    local version_suffix_regex=$6
+    # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
+    set +e
+        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+
+        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+            ((major=major-1))
+            declare -g ${variable_name}="${major}"
+            # Look for latest version from previous major release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        # Handle situations like Go's odd version pattern where "0" releases omit the last part
+        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+            ((minor=minor-1))
+            declare -g ${variable_name}="${major}.${minor}"
+            # Look for latest version from previous minor release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        else
+            ((breakfix=breakfix-1))
+            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+                declare -g ${variable_name}="${major}.${minor}"
+            else 
+                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            fi
+        fi
+    set -e
 }
 
-install_compose_switch_fallback() {
-    echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
-    previous_version=$(get_previous_version "https://api.github.com/repos/docker/compose-switch/releases")
-    echo -e "\nAttempting to install ${previous_version}"
-    compose_switch_version=${previous_version#v}
-    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    local url=$1
+    local repo_url=$2
+    local variable_name=$3
+    prev_version=${!variable_name}
+    
+    output=$(curl -s "$repo_url");
+    message=$(echo "$output" | jq -r '.message')
+    
+    if [[ $message == "API rate limit exceeded"* ]]; then
+        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
+        echo -e "\nAttempting to find latest version using GitHub tags."
+        find_prev_version_from_git_tags prev_version "$url" "tags/v"
+        declare -g ${variable_name}="${prev_version}"
+    else 
+        echo -e "\nAttempting to find latest version using GitHub Api."
+        version=$(echo "$output" | jq -r '.tag_name')
+        declare -g ${variable_name}="${version#v}"
+    fi  
+    echo "${variable_name}=${!variable_name}"
+}
+
+get_github_api_repo_url() {
+    local url=$1
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
 ###########################################
@@ -265,6 +320,16 @@ echo "Finished installing docker / moby!"
 docker_home="/usr/libexec/docker"
 cli_plugins_dir="${docker_home}/cli-plugins"
 
+# fallback for docker-compose
+fallback_compose(){
+    local url=$1
+    local repo_url=$(get_github_api_repo_url "$url")
+    echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
+    get_previous_version "${url}" "${repo_url}" compose_version
+    echo -e "\nAttempting to install v${compose_version}"
+    curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
+}
+
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
     case "${architecture}" in
@@ -301,17 +366,16 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         fi
     else
         compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
-        find_version_from_git_tags compose_version "https://github.com/docker/compose" "tags/v"
+        docker_compose_url="https://github.com/docker/compose"
+        find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
         echo "(*) Installing docker-compose ${compose_version}..."
-        curl -L "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
-
-        if grep -q "Not Found" "${docker_compose_path}"; then
-            echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
-            previous_version=$(get_previous_version "https://api.github.com/repos/docker/compose/releases")
-            echo -e "\nAttempting to install ${previous_version}"
-            compose_version=${previous_version#v}
-            curl -L "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
-        fi
+        curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
+            if [[ $DOCKER_DASH_COMPOSE_VERSION == "latest" ]]; then 
+                fallback_compose "$docker_compose_url"
+            else
+                echo -e "Error: Failed to install docker-compose v${compose_version}" 
+            fi
+        }
 
         chmod +x ${docker_compose_path}
 
@@ -325,6 +389,16 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
     fi
 fi
 
+# fallback method for compose-switch
+fallback_compose-switch() {
+    local url=$1
+    local repo_url=$(get_github_api_repo_url "$url")
+    echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
+    get_previous_version "$url" "$repo_url" compose_switch_version
+    echo -e "\nAttempting to install v${compose_switch_version}"
+    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
+}
+
 # Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
 if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /dev/null 2>&1; then
     if type docker-compose > /dev/null 2>&1; then
@@ -332,8 +406,9 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
         current_compose_path="$(which docker-compose)"
         target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
         compose_switch_version="latest"
-        find_version_from_git_tags compose_switch_version "https://github.com/docker/compose-switch"
-        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || install_compose_switch_fallback
+        compose_switch_url="https://github.com/docker/compose-switch"
+        find_version_from_git_tags compose_switch_version "$compose_switch_url"
+        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || fallback_compose-switch "$compose_switch_url"
         chmod +x /usr/local/bin/compose-switch
         # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
         # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
@@ -360,29 +435,26 @@ fi
 
 usermod -aG docker ${USERNAME}
 
-install_previous_version_artifacts() {
-    wget_exit_code=$?
-    if [ $wget_exit_code -eq 8 ]; then  # failure due to 404: Not Found.
-        echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
-        repo_url="https://api.github.com/repos/docker/buildx/releases" # GitHub repository URL
-        previous_version=$(get_previous_version "${repo_url}")
-        buildx_file_name="buildx-${previous_version}.linux-${architecture}"
-        echo -e "\nAttempting to install ${previous_version}"
-        wget https://github.com/docker/buildx/releases/download/${previous_version}/${buildx_file_name}
-    else
-        echo "(!) Failed to download docker buildx with exit code: $wget_exit_code"
-        exit 1
-    fi
+# fallback for docker/buildx
+fallback_buildx() {
+    local url=$1
+    local repo_url=$(get_github_api_repo_url "$url")
+    echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
+    get_previous_version "$url" "$repo_url" buildx_version
+    buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
+    echo -e "\nAttempting to install v${buildx_version}"
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
 }
  
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
-    find_version_from_git_tags buildx_version "https://github.com/docker/buildx" "refs/tags/v"
+    docker_buildx_url="https://github.com/docker/buildx"
+    find_version_from_git_tags buildx_version "$docker_buildx_url" "refs/tags/v"
     echo "(*) Installing buildx ${buildx_version}..."
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     
     cd /tmp
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || install_previous_version_artifacts
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || fallback_buildx "$docker_buildx_url"
     
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"

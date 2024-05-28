@@ -241,6 +241,7 @@ if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     MAJOR_MINOR_PATCH1_VERSION=${PINNED_SDK_VERSION%??}
     rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/$MAJOR_MINOR_PATCH1_VERSION
     rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$MAJOR_MINOR_PATCH1_VERSION
+    rm -rf /usr/share/dotnet/templates/$MAJOR_MINOR_PATCH1_VERSION
 fi
 
 

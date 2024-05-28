@@ -1,38 +1,34 @@
 #!/bin/bash
-set -e
 
 # Optional: Import test library
 source dev-container-features-test-lib
-HL="\033[1;33m"
-N="\033[0;37m"
-echo -e "\n👉${HL} helm version as installed by kubectl-helm-minikube feature${N}:"
 
-set +e
-    check "helm version" helm version
-set -e
+echo -e "\n👉 Checking version of compose-switch installed as docker-compose as installed by feature";
+check "installs compose-switch as docker-compose" bash -c "[[ -f /usr/local/bin/docker-compose ]]"
 
-# Function to handle errors
-handle_error() {
-    local exit_code=$?
-    local line_number=$1
-    local command=$2
-    echo "Error occurred at line $line_number with exit code $exit_code in command $command"
-    exit $exit_code
+trap 'echo "Last executed command failed at line ${LINENO}"' ERR
+
+# Fetch host/container arch.
+architecture="$(dpkg --print-architecture)"
+
+sudo mkdir -p /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+apt_get_update()
+{
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
 }
-trap 'handle_error $LINENO ${BASH_COMMAND%% *}' ERR
-echo "This is line $LINENO"
 
-## Check for fallback version installation instead of latest ( when artifact not found )
-architecture="$(uname -m)"
-case $architecture in
-    x86_64) architecture="amd64";;
-    aarch64 | armv8*) architecture="arm64";;
-    aarch32 | armv7* | armvhf*) architecture="arm";;
-    i?86) architecture="386";;
-    *) echo "(!) Architecture $architecture unsupported"; exit 1 ;;
-esac
-
-helm_url="https://github.com/helm/helm"
+# Checks if packages are installed and installs them if not
+check_packages() {
+    if ! dpkg -s "$@" > /dev/null 2>&1; then
+        apt_get_update
+        apt-get -y install --no-install-recommends "$@"
+    fi
+}
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -42,7 +38,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -115,27 +111,29 @@ get_previous_version() {
     local repo_url=$2
     local variable_name=$3
     local mode=$4
-    prev_version=${!variable_name#v}
+    prev_version=${!variable_name}
     
     output=$(curl -s "$repo_url");
 
+    check_packages jq
+
     message=$(echo "$output" | jq -r '.message')
 
-    if [ $mode == "mode1" ]; then
+    if [[ $mode == 'mode1' ]]; then
         message="API rate limit exceeded"
     else 
         message=""
     fi
-
+    
     if [[ $message == "API rate limit exceeded"* ]]; then
         echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
         echo -e "\nAttempting to find latest version using GitHub tags."
         find_prev_version_from_git_tags prev_version "$url" "tags/v"
-        declare -g ${variable_name}="v${prev_version}"
+        declare -g ${variable_name}="${prev_version}"
     else 
         echo -e "\nAttempting to find latest version using GitHub Api."
         version=$(echo "$output" | jq -r '.tag_name')
-        declare -g ${variable_name}="${version}"
+        declare -g ${variable_name}="${version#v}"
     fi  
     echo "${variable_name}=${!variable_name}"
 }
@@ -145,42 +143,29 @@ get_github_api_repo_url() {
     echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
-get_helm() {
-    HELM_VERSION=$1
-    helm_filename="helm-${HELM_VERSION}-linux-${architecture}.tar.gz"
-    tmp_helm_filename="/tmp/helm/${helm_filename}"
-    sudo curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
-    sudo curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
+install_compose_switch_fallback() {
+    compose_switch_url=$1
+    mode=$2
+    repo_url=$(get_github_api_repo_url "${compose_switch_url}")
+    echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
+    get_previous_version "${compose_switch_url}" "${repo_url}" compose_switch_version $mode
+    echo -e "\nAttempting to install v${compose_switch_version}"
+    sudo curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose
 }
 
-install_helm() {
+install_compose-switch_as_docker-compose() {
     mode=$1
-    HELM_VERSION="v3.14.xyz"
-    echo -e "\n👉Trying to install HELM_VERSION = ${HELM_VERSION}"; 
-    sudo mkdir -p /tmp/helm
-    get_helm "${HELM_VERSION}"
-    if grep -q "BlobNotFound" "/tmp/helm/${helm_filename}"; then
-        echo -e "\n(!) Failed to fetch the latest artifacts for helm ${HELM_VERSION}..."
-        repo_url=$(get_github_api_repo_url "${helm_url}")
-        get_previous_version "${helm_url}" "${repo_url}" HELM_VERSION $mode
-        echo -e "\nAttempting to install ${HELM_VERSION}"
-        get_helm "${HELM_VERSION}"
-    fi
+    echo "(*) Installing compose-switch as docker-compose..."
+    compose_switch_version="1.0.6"
+    compose_switch_url="https://github.com/docker/compose-switch"
+    sudo curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose || install_compose_switch_fallback "${compose_switch_url}" $mode
+    sudo chmod +x /usr/local/bin/docker-compose
 }
 
-echo -e "\n👉${HL} helm version as installed by test for fallback${N}: (mode1: installation using find_prev_version_using_git_tags() fn)"
-install_helm "mode1"
+echo -e "\n👉 Trying to install compose-switch as docker-compose using mode 1 ( find_prev_version_from_git_tags method )";
+install_compose-switch_as_docker-compose "mode1"
+check "installs compose-switch as docker-compose mode 1" bash -c "[[ -f /usr/local/bin/docker-compose ]]"
 
-set +e
-    check "helm version" helm version
-set -e
-
-echo -e "\n👉${HL} helm version as installed by test for fallback${N}: (mode2: installation using GitHub api)"
-install_helm "mode2"
-
-set +e
-    check "helm version" helm version
-set -e
-
-# Report result
-reportResults
+echo -e "\n👉 Trying to install compose-switch as docker-compose using mode 2 ( GitHub Api )";
+install_compose-switch_as_docker-compose "mode2"
+check "installs compose-switch as docker-compose mode 2" bash -c "[[ -f /usr/local/bin/docker-compose ]]"

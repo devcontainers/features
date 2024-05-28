@@ -1,38 +1,33 @@
 #!/bin/bash
+
 set -e
 
-# Optional: Import test library
+# Import test library for `check` command
 source dev-container-features-test-lib
-HL="\033[1;33m"
-N="\033[0;37m"
-echo -e "\n👉${HL} helm version as installed by kubectl-helm-minikube feature${N}:"
 
-set +e
-    check "helm version" helm version
-set -e
+# Check to make sure the user is vscode
+check "user is vscode" whoami | grep vscode
 
-# Function to handle errors
-handle_error() {
-    local exit_code=$?
-    local line_number=$1
-    local command=$2
-    echo "Error occurred at line $line_number with exit code $exit_code in command $command"
-    exit $exit_code
+# Terraform Docs specific tests
+check "terraform-docs version as installed by feature" terraform-docs --version
+
+TERRAFORM_DOCS_SHA256="automatic"
+
+set_error_handler() {
+    echo "Error occurred on line: $LINENO"
 }
-trap 'handle_error $LINENO ${BASH_COMMAND%% *}' ERR
-echo "This is line $LINENO"
 
-## Check for fallback version installation instead of latest ( when artifact not found )
+# Register the error handler function to be triggered on ERR signal
+trap 'set_error_handler' ERR
+
 architecture="$(uname -m)"
-case $architecture in
+case ${architecture} in
     x86_64) architecture="amd64";;
     aarch64 | armv8*) architecture="arm64";;
     aarch32 | armv7* | armvhf*) architecture="arm";;
     i?86) architecture="386";;
-    *) echo "(!) Architecture $architecture unsupported"; exit 1 ;;
+    *) echo "(!) Architecture ${architecture} unsupported"; exit 1 ;;
 esac
-
-helm_url="https://github.com/helm/helm"
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -109,33 +104,50 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
+apt_get_update()
+{
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
+}
+
+# Checks if packages are installed and installs them if not
+check_packages() {
+    if ! dpkg -s "$@" > /dev/null 2>&1; then
+        apt_get_update
+        apt-get -y install --no-install-recommends "$@"
+    fi
+}
+
 # Function to fetch the version released prior to the latest version
 get_previous_version() {
     local url=$1
     local repo_url=$2
     local variable_name=$3
     local mode=$4
-    prev_version=${!variable_name#v}
+    prev_version=${!variable_name}
     
     output=$(curl -s "$repo_url");
 
+    # install jq
+    check_packages jq
+    
     message=$(echo "$output" | jq -r '.message')
-
-    if [ $mode == "mode1" ]; then
-        message="API rate limit exceeded"
-    else 
+    if [[ "$mode" == "mode1" ]]; then
+        message="API rate limit exceeded";
+    elif [[ "$mode" == "mode2" ]]; then
         message=""
-    fi
-
+    fi 
     if [[ $message == "API rate limit exceeded"* ]]; then
         echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
         echo -e "\nAttempting to find latest version using GitHub tags."
         find_prev_version_from_git_tags prev_version "$url" "tags/v"
-        declare -g ${variable_name}="v${prev_version}"
-    else 
+        declare -g ${variable_name}="${prev_version}"
+    else
         echo -e "\nAttempting to find latest version using GitHub Api."
         version=$(echo "$output" | jq -r '.tag_name')
-        declare -g ${variable_name}="${version}"
+        declare -g ${variable_name}="${version#v}"
     fi  
     echo "${variable_name}=${!variable_name}"
 }
@@ -145,42 +157,64 @@ get_github_api_repo_url() {
     echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
-get_helm() {
-    HELM_VERSION=$1
-    helm_filename="helm-${HELM_VERSION}-linux-${architecture}.tar.gz"
-    tmp_helm_filename="/tmp/helm/${helm_filename}"
-    sudo curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
-    sudo curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
+install_previous_version() {
+    given_version=$1
+    requested_version=${!given_version}
+    local URL=$2
+    local mode=$3
+    INSTALLER_FN=$4
+    local REPO_URL=$(get_github_api_repo_url "$URL")
+    local PKG_NAME=$(get_pkg_name "${given_version}")
+    echo -e "\n(!) Failed to fetch the latest artifacts for ${PKG_NAME} v${requested_version}..."
+    get_previous_version "$URL" "$REPO_URL" requested_version $mode
+    echo -e "\nAttempting to install ${requested_version}"
+    declare -g ${given_version}="${requested_version#v}"
+    $INSTALLER_FN "${!given_version}"
+    echo "${given_version}=${!given_version}"
 }
 
-install_helm() {
+install_terraform_docs() {
+    local TERRAFORM_DOCS_VERSION=$1
+    tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
+    curl -sSL -o /tmp/tf-downloads/${tfdocs_filename} https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/${tfdocs_filename}
+}
+
+
+try_install_terraform_docs_dummy_version() {
     mode=$1
-    HELM_VERSION="v3.14.xyz"
-    echo -e "\n👉Trying to install HELM_VERSION = ${HELM_VERSION}"; 
-    sudo mkdir -p /tmp/helm
-    get_helm "${HELM_VERSION}"
-    if grep -q "BlobNotFound" "/tmp/helm/${helm_filename}"; then
-        echo -e "\n(!) Failed to fetch the latest artifacts for helm ${HELM_VERSION}..."
-        repo_url=$(get_github_api_repo_url "${helm_url}")
-        get_previous_version "${helm_url}" "${repo_url}" HELM_VERSION $mode
-        echo -e "\nAttempting to install ${HELM_VERSION}"
-        get_helm "${HELM_VERSION}"
+    mkdir -p /tmp/tf-downloads
+    cd /tmp/tf-downloads
+    TERRAFORM_DOCS_VERSION="0.17.xyz"
+    echo -e "\nInstalling TERRAFORM_DOCS dummy version.." v${TERRAFORM_DOCS_VERSION}
+    terraform_docs_url='https://github.com/terraform-docs/terraform-docs'
+    tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
+    echo "(*) Downloading Terraform docs... ${tfdocs_filename}"
+    install_terraform_docs "$TERRAFORM_DOCS_VERSION"
+    if grep -q "Not Found" "/tmp/tf-downloads/${tfdocs_filename}"; then
+        install_previous_version TERRAFORM_DOCS_VERSION $terraform_docs_url $mode "install_terraform_docs"
+        tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
     fi
+    if [ "${TERRAFORM_DOCS_SHA256}" != "dev-mode" ]; then
+        if [ "${TERRAFORM_DOCS_SHA256}" = "automatic" ]; then
+            curl -sSL -o tfdocs_SHA256SUMS https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}.sha256sum
+        else
+            echo "${TERRAFORM_DOCS_SHA256} *${tfsec_filename}" > tfdocs_SHA256SUMS
+        fi
+        sha256sum --ignore-missing -c tfdocs_SHA256SUMS
+    fi
+    mkdir -p /tmp/tf-downloads/tfdocs
+    tar -xzf /tmp/tf-downloads/${tfdocs_filename} -C /tmp/tf-downloads/tfdocs
+    sudo chmod a+x /tmp/tf-downloads/tfdocs/terraform-docs
+    sudo mv -f /tmp/tf-downloads/tfdocs/terraform-docs /usr/local/bin/terraform-docs
 }
 
-echo -e "\n👉${HL} helm version as installed by test for fallback${N}: (mode1: installation using find_prev_version_using_git_tags() fn)"
-install_helm "mode1"
+try_install_terraform_docs_dummy_version "mode1"
 
-set +e
-    check "helm version" helm version
-set -e
+check "terraform-docs version as installed by test (mode 1: install using find_prev_version_from_git_tags)" terraform-docs --version
 
-echo -e "\n👉${HL} helm version as installed by test for fallback${N}: (mode2: installation using GitHub api)"
-install_helm "mode2"
+try_install_terraform_docs_dummy_version "mode2"
 
-set +e
-    check "helm version" helm version
-set -e
+check "terraform-docs version as installed by test (mode 2: install using GitHub Api)" terraform-docs --version
 
 # Report result
 reportResults

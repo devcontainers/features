@@ -293,8 +293,11 @@ set -e
 umask 0002
 # Do not update profile - we'll do this manually
 export PROFILE=/dev/null
-curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash
-
+curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash ||  {
+    PREV_NVM_VERSION=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+    curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/\${PREV_NVM_VERSION}/install.sh" | bash
+    NVM_VERSION="\${PREV_NVM_VERSION}"
+}
 source "${NVM_DIR}/nvm.sh"
 if [ "${NODE_VERSION}" != "" ]; then
     nvm alias default "${NODE_VERSION}"
