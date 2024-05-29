@@ -9,6 +9,16 @@
       }
     }
   },
+  "install_bicep_noble": {
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "installBicep": true
+      }
+    }
+  },
   "install_extensions_bookworm": {
     "image": "mcr.microsoft.com/devcontainers/base:bookworm",
     "user": "vscode",
