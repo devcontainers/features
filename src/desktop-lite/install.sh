@@ -9,6 +9,9 @@
 
 NOVNC_VERSION="${NOVNCVERSION:-"1.2.0"}" # TODO: Add in a 'latest' auto-detect and swap name to 'version'
 VNC_PASSWORD=${PASSWORD:-"vscode"}
+if [ "$VNC_PASSWORD" = "noPassword" ]; then
+    unset VNC_PASSWORD
+fi
 NOVNC_PORT="${WEBPORT:-6080}"
 VNC_PORT="${VNCPORT:-5901}"
 
@@ -372,7 +375,15 @@ sudoIf chown root:\${group_name} /tmp/.X11-unix
 if [ "\$(echo "\${VNC_RESOLUTION}" | tr -cd 'x' | wc -c)" = "1" ]; then VNC_RESOLUTION=\${VNC_RESOLUTION}x16; fi
 screen_geometry="\${VNC_RESOLUTION%*x*}"
 screen_depth="\${VNC_RESOLUTION##*x}"
-startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -desktop fluxbox -fg -passwd /usr/local/etc/vscode-dev-containers/vnc-passwd"
+
+# Check if VNC_PASSWORD is set and use the appropriate command
+common_options="tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -desktop fluxbox -fg"
+
+if [ -n "\${VNC_PASSWORD+x}" ]; then
+    startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "\${common_options} -passwd /usr/local/etc/vscode-dev-containers/vnc-passwd"
+else
+    startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "\${common_options} -SecurityTypes None"
+fi
 
 # Spin up noVNC if installed and not running.
 if [ -d "/usr/local/novnc" ] && [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/launch.sh | grep -v grep)" = "" ]; then
@@ -388,7 +399,9 @@ exec "\$@"
 log "** SCRIPT EXIT **"
 EOF
 
-echo "${VNC_PASSWORD}" | vncpasswd -f > /usr/local/etc/vscode-dev-containers/vnc-passwd
+if [ -n "${VNC_PASSWORD+x}" ]; then
+    echo "${VNC_PASSWORD}" | vncpasswd -f > /usr/local/etc/vscode-dev-containers/vnc-passwd
+fi
 chmod +x /usr/local/share/desktop-init.sh /usr/local/bin/set-resolution
 
 # Set up fluxbox config
@@ -401,15 +414,23 @@ fi
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
+# Determine the message based on whether VNC_PASSWORD is set
+if [ -n "${VNC_PASSWORD+x}" ]; then
+    PASSWORD_MESSAGE="In both cases, use the password \"${VNC_PASSWORD}\" when connecting"
+else
+    PASSWORD_MESSAGE="In both cases, no password is required."
+fi
+
+# Display the message
 cat << EOF
 
 
 You now have a working desktop! Connect to in one of the following ways:
 
-- Forward port ${NOVNC_PORT} and use a web browser start the noVNC client (recommended)
+- Forward port ${NOVNC_PORT} and use a web browser to start the noVNC client (recommended)
 - Forward port ${VNC_PORT} using VS Code client and connect using a VNC Viewer
 
-In both cases, use the password "${VNC_PASSWORD}" when connecting
+${PASSWORD_MESSAGE}
 
 (*) Done!
 
