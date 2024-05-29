@@ -68,6 +68,19 @@
             }
         }
     },
+    "install_jupyterlab_existing_sudoers_file": {
+        "build": {
+            "dockerfile": "Dockerfile"
+        },
+        "remoteUser": "vscode",
+        "features": {
+            "python": {
+                "version": "latest",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
     "install_jupyterlab_rhel_family": {
         "image": "almalinux:8",
         "remoteUser": "vscode",
