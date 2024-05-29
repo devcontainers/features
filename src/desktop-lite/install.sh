@@ -377,10 +377,12 @@ screen_geometry="\${VNC_RESOLUTION%*x*}"
 screen_depth="\${VNC_RESOLUTION##*x}"
 
 # Check if VNC_PASSWORD is set and use the appropriate command
+common_options="tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -desktop fluxbox -fg"
+
 if [ -n "\${VNC_PASSWORD+x}" ]; then
-    startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -desktop fluxbox -fg -passwd /usr/local/etc/vscode-dev-containers/vnc-passwd"
+    startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "${common_options} -passwd /usr/local/etc/vscode-dev-containers/vnc-passwd"
 else
-    startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -desktop fluxbox -fg -SecurityTypes None"
+    startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "${common_options} -SecurityTypes None"
 fi
 
 # Spin up noVNC if installed and not running.
