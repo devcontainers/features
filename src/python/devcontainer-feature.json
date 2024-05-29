@@ -73,10 +73,14 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
-        "ms-python.vscode-pylance"
+        "ms-python.vscode-pylance",
+        "ms-python.autopep8"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/local/python/current/bin/python"
+        "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
+	      "[python]": {
+	        "editor.defaultFormatter": "ms-python.autopep8"
+	      }
       }
     }
   },
