@@ -450,7 +450,7 @@ install_from_source() {
         centos7|rhel7)
             check_packages perl-IPC-Cmd
             install_openssl3 ${INSTALL_PATH}
-            ADDL_CONFIG_ARGS="--with-openssl=${INSTALL_PATH}/local --with-openssl-rpath=${INSTALL_PATH}/local/lib"
+            ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
             ;;
     esac
 
