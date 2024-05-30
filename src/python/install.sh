@@ -445,7 +445,7 @@ install_from_source() {
     # Some platforms/os versions need modern versions of openssl installed
     # via common package repositories, for now rhel-7 family, use case statement to
     # make it easy to expand
-    INSTALL_PATH="/usr"
+    SSL_INSTALL_PATH="/usr/local"
     case ${VERSION_CODENAME} in
         centos7|rhel7)
             check_packages perl-IPC-Cmd
