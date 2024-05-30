@@ -23,7 +23,14 @@ check "jupyterlab_git" grep jupyterlab_git <<< "$packages"
 check "config" grep ".*.allow_origin = '*'" /home/vscode/.jupyter/jupyter_server_config.py
 
 # Check for PATH modification
-check "default path has jupyterlab" sudo grep "/home/${user}/.local/bin" /etc/sudoers.d/$user
+check "default path has jupyterlab" grep "Defaults secure_path=/home/${user}/.local/bin" /etc/sudoers.d/$user
+
+# Check if previous PATH exists
+check "existing default path is preserved" grep "Defaults secure_path=.*original_content_of_sudoers_file" /etc/sudoers.d/$user
+
+# Check if PATH modification includes original and new paths
+check "existing path included with jupyterlab" grep "Defaults secure_path.*/home/${user}/.local/bin.*original_content_of_sudoers_file" /etc/sudoers.d/$user
+
 
 # Report result
 reportResults
