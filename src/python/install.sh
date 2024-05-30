@@ -390,7 +390,6 @@ add_symlink() {
 }
 
 install_openssl3() {
-    local _prefix=$1
     mkdir /tmp/openssl3
     (
         cd /tmp/openssl3
@@ -403,7 +402,7 @@ install_openssl3() {
         curl -sSL -o "/tmp/openssl3/${tgz_filename}" "${tgz_url}"
         tar xzf ${tgz_filename}
         cd openssl-${openssl3_version}
-        ./config --prefix=${_prefix} --openssldir=${_prefix} --libdir=lib
+        ./config --libdir=lib
         make -j $(nproc)
         make install_dev
     )
@@ -446,11 +445,12 @@ install_from_source() {
     # Some platforms/os versions need modern versions of openssl installed
     # via common package repositories, for now rhel-7 family, use case statement to
     # make it easy to expand
+    SSL_INSTALL_PATH="/usr/local"
     case ${VERSION_CODENAME} in
         centos7|rhel7)
             check_packages perl-IPC-Cmd
-            install_openssl3 ${INSTALL_PATH}
-            ADDL_CONFIG_ARGS="--with-openssl=${INSTALL_PATH} --with-openssl-rpath=${INSTALL_PATH}/lib"
+            install_openssl3
+            ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
             ;;
     esac
 
