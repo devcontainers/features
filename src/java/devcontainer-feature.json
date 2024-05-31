@@ -17,6 +17,14 @@
       "default": "latest",
       "description": "Select or enter a Java version to install"
     },
+    "additionalVersions": {
+      "type": "string",
+      "proposals": [
+        "17, 8"
+      ],
+      "default": "",
+      "description": "Select or enter additional Java versions to install"
+    },
     "jdkDistro": {
       "type": "string",
       "proposals": [
