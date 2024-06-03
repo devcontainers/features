@@ -3,7 +3,7 @@
     "image": "mcr.microsoft.com/devcontainers/base:jammy",
     "features": {
       "powershell": {
-        "modules": "az.resources, az.storage",
+        "modules": "az.resources:7.1.0, az.storage",
         "powershellProfileURL": "https://raw.githubusercontent.com/codspace/powershell-profile/main/Test-Profile.ps1"
       }
     }
