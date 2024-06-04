@@ -15,7 +15,7 @@ rm -rf /var/lib/apt/lists/*
 KUBECTL_VERSION="${VERSION:-"latest"}"
 HELM_VERSION="${HELM:-"latest"}"
 MINIKUBE_VERSION="${MINIKUBE:-"latest"}" # latest is also valid
-TOOLS_PATH="${TOOLS_PATH:-"/usr/local/bin"}" # latest is also valid
+INSTALL_TOOL_PATH="${INSTALLTOOLPATH:-"/usr/local/bin"}"
 
 KUBECTL_SHA256="${KUBECTL_SHA256:-"automatic"}"
 HELM_SHA256="${HELM_SHA256:-"automatic"}"
