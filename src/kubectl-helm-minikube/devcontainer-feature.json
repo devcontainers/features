@@ -43,7 +43,7 @@
                 "/usr/local/bin"
             ],
             "default": "/usr/local/bin",
-            "description": "Path to install tools"
+            "description": "Specify the path used for installing tools"
         }
     },
     "mounts": [
