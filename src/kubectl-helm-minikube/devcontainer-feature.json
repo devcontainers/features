@@ -36,7 +36,7 @@
             "default": "latest",
             "description": "Select or enter a Minikube version to install"
         },
-        "tools_path": {
+        "installToolPath": {
             "type": "string",
             "proposals": [
                 "/usr/bin",
