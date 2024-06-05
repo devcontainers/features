@@ -248,16 +248,19 @@ if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
     modules=(`echo ${POWERSHELL_MODULES} | tr ',' ' '`)
     for i in "${modules[@]}"
     do
-        IFS=':' read -ra module_parts <<< "$i"
+        IFS='==' read -ra module_parts <<< "$i"  
+        module_name="${module_parts[0]}"  
+        args="-Name ${module_name} -AllowClobber -Force -Scope AllUsers"  
+
         if [ "${#module_parts[@]}" -eq 2 ]; then
-            module_name="${module_parts[0]}"
             module_version="${module_parts[1]}"
-            echo "Installing ${module_name} version ${module_version}"
-            pwsh -Command "Install-Module -Name ${module_name} -RequiredVersion ${module_version} -AllowClobber -Force -Scope AllUsers" || continue
+            echo "Installing ${module_name} v${module_version}"
+            args+=" -RequiredVersion ${module_version}"
         else
-            echo "Installing module : ${i} , version : latest"
-            pwsh -Command "Install-Module -Name ${i} -AllowClobber -Force -Scope AllUsers" || continue
+            echo "Installing latest version for ${i} module"
         fi
+
+        pwsh -Command "Install-Module $args" || continue
     done
 fi
 
