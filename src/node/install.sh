@@ -147,11 +147,6 @@ check_packages() {
         rhel)
             if ! rpm -q "$@" > /dev/null 2>&1; then
                 pkg_mgr_update
-                if [ "${ID}" = "centos" ]; then
-                    if [ "$*" = "jq" ]; then
-                        ${INSTALL_CMD} epel-release
-                    fi
-                fi
                 ${INSTALL_CMD} "$@"
             fi
             ;;
@@ -266,7 +261,7 @@ nvm_install_snippet="$(cat << EOF
     umask 0002
     # Do not update profile - we'll do this manually
     export PROFILE=/dev/null
-    ./bash_install_node.sh
+    ./install_nvm_with_retries.sh
     source "${NVM_DIR}/nvm.sh"
     if [ "${NODE_VERSION}" != "" ]; then
         nvm alias default "${NODE_VERSION}"
@@ -301,7 +296,7 @@ if [ ! -d "${NVM_DIR}" ]; then
     chown "${USERNAME}:nvm" "${NVM_DIR}"
     chmod g+rws "${NVM_DIR}"
     
-    su ${USERNAME} -c "source ./bash_install_node.sh && ${nvm_install_snippet}" 2>&1
+    su ${USERNAME} -c "source ./install_nvm_with_retries.sh && ${nvm_install_snippet}" 2>&1
     # Update rc files
     if [ "${UPDATE_RC}" = "true" ]; then
         updaterc "${nvm_rc_snippet}"
@@ -312,7 +307,6 @@ else
         su ${USERNAME} -c "umask 0002 && . '$NVM_DIR/nvm.sh' && nvm install '${NODE_VERSION}' && nvm alias default '${NODE_VERSION}'"
     fi
 fi
-
 
 # Possibly install yarn (puts yarn in per-Node install on RHEL, uses system yarn on Debian)
 install_yarn
