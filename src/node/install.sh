@@ -257,15 +257,15 @@ fi
 
 # Install snipppet that we will run as the user
 nvm_install_snippet="$(cat << EOF
-    set -e
-    umask 0002
-    # Do not update profile - we'll do this manually
-    export PROFILE=/dev/null
-    ./install_nvm_with_retries.sh
-    source "${NVM_DIR}/nvm.sh"
-    if [ "${NODE_VERSION}" != "" ]; then
-        nvm alias default "${NODE_VERSION}"
-    fi
+set -e
+umask 0002
+# Do not update profile - we'll do this manually
+export PROFILE=/dev/null
+./install_nvm_with_retries.sh
+source "${NVM_DIR}/nvm.sh"
+if [ "${NODE_VERSION}" != "" ]; then
+    nvm alias default "${NODE_VERSION}"
+fi
 EOF
 )"
 
