@@ -147,6 +147,11 @@ check_packages() {
         rhel)
             if ! rpm -q "$@" > /dev/null 2>&1; then
                 pkg_mgr_update
+                if [ "${ID}" = "centos" ]; then
+                    if [ "$*" = "jq" ]; then
+                        ${INSTALL_CMD} epel-release
+                    fi
+                fi
                 ${INSTALL_CMD} "$@"
             fi
             ;;
