@@ -10,6 +10,7 @@
 export NODE_VERSION="${VERSION:-"lts"}"
 export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
+export NPM_INSTALL_PACKAGES="${NPMINSTALLPACKAGES:-""}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 
 # Comma-separated list of node versions to be installed (with nvm)
@@ -424,5 +425,9 @@ clean_up
 # have group write set. We need this when the gid/uid is updated.
 mkdir -p "${NVM_DIR}/versions"
 chmod -R g+rw "${NVM_DIR}/versions"
+
+if [ ! -z "${NPMINSTALLPACKAGES}" ]; then
+    su ${USERNAME} -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm use default && npm install -g ${NPMINSTALLPACKAGES}"
+fi
 
 echo "Done!"
