@@ -10,6 +10,7 @@ DOTNET_VERSION="${VERSION:-"latest"}"
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 DOTNET_RUNTIME_VERSIONS="${DOTNETRUNTIMEVERSIONS:-""}"
 ASPNETCORE_RUNTIME_VERSIONS="${ASPNETCORERUNTIMEVERSIONS:-""}"
+WORKLOADS="${WORKLOADS:-""}"
 
 set -e
 
@@ -69,6 +70,11 @@ for aspNetCoreRuntimeVersion in $(split_csv "$ASPNETCORE_RUNTIME_VERSIONS"); do
     aspNetCoreRuntimeVersions+=("$aspNetCoreRuntimeVersion")
 done
 
+workloads=()
+for workload in $(split_csv "$WORKLOADS"); do
+    workloads+=("$workload")
+done
+
 # Fail fast in case of bad input to avoid unneccesary work
 # v1 of the .NET feature allowed specifying only a major version 'X' like '3'
 # v2 removed this ability
@@ -109,6 +115,10 @@ done
 
 for version in "${aspNetCoreRuntimeVersions[@]}"; do
     install_runtime "aspnetcore" "$version"
+done
+
+for workload in "${workloads[@]}"; do
+    install_workload "$workload"
 done
 
 # Clean up

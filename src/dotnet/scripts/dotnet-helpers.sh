@@ -25,7 +25,6 @@ fetch_latest_version_in_channel() {
     else
         wget -qO- "https://dotnetcli.azureedge.net/dotnet/Sdk/$channel/latest.version"
     fi
-    
 }
 
 # Prints the latest dotnet version
@@ -76,12 +75,11 @@ install_sdk() {
     fi
     
     # Currently this script does not make it possible to qualify the version, 'GA' is always implied
-    echo "Executing $DOTNET_INSTALL_SCRIPT --version $version --channel $channel --install-dir $DOTNET_INSTALL_DIR --no-path"
+    echo "Executing $DOTNET_INSTALL_SCRIPT --version $version --channel $channel --install-dir $DOTNET_INSTALL_DIR"
     "$DOTNET_INSTALL_SCRIPT" \
         --version "$version" \
         --channel "$channel" \
-        --install-dir "$DOTNET_INSTALL_DIR" \
-        --no-path
+        --install-dir "$DOTNET_INSTALL_DIR"
 }
 
 # Installs a version of the .NET Runtime
@@ -116,4 +114,23 @@ install_runtime() {
         --channel "$channel" \
         --install-dir "$DOTNET_INSTALL_DIR" \
         --no-path
+}
+
+# Installs a .NET workload
+# Usage: install_workload <workload_id>
+# Reference: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-workload-install
+install_workload() {
+    local workload_id="$1"
+
+    # Prevent "Welcome to .NET" message from dotnet
+    local DOTNET_NOLOGO=true
+
+    # Prevent generating a development certificate
+    local DOTNET_GENERATE_ASPNET_CERTIFICATE=false
+
+    echo "Executing dotnet workload install $workload_id --temp-dir /tmp/dotnet-workload-temp-dir"
+    dotnet workload install "$workload_id" --temp-dir /tmp/devcontainer-nuget-cache
+
+    # Clean up
+    rm -r /tmp/dotnet-workload-temp-dir
 }

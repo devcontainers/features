@@ -15,7 +15,6 @@ fetch_latest_version_in_channel() {
     else
         wget -qO- "https://dotnetcli.azureedge.net/dotnet/Sdk/$channel/latest.version"
     fi
-    
 }
 
 # Prints the latest dotnet version
@@ -47,7 +46,6 @@ is_dotnet_sdk_version_installed() {
     return $?
 }
 
-
 # Asserts that the specified .NET Runtime version is installed
 # Returns a non-zero exit code if the check fails
 # Usage: is_dotnet_runtime_version_installed <version>
@@ -67,5 +65,15 @@ is_dotnet_runtime_version_installed() {
 is_aspnetcore_runtime_version_installed() {
     local expected="$1"
     dotnet --list-runtimes | grep --fixed-strings --silent "Microsoft.AspNetCore.App $expected"
+    return $?
+}
+
+# Asserts that the specified workload is installed
+# Returns a non-zero exit code if the check fails
+# Usage: is_dotnet_workload_installed <workload_id>
+# Example: is_dotnet_workload_installed "aspire"
+is_dotnet_workload_installed() {
+    local expected="$1"
+    dotnet workload list | grep --fixed-strings --silent "$expected"
     return $?
 }
