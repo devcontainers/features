@@ -253,7 +253,7 @@ if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
         args="-Name ${module_name} -AllowClobber -Force -Scope AllUsers"  
         if [ "${#module_parts[@]}" -eq 2 ]; then
             module_version="${module_parts[1]}"
-            echo "Installing ${module_name} v${module_version}.."
+            echo "Installing ${module_name} v${module_version}"
             args+=" -RequiredVersion ${module_version}"
         else
             echo "Installing latest version for ${i} module.."
