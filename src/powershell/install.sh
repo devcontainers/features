@@ -251,7 +251,6 @@ if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
         module_parts=(`echo ${i} | tr '==' ' '`)
         module_name="${module_parts[0]}"  
         args="-Name ${module_name} -AllowClobber -Force -Scope AllUsers"  
-        echo "${#module_parts[@]}"
         if [ "${#module_parts[@]}" -eq 2 ]; then
             module_version="${module_parts[1]}"
             echo "Installing ${module_name} v${module_version}.."
