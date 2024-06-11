@@ -16,7 +16,7 @@ Installs PowerShell along with needed dependencies. Useful for base Dockerfiles 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter a version of PowerShell. | string | latest |
-| modules | Optional comma separated list of PowerShell modules to install. | string | - |
+| modules | Optional comma separated list of PowerShell modules to install. If you need to install a specific version of a module, use '==' to specify the version (e.g. 'az.resources==2.5.0') | string | - |
 | powershellProfileURL | Optional (publicly accessible) URL to download PowerShell profile. | string | - |
 
 ## Customizations
