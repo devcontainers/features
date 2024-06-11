@@ -256,7 +256,7 @@ if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
             echo "Installing ${module_name} v${module_version}"
             args+=" -RequiredVersion ${module_version}"
         else
-            echo "Installing latest version for ${i} module.."
+            echo "Installing latest version for ${i} module"
         fi
 
         pwsh -Command "Install-Module $args" || continue
