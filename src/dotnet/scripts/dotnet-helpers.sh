@@ -129,7 +129,7 @@ install_workload() {
     local DOTNET_GENERATE_ASPNET_CERTIFICATE=false
 
     echo "Executing dotnet workload install $workload_id --temp-dir /tmp/dotnet-workload-temp-dir"
-    dotnet workload install "$workload_id" --temp-dir /tmp/devcontainer-nuget-cache
+    dotnet workload install "$workload_id" --temp-dir /tmp/dotnet-workload-temp-dir
 
     # Clean up
     rm -r /tmp/dotnet-workload-temp-dir
