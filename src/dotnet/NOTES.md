@@ -66,7 +66,6 @@ Installing .NET workloads. Multiple workloads can be specified as comma-separate
 ``` json
 "features": {
     "ghcr.io/devcontainers/features/dotnet:2": {
-      "version": "latest",
       "workloads": "aspire, wasm-tools"
     }
 }
