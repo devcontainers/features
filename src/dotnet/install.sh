@@ -12,6 +12,13 @@ DOTNET_RUNTIME_VERSIONS="${DOTNETRUNTIMEVERSIONS:-""}"
 ASPNETCORE_RUNTIME_VERSIONS="${ASPNETCORERUNTIMEVERSIONS:-""}"
 WORKLOADS="${WORKLOADS:-""}"
 
+# Prevent "Welcome to .NET" message from dotnet
+export DOTNET_NOLOGO=true
+
+# Prevent generating a development certificate while running this script
+# Otherwise it would be stored in the image, which is undesirable
+export DOTNET_GENERATE_ASPNET_CERTIFICATE=false
+
 set -e
 
 # Import trim_whitespace and split_csv
@@ -70,11 +77,6 @@ for aspNetCoreRuntimeVersion in $(split_csv "$ASPNETCORE_RUNTIME_VERSIONS"); do
     aspNetCoreRuntimeVersions+=("$aspNetCoreRuntimeVersion")
 done
 
-workloads=()
-for workload in $(split_csv "$WORKLOADS"); do
-    workloads+=("$workload")
-done
-
 # Fail fast in case of bad input to avoid unneccesary work
 # v1 of the .NET feature allowed specifying only a major version 'X' like '3'
 # v2 removed this ability
@@ -117,9 +119,14 @@ for version in "${aspNetCoreRuntimeVersions[@]}"; do
     install_runtime "aspnetcore" "$version"
 done
 
-for workload in "${workloads[@]}"; do
-    install_workload "$workload"
+workloads=()
+for workload in $(split_csv "$WORKLOADS"); do
+    workloads+=("$workload")
 done
+
+if [ ${#workloads[@]} -ne 0 ]; then
+    install_workloads "${workloads[@]}"
+fi
 
 # Clean up
 rm -rf /var/lib/apt/lists/*

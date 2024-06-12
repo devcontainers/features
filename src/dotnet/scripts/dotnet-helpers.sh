@@ -116,20 +116,14 @@ install_runtime() {
         --no-path
 }
 
-# Installs a .NET workload
-# Usage: install_workload <workload_id>
+# Installs one or more .NET workloads
+# Usage: install_workload <workload_id> [<workload_id> ...]
 # Reference: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-workload-install
-install_workload() {
-    local workload_id="$1"
+install_workloads() {
+    local workloads="$@"
 
-    # Prevent "Welcome to .NET" message from dotnet
-    local DOTNET_NOLOGO=true
-
-    # Prevent generating a development certificate
-    local DOTNET_GENERATE_ASPNET_CERTIFICATE=false
-
-    echo "Installing .NET workload $workload_id"
-    dotnet workload install "$workload_id" --temp-dir /tmp/dotnet-workload-temp-dir
+    echo "Installing .NET workload(s) $workloads"
+    dotnet workload install $workloads --temp-dir /tmp/dotnet-workload-temp-dir
 
     # Clean up
     rm -r /tmp/dotnet-workload-temp-dir
