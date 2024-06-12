@@ -128,7 +128,7 @@ install_workload() {
     # Prevent generating a development certificate
     local DOTNET_GENERATE_ASPNET_CERTIFICATE=false
 
-    echo "Executing dotnet workload install $workload_id --temp-dir /tmp/dotnet-workload-temp-dir"
+    echo "Imstalling .NET workload $workload_id"
     dotnet workload install "$workload_id" --temp-dir /tmp/dotnet-workload-temp-dir
 
     # Clean up
