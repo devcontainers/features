@@ -621,6 +621,8 @@ fi
 # ****************************
 # ** Utilities and commands **
 # ****************************
+# ensure `/usr/local/bin` exists (not present by default in Wolfi)
+mkdir -p /usr/local/bin
 
 # code shim, it fallbacks to code-insiders if code is not available
 cp -f "${FEATURE_DIR}/bin/code" /usr/local/bin/
