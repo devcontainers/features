@@ -320,40 +320,41 @@ install_wolfi_packages() {
 
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         apk add --no-cache \
-            openssh-client \
-            gnupg \
-            procps \
-            lsof \
-            htop \
-            net-tools \
-            psmisc \
-            curl \
-            wget \
-            rsync \
             ca-certificates \
+            coreutils \
+            curl \
+            gnupg \
+            grep \
+            htop \
+            jq \
+            krb5-libs \
+            less \
+            libgcc \
+            libintl \
+            libstdc++ \
+            lsof \
+            lttng-ust \
+            nano \
+            ncdu \
+            net-tools \
+            openssh-client \
+            procps \
+            psmisc \
+            rsync \
+            sed \
+            shadow \
+            strace \
+            sudo \
+            tzdata \
             unzip \
+            userspace-rcu \
+            vim \
+            wget \
+            which \
             xz \
             zip \
-            nano \
-            vim \
-            less \
-            jq \
-            libgcc \
-            libstdc++ \
-            krb5-libs \
-            libintl \
-            lttng-ust \
-            tzdata \
-            userspace-rcu \
             zlib \
-            sudo \
-            coreutils \
-            sed \
-            grep \
-            which \
-            ncdu \
-            shadow \
-            strace
+            ;
 
         # # Include libssl1.1 if available (not available for 3.19 and newer)
         LIBSSL1_PKG=libssl1.1
