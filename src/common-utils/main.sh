@@ -315,6 +315,74 @@ install_alpine_packages() {
     PACKAGES_ALREADY_INSTALLED="true"
 }
 
+# Wolfi packages
+install_wolfi_packages() {
+    apk update
+
+    if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
+        apk add --no-cache \
+            openssh-client \
+            gnupg \
+            procps \
+            lsof \
+            htop \
+            net-tools \
+            psmisc \
+            curl \
+            wget \
+            rsync \
+            ca-certificates \
+            unzip \
+            xz \
+            zip \
+            nano \
+            vim \
+            less \
+            jq \
+            libgcc \
+            libstdc++ \
+            krb5-libs \
+            libintl \
+            lttng-ust \
+            tzdata \
+            userspace-rcu \
+            zlib \
+            sudo \
+            coreutils \
+            sed \
+            grep \
+            which \
+            ncdu \
+            shadow \
+            strace
+
+        # # Include libssl1.1 if available (not available for 3.19 and newer)
+        LIBSSL1_PKG=libssl1.1
+        if [[ $(apk search --no-cache -a $LIBSSL1_PKG | grep $LIBSSL1_PKG) ]]; then
+            apk add --no-cache $LIBSSL1_PKG
+        fi
+
+        # Install man pages - package name varies between 3.12 and earlier versions
+        if apk info man > /dev/null 2>&1; then
+            apk add --no-cache man man-pages
+        else
+            apk add --no-cache mandoc man-pages
+        fi
+
+        # Install git if not already installed (may be more recent than distro version)
+        if ! type git > /dev/null 2>&1; then
+            apk add --no-cache git
+        fi
+    fi
+
+    # Install zsh if needed
+    if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
+        apk add --no-cache zsh
+    fi
+
+    PACKAGES_ALREADY_INSTALLED="true"
+}
+
 # ******************
 # ** Main section **
 # ******************
@@ -345,6 +413,8 @@ elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_L
     ADJUSTED_ID="rhel"
 elif [ "${ID}" = "alpine" ]; then
     ADJUSTED_ID="alpine"
+elif [ "${ID}" = "wolfi" ]; then
+    ADJUSTED_ID="wolfi"
 else
     echo "Linux distro ${ID} not supported."
     exit 1
@@ -360,6 +430,9 @@ case "${ADJUSTED_ID}" in
         ;;
     "alpine")
         install_alpine_packages
+        ;;
+    "wolfi")
+        install_wolfi_packages
         ;;
 esac
 
@@ -457,7 +530,7 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
         "rhel")
             global_rc_path="/etc/bashrc"
             ;;
-        "alpine")
+        "alpine" | "wolfi")
             global_rc_path="/etc/bash/bashrc"
             # /etc/bash/bashrc does not exist in alpine 3.14 & 3.15
             mkdir -p /etc/bash
