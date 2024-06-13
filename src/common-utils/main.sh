@@ -337,6 +337,7 @@ install_wolfi_packages() {
             nano \
             net-tools \
             openssh-client \
+            posix-libc-utils \
             procps \
             rsync \
             sed \
