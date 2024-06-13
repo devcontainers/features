@@ -330,16 +330,12 @@ install_wolfi_packages() {
             krb5-libs \
             less \
             libgcc \
-            libintl \
             libstdc++ \
-            lsof \
             lttng-ust \
             nano \
-            ncdu \
             net-tools \
             openssh-client \
             procps \
-            psmisc \
             rsync \
             sed \
             shadow \
@@ -350,7 +346,6 @@ install_wolfi_packages() {
             userspace-rcu \
             vim \
             wget \
-            which \
             xz \
             zip \
             zlib \
