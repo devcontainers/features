@@ -317,7 +317,6 @@ install_alpine_packages() {
 
 # Wolfi packages
 install_wolfi_packages() {
-    apk update
 
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         apk add --no-cache \
