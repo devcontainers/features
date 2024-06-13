@@ -332,6 +332,8 @@ install_wolfi_packages() {
             libgcc \
             libstdc++ \
             lttng-ust \
+            man-db \
+            man-db-doc \
             nano \
             net-tools \
             openssh-client \
@@ -355,13 +357,6 @@ install_wolfi_packages() {
         LIBSSL1_PKG=libssl1.1
         if [[ $(apk search --no-cache -a $LIBSSL1_PKG | grep $LIBSSL1_PKG) ]]; then
             apk add --no-cache $LIBSSL1_PKG
-        fi
-
-        # Install man pages - package name varies between 3.12 and earlier versions
-        if apk info man > /dev/null 2>&1; then
-            apk add --no-cache man man-pages
-        else
-            apk add --no-cache mandoc man-pages
         fi
 
         # Install git if not already installed (may be more recent than distro version)
