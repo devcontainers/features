@@ -1,6 +1,6 @@
 {
     "id": "dotnet",
-    "version": "2.0.6",
+    "version": "2.1.0",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
     "description": "This Feature installs the latest .NET SDK, which includes the .NET CLI and the shared runtime. Options are provided to choose a different version or additional versions.",
@@ -32,6 +32,11 @@
             "type": "string",
             "default": "",
             "description": "Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+        },
+        "workloads": {
+            "type": "string",
+            "default": "",
+            "description": "Enter additional .NET SDK workloads, separated by commas. Use 'dotnet workload search' to learn what workloads are available to install."
         }
     },
     "containerEnv": {
