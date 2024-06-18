@@ -128,6 +128,13 @@ if [ ${#workloads[@]} -ne 0 ]; then
     install_workloads "${workloads[@]}"
 fi
 
+# Create a symbolic link '/usr/bin/dotnet', to make dotnet available to 'sudo'
+# This is necessary because 'sudo' resets the PATH variable, so it won't search the DOTNET_ROOT directory
+if [ ! -e /usr/bin/dotnet ]; then
+    # Use --force to overwrite any existing link that might already exist in the base image
+    ln --symbolic --force "$DOTNET_ROOT/dotnet" /usr/bin/dotnet
+fi
+
 # Clean up
 rm -rf /var/lib/apt/lists/*
 rm -rf scripts
