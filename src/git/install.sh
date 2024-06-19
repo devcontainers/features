@@ -26,6 +26,8 @@ fi
 # Get an adjusted ID independent of distro variants
 if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
+elif [ "${ID}" = "alpine" ]; then
+    ADJUSTED_ID="alpine"
 elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     VERSION_CODENAME="${ID}{$VERSION_ID}"
@@ -36,6 +38,8 @@ fi
 
 if type apt-get > /dev/null 2>&1; then
     INSTALL_CMD=apt-get
+elif type apk > /dev/null 2>&1; then
+    INSTALL_CMD=apk
 elif type microdnf > /dev/null 2>&1; then
     INSTALL_CMD=microdnf
 elif type dnf > /dev/null 2>&1; then
@@ -52,6 +56,9 @@ clean_up() {
     case $ADJUSTED_ID in
         debian)
             rm -rf /var/lib/apt/lists/*
+            ;;
+        alpine)
+            rm -rf /var/cache/apk/*
             ;;
         rhel)
             rm -rf /var/cache/dnf/*
@@ -102,6 +109,11 @@ pkg_mgr_update() {
             echo "Running apt-get update..."
             ${INSTALL_CMD} update -y
         fi
+    elif [ ${INSTALL_CMD} = "apk" ]; then
+        if [ "$(find /var/cache/apk/* | wc -l)" = "0" ]; then
+            echo "Running apk update..."
+            ${INSTALL_CMD} update
+        fi
     elif [ ${INSTALL_CMD} = "dnf" ] || [ ${INSTALL_CMD} = "yum" ]; then
         if [ "$(find /var/cache/${INSTALL_CMD}/* | wc -l)" = "0" ]; then
             echo "Running ${INSTALL_CMD} check-update ..."
@@ -118,6 +130,10 @@ check_packages() {
             pkg_mgr_update
             ${INSTALL_CMD} -y install --no-install-recommends "$@"
         fi
+    elif [ ${INSTALL_CMD} = "apk" ]; then
+        ${INSTALL_CMD} add \
+            --no-cache \
+            "$@"
     elif [ ${INSTALL_CMD} = "dnf" ] || [ ${INSTALL_CMD} = "yum" ]; then
         _num_pkgs=$(echo "$@" | tr ' ' \\012 | wc -l)
         _num_installed=$(${INSTALL_CMD} -C list installed "$@" | sed '1,/^Installed/d' | wc -l)
@@ -154,6 +170,8 @@ if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
 
     if [ "$INSTALL_CMD" = "apt-get" ]; then
         echo "Installing git from OS apt repository"
+    elif [ "$INSTALL_CMD" = "apk" ]; then
+        echo "Installing git from OS apk repository"
     else
         echo "Installing git from OS yum/dnf repository"
     fi
