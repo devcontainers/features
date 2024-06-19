@@ -242,7 +242,7 @@ fi
 if [ "$(echo "${GIT_VERSION}" | grep -o '\.' | wc -l)" != "2" ]; then
     requested_version="${GIT_VERSION}"
     if [ "${ADJUSTED_ID}" = "alpine" ]; then
-        version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | jq -r '.[] | .name' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -rV )"
+        version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | jq -r '.[] | .name' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sed 's/^v//g' | sort -rV )"
     else
         version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | grep -oP '"name":\s*"v\K[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"' | sort -rV )"
     fi
