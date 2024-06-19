@@ -40,7 +40,7 @@
         "installYarnUsingApt": {
             "type": "boolean",
             "default": true,
-            "description": "On Debian & Ubuntu systems, you can choose whether to install Yarn globally via APT. If this option is set to false, Yarn will be set up via Corepack instead. This setting does not apply to other Linux distributions, where Yarn is always installed using Corepack."
+            "description": "On Debian & Ubuntu systems, you can choose whether to install Yarn globally via APT. If this option is set to false, Yarn will be set up via Corepack instead. This setting does not apply to other Linux distributions, where Yarn is always installed using Corepack (with a fallback to installation via NPM in case of an error)."
         }
     },
     "customizations": {
