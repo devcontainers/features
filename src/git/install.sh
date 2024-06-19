@@ -263,7 +263,13 @@ echo "Downloading source for ${GIT_VERSION}..."
 curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
 echo "Building..."
 cd /tmp/git-${GIT_VERSION}
-make -s USE_LIBPCRE=YesPlease prefix=/usr/local sysconfdir=/etc all && make -s USE_LIBPCRE=YesPlease prefix=/usr/local sysconfdir=/etc install 2>&1
+git_options=("USE_LIBPCRE=YesPlease")
+if [ "${ADJUSTED_ID}" = "alpine" ]; then
+    git_options+=("NO_REGEX=NeedsStartEnd")
+fi
+git_options+=("prefix=/usr/local")
+git_options+=("sysconfdir=/etc")
+make -s ${git_options[@]} all && make -s ${git_options[@]} install 2>&1
 rm -rf /tmp/git-${GIT_VERSION}
 clean_up
 echo "Done!"
