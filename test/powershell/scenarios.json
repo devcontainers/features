@@ -16,5 +16,13 @@
         "powershellProfileURL": "https://raw.githubusercontent.com/codspace/powershell-profile/main/Test-Profile.ps1"
       }
     }
+  },
+  "install_modules_version": {
+    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "features": {
+      "powershell": {
+        "modules": "az.resources==2.5.0, az.storage==4.3.0"
+      }
+    }
   }
 }
