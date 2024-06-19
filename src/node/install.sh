@@ -11,7 +11,7 @@ export NODE_VERSION="${VERSION:-"lts"}"
 export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
-export YARN_FROM_APT="${YARNFROMAPT:-true}"  # only concerns Debian-based systems
+export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-true}"  # only concerns Debian-based systems
 
 # Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
@@ -189,7 +189,7 @@ find_version_from_git_tags() {
 }
 
 install_yarn() {
-    if [ "${ADJUSTED_ID}" = "debian" ] && [ "${YARN_FROM_APT}" = "true" ]; then
+    if [ "${ADJUSTED_ID}" = "debian" ] && [ "${INSTALL_YARN_USING_APT}" = "true" ]; then
         # for backward compatiblity with existing devcontainer features, install yarn
         # via apt-get on Debian systems
         if ! type yarn >/dev/null 2>&1; then
