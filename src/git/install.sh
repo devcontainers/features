@@ -214,7 +214,7 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
 
 elif [ "${ADJUSTED_ID}" = "alpine" ]; then
 
-    check_packages curl curl-dev expat-dev file jq make 'openssl-dev>3' pcre2-dev perl-dev perl-error xmlto zlib-dev
+    check_packages alpine-sdk curl curl-dev gettext-dev jq libintl 'openssl-dev>3'
 
     check_packages pcre2-dev
 
