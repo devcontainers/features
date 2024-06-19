@@ -242,14 +242,24 @@ if [ "${use_github}" = "true" ]; then
     install_using_github
 fi
 
-# If PowerShell modules are requested, loop through and install 
+# If PowerShell modules are requested, loop through and install
 if [ ${#POWERSHELL_MODULES[@]} -gt 0 ]; then
     echo "Installing PowerShell Modules: ${POWERSHELL_MODULES}"
     modules=(`echo ${POWERSHELL_MODULES} | tr ',' ' '`)
     for i in "${modules[@]}"
     do
-        echo "Installing ${i}"
-        pwsh -Command "Install-Module -Name ${i} -AllowClobber -Force -Scope AllUsers" || continue
+        module_parts=(`echo ${i} | tr '==' ' '`)
+        module_name="${module_parts[0]}"  
+        args="-Name ${module_name} -AllowClobber -Force -Scope AllUsers"  
+        if [ "${#module_parts[@]}" -eq 2 ]; then
+            module_version="${module_parts[1]}"
+            echo "Installing ${module_name} v${module_version}"
+            args+=" -RequiredVersion ${module_version}"
+        else
+            echo "Installing latest version for ${i} module"
+        fi
+
+        pwsh -Command "Install-Module $args" || continue
     done
 fi
 
