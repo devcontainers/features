@@ -214,7 +214,7 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
 
 elif [ "${ADJUSTED_ID}" = "alpine" ]; then
 
-    check_packages curl curl-dev expat-dev file 'openssl-dev>3' pcre2-dev perl-dev perl-error xmlto zlib-dev
+    check_packages curl curl-dev expat-dev file jq 'openssl-dev>3' pcre2-dev perl-dev perl-error xmlto zlib-dev
 
     check_packages pcre2-dev
 
@@ -241,7 +241,11 @@ fi
 # Partial version matching
 if [ "$(echo "${GIT_VERSION}" | grep -o '\.' | wc -l)" != "2" ]; then
     requested_version="${GIT_VERSION}"
-    version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | grep -oP '"name":\s*"v\K[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"' | sort -rV )"
+    if [ "${ADJUSTED_ID}" = "alpine" ]; then
+        version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | jq -r '.[] | .name' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -rV )"
+    else
+        version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | grep -oP '"name":\s*"v\K[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"' | sort -rV )"
+    fi
     if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "current" ]; then
         GIT_VERSION="$(echo "${version_list}" | head -n 1)"
     else
