@@ -212,6 +212,12 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
         check_packages libpcre2-posix3
     fi
 
+elif [ "${ADJUSTED_ID}" = "alpine" ]; then
+
+    check_packages curl-dev expat-dev file 'openssl-dev>3' pcre2-dev perl-dev perl-error xmlto zlib-dev
+
+    check_packages pcre2-dev
+
 elif [ "${ADJUSTED_ID}" = "rhel" ]; then
 
     if [ $VERSION_CODENAME = "centos7" ]; then
