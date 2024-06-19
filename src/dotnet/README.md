@@ -19,6 +19,7 @@ This Feature installs the latest .NET SDK, which includes the .NET CLI and the s
 | additionalVersions | Enter additional .NET SDK versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
 | dotnetRuntimeVersions | Enter additional .NET runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
 | aspNetCoreRuntimeVersions | Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
+| workloads | Enter additional .NET SDK workloads, separated by commas. Use 'dotnet workload search' to learn what workloads are available to install. | string | - |
 
 ## Customizations
 
@@ -30,8 +31,7 @@ This Feature installs the latest .NET SDK, which includes the .NET CLI and the s
 
 Installing only the latest .NET SDK version (the default).
 
-``` json
-{
+``` jsonc
 "features": {
     "ghcr.io/devcontainers/features/dotnet:2": "latest" // or "" or {}
 }
@@ -40,7 +40,6 @@ Installing only the latest .NET SDK version (the default).
 Installing an additional SDK version. Multiple versions can be specified as comma-separated values.
 
 ``` json
-{
 "features": {
     "ghcr.io/devcontainers/features/dotnet:2": {
         "additionalVersions": "lts"
@@ -51,7 +50,6 @@ Installing an additional SDK version. Multiple versions can be specified as comm
 Installing specific SDK versions.
 
 ``` json
-{
 "features": {
     "ghcr.io/devcontainers/features/dotnet:2": {
         "version": "6.0",
@@ -63,7 +61,6 @@ Installing specific SDK versions.
 Installing a specific SDK feature band.
 
 ``` json
-{
 "features": {
     "ghcr.io/devcontainers/features/dotnet:2": {
         "version": "6.0.4xx",
@@ -74,7 +71,6 @@ Installing a specific SDK feature band.
 Installing a specific SDK patch version.
 
 ``` json
-{
 "features": {
     "ghcr.io/devcontainers/features/dotnet:2": {
         "version": "6.0.412",
@@ -85,12 +81,21 @@ Installing a specific SDK patch version.
 Installing only the .NET Runtime or the ASP.NET Core Runtime. (The SDK includes all runtimes so this configuration is only useful if you need to run .NET apps without building them from source.)
 
 ``` json
-{
 "features": {
     "ghcr.io/devcontainers/features/dotnet:2": {
         "version": "none",
         "dotnetRuntimeVersions": "latest, lts",
         "aspnetCoreRuntimeVersions": "latest, lts",
+    }
+}
+```
+
+Installing .NET workloads. Multiple workloads can be specified as comma-separated values.
+
+``` json
+"features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "workloads": "aspire, wasm-tools"
     }
 }
 ```
