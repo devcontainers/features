@@ -8,7 +8,7 @@ source dev-container-features-test-lib
 # Definition specific tests
 YARN_VERSION="4.3.0"
 
-# Corepack provides shims for package managers like yarn. When yarn is invoked by the "yarn"
+# Corepack provides shims for package managers like yarn. When yarn is invoked via the "yarn"
 # command, corepack will interactively request permission to download the yarn binary. To
 # avoid this interactive mode and download the binary automatically, we call "corepack use yarn"
 # instead. Once that command completes, "yarn" can be used normally and in a non-interactive mode.
