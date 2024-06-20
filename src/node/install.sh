@@ -21,6 +21,16 @@ UPDATE_RC="${UPDATE_RC:-"true"}"
 
 set -e
 
+function handle_error {
+    local line_number=$1
+    local exit_code=$2
+    echo "Error occurred in script at line: $line_number, exit code: $exit_code"
+    # Additional error handling or logging can be added here
+}
+
+# Trap errors and call the custom error handler
+trap 'handle_error $LINENO $?' ERR
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -153,10 +163,28 @@ check_packages() {
     esac
 }
 
+functions_content=$(cat << 'EOF'
+#!/bin/$(basename "$SHELL")
+Shell_Type="bash"
+if [ "$(basename "$SHELL")" = "bash" ]; then
+    echo "Running in Bash"
+    Shell_Type="bash"
+elif [ "$(basename "$SHELL")" = "zsh" ]; then
+    echo "Running in Zsh"
+    Shell_Type="zsh"
+else
+    echo "Unknown shell"
+fi
+echo -e "\n<<<<< Shell_Type=${Shell_Type} >>>>> "
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
     local variable_name=$1
-    local requested_version=${!variable_name}
+    local requested_version=""
+    if [ $Shell_Type == "bash" ]; then
+        requested_version=${!variable_name}
+    else 
+        eval "requested_version=\$$variable_name"
+    fi
     if [ "${requested_version}" = "none" ]; then return; fi
     local repository=$2
     local prefix=${3:-"tags/v"}
@@ -184,8 +212,117 @@ find_version_from_git_tags() {
         echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
         exit 1
     fi
-    echo "${variable_name}=${!variable_name}"
+    # echo "${variable_name}=${!variable_name}"
 }
+
+# Use semver logic to decrement a version number then look for the closest match
+find_prev_version_from_git_tags() {
+    local variable_name=$1
+    local current_version=""
+    if [ $Shell_Type == "bash" ]; then
+        current_version=${!variable_name}
+    else 
+        eval "current_version=\$$variable_name"
+    fi
+    # local current_version=${!variable_name}
+    local repository=$2
+    # Normally a "v" is used before the version number, but support alternate cases
+    local prefix=${3:-"tags/v"}
+    # Some repositories use "_" instead of "." for version number part separation, support that
+    local separator=${4:-"."}
+    # Some tools release versions that omit the last digit (e.g. go)
+    local last_part_optional=${5:-"false"}
+    # Some repositories may have tags that include a suffix (e.g. actions/node-versions)
+    local version_suffix_regex=$6
+    # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
+    set +e
+        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+
+        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+            ((major=major-1))
+            declare -g ${variable_name}="${major}"
+            # Look for latest version from previous major release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        # Handle situations like Go's odd version pattern where "0" releases omit the last part
+        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+            ((minor=minor-1))
+            declare -g ${variable_name}="${major}.${minor}"
+            # Look for latest version from previous minor release
+            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+        else
+            ((breakfix=breakfix-1))
+            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
+                declare -g ${variable_name}="${major}.${minor}"
+            else 
+                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
+            fi
+        fi
+    set -e
+}
+
+# Function to fetch the version released prior to the latest version
+get_previous_version() {
+    local url=$1
+    local repo_url=$2
+    local variable_name=$3
+    local prev_version=""
+    if [ $Shell_Type == "bash" ]; then
+        prev_version=${!variable_name#v}
+    else 
+        eval "prev_version=\$$variable_name#v"
+    fi
+    # prev_version=${!variable_name#v}
+    
+    output=$(curl -s "$repo_url");
+
+    message=$(echo "$output" | jq -r '.message')
+    if [[ $message == "API rate limit exceeded"* ]]; then
+        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
+        echo -e "\nAttempting to find latest version using GitHub tags."
+        find_prev_version_from_git_tags prev_version "$url" "tags/v"
+        declare -g "${variable_name}=${prev_version}"
+    else 
+        echo -e "\nAttempting to find latest version using GitHub Api."
+        version=$(echo "$output" | jq -r '.tag_name')
+        echo "${variable_name}=variable_name from get_previous_version"
+        echo "${version}=version from get_previous_version"
+        declare -g "${variable_name}=${version#v}"
+    fi  
+    # echo "${variable_name}=${!variable_name}"
+}
+
+
+get_github_api_repo_url() {
+    local url=$1
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
+}
+
+nvm_url="https://github.com/nvm-sh/nvm"
+
+find_version_from_git_tags NVM_VERSION $nvm_url
+
+repo_url=$(get_github_api_repo_url "${nvm_url}")
+
+install_nvm() {
+    curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash ||  {
+        get_previous_version "${nvm_url}" "${repo_url}" NVM_VERSION
+        echo \"Previous nvm version=$NVM_VERSION\"
+        curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash
+    }
+}
+EOF
+)
+
+target_directory="/tmp/nvm_installation_script"
+mkdir -p "$target_directory" 
+
+# Define your target script file
+target_script="$target_directory/main_script.sh"
+
+# Append the functions content to the target script
+echo "$functions_content" > "$target_script"
 
 install_yarn() {
     if [ "${ADJUSTED_ID}" = "debian" ]; then
@@ -227,6 +364,10 @@ install_yarn() {
 # node via npm.
 if ! type awk >/dev/null 2>&1; then
     check_packages awk
+fi
+
+if ! type jq >/dev/null 2>&1; then
+    check_packages jq
 fi
 
 # Determine the appropriate non-root user
@@ -285,23 +426,20 @@ elif [ "${NODE_VERSION}" = "latest" ]; then
     export NODE_VERSION="node"
 fi
 
-find_version_from_git_tags NVM_VERSION "https://github.com/nvm-sh/nvm"
-
 # Install snipppet that we will run as the user
 nvm_install_snippet="$(cat << EOF
-set -e
-umask 0002
-# Do not update profile - we'll do this manually
-export PROFILE=/dev/null
-curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash ||  {
-    PREV_NVM_VERSION=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
-    curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/\${PREV_NVM_VERSION}/install.sh" | bash
-    NVM_VERSION="\${PREV_NVM_VERSION}"
-}
-source "${NVM_DIR}/nvm.sh"
-if [ "${NODE_VERSION}" != "" ]; then
-    nvm alias default "${NODE_VERSION}"
-fi
+    set -e
+    set -x
+    umask 0002
+    # Do not update profile - we'll do this manually
+    export PROFILE=/dev/null
+    source ${target_script}
+    install_nvm
+    source "${NVM_DIR}/nvm.sh"
+    if [ "${NODE_VERSION}" != "" ]; then
+        nvm alias default "${NODE_VERSION}"
+    fi
+    set +x
 EOF
 )"
 
@@ -331,6 +469,7 @@ if [ ! -d "${NVM_DIR}" ]; then
     mkdir -p "${NVM_DIR}"
     chown "${USERNAME}:nvm" "${NVM_DIR}"
     chmod g+rws "${NVM_DIR}"
+    
     su ${USERNAME} -c "${nvm_install_snippet}" 2>&1
     # Update rc files
     if [ "${UPDATE_RC}" = "true" ]; then
@@ -342,6 +481,7 @@ else
         su ${USERNAME} -c "umask 0002 && . '$NVM_DIR/nvm.sh' && nvm install '${NODE_VERSION}' && nvm alias default '${NODE_VERSION}'"
     fi
 fi
+
 
 # Possibly install yarn (puts yarn in per-Node install on RHEL, uses system yarn on Debian)
 install_yarn
