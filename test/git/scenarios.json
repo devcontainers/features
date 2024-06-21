@@ -107,6 +107,15 @@
             }
         }
     },
+    "install_git_from_system_alpine-3": {
+        "image": "alpine:3",
+        "features": {
+            "git": {
+                "version": "system",
+                "ppa": "false"
+            }
+        }
+    },
     "install_git_from_system_centos-7": {
         "image": "centos:centos7",
         "features": {

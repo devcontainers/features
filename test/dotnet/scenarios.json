@@ -81,5 +81,15 @@
                 "aspnetcoreRuntimeVersions": "latest"
             }
         }
+    },
+    "install_dotnet_workloads": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "dotnet": {
+                "version": "latest",
+                "workloads": "aspire, wasm-tools"
+            }
+        }
     }
 }
