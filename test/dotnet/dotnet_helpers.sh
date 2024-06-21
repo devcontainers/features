@@ -13,7 +13,9 @@ fetch_latest_version_in_channel() {
     elif [ "$runtime" = "aspnetcore" ]; then
         wget -qO- "https://dotnetcli.azureedge.net/dotnet/aspnetcore/Runtime/$channel/latest.version"
     else
-        wget -qO- "https://dotnetcli.azureedge.net/dotnet/Sdk/$channel/latest.version"
+        echo $(curl -s https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/releases-index.json |  
+    jq --raw-output '[."releases-index"[] | select(."release-type"=="lts" and ."support-phase"=="active")."latest-sdk"] | first'  
+)
     fi
 }
 
