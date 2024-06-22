@@ -683,8 +683,8 @@ case ${ADJUSTED_ID} in
     alpine)
         # ref. <https://github.com/alpinelinux/aports/blob/d2ce3868f364e097869aa186317bc1e9564f205d/main/python3/APKBUILD#L25>
         REQUIRED_PKGS="${REQUIRED_PKGS} \
-            'libssl3>=3.3.0' \
-            '!gettext-dev' \
+            libssl3>=3.3.0 \
+            !gettext-dev \
             bluez-headers \
             bzip2-dev \
             expat-dev \
