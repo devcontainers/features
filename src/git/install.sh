@@ -155,6 +155,11 @@ check_packages() {
     fi
 }
 
+# Prints values of the Config.pm variable $1.
+_perl_config() {
+	perl -e "use Config; print \$Config{$1};"
+}
+
 export DEBIAN_FRONTEND=noninteractive
 
 # Debian / Ubuntu packages
@@ -271,6 +276,17 @@ if [ "${ADJUSTED_ID}" = "alpine" ]; then
     git_options=("prefix=/usr")
     git_options+=("NO_REGEX=YesPlease")
     git_options+=("NO_GETTEXT=YesPlease")
+    git_options+=("NO_SVN_TESTS=YesPlease")
+    git_options+=("NO_SYS_POLL_H=1")
+    git_options+=("ICONV_OMITS_BOM=Yes")
+    git_options+=("INSTALL_SYMLINKS=1")
+    git_options+=("CC=${CC:-cc}")
+    git_options+=("CXX=${CC:-c++}")
+    # git_options+=("CFLAGS=$CFLAGS -flto=auto")
+    # git_options+=("LDFLAGS=$LDFLAGS -flto=auto")
+    git_options+=("USE_LIBPCRE2=YesPlease")
+    git_options+=("PYTHON_PATH=/usr/bin/python3")
+    git_options+=("perllibdir=$(_perl_config vendorlib)")
 else
     git_options=("prefix=/usr/local")
     git_options+=("sysconfdir=/etc")
