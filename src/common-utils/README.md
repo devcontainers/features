@@ -27,7 +27,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, RockyLinux, and Alpine Linux.
+This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, RockyLinux, Alpine Linux, and Wolfi.
 
 ## Using with dev container images
 

@@ -127,6 +127,13 @@
             "common-utils": {}
         }
     },
+    "wolfi": {
+        "image": "cgr.dev/chainguard/wolfi-base",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
     "alternate-values": {
         "image": "debian:bullseye",
         "features": {

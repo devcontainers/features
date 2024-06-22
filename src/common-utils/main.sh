@@ -315,6 +315,65 @@ install_alpine_packages() {
     PACKAGES_ALREADY_INSTALLED="true"
 }
 
+# Wolfi packages
+install_wolfi_packages() {
+
+    if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
+        apk add --no-cache \
+            ca-certificates \
+            coreutils \
+            curl \
+            gnupg \
+            grep \
+            htop \
+            jq \
+            krb5-libs \
+            less \
+            libgcc \
+            libstdc++ \
+            lttng-ust \
+            man-db \
+            man-db-doc \
+            nano \
+            net-tools \
+            openssh-client \
+            posix-libc-utils \
+            procps \
+            rsync \
+            sed \
+            shadow \
+            strace \
+            sudo \
+            tzdata \
+            unzip \
+            userspace-rcu \
+            vim \
+            wget \
+            xz \
+            zip \
+            zlib \
+            ;
+
+        # # Include libssl1.1 if available (not available for 3.19 and newer)
+        LIBSSL1_PKG=libssl1.1
+        if [[ $(apk search --no-cache -a $LIBSSL1_PKG | grep $LIBSSL1_PKG) ]]; then
+            apk add --no-cache $LIBSSL1_PKG
+        fi
+
+        # Install git if not already installed (may be more recent than distro version)
+        if ! type git > /dev/null 2>&1; then
+            apk add --no-cache git
+        fi
+    fi
+
+    # Install zsh if needed
+    if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
+        apk add --no-cache zsh
+    fi
+
+    PACKAGES_ALREADY_INSTALLED="true"
+}
+
 # ******************
 # ** Main section **
 # ******************
@@ -345,6 +404,8 @@ elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_L
     ADJUSTED_ID="rhel"
 elif [ "${ID}" = "alpine" ]; then
     ADJUSTED_ID="alpine"
+elif [ "${ID}" = "wolfi" ]; then
+    ADJUSTED_ID="wolfi"
 else
     echo "Linux distro ${ID} not supported."
     exit 1
@@ -360,6 +421,9 @@ case "${ADJUSTED_ID}" in
         ;;
     "alpine")
         install_alpine_packages
+        ;;
+    "wolfi")
+        install_wolfi_packages
         ;;
 esac
 
@@ -457,7 +521,7 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
         "rhel")
             global_rc_path="/etc/bashrc"
             ;;
-        "alpine")
+        "alpine" | "wolfi")
             global_rc_path="/etc/bash/bashrc"
             # /etc/bash/bashrc does not exist in alpine 3.14 & 3.15
             mkdir -p /etc/bash
@@ -557,6 +621,8 @@ fi
 # ****************************
 # ** Utilities and commands **
 # ****************************
+# ensure `/usr/local/bin` exists (not present by default in Wolfi)
+mkdir -p /usr/local/bin
 
 # code shim, it fallbacks to code-insiders if code is not available
 cp -f "${FEATURE_DIR}/bin/code" /usr/local/bin/

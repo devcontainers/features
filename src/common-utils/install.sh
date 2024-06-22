@@ -26,9 +26,9 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# If we're using Alpine, install bash before executing
+# If we're using Alpine/Wolfi, install bash before executing
 . /etc/os-release
-if [ "${ID}" = "alpine" ]; then
+if [ "${ID}" = "alpine" ] || [ "${ID}" = "wolfi" ]; then
     apk add --no-cache bash
 fi
 
