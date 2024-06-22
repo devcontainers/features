@@ -100,7 +100,7 @@ fi
 
 # Setup USER_CMD & GROUP_CMD
 if [ "${ADJUSTED_ID}" = "alpine" ]; then
-    USER_CMD="adduser --ingroup"
+    USER_CMD="addgroup"
     GROUP_CMD="addgroup --system"
 else
     USER_CMD="usermod --append --groups"
@@ -787,7 +787,11 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     if ! cat /etc/group | grep -e "^python:" > /dev/null 2>&1; then
         ${GROUP_CMD} python
     fi
-    ${USER_CMD} python "${USERNAME}"
+    if [ "${ADJUSTED_ID}" = "alpine" ]; then
+        ${USER_CMD} ${USERNAME} python
+    else
+        ${USER_CMD} python ${USERNAME}
+    fi
 
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
 
@@ -835,7 +839,11 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
     if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
         ${GROUP_CMD} pipx
     fi
-    ${USER_CMD} pipx ${USERNAME}
+    if [ "${ADJUSTED_ID}" = "alpine" ]; then
+        ${USER_CMD} ${USERNAME} pipx
+    else
+        ${USER_CMD} pipx ${USERNAME}
+    fi
     umask 0002
     mkdir -p ${PIPX_BIN_DIR}
     chown -R "${USERNAME}:pipx" ${PIPX_HOME}
