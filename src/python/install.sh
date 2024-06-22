@@ -98,6 +98,15 @@ else
     exit 1
 fi
 
+# Setup USER_CMD & GROUP_CMD
+if [ "${ADJUSTED_ID}" = "alpine" ]; then
+    USER_CMD="adduser --ingroup"
+    GROUP_CMD="addgroup --system"
+else
+    USER_CMD="usermod --append --groups"
+    GROUP_CMD="groupadd --system"
+fi
+
 # Clean up
 clean_up() {
     case ${ADJUSTED_ID} in
@@ -776,9 +785,9 @@ check_packages ${REQUIRED_PKGS}
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
     if ! cat /etc/group | grep -e "^python:" > /dev/null 2>&1; then
-        groupadd -r python
+        ${GROUP_CMD} python
     fi
-    usermod -a -G python "${USERNAME}"
+    ${USER_CMD} python "${USERNAME}"
 
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
 
@@ -824,9 +833,9 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
 
     # Create pipx group, dir, and set sticky bit
     if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
-        groupadd -r pipx
+        ${GROUP_CMD} pipx
     fi
-    usermod -a -G pipx ${USERNAME}
+    ${USER_CMD} pipx ${USERNAME}
     umask 0002
     mkdir -p ${PIPX_BIN_DIR}
     chown -R "${USERNAME}:pipx" ${PIPX_HOME}
