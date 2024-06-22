@@ -111,7 +111,7 @@ fi
 clean_up() {
     case ${ADJUSTED_ID} in
         alpine)
-            rm -rf /var/lib/apk/lists/*
+            rm -rf /var/cache/apk/*
             ;;
         debian)
             rm -rf /var/lib/apt/lists/*
@@ -355,7 +355,7 @@ oryx_install() {
 pkg_mgr_update() {
     case $ADJUSTED_ID in
         alpine)
-            if [ "$(find /var/lib/apk/lists/* | wc -l)" = "0" ]; then
+            if [ "$(find /var/cache/apk/* | wc -l)" = "0" ]; then
                 echo "Running apk update..."
                 ${PKG_MGR_CMD} update
             fi
