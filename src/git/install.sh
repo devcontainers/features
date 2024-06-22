@@ -214,9 +214,9 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
 
 elif [ "${ADJUSTED_ID}" = "alpine" ]; then
 
-    check_packages alpine-sdk curl curl-dev gettext-dev jq libintl 'openssl-dev>3'
+    check_packages alpine-sdk curl jq gettext-dev libintl 
 
-    check_packages pcre2-dev
+    check_packages asciidoc curl-dev expat-dev glib-dev libsecret-dev openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto zlib-dev
 
 elif [ "${ADJUSTED_ID}" = "rhel" ]; then
 
@@ -267,12 +267,15 @@ echo "Downloading source for ${GIT_VERSION}..."
 curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
 echo "Building..."
 cd /tmp/git-${GIT_VERSION}
-git_options=("USE_LIBPCRE=YesPlease")
 if [ "${ADJUSTED_ID}" = "alpine" ]; then
-    git_options+=("NO_REGEX=NeedsStartEnd")
+    git_options=("prefix=/usr")
+    git_options+=("NO_REGEX=YesPlease")
+    git_options+=("NO_GETTEXT=YesPlease")
+else
+    git_options=("prefix=/usr/local")
+    git_options+=("sysconfdir=/etc")
+    git_options+=("USE_LIBPCRE=YesPlease")
 fi
-git_options+=("prefix=/usr/local")
-git_options+=("sysconfdir=/etc")
 make -s ${git_options[@]} all && make -s ${git_options[@]} install 2>&1
 rm -rf /tmp/git-${GIT_VERSION}
 clean_up
