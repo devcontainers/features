@@ -214,7 +214,7 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
 
 elif [ "${ADJUSTED_ID}" = "alpine" ]; then
 
-    check_packages alpine-sdk curl jq libintl 
+    check_packages alpine-sdk curl jq
 
     check_packages asciidoc curl-dev expat-dev glib-dev libsecret-dev openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto zlib-dev
 
