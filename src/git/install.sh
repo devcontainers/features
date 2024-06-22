@@ -221,6 +221,7 @@ elif [ "${ADJUSTED_ID}" = "alpine" ]; then
 
     check_packages alpine-sdk curl jq
 
+    # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L62>
     check_packages asciidoc curl-dev expat-dev glib-dev libsecret-dev openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto zlib-dev
 
 elif [ "${ADJUSTED_ID}" = "rhel" ]; then
@@ -273,6 +274,7 @@ curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /t
 echo "Building..."
 cd /tmp/git-${GIT_VERSION}
 if [ "${ADJUSTED_ID}" = "alpine" ]; then
+    # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L126>
     git_options=("prefix=/usr")
     git_options+=("NO_REGEX=YesPlease")
     git_options+=("NO_GETTEXT=YesPlease")
