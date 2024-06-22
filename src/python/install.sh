@@ -681,6 +681,11 @@ export DEBIAN_FRONTEND=noninteractive
 REQUIRED_PKGS=""
 case ${ADJUSTED_ID} in
     alpine)
+        REQUIRED_PKGS="${REQUIRED_PKGS} \
+            alpine-sdk \
+            curl \
+            "
+
         # ref. <https://github.com/alpinelinux/aports/blob/d2ce3868f364e097869aa186317bc1e9564f205d/main/python3/APKBUILD#L25>
         REQUIRED_PKGS="${REQUIRED_PKGS} \
             libssl3>=3.3.0 \
