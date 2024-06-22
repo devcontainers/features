@@ -85,9 +85,12 @@ elif type microdnf > /dev/null 2>&1; then
 elif type dnf > /dev/null 2>&1; then
     PKG_MGR_CMD=dnf
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
-else
+elif type yum > /dev/null 2>&1; then
     PKG_MGR_CMD=yum
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --noplugins --setopt=install_weak_deps=0"
+else
+    echo "(Error) Unable to find a supported package manager."
+    exit 1
 fi
 
 # Clean up
