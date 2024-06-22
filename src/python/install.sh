@@ -53,6 +53,8 @@ fi
 MAJOR_VERSION_ID=$(echo ${VERSION_ID} | cut -d . -f 1)
 if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
+elif [ "${ID}" = "alpine" ] || [ "${ID_LIKE}" = "alpine" ]; then
+    ADJUSTED_ID="alpine"
 elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     if [[ "${ID}" = "rhel" ]] || [[ "${ID}" = *"alma"* ]] || [[ "${ID}" = *"rocky"* ]]; then
@@ -79,6 +81,9 @@ fi
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
     INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
+elif type apk > /dev/null 2>&1; then
+    PKG_MGR_CMD=apk
+    INSTALL_CMD="${PKG_MGR_CMD} add --no-cache --no-interactive"
 elif type microdnf > /dev/null 2>&1; then
     PKG_MGR_CMD=microdnf
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
@@ -96,6 +101,9 @@ fi
 # Clean up
 clean_up() {
     case ${ADJUSTED_ID} in
+        alpine)
+            rm -rf /var/lib/apk/lists/*
+            ;;
         debian)
             rm -rf /var/lib/apt/lists/*
             ;;
@@ -115,6 +123,10 @@ updaterc() {
     local _zshrc
     if [ "${UPDATE_RC}" = "true" ]; then
         case $ADJUSTED_ID in
+            alpine) echo "Updating /etc/bash/bashrc and /etc/zsh/zshrc..."
+                _bashrc=/etc/bash/bashrc
+                _zshrc=/etc/zsh/zshrc
+                ;;
             debian) echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
                 _bashrc=/etc/bash.bashrc
                 _zshrc=/etc/zsh/zshrc
@@ -333,6 +345,12 @@ oryx_install() {
 
 pkg_mgr_update() {
     case $ADJUSTED_ID in
+        alpine)
+            if [ "$(find /var/lib/apk/lists/* | wc -l)" = "0" ]; then
+                echo "Running apk update..."
+                ${PKG_MGR_CMD} update
+            fi
+            ;;
         debian)
             if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
                 echo "Running apt-get update..."
@@ -364,6 +382,12 @@ pkg_mgr_update() {
 # Checks if packages are installed and installs them if not
 check_packages() {
     case ${ADJUSTED_ID} in
+        alpine)
+            if ! apk info --installed "$@" > /dev/null 2>&1; then
+                pkg_mgr_update
+                ${INSTALL_CMD} "$@"
+            fi
+            ;;
         debian)
             if ! dpkg -s "$@" > /dev/null 2>&1; then
                 pkg_mgr_update
@@ -656,6 +680,28 @@ export DEBIAN_FRONTEND=noninteractive
 
 REQUIRED_PKGS=""
 case ${ADJUSTED_ID} in
+    alpine)
+        # ref. <https://github.com/alpinelinux/aports/blob/d2ce3868f364e097869aa186317bc1e9564f205d/main/python3/APKBUILD#L25>
+        REQUIRED_PKGS="${REQUIRED_PKGS} \
+            'libssl3>=3.3.0' \
+            '!gettext-dev' \
+            bluez-headers \
+            bzip2-dev \
+            expat-dev \
+            gdbm-dev \
+            libffi-dev \
+            linux-headers \
+            mpdecimal-dev \
+            musl-libintl \
+            ncurses-dev \
+            openssl-dev \
+            readline-dev \
+            sqlite-dev \
+            tcl-dev \
+            xz-dev \
+            zlib-dev \
+            "
+        ;;
     debian)
         REQUIRED_PKGS="${REQUIRED_PKGS} \
             ca-certificates \
