@@ -423,13 +423,13 @@ check_packages() {
 
 add_symlink() {
     if [[ ! -d "${CURRENT_PATH}" ]]; then
-        ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"
+        ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}" || ln -s "${INSTALL_PATH}" "${CURRENT_PATH}"
     fi
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
         if [[ $(ls -l ${CURRENT_PATH}) != *"-> ${INSTALL_PATH}"* ]] ; then
             rm "${CURRENT_PATH}"
-            ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"
+            ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}" || ln -s "${INSTALL_PATH}" "${CURRENT_PATH}"
         fi
     fi
 }

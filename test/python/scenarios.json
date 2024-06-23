@@ -243,6 +243,14 @@
             }
         }
     },
+    "alpine-3": {
+        "image": "alpine:3",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
     "fedora": {
         "image": "fedora",
         "features": {
