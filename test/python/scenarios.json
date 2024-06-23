@@ -218,6 +218,18 @@
             }
         }
     },
+    "install_alternate_tools_alpine": {
+        "image": "alpine:3",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
+            "python": {
+                "version": "3.12",
+                "toolsToInstall": "ruff,mypy,bandit,pipenv,virtualenv,pytest"
+            }
+        }
+    },
     "install_alternate_tools_rhel_family": {
         "image": "almalinux:8",
         "features": {
