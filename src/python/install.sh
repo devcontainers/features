@@ -703,6 +703,8 @@ case ${ADJUSTED_ID} in
             alpine-sdk \
             ack \
             curl \
+            gpg \
+            gpg-agent \
             "
 
         # ref. <https://github.com/alpinelinux/aports/blob/d2ce3868f364e097869aa186317bc1e9564f205d/main/python3/APKBUILD#L25>
