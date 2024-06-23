@@ -495,6 +495,16 @@ install_from_source() {
         check_packages perl-IPC-Cmd
         install_openssl3
         ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
+    elif [ "${ADJUSTED_ID}" = "alpine" ]; then
+        local gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"
+        ADDL_CONFIG_ARGS="\
+            --build="${gnuArch}" \
+            --enable-loadable-sqlite-extensions \
+            --enable-option-checking=fatal \
+            --with-lto \
+            --with-system-expat \
+        "
+        EXTRA_CFLAGS="-DTHREAD_STACK_SIZE=0x100000"
     fi
 
     install_cpython "${VERSION}"
@@ -538,7 +548,7 @@ install_from_source() {
         config_args="${config_args} ${ADDL_CONFIG_ARGS}"
     fi
     ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
-    make -j 8
+    make -j 8 "EXTRA_CFLAGS=${EXTRA_CFLAGS:-}" "LDFLAGS=${LDFLAGS:-}"
     make install
 
     cd /tmp
