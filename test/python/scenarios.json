@@ -166,6 +166,12 @@
             "python": "os-provided"
         }
     },
+    "install_os_provided_python_alpine": {
+        "image": "alpine:3",
+        "features": {
+            "python": "os-provided"
+        }
+    },
     "install_os_provided_python_rhel_family": {
         "image": "almalinux:8",
         "features": {
