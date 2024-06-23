@@ -496,6 +496,7 @@ install_from_source() {
         install_openssl3
         ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
     elif [ "${ADJUSTED_ID}" = "alpine" ]; then
+        check_packages gpg gpg-agent
         local gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"
         ADDL_CONFIG_ARGS="\
             --build="${gnuArch}" \
@@ -710,8 +711,6 @@ case ${ADJUSTED_ID} in
         REQUIRED_PKGS="${REQUIRED_PKGS} \
             ack \
             curl \
-            gpg \
-            gpg-agent \
             "
 
         # ref. <https://github.com/docker-library/python/blob/2d4fb586c48b067b432cf56653ee2541d94fdd7d/3.11/alpine3.20/Dockerfile#L29>
