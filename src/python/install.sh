@@ -700,30 +700,36 @@ REQUIRED_PKGS=""
 case ${ADJUSTED_ID} in
     alpine)
         REQUIRED_PKGS="${REQUIRED_PKGS} \
-            alpine-sdk \
             ack \
             curl \
             gpg \
             gpg-agent \
             "
 
-        # ref. <https://github.com/alpinelinux/aports/blob/d2ce3868f364e097869aa186317bc1e9564f205d/main/python3/APKBUILD#L25>
+        # ref. <https://github.com/docker-library/python/blob/2d4fb586c48b067b432cf56653ee2541d94fdd7d/3.11/alpine3.20/Dockerfile#L29>
         REQUIRED_PKGS="${REQUIRED_PKGS} \
-            libssl3>=3.3.0 \
-            !gettext-dev \
-            bluez-headers \
+            bluez-dev \
             bzip2-dev \
+            dpkg-dev dpkg \
             expat-dev \
+            findutils \
+            gcc \
             gdbm-dev \
+            libc-dev \
             libffi-dev \
+            libnsl-dev \
+            libtirpc-dev \
             linux-headers \
-            mpdecimal-dev \
-            musl-libintl \
+            make \
             ncurses-dev \
             openssl-dev \
+            pax-utils \
             readline-dev \
             sqlite-dev \
             tcl-dev \
+            tk \
+            tk-dev \
+            util-linux-dev \
             xz-dev \
             zlib-dev \
             "
