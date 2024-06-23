@@ -324,6 +324,15 @@
             }
         }
     },
+    "install_python_shared_lib_alpine": {
+        "image": "alpine:3",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "enableShared": true
+            }
+        }
+    },
     "install_python_shared_lib_rhel_family": {
         "image": "almalinux:8",
         "features": {
