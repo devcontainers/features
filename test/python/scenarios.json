@@ -107,6 +107,21 @@
             }
         }
     },
+    "install_additional_jupyterlab_alpine": {
+        "image": "alpine:3",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
+            "python": {
+                "version": "latest",
+                "additionalVersions": "3.9",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
     "install_additional_jupyterlab_rhel_family": {
         "image": "almalinux:8",
         "remoteUser": "vscode",
