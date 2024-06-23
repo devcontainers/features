@@ -491,13 +491,11 @@ install_from_source() {
     # via common package repositories, for now rhel-7 family, use case statement to
     # make it easy to expand
     SSL_INSTALL_PATH="/usr/local"
-    case ${VERSION_CODENAME} in
-        centos7|rhel7)
-            check_packages perl-IPC-Cmd
-            install_openssl3
-            ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
-            ;;
-    esac
+    if [ "${VERSION_CODENAME}" = "centos7" ] || [ "${VERSION_CODENAME}" = "rhel7" ]; then
+        check_packages perl-IPC-Cmd
+        install_openssl3
+        ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
+    fi
 
     install_cpython "${VERSION}"
     if [ -f "/tmp/python-src/${cpython_tgz_filename}" ]; then
