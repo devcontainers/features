@@ -48,6 +48,15 @@
             }
         }
     },
+    "install_additional_python_alpine": {
+        "image": "alpine:3",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "additionalVersions": "3.8,3.9.13,3.10.5"
+            }
+        }
+    },
     "install_additional_python_rhel_family": {
         "image": "almalinux:8",
         "features": {
