@@ -294,7 +294,7 @@ else
     git_options+=("sysconfdir=/etc")
     git_options+=("USE_LIBPCRE=YesPlease")
 fi
-make -s ${git_options[@]} all && make -s ${git_options[@]} install 2>&1
+make -s "${git_options[@]}" all && make -s "${git_options[@]}" install 2>&1
 rm -rf /tmp/git-${GIT_VERSION}
 clean_up
 echo "Done!"
