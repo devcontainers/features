@@ -49,7 +49,7 @@
         }
     },
     "install_additional_python_alpine": {
-        "image": "alpine:3",
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "features": {
             "python": {
                 "version": "3.11",
@@ -91,7 +91,7 @@
         }
     },
     "install_jupyterlab_alpine": {
-        "image": "alpine:3",
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "remoteUser": "vscode",
         "features": {
             "common-utils": {
@@ -131,7 +131,7 @@
         }
     },
     "install_additional_jupyterlab_alpine": {
-        "image": "alpine:3",
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "remoteUser": "vscode",
         "features": {
             "common-utils": {
@@ -167,7 +167,7 @@
         }
     },
     "install_os_provided_python_alpine": {
-        "image": "alpine:3",
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "features": {
             "python": "os-provided"
         }
@@ -239,7 +239,7 @@
         }
     },
     "install_alternate_tools_alpine": {
-        "image": "alpine:3",
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "features": {
             "common-utils": {
                 "username": "vscode"
@@ -299,8 +299,8 @@
             }
         }
     },
-    "alpine-3": {
-        "image": "alpine:3",
+    "alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "features": {
             "python": {
                 "version": "3.11"
@@ -325,7 +325,7 @@
         }
     },
     "install_python_shared_lib_alpine": {
-        "image": "alpine:3",
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "features": {
             "python": {
                 "version": "3.11",
