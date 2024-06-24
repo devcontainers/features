@@ -8,8 +8,8 @@
             }
         }
     },
-    "install_git_from_src_alpine-3": {
-        "image": "alpine:3",
+    "install_git_from_src_alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "features": {
             "git": {
                 "version": "latest",
@@ -116,8 +116,8 @@
             }
         }
     },
-    "install_git_from_system_alpine-3": {
-        "image": "alpine:3",
+    "install_git_from_system_alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "features": {
             "git": {
                 "version": "system",
