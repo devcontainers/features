@@ -12,7 +12,7 @@ fetch_latest_version_in_channel() {
         wget -qO- "https://dotnetcli.azureedge.net/dotnet/Runtime/$channel/latest.version"
     elif [ "$runtime" = "aspnetcore" ]; then
         wget -qO- "https://dotnetcli.azureedge.net/dotnet/aspnetcore/Runtime/$channel/latest.version"
-    elif [ "$runtime" = "LTS" ]; then
+    elif [ "$channel" = "LTS" ]; then
         echo $(curl -s https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/releases-index.json |  
     jq --raw-output '[."releases-index"[] | select(."release-type"=="lts" and ."support-phase"=="active")."latest-sdk"] | first')
     else
