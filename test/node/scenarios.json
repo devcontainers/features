@@ -212,5 +212,13 @@
                 "version": "lts"
             }
         }
+    },
+    "debian_yarn_from_corepack": {
+        "image": "debian:11",
+        "features": {
+            "node": {
+                "installYarnUsingApt": false
+            }
+        }
     }
 }
