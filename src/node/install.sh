@@ -11,6 +11,7 @@ export NODE_VERSION="${VERSION:-"lts"}"
 export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
+export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-true}"  # only concerns Debian-based systems
 
 # Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
@@ -159,7 +160,7 @@ check_packages() {
 }
 
 install_yarn() {
-    if [ "${ADJUSTED_ID}" = "debian" ]; then
+    if [ "${ADJUSTED_ID}" = "debian" ] && [ "${INSTALL_YARN_USING_APT}" = "true" ]; then
         # for backward compatiblity with existing devcontainer features, install yarn
         # via apt-get on Debian systems
         if ! type yarn >/dev/null 2>&1; then
@@ -173,8 +174,9 @@ install_yarn() {
         fi
     else
         local _ver=${1:-node}
-        # on non-debian systems, prefer corepack, fallback to npm based installation of yarn...
-        # Try to leverage corepack if possible
+        # on non-debian systems or if user opted not to use APT, prefer corepack
+        # Fallback to npm based installation of yarn.
+        # But try to leverage corepack if possible
         # From https://yarnpkg.com:
         # The preferred way to manage Yarn is by-project and through Corepack, a tool
         # shipped by default with Node.js. Modern releases of Yarn aren't meant to be

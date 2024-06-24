@@ -8,7 +8,6 @@
 # Maintainer: The Dev Container spec maintainers
 DOTNET_SCRIPTS=$(dirname "${BASH_SOURCE[0]}")
 DOTNET_INSTALL_SCRIPT="$DOTNET_SCRIPTS/vendor/dotnet-install.sh"
-DOTNET_INSTALL_DIR='/usr/share/dotnet'
 
 # Prints the latest dotnet version in the specified channel
 # Usage: fetch_latest_version_in_channel <channel> [<runtime>]
@@ -75,11 +74,11 @@ install_sdk() {
     fi
     
     # Currently this script does not make it possible to qualify the version, 'GA' is always implied
-    echo "Executing $DOTNET_INSTALL_SCRIPT --version $version --channel $channel --install-dir $DOTNET_INSTALL_DIR"
+    echo "Executing $DOTNET_INSTALL_SCRIPT --version $version --channel $channel --install-dir $DOTNET_ROOT"
     "$DOTNET_INSTALL_SCRIPT" \
         --version "$version" \
         --channel "$channel" \
-        --install-dir "$DOTNET_INSTALL_DIR"
+        --install-dir "$DOTNET_ROOT"
 }
 
 # Installs a version of the .NET Runtime
@@ -107,12 +106,12 @@ install_runtime() {
         version="$inputVersion"
     fi
     
-    echo "Executing $DOTNET_INSTALL_SCRIPT --runtime $runtime --version $version --channel $channel --install-dir $DOTNET_INSTALL_DIR --no-path"
+    echo "Executing $DOTNET_INSTALL_SCRIPT --runtime $runtime --version $version --channel $channel --install-dir $DOTNET_ROOT --no-path"
     "$DOTNET_INSTALL_SCRIPT" \
         --runtime "$runtime" \
         --version "$version" \
         --channel "$channel" \
-        --install-dir "$DOTNET_INSTALL_DIR" \
+        --install-dir "$DOTNET_ROOT" \
         --no-path
 }
 
