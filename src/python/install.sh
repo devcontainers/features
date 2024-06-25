@@ -147,7 +147,7 @@ receive_gpg_keys() {
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
-    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    echo -e "disable-ipv6\nconnect-timeout 3\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
     # GPG key download sometimes fails for some reason and retrying fixes it.
     local retry_count=0
     local gpg_ok="false"
