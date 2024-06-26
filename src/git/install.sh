@@ -281,8 +281,6 @@ if [ "${ADJUSTED_ID}" = "alpine" ]; then
     git_options+=("INSTALL_SYMLINKS=1")
     git_options+=("CC=${CC:-cc}")
     git_options+=("CXX=${CC:-c++}")
-    # git_options+=("CFLAGS=$CFLAGS -flto=auto")
-    # git_options+=("LDFLAGS=$LDFLAGS -flto=auto")
     git_options+=("USE_LIBPCRE2=YesPlease")
     git_options+=("PYTHON_PATH=/usr/bin/python3")
     git_options+=("perllibdir=$(_perl_config vendorlib)")
