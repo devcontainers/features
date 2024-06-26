@@ -31,7 +31,6 @@ ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 # Comma-separated list of additional tools to be installed via pipx.
 IFS="," read -r -a DEFAULT_UTILS <<< "${TOOLSTOINSTALL:-flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest}"
 
-
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5 A821E680E5FA6305"
 
 KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
@@ -128,8 +127,6 @@ updaterc() {
 
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
-    check_packages curl
-
     declare -A keyservers_curl_map
     keyservers_curl_map["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
     keyservers_curl_map["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
@@ -173,6 +170,8 @@ receive_gpg_keys() {
         keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
     fi
 
+    check_packages curl
+
     # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
@@ -211,6 +210,8 @@ receive_gpg_keys_centos7() {
     if [ ! -z "${KEYSERVER_PROXY}" ]; then
         keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
     fi
+
+    check_packages curl
 
     # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"

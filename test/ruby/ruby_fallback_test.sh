@@ -13,10 +13,6 @@ check "ruby" ruby -v
 trap 'echo "Last executed command failed at line ${LINENO}"' ERR
 
 RVM_GPG_KEYS="409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
-keyserver hkp://keyserver.ubuntu.com:80
-keyserver hkps://keys.openpgp.org
-keyserver hkp://keyserver.pgp.com"
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
@@ -63,6 +59,38 @@ check_packages() {
     fi
 }
 
+# Get the list of GPG key servers that are reachable
+get_gpg_key_servers() {
+    declare -A keyservers_curl_map
+    keyservers_curl_map["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
+    keyservers_curl_map["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
+    keyservers_curl_map["hkps://keys.openpgp.org"]="https://keys.openpgp.org:443"
+    keyservers_curl_map["hkp://keyserver.pgp.com"]="http://keyserver.pgp.com:11371"
+
+    local curl_args=""
+    if [ ! -z "${KEYSERVER_PROXY}" ]; then
+        curl_args="--proxy ${KEYSERVER_PROXY}"
+    fi
+
+    local keyserver_list=""
+    for keyserver in ${!keyservers_curl_map[@]}; do
+        local keyserver_curl_url="${keyservers_curl_map[${keyserver}]}"
+        if curl -s ${curl_args} --max-time 3 ${keyserver_curl_url} > /dev/null; then
+            keyserver_list="${keyserver_list}keyserver ${keyserver}"
+            keyserver_list+=$'\n'
+        else
+            echo "(*) Keyserver ${keyserver} is not reachable." >&2
+        fi
+    done
+
+    if [ -z "${keyserver_list}" ]; then
+        echo "(!) No keyserver is reachable." >&2
+        exit 1
+    fi
+    
+    echo "${keyserver_list}"
+}
+
 # Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
     local keys=${!1}
@@ -71,11 +99,13 @@ receive_gpg_keys() {
         keyring_args="--no-default-keyring --keyring \"$2\""
     fi
 
+    check_packages curl
+
     # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
-    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" | tee ${GNUPGHOME}/dirmngr.conf > /dev/null
+    echo -e "disable-ipv6\n$(get_gpg_key_servers)" | tee ${GNUPGHOME}/dirmngr.conf > /dev/null
     # GPG key download sometimes fails for some reason and retrying fixes it.
     local retry_count=0
     local gpg_ok="false"

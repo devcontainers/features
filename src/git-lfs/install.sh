@@ -15,10 +15,6 @@ GIT_LFS_ARCHIVE_GPG_KEY_URI="https://packagecloud.io/github/git-lfs/gpgkey"
 GIT_LFS_ARCHIVE_ARCHITECTURES="amd64 arm64"
 GIT_LFS_ARCHIVE_VERSION_CODENAMES="stretch buster bullseye bionic focal jammy"
 GIT_LFS_CHECKSUM_GPG_KEYS="0x88ace9b29196305ba9947552f1ba225c0223b187 0x86cd3297749375bcf8206715f54fe648088335a9 0xaa3b3450295830d2de6db90caba67be5a5795889"
-GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
-keyserver hkp://keyserver.ubuntu.com:80
-keyserver hkps://keys.openpgp.org
-keyserver hkp://keyserver.pgp.com"
 
 set -e
 
@@ -64,15 +60,49 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+# Get the list of GPG key servers that are reachable
+get_gpg_key_servers() {
+    declare -A keyservers_curl_map
+    keyservers_curl_map["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
+    keyservers_curl_map["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
+    keyservers_curl_map["hkps://keys.openpgp.org"]="https://keys.openpgp.org:443"
+    keyservers_curl_map["hkp://keyserver.pgp.com"]="http://keyserver.pgp.com:11371"
+
+    local curl_args=""
+    if [ ! -z "${KEYSERVER_PROXY}" ]; then
+        curl_args="--proxy ${KEYSERVER_PROXY}"
+    fi
+
+    local keyserver_list=""
+    for keyserver in ${!keyservers_curl_map[@]}; do
+        local keyserver_curl_url="${keyservers_curl_map[${keyserver}]}"
+        if curl -s ${curl_args} --max-time 3 ${keyserver_curl_url} > /dev/null; then
+            keyserver_list="${keyserver_list}keyserver ${keyserver}"
+            keyserver_list+=$'\n'
+        else
+            echo "(*) Keyserver ${keyserver} is not reachable." >&2
+        fi
+    done
+
+    if [ -z "${keyserver_list}" ]; then
+        echo "(!) No keyserver is reachable." >&2
+        exit 1
+    fi
+    
+    echo "${keyserver_list}"
+}
+
 # Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
     local keys=${!1}
+
+    check_packages curl
 
     # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
-    echo -e "disable-ipv6\n${GPG_KEY_SERVERS}" > ${GNUPGHOME}/dirmngr.conf
+    echo -e "disable-ipv6\n$(get_gpg_key_servers)" > ${GNUPGHOME}/dirmngr.conf
     # GPG key download sometimes fails for some reason and retrying fixes it.
     local retry_count=0
     local gpg_ok="false"
