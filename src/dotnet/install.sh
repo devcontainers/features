@@ -105,7 +105,7 @@ done
 
 # Install .NET versions and dependencies
 # icu-devtools includes dependencies for .NET
-check_packages wget ca-certificates icu-devtools
+check_packages wget ca-certificates icu-devtools curl jq
 
 for version in "${versions[@]}"; do
     install_sdk "$version"
