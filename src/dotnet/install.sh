@@ -6,7 +6,7 @@
 #
 # Docs: https://github.com/devcontainers/features/tree/main/src/dotnet
 # Maintainer: The Dev Container spec maintainers
-DOTNET_VERSION="${VERSION:-"latest"}"
+DOTNET_VERSION="${VERSION:-"lts"}"
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 DOTNET_RUNTIME_VERSIONS="${DOTNETRUNTIMEVERSIONS:-""}"
 ASPNETCORE_RUNTIME_VERSIONS="${ASPNETCORERUNTIMEVERSIONS:-""}"
