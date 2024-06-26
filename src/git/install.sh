@@ -214,10 +214,11 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
 
 elif [ "${ADJUSTED_ID}" = "alpine" ]; then
 
-    check_packages alpine-sdk curl jq
+    # update build dependencies
+    ${INSTALL_CMD} add --no-cache --update alpine-sdk curl grep jq make zlib-dev
 
     # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L62>
-    check_packages asciidoc curl-dev expat-dev glib-dev libsecret-dev openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto zlib-dev
+    check_packages asciidoc curl-dev expat-dev glib-dev libsecret-dev openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto
 
 elif [ "${ADJUSTED_ID}" = "rhel" ]; then
 
