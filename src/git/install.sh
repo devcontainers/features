@@ -271,21 +271,20 @@ echo "Building..."
 cd /tmp/git-${GIT_VERSION}
 git_options=("prefix=/usr/local")
 git_options+=("sysconfdir=/etc")
+git_options+=("USE_LIBPCRE=YesPlease")
 if [ "${ADJUSTED_ID}" = "alpine" ]; then
     # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L126>
     git_options+=("NO_REGEX=YesPlease")
     git_options+=("NO_GETTEXT=YesPlease")
-    git_options+=("NO_SVN_TESTS=YesPlease")
-    git_options+=("NO_SYS_POLL_H=1")
-    git_options+=("ICONV_OMITS_BOM=Yes")
-    git_options+=("INSTALL_SYMLINKS=1")
-    git_options+=("CC=${CC:-cc}")
-    git_options+=("CXX=${CC:-c++}")
-    git_options+=("USE_LIBPCRE2=YesPlease")
-    git_options+=("PYTHON_PATH=/usr/bin/python3")
-    git_options+=("perllibdir=$(_perl_config vendorlib)")
-else
-    git_options+=("USE_LIBPCRE=YesPlease")
+    # git_options+=("NO_SVN_TESTS=YesPlease")
+    # git_options+=("NO_SYS_POLL_H=1")
+    # git_options+=("ICONV_OMITS_BOM=Yes")
+    # git_options+=("INSTALL_SYMLINKS=1")
+    # git_options+=("CC=${CC:-cc}")
+    # git_options+=("CXX=${CC:-c++}")
+    # git_options+=("USE_LIBPCRE2=YesPlease")
+    # git_options+=("PYTHON_PATH=/usr/bin/python3")
+    # git_options+=("perllibdir=$(_perl_config vendorlib)")
 fi
 make -s "${git_options[@]}" all && make -s "${git_options[@]}" install 2>&1
 rm -rf /tmp/git-${GIT_VERSION}
