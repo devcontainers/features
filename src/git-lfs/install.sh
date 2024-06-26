@@ -69,34 +69,36 @@ get_gpg_key_servers() {
     keyservers_curl_map["hkp://keyserver.pgp.com"]="http://keyserver.pgp.com:11371"
 
     local curl_args=""
+    local keyserver_reachable=false  # Flag to indicate if any keyserver is reachable
+
     if [ ! -z "${KEYSERVER_PROXY}" ]; then
         curl_args="--proxy ${KEYSERVER_PROXY}"
     fi
 
-    local keyserver_list=""
     for keyserver in ${!keyservers_curl_map[@]}; do
         local keyserver_curl_url="${keyservers_curl_map[${keyserver}]}"
-        if curl -s ${curl_args} --max-time 3 ${keyserver_curl_url} > /dev/null; then
-            keyserver_list="${keyserver_list}keyserver ${keyserver}"
-            keyserver_list+=$'\n'
+        if curl -s ${curl_args} --max-time 5 ${keyserver_curl_url} > /dev/null; then
+            echo "keyserver ${keyserver}"
+            keyserver_reachable=true
         else
             echo "(*) Keyserver ${keyserver} is not reachable." >&2
         fi
     done
 
-    if [ -z "${keyserver_list}" ]; then
+    if ! $keyserver_reachable; then
         echo "(!) No keyserver is reachable." >&2
         exit 1
     fi
-    
-    echo "${keyserver_list}"
 }
 
 # Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
     local keys=${!1}
 
-    check_packages curl
+    # Install curl
+    if ! type curl > /dev/null 2>&1; then
+        check_packages curl
+    fi
 
     # Use a temporary location for gpg keys to avoid polluting image
     export GNUPGHOME="/tmp/tmp-gnupg"
