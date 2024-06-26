@@ -271,7 +271,7 @@ echo "Building..."
 cd /tmp/git-${GIT_VERSION}
 if [ "${ADJUSTED_ID}" = "alpine" ]; then
     # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L126>
-    git_options=("prefix=/usr")
+    git_options=("prefix=/usr/local")
     git_options+=("sysconfdir=/etc")
     git_options+=("NO_REGEX=YesPlease")
     git_options+=("NO_GETTEXT=YesPlease")
