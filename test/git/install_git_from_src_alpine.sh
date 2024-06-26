@@ -6,7 +6,7 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-check "version" git  --version
+check "version" git --version
 check "gettext" dpkg-query -l gettext
 
 cd /tmp && git clone https://github.com/devcontainers/feature-starter.git
