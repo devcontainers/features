@@ -269,10 +269,10 @@ echo "Downloading source for ${GIT_VERSION}..."
 curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
 echo "Building..."
 cd /tmp/git-${GIT_VERSION}
+git_options=("prefix=/usr/local")
+git_options+=("sysconfdir=/etc")
 if [ "${ADJUSTED_ID}" = "alpine" ]; then
     # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L126>
-    git_options=("prefix=/usr/local")
-    git_options+=("sysconfdir=/etc")
     git_options+=("NO_REGEX=YesPlease")
     git_options+=("NO_GETTEXT=YesPlease")
     git_options+=("NO_SVN_TESTS=YesPlease")
@@ -285,8 +285,6 @@ if [ "${ADJUSTED_ID}" = "alpine" ]; then
     git_options+=("PYTHON_PATH=/usr/bin/python3")
     git_options+=("perllibdir=$(_perl_config vendorlib)")
 else
-    git_options=("prefix=/usr/local")
-    git_options+=("sysconfdir=/etc")
     git_options+=("USE_LIBPCRE=YesPlease")
 fi
 make -s "${git_options[@]}" all && make -s "${git_options[@]}" install 2>&1
