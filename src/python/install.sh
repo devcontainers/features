@@ -522,7 +522,7 @@ install_from_source() {
         config_args="${config_args} ${ADDL_CONFIG_ARGS}"
     fi
     ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
-    make -j 8 "EXTRA_CFLAGS=${EXTRA_CFLAGS:-}" "LDFLAGS=${LDFLAGS:-}"
+    make -j 8
     make install
 
     cd /tmp
