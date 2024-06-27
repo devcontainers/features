@@ -715,7 +715,6 @@ REQUIRED_PKGS=""
 case ${ADJUSTED_ID} in
     alpine)
         REQUIRED_PKGS="${REQUIRED_PKGS} \
-            ack \
             curl \
             "
 
