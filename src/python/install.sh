@@ -483,7 +483,6 @@ install_from_source() {
         ADDL_CONFIG_ARGS="\
             --build="${gnuArch}" \
             --enable-option-checking=fatal \
-            --with-system-expat \
         "
         EXTRA_CFLAGS="-DTHREAD_STACK_SIZE=0x100000"
     fi
