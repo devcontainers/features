@@ -58,7 +58,7 @@ get_gpg_key_servers() {
         curl_args="--proxy ${KEYSERVER_PROXY}"
     fi
 
-    for keyserver in ${!keyservers_curl_map[@]}; do
+    for keyserver in "${!keyservers_curl_map[@]}"; do
         local keyserver_curl_url="${keyservers_curl_map[${keyserver}]}"
         if curl -s ${curl_args} --max-time 5 ${keyserver_curl_url} > /dev/null; then
             echo "keyserver ${keyserver}"
