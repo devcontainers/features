@@ -26,6 +26,8 @@ fi
 # Get an adjusted ID independent of distro variants
 if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
+elif [ "${ID}" = "alpine" ]; then
+    ADJUSTED_ID="alpine"
 elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     VERSION_CODENAME="${ID}{$VERSION_ID}"
@@ -36,6 +38,8 @@ fi
 
 if type apt-get > /dev/null 2>&1; then
     INSTALL_CMD=apt-get
+elif type apk > /dev/null 2>&1; then
+    INSTALL_CMD=apk
 elif type microdnf > /dev/null 2>&1; then
     INSTALL_CMD=microdnf
 elif type dnf > /dev/null 2>&1; then
@@ -52,6 +56,9 @@ clean_up() {
     case $ADJUSTED_ID in
         debian)
             rm -rf /var/lib/apt/lists/*
+            ;;
+        alpine)
+            rm -rf /var/cache/apk/*
             ;;
         rhel)
             rm -rf /var/cache/dnf/*
@@ -102,6 +109,11 @@ pkg_mgr_update() {
             echo "Running apt-get update..."
             ${INSTALL_CMD} update -y
         fi
+    elif [ ${INSTALL_CMD} = "apk" ]; then
+        if [ "$(find /var/cache/apk/* | wc -l)" = "0" ]; then
+            echo "Running apk update..."
+            ${INSTALL_CMD} update
+        fi
     elif [ ${INSTALL_CMD} = "dnf" ] || [ ${INSTALL_CMD} = "yum" ]; then
         if [ "$(find /var/cache/${INSTALL_CMD}/* | wc -l)" = "0" ]; then
             echo "Running ${INSTALL_CMD} check-update ..."
@@ -118,6 +130,10 @@ check_packages() {
             pkg_mgr_update
             ${INSTALL_CMD} -y install --no-install-recommends "$@"
         fi
+    elif [ ${INSTALL_CMD} = "apk" ]; then
+        ${INSTALL_CMD} add \
+            --no-cache \
+            "$@"
     elif [ ${INSTALL_CMD} = "dnf" ] || [ ${INSTALL_CMD} = "yum" ]; then
         _num_pkgs=$(echo "$@" | tr ' ' \\012 | wc -l)
         _num_installed=$(${INSTALL_CMD} -C list installed "$@" | sed '1,/^Installed/d' | wc -l)
@@ -154,6 +170,8 @@ if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
 
     if [ "$INSTALL_CMD" = "apt-get" ]; then
         echo "Installing git from OS apt repository"
+    elif [ "$INSTALL_CMD" = "apk" ]; then
+        echo "Installing git from OS apk repository"
     else
         echo "Installing git from OS yum/dnf repository"
     fi
@@ -194,6 +212,14 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
         check_packages libpcre2-posix3
     fi
 
+elif [ "${ADJUSTED_ID}" = "alpine" ]; then
+
+    # update build dependencies
+    ${INSTALL_CMD} add --no-cache --update curl grep make zlib-dev
+
+    # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L62>
+    check_packages asciidoc curl-dev expat-dev g++ gcc openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto
+
 elif [ "${ADJUSTED_ID}" = "rhel" ]; then
 
     if [ $VERSION_CODENAME = "centos7" ]; then
@@ -212,6 +238,10 @@ elif [ "${ADJUSTED_ID}" = "rhel" ]; then
     if [ $ID = "mariner" ]; then
         check_packages glibc-devel kernel-headers binutils
     fi
+
+else
+    echo "Linux distro ${ID} not supported."
+    exit 1
 fi
 
 # Partial version matching
@@ -235,7 +265,15 @@ echo "Downloading source for ${GIT_VERSION}..."
 curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
 echo "Building..."
 cd /tmp/git-${GIT_VERSION}
-make -s USE_LIBPCRE=YesPlease prefix=/usr/local sysconfdir=/etc all && make -s USE_LIBPCRE=YesPlease prefix=/usr/local sysconfdir=/etc install 2>&1
+git_options=("prefix=/usr/local")
+git_options+=("sysconfdir=/etc")
+git_options+=("USE_LIBPCRE=YesPlease")
+if [ "${ADJUSTED_ID}" = "alpine" ]; then
+    # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L126>
+    git_options+=("NO_REGEX=YesPlease")
+    git_options+=("NO_GETTEXT=YesPlease")
+fi
+make -s "${git_options[@]}" all && make -s "${git_options[@]}" install 2>&1
 rm -rf /tmp/git-${GIT_VERSION}
 clean_up
 echo "Done!"
