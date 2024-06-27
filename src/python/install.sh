@@ -655,6 +655,27 @@ sys.prefix == sys.base_prefix and print(sysconfig.get_path("stdlib", sysconfig.g
     fi
 }
 
+add_system_group() {
+    local _group=$1
+
+    if [ "${ADJUSTED_ID}" = "alpine" ]; then
+        addgroup --system "${_group}"
+    else
+        groupadd --system "${_group}"
+    fi
+}
+
+add_user_to_group() {
+    local _user=$1
+    local _group=$2
+
+    if [ "${ADJUSTED_ID}" = "alpine" ]; then
+        addgroup "${_user}" "${_group}"
+    else
+        usermod --append --groups "${_group}" "${_user}"
+    fi
+}
+
 # Ensure that login shells get the correct path if the user updated the PATH using ENV.
 rm -f /etc/profile.d/00-restore-env.sh
 echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
@@ -792,25 +813,12 @@ esac
 
 check_packages ${REQUIRED_PKGS}
 
-# Setup USER_CMD & GROUP_CMD
-if [ "${ADJUSTED_ID}" = "alpine" ]; then
-    USER_CMD="addgroup"
-    GROUP_CMD="addgroup --system"
-else
-    USER_CMD="usermod --append --groups"
-    GROUP_CMD="groupadd --system"
-fi
-
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
     if ! cat /etc/group | grep -e "^python:" > /dev/null 2>&1; then
-        ${GROUP_CMD} python
+        add_system_group python
     fi
-    if [ "${ADJUSTED_ID}" = "alpine" ]; then
-        ${USER_CMD} ${USERNAME} python
-    else
-        ${USER_CMD} python ${USERNAME}
-    fi
+    add_user_to_group "${USERNAME}" python
 
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
 
@@ -856,13 +864,9 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
 
     # Create pipx group, dir, and set sticky bit
     if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
-        ${GROUP_CMD} pipx
+        add_system_group pipx
     fi
-    if [ "${ADJUSTED_ID}" = "alpine" ]; then
-        ${USER_CMD} ${USERNAME} pipx
-    else
-        ${USER_CMD} pipx ${USERNAME}
-    fi
+    add_user_to_group "${USERNAME}" pipx
     umask 0002
     mkdir -p ${PIPX_BIN_DIR}
     chown -R "${USERNAME}:pipx" ${PIPX_HOME}
