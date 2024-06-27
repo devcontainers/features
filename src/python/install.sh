@@ -482,7 +482,6 @@ install_from_source() {
         ADDL_CONFIG_ARGS="\
             --enable-option-checking=fatal \
         "
-        EXTRA_CFLAGS="-DTHREAD_STACK_SIZE=0x100000"
     fi
 
     install_cpython "${VERSION}"
