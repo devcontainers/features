@@ -215,7 +215,7 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
 elif [ "${ADJUSTED_ID}" = "alpine" ]; then
 
     # update build dependencies
-    ${INSTALL_CMD} add --no-cache --update curl grep jq make zlib-dev
+    ${INSTALL_CMD} add --no-cache --update curl grep make zlib-dev
 
     # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L62>
     check_packages asciidoc curl-dev expat-dev g++ gcc openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto
@@ -247,7 +247,7 @@ fi
 # Partial version matching
 if [ "$(echo "${GIT_VERSION}" | grep -o '\.' | wc -l)" != "2" ]; then
     requested_version="${GIT_VERSION}"
-    version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | jq -r '.[] | .name' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sed 's/^v//g' | sort -rV )"
+    version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | grep -oP '"name":\s*"v\K[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"' | sort -rV )"
     if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "current" ]; then
         GIT_VERSION="$(echo "${version_list}" | head -n 1)"
     else
