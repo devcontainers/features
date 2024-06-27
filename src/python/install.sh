@@ -484,7 +484,6 @@ install_from_source() {
             --build="${gnuArch}" \
             --enable-loadable-sqlite-extensions \
             --enable-option-checking=fatal \
-            --with-lto \
             --with-system-expat \
         "
         EXTRA_CFLAGS="-DTHREAD_STACK_SIZE=0x100000"
