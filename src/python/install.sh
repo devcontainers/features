@@ -98,15 +98,6 @@ else
     exit 1
 fi
 
-# Setup USER_CMD & GROUP_CMD
-if [ "${ADJUSTED_ID}" = "alpine" ]; then
-    USER_CMD="addgroup"
-    GROUP_CMD="addgroup --system"
-else
-    USER_CMD="usermod --append --groups"
-    GROUP_CMD="groupadd --system"
-fi
-
 # Clean up
 clean_up() {
     case ${ADJUSTED_ID} in
@@ -800,6 +791,15 @@ case ${ADJUSTED_ID} in
 esac
 
 check_packages ${REQUIRED_PKGS}
+
+# Setup USER_CMD & GROUP_CMD
+if [ "${ADJUSTED_ID}" = "alpine" ]; then
+    USER_CMD="addgroup"
+    GROUP_CMD="addgroup --system"
+else
+    USER_CMD="usermod --append --groups"
+    GROUP_CMD="groupadd --system"
+fi
 
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
