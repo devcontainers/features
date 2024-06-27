@@ -482,7 +482,6 @@ install_from_source() {
         local gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"
         ADDL_CONFIG_ARGS="\
             --build="${gnuArch}" \
-            --enable-loadable-sqlite-extensions \
             --enable-option-checking=fatal \
             --with-system-expat \
         "
