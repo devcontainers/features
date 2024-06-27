@@ -713,7 +713,6 @@ case ${ADJUSTED_ID} in
         REQUIRED_PKGS="${REQUIRED_PKGS} \
             bluez-dev \
             bzip2-dev \
-            dpkg-dev dpkg \
             expat-dev \
             findutils \
             gcc \
