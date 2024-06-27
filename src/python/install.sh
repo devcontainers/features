@@ -479,9 +479,7 @@ install_from_source() {
         ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
     elif [ "${ADJUSTED_ID}" = "alpine" ]; then
         check_packages gpg gpg-agent
-        local gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"
         ADDL_CONFIG_ARGS="\
-            --build="${gnuArch}" \
             --enable-option-checking=fatal \
         "
         EXTRA_CFLAGS="-DTHREAD_STACK_SIZE=0x100000"
