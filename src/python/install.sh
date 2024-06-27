@@ -256,11 +256,7 @@ find_version_from_git_tags() {
             last_part="${escaped_separator}[0-9]+"
         fi
         local regex="${prefix}\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
-        if [ "${ADJUSTED_ID}" = "alpine" ]; then
-            local version_list="$(git ls-remote --tags ${repository} | ack -o "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
-        else
-            local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
-        fi
+        local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
             declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
         else
@@ -292,13 +288,8 @@ find_prev_version_from_git_tags() {
     # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
     set +e
         major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
-        if [ "${ADJUSTED_ID}" = "alpine" ]; then
-            minor="$(echo "${current_version}" | ack -o '^[0-9]+\.\K[0-9]+' || echo '')"
-            breakfix="$(echo "${current_version}" | ack -o '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
-        else
-            minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
-            breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
-        fi
+        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
 
         if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
             ((major=major-1))
@@ -682,6 +673,9 @@ chmod +x /etc/profile.d/00-restore-env.sh
 if ! type awk >/dev/null 2>&1; then
     check_packages awk
 fi
+
+# Some distributions do not include a PCRE-enabled grep by default (e.g., Alpine)
+${INSTALL_CMD} --upgrade grep
 
 # Determine the appropriate non-root user
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
