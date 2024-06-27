@@ -479,9 +479,6 @@ install_from_source() {
         ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
     elif [ "${ADJUSTED_ID}" = "alpine" ]; then
         check_packages gpg gpg-agent
-        ADDL_CONFIG_ARGS="\
-            --enable-option-checking=fatal \
-        "
     fi
 
     install_cpython "${VERSION}"
