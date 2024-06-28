@@ -187,16 +187,6 @@ check_packages() {
     esac
 }
 
-# Use Microsoft JDK for everything but JDK 8 and 18 (unless specified differently with jdkDistro option)
-get_jdk_distro() {
-    VERSION="$1"
-    if [ "${JDK_DISTRO}" = "ms" ]; then
-        if echo "${VERSION}" | grep -E '^8([\s\.]|$)' > /dev/null 2>&1 || echo "${VERSION}" | grep -E '^18([\s\.]|$)' > /dev/null 2>&1; then
-            JDK_DISTRO="tem"
-        fi
-    fi
-}
-
 # Use SDKMAN to install something using a partial version match
 sdk_install() {
     local install_type=$1
@@ -206,15 +196,15 @@ sdk_install() {
     local full_version_check=${5:-".*-[a-z]+"}
     local set_as_default=${6:-"true"}
     if [ "${requested_version}" = "none" ]; then return; fi
-    # Blank will install latest stable version SDKMAN has
-    if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "default" ]; then
+     # Blank will install latest stable version SDKMAN has
+    if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "default" ]; then
          requested_version=""
-    elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
+    if echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
     else
         local regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
         local version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
-        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
+        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
             set +e
@@ -229,7 +219,6 @@ sdk_install() {
     if [ "${set_as_default}" = "true" ]; then
         JAVA_VERSION=${requested_version}
     fi
-
     su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install ${install_type} ${requested_version} && sdk flush archives && sdk flush temp"
 }
 
@@ -271,7 +260,6 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
 fi
 
-get_jdk_distro ${JAVA_VERSION}
 sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "true"
 
 # Additional java versions to be installed but not be set as default.
@@ -280,7 +268,6 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     IFS=","
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
-            get_jdk_distro ${version}
             sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "false"
         done
     IFS=$OLDIFS
