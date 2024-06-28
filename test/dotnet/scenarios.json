@@ -87,7 +87,7 @@
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "latest",
+                "version": "lts",
                 "workloads": "aspire, wasm-tools"
             }
         }
