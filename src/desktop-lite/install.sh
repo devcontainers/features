@@ -293,7 +293,7 @@ echo -e "\nSuccess!\n"
 EOF
 
 # Container ENTRYPOINT script
-cat << EOF > /usr/local/share/desktop-init.sh
+cat << 'EOF' > /usr/local/share/desktop-init.sh
 #!/bin/bash
 
 user_name="${USERNAME}"
