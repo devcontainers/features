@@ -187,6 +187,16 @@ check_packages() {
     esac
 }
 
+# Use Microsoft JDK for everything but JDK 8 and 18 (unless specified differently with jdkDistro option)
+get_jdk_distro() {
+    VERSION="$1"
+    if [ "${JDK_DISTRO}" = "ms" ]; then
+        if echo "${VERSION}" | grep -E '^8([\s\.]|$)' > /dev/null 2>&1 || echo "${VERSION}" | grep -E '^18([\s\.]|$)' > /dev/null 2>&1; then
+            JDK_DISTRO="tem"
+        fi
+    fi
+}
+
 # Use SDKMAN to install something using a partial version match
 sdk_install() {
     local install_type=$1
@@ -260,6 +270,7 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
 fi
 
+get_jdk_distro ${JAVA_VERSION}
 sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "true"
 
 # Additional java versions to be installed but not be set as default.
@@ -268,6 +279,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     IFS=","
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
+            get_jdk_distro ${version}
             sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "false"
         done
     IFS=$OLDIFS
