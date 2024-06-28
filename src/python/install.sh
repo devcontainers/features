@@ -596,7 +596,9 @@ install_python() {
     if [ ${version} = "os-provided" ] || [ ${version} = "system" ]; then
         if [ ${ADJUSTED_ID} = "debian" ]; then
             check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
-        elif [ ${ADJUSTED_ID} != "alpine" ]; then
+        elif [ ${ADJUSTED_ID} = "alpine" ]; then
+            check_packages python3 python3-doc py3-pip py3-virtualenv python3-dev python3-tkinter
+        else
             if [ ${ID} != "mariner" ]; then
                 check_packages python3 python3-pip python3-devel python3-tkinter
             else
