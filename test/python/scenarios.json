@@ -239,7 +239,7 @@
         }
     },
     "install_alternate_tools_alpine": {
-        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "image": "alpine:3",
         "features": {
             "common-utils": {
                 "username": "vscode"
