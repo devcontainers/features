@@ -1,6 +1,6 @@
 {
   "id": "python",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "name": "Python",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python",
   "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab is conditionally installed with the python feature. Note: May require source code compilation.",

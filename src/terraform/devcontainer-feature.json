@@ -1,6 +1,6 @@
 {
     "id": "terraform",
-    "version": "1.3.7",
+    "version": "1.3.8",
     "name": "Terraform, tflint, and TFGrunt",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/terraform",
     "description": "Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects latest version and installs needed dependencies.",
