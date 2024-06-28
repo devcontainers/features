@@ -131,7 +131,7 @@
         }
     },
     "install_additional_jupyterlab_alpine": {
-        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "image": "alpine:3",
         "remoteUser": "vscode",
         "features": {
             "common-utils": {
