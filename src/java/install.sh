@@ -199,7 +199,7 @@ sdk_install() {
      # Blank will install latest stable version SDKMAN has
     if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "default" ]; then
          requested_version=""
-    if echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
+    elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
     else
         local regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
