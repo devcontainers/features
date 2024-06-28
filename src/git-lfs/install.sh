@@ -62,11 +62,12 @@ find_version_from_git_tags() {
 
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
-    declare -A keyservers_curl_map
-    keyservers_curl_map["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
-    keyservers_curl_map["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
-    keyservers_curl_map["hkps://keys.openpgp.org"]="https://keys.openpgp.org:443"
-    keyservers_curl_map["hkp://keyserver.pgp.com"]="http://keyserver.pgp.com:11371"
+    declare -A keyservers_curl_map=(
+        ["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
+        ["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
+        ["hkps://keys.openpgp.org"]="https://keys.openpgp.org"
+        ["hkp://keyserver.pgp.com"]="http://keyserver.pgp.com:11371"
+    )
 
     local curl_args=""
     local keyserver_reachable=false  # Flag to indicate if any keyserver is reachable

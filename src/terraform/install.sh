@@ -46,10 +46,11 @@ fi
 
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
-    declare -A keyservers_curl_map
-    keyservers_curl_map["hkps://keyserver.ubuntu.com"]="https://keyserver.ubuntu.com:443"
-    keyservers_curl_map["hkps://keys.openpgp.org"]="https://keys.openpgp.org:443"
-    keyservers_curl_map["hkps://keyserver.pgp.com"]="https://keyserver.pgp.com:443"
+    declare -A keyservers_curl_map=(
+        ["hkps://keyserver.ubuntu.com"]="https://keyserver.ubuntu.com"
+        ["hkps://keys.openpgp.org"]="https://keys.openpgp.org"
+        ["hkps://keyserver.pgp.com"]="https://keyserver.pgp.com"
+    )
 
     local curl_args=""
     local keyserver_reachable=false  # Flag to indicate if any keyserver is reachable
