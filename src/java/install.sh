@@ -229,7 +229,7 @@ sdk_install() {
     if [ "${set_as_default}" = "true" ]; then
         JAVA_VERSION=${requested_version}
     fi
-    
+
     su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install ${install_type} ${requested_version} && sdk flush archives && sdk flush temp"
 }
 
