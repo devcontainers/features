@@ -7,8 +7,8 @@ source dev-container-features-test-lib
 
 check "python3 is installed" python3 --version
 check "python is installed" python --version
+check "pip3 is installed" pip3 --version
 check "pip is installed" pip --version
-check "pip is installed" pip3 --version
 
 # Check that tools can execute
 check "autopep8" autopep8 --version
