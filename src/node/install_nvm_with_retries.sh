@@ -1,25 +1,10 @@
 #!/bin/bash
 
-set -e
-
-# Optional: Import test library
-source dev-container-features-test-lib
-
-set -e
-
-trap 'echo "Error occurred at line $LINENO"; exit 1' ERR
-source /usr/local/share/nvm/nvm.sh
-
-echo -e "\n✅ nvm version as installed by feature = v$(nvm --version)"; 
-NVM_DIR="/usr/local/share/nvm"
-
-NODE_VERSION="lts"
-
-
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
     local variable_name=$1
-    local requested_version=${!variable_name}
+    local requested_version=""
+    requested_version=${!variable_name}
     if [ "${requested_version}" = "none" ]; then return; fi
     local repository=$2
     local prefix=${3:-"tags/v"}
@@ -53,7 +38,9 @@ find_version_from_git_tags() {
 # Use semver logic to decrement a version number then look for the closest match
 find_prev_version_from_git_tags() {
     local variable_name=$1
-    local current_version=${!variable_name}
+    local current_version=""
+    current_version=${!variable_name}
+    # local current_version=${!variable_name}
     local repository=$2
     # Normally a "v" is used before the version number, but support alternate cases
     local prefix=${3:-"tags/v"}
@@ -96,17 +83,12 @@ get_previous_version() {
     local url=$1
     local repo_url=$2
     local variable_name=$3
-    local mode=$4
+    local prev_version=""
     prev_version=${!variable_name#v}
     
     output=$(curl -s "$repo_url");
 
     message=$(echo "$output" | jq -r '.message')
-    if [[ $mode == "mode2" ]]; then
-        message="API rate limit exceeded"
-    else 
-        message=""
-    fi
     if [[ $message == "API rate limit exceeded"* ]]; then
         echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
         echo -e "\nAttempting to find latest version using GitHub tags."
@@ -130,30 +112,16 @@ get_github_api_repo_url() {
 
 nvm_url="https://github.com/nvm-sh/nvm"
 
+find_version_from_git_tags NVM_VERSION $nvm_url
+
 repo_url=$(get_github_api_repo_url "${nvm_url}")
 
 install_nvm() {
-    mode=$1
-    mv /usr/local/share/nvm /usr/local/share/nvm_backup
-    # attempting to install a dummy version for which no source binary would exist !!
-    NVM_VERSION="0.39.xyz" 
     curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash ||  {
-        get_previous_version "${nvm_url}" "${repo_url}" NVM_VERSION $mode
+        get_previous_version "${nvm_url}" "${repo_url}" NVM_VERSION
         echo \"Previous nvm version=$NVM_VERSION\"
-        mkdir -p /usr/local/share/nvm
-        chmod +x /usr/local/share/nvm
         curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash
     }
-    export NVM_DIR="/usr/local/share/nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 }
 
-install_nvm "mode1"
-echo -e "\n✅ nvm version as installed by test in mode 1 i.e. by GitHub Api = v$(nvm --version)"; 
-
-install_nvm "mode2"
-echo -e "\n✅ nvm version as installed by test in mode 2 i.e. by find_prev_version_from_git_tags fn = v$(nvm --version)"; 
-
-# Report result
-reportResults
+install_nvm
