@@ -17,6 +17,9 @@ export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-true}"  # only concerns De
 # alongside NODE_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 
+#pnpm Version
+PNPM_VERSION="${PNPMVERSION:-"latest"}"
+
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="${UPDATE_RC:-"true"}"
 
@@ -379,7 +382,7 @@ else
             [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
             [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
             [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
-            npm install -g pnpm
+            npm install -g pnpm@"${PNPM_VERSION}"
         )
     else
         echo "Skip installing pnpm because npm is missing"

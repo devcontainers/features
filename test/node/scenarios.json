@@ -7,6 +7,33 @@
             }
         }
     },
+    "install_pnpm_v9": {
+        "image": "debian:11",
+        "features": {
+            "node": { 
+                "version": "lts",
+                "pnpmVersion": "9"
+            }
+        }
+    },
+    "install_pnpm_v8": {
+        "image": "debian:11",
+        "features": {
+            "node": {
+                "version": "16",
+                "pnpmVersion": "8"
+            }
+        }
+    },
+    "install_pnpm_v7": {
+        "image": "debian:11",
+        "features": {
+            "node": {
+                "version": "14",
+                "pnpmVersion": "7"
+            }
+        }
+    },
     "install_additional_node": {
         "image": "debian:11",
         "features": {
