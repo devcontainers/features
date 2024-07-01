@@ -18,6 +18,9 @@ TARGET_SOCKET="${TARGET_SOCKET:-"/var/run/docker.sock"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 
+DOND_SHIM_VERSION="${DOCKERONDOCKERSHIMVERSION:-"latest"}"
+USE_DOND_SHIM_AS_DOCKER="${USEDOCKERONDOCKERSHIMASDOCKER:-"true"}"
+
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy noble"
@@ -340,6 +343,28 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose || install_compose_switch_fallback "${compose_switch_url}"
         chmod +x /usr/local/bin/docker-compose
         # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
+    fi
+fi
+
+# If the Docker on Docker shim is to be included
+if [ "${DOND_SHIM_VERSION}" != "none" ]; then
+    # Install it if not already installed
+    if type dond > /dev/null 2>&1; then
+        echo "Docker on Docker shim already installed."
+    else
+        echo "(*) Installing Docker on Docker shim..."
+        if [ "${DOND_SHIM_VERSION}" = "latest" ]; then
+            DOND_SHIM_VERSION=$(basename "$(curl -fsSL -o /dev/null -w "%{url_effective}" "https://github.com/felipecrs/docker-on-docker-shim/releases/latest")")
+        fi
+        curl -fsSL "https://github.com/felipecrs/docker-on-docker-shim/raw/v${DOND_SHIM_VERSION#v}/dond" -o /usr/local/bin/dond
+        chmod +x /usr/local/bin/dond
+
+        if [ "${USE_DOND_SHIM_AS_DOCKER}" = "true" ]; then
+            docker_path=$(command -v docker)
+            mv -f "${docker_path}" "${docker_path}.orig"
+            ln -sf /usr/local/bin/dond "${docker_path}"
+            unset docker_path
+        fi
     fi
 fi
 
