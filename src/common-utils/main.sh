@@ -196,7 +196,10 @@ install_redhat_packages() {
             grep \
             which \
             man-db \
-            strace"
+            strace \
+            tree \
+            bzip2 \
+            dialog"
 
         # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
         # Install 'curl' for every OS except this rockylinux:9
