@@ -8,6 +8,15 @@
             }
         }
     },
+    "install_git_from_src_alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
     "install_git_from_src_jammy": {
         "image": "ubuntu:jammy",
         "features": {
@@ -103,6 +112,15 @@
         "features": {
             "git": {
                 "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_system_alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "features": {
+            "git": {
+                "version": "system",
                 "ppa": "false"
             }
         }
