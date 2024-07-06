@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
@@ -24,14 +24,15 @@ fi
 # Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
 . /etc/os-release
 # Get an adjusted ID independent of distro variants
+# Credit for POSIX substring checks: https://stackoverflow.com/a/8811800
 MAJOR_VERSION_ID=$(echo ${VERSION_ID} | cut -d . -f 1)
 if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
 elif [ "${ID}" = "alpine" ]; then
     ADJUSTED_ID="alpine"
-elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+elif [ "${ID}" = "rhel" -o "${ID}" = "fedora" -o "${ID}" = "mariner" -o "${ID_LIKE}" != "${ID_LIKE#*rhel}" -o "${ID_LIKE}" != "${ID_LIKE#*fedora}" -o "${ID_LIKE}" != "${ID_LIKE#*mariner}" ]; then
     ADJUSTED_ID="rhel"
-    if [[ "${ID}" = "rhel" ]] || [[ "${ID}" = *"alma"* ]] || [[ "${ID}" = *"rocky"* ]]; then
+    if [ "${ID}" = "rhel" ] || [ "${ID}" != "${ID#*alma}" ] || [ "${ID}" != "${ID#*rocky}" ]; then
         VERSION_CODENAME="rhel${MAJOR_VERSION_ID}"
     else
         VERSION_CODENAME="${ID}${MAJOR_VERSION_ID}"
@@ -79,7 +80,7 @@ clean_up
 
 # Ensure that login shells get the correct path if the user updated the PATH using ENV.
 rm -f /etc/profile.d/00-restore-env.sh
-echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
+echo "export PATH=$(echo $PATH | sed s@$(sh -lc 'echo $PATH')@\${PATH}@g)" > /etc/profile.d/00-restore-env.sh
 chmod +x /etc/profile.d/00-restore-env.sh
 
 # Some distributions do not install awk by default (e.g. Mariner)
@@ -90,8 +91,7 @@ fi
 # Determine the appropriate non-root user
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
-    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
+    for CURRENT_USER in "vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)"; do
         if id -u ${CURRENT_USER} > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break
@@ -229,7 +229,7 @@ sed -i -E "s/#?\s*X11Forwarding\s+.+/X11Forwarding yes/g" /etc/ssh/sshd_config
 # Write out a scripts that can be referenced as an ENTRYPOINT to auto-start sshd and fix login environments
 tee /usr/local/share/ssh-init.sh > /dev/null \
 << 'EOF'
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 # This script is intended to be run as root with a container that runs as root (even if you connect with a different user)
 # However, it supports running as a user other than root if passwordless sudo is configured for that same user.
 
