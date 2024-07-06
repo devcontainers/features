@@ -17,7 +17,7 @@ NEW_PASSWORD="${NEW_PASSWORD:-"skip"}"
 set -e
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
+    echo -e 'Script must be run as root. Use sudo, su, doas, or add "USER root" to your Dockerfile before running this script.'
     exit 1
 fi
 
@@ -48,7 +48,7 @@ if type apt-get > /dev/null 2>&1; then
     INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
 elif type apk > /dev/null 2>&1; then
     PKG_MGR_CMD=apk
-    INSTALL_CMD="${PKG_MGR_CMD}"
+    INSTALL_CMD="${PKG_MGR_CMD} add"
 elif type microdnf > /dev/null 2>&1; then
     PKG_MGR_CMD=microdnf
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
@@ -174,9 +174,15 @@ case ${ADJUSTED_ID} in
         ;;
     alpine)
         check_packages openssh-server openssh-client lsof openssl
+        # Install openssh-server-pam for PAM, openrc for service
+        check_packages openssh-server-pam openrc
         ;;
     rhel)
+        # Include procps-ng for ps command
         check_packages openssh-server openssh-clients lsof openssl
+        # Install procps-ng for ps, python3 docker systemctl replacement
+        check_packages procps-ng python3 python3-pip
+        pip3 install docker-systemctl-replacement --prefix /usr/local
         ;;
 esac
 
@@ -225,35 +231,70 @@ sed -i -E "s/#?\s*UsePAM\s+.+/UsePAM yes/g" /etc/ssh/sshd_config
 # Enable X11 forwarding
 sed -i -E "s/#?\s*X11Forwarding\s+.+/X11Forwarding yes/g" /etc/ssh/sshd_config
 
-# TODO: Update for non-Debian distros
+# Ensure host keys are generated
+ssh-keygen -A
+
 # Write out a scripts that can be referenced as an ENTRYPOINT to auto-start sshd and fix login environments
 tee /usr/local/share/ssh-init.sh > /dev/null \
 << 'EOF'
 #!/usr/bin/env sh
 # This script is intended to be run as root with a container that runs as root (even if you connect with a different user)
-# However, it supports running as a user other than root if passwordless sudo is configured for that same user.
+# However, it supports running as a user other than root if passwordless sudo or doas is configured for that same user.
 
-set -e 
+set -e
 
-sudoIf()
-{
+if type sudo > /dev/null 2>&1; then
+    DO_CMD=sudo
+elif type doas > /dev/null 2>&1; then
+    DO_CMD=doas
+fi
+
+sudoIf() {
     if [ "$(id -u)" -ne 0 ]; then
-        sudo "$@"
+        ${DO_CMD} "$@"
     else
         "$@"
     fi
 }
-
 EOF
-tee -a /usr/local/share/ssh-init.sh > /dev/null \
-<< 'EOF'
 
+case ${ADJUSTED_ID} in
+    debian)
+        tee -a /usr/local/share/ssh-init.sh > /dev/null \
+        << 'EOF'
 # ** Start SSH server **
 sudoIf /etc/init.d/ssh start 2>&1 | sudoIf tee /tmp/sshd.log > /dev/null
 
 set +e
 exec "$@"
 EOF
+        ;;
+    alpine)
+        tee -a /usr/local/share/ssh-init.sh > /dev/null \
+        << 'EOF'
+# ** Start SSH server **
+# Initialize openrc to enable sufficient use of rc-service
+if [ ! -d /run/openrc ]; then
+    sudoIf openrc
+    sudoIf touch /run/openrc/softlevel
+fi
+sudoIf rc-service sshd restart 2>&1 | sudoIf tee /tmp/sshd.log > /dev/null
+
+set +e
+exec "$@"
+EOF
+        ;;
+    rhel)
+        tee -a /usr/local/share/ssh-init.sh > /dev/null \
+        << 'EOF'
+# ** Start SSH server **
+sudoIf /usr/local/bin/systemctl.py -vv start sshd.service 2>&1 | sudoIf tee /tmp/sshd.log > /dev/null
+
+set +e
+exec "$@"
+EOF
+        ;;
+esac
 chmod +x /usr/local/share/ssh-init.sh
 
 # If we should start sshd now, do so
