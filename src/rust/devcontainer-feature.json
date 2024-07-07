@@ -1,6 +1,6 @@
 {
     "id": "rust",
-    "version": "1.1.3",
+    "version": "1.1.4",
     "name": "Rust",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/rust",
     "description": "Installs Rust, common Rust utilities, and their required dependencies",
@@ -39,6 +39,16 @@
             ],
             "default": "minimal",
             "description": "Select a rustup install profile."
+        },
+        "targets": {
+            "type": "string",
+            "default": "",
+            "description": "Comma-delimited list of additional Rust targets to install.",
+            "proposals": [
+                "aarch64-unknown-linux-gnu",
+                "armv7-unknown-linux-gnueabihf",
+                "x86_64-unknown-redox,x86_64-unknown-uefi"
+            ]
         }
     },
     "customizations": {
