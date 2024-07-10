@@ -206,7 +206,8 @@ echo "Installing common Rust dependencies..."
 rustup component add rls rust-analysis rust-src rustfmt clippy 2>&1
 
 if [ -n "${RUSTUP_TARGETS}" ]; then
-    for target in $(echo "${RUSTUP_TARGETS}" | sed -E 's/,/ /g'); do
+    IFS=',' read -ra targets <<< "${RUSTUP_TARGETS}"
+    for target in "${targets[@]}"; do
         echo "Installing additional Rust target $target"
         rustup target add "$target" 2>&1
     done
