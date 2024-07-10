@@ -43,7 +43,7 @@
         "targets": {
             "type": "string",
             "default": "",
-            "description": "Comma-delimited list of additional Rust targets to install.",
+            "description": "Optional comma separated list of additional Rust targets to install.",
             "proposals": [
                 "aarch64-unknown-linux-gnu",
                 "armv7-unknown-linux-gnueabihf",
