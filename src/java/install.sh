@@ -206,7 +206,7 @@ sdk_install() {
     local full_version_check=${5:-".*-[a-z]+"}
     local set_as_default=${6:-"true"}
     if [ "${requested_version}" = "none" ]; then return; fi
-     # Blank will install latest stable version SDKMAN has
+     # Blank will install default version SDKMAN has
     if [ "${requested_version}" = "default" ]; then
          requested_version=""
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
@@ -214,7 +214,7 @@ sdk_install() {
     else
         local regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
         local version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
-        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "latest" ]; then
+        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
             set +e
