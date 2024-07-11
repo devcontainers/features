@@ -9,6 +9,7 @@
 
 RUST_VERSION="${VERSION:-"latest"}"
 RUSTUP_PROFILE="${PROFILE:-"minimal"}"
+RUSTUP_TARGETS="${TARGETS:-""}"
 
 export CARGO_HOME="${CARGO_HOME:-"/usr/local/cargo"}"
 export RUSTUP_HOME="${RUSTUP_HOME:-"/usr/local/rustup"}"
@@ -19,7 +20,9 @@ UPDATE_RUST="${UPDATE_RUST:-"false"}"
 set -e
 
 # Clean up
-rm -rf /var/lib/apt/lists/*
+if [ "$(ls -1 /var/lib/apt/lists/ | wc -l)" -gt -1 ]; then
+    rm -rf /var/lib/apt/lists/*
+fi
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -36,7 +39,7 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
     for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+        if id -u "${CURRENT_USER}" > /dev/null 2>&1; then
             USERNAME=${CURRENT_USER}
             break
         fi
@@ -44,7 +47,7 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     if [ "${USERNAME}" = "" ]; then
         USERNAME=root
     fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
+elif [ "${USERNAME}" = "none" ] || ! id -u "${USERNAME}" > /dev/null 2>&1; then
     USERNAME=root
 fi
 
@@ -56,7 +59,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -66,7 +69,7 @@ find_version_from_git_tags() {
             last_part="${escaped_separator}[0-9]+"
         fi
         local regex="${prefix}\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
-        local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
+        local version_list="$(git ls-remote --tags "${repository}" | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
             declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
         else
@@ -89,13 +92,13 @@ check_nightly_version_formatting() {
 
     local version_date=$(echo ${requested_version} | sed -e "s/^nightly-//")
 
-    date -d ${version_date} &>/dev/null
-    if [ $? != 0 ]; then
+
+    if ! date -d "${version_date}" &>/dev/null; then
         echo -e "Invalid ${variable_name} value: ${requested_version}\nNightly version should be in the format nightly-YYYY-MM-DD" >&2
         exit 1
     fi
 
-    if [ $(date -d ${version_date} +%s) -ge $(date +%s) ]; then
+    if [ "$(date -d "${version_date}" +%s)" -ge "$(date +%s)" ]; then
         echo -e "Invalid ${variable_name} value: ${requested_version}\nNightly version should not exceed current date" >&2
         exit 1
     fi
@@ -141,10 +144,10 @@ fi
 architecture="$(dpkg --print-architecture)"
 download_architecture="${architecture}"
 case ${download_architecture} in
- amd64) 
+ amd64)
     download_architecture="x86_64"
     ;;
- arm64) 
+ arm64)
     download_architecture="aarch64"
     ;;
  *) echo "(!) Architecture ${architecture} not supported."
@@ -154,7 +157,7 @@ esac
 
 # Install Rust
 umask 0002
-if ! cat /etc/group | grep -e "^rustlang:" > /dev/null 2>&1; then
+if ! grep -e "^rustlang:" /etc/group > /dev/null 2>&1; then
     groupadd -r rustlang
 fi
 usermod -a -G rustlang "${USERNAME}"
@@ -172,7 +175,7 @@ else
         fi
 
         is_nightly=0
-        echo ${RUST_VERSION} | grep -q "nightly" || is_nightly=$?
+        echo "${RUST_VERSION}" | grep -q "nightly" || is_nightly=$?
         if [ $is_nightly = 0 ]; then
             check_nightly_version_formatting RUST_VERSION
         else
@@ -189,7 +192,7 @@ else
     cp /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/rustup-init  /tmp/rustup/rustup-init
     sha256sum -c rustup-init.sha256
     chmod +x target/${download_architecture}-unknown-linux-gnu/release/rustup-init
-    target/${download_architecture}-unknown-linux-gnu/release/rustup-init -y --no-modify-path --profile ${RUSTUP_PROFILE} ${default_toolchain_arg}
+    target/${download_architecture}-unknown-linux-gnu/release/rustup-init -y --no-modify-path --profile "${RUSTUP_PROFILE}" ${default_toolchain_arg}
     cd ~
     rm -rf /tmp/rustup
 fi
@@ -201,6 +204,14 @@ if [ "${UPDATE_RUST}" = "true" ]; then
 fi
 echo "Installing common Rust dependencies..."
 rustup component add rls rust-analysis rust-src rustfmt clippy 2>&1
+
+if [ -n "${RUSTUP_TARGETS}" ]; then
+    IFS=',' read -ra targets <<< "${RUSTUP_TARGETS}"
+    for target in "${targets[@]}"; do
+        echo "Installing additional Rust target $target"
+        rustup target add "$target" 2>&1
+    done
+fi
 
 # Add CARGO_HOME, RUSTUP_HOME and bin directory into bashrc/zshrc files (unless disabled)
 updaterc "$(cat << EOF
