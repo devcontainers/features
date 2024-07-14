@@ -327,6 +327,10 @@ get_machine_architecture() {
             echo "loongarch64"
             return 0
             ;;
+        riscv64)
+            echo "riscv64"
+            return 0
+            ;;
         esac
     fi
 
