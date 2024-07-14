@@ -48,6 +48,15 @@
             }
         }
     },
+    "install_additional_python_alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "additionalVersions": "3.8,3.9.13,3.10.5"
+            }
+        }
+    },
     "install_additional_python_rhel_family": {
         "image": "almalinux:8",
         "features": {
@@ -81,6 +90,20 @@
             }
         }
     },
+    "install_jupyterlab_alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
+            "python": {
+                "version": "latest",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
     "install_jupyterlab_rhel_family": {
         "image": "almalinux:8",
         "remoteUser": "vscode",
@@ -107,6 +130,21 @@
             }
         }
     },
+    "install_additional_jupyterlab_alpine": {
+        "image": "alpine:3",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
+            "python": {
+                "version": "latest",
+                "additionalVersions": "3.9",
+                "installJupyterlab": true,
+                "configureJupyterlabAllowOrigin": "*"
+            }
+        }
+    },
     "install_additional_jupyterlab_rhel_family": {
         "image": "almalinux:8",
         "remoteUser": "vscode",
@@ -124,6 +162,12 @@
     },
     "install_os_provided_python_deb": {
         "image": "mcr.microsoft.com/devcontainers/base:1-bullseye",
+        "features": {
+            "python": "os-provided"
+        }
+    },
+    "install_os_provided_python_alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "features": {
             "python": "os-provided"
         }
@@ -194,6 +238,18 @@
             }
         }
     },
+    "install_alternate_tools_alpine": {
+        "image": "alpine:3",
+        "features": {
+            "common-utils": {
+                "username": "vscode"
+            },
+            "python": {
+                "version": "3.12",
+                "toolsToInstall": "ruff,mypy,bandit,pipenv,virtualenv,pytest"
+            }
+        }
+    },
     "install_alternate_tools_rhel_family": {
         "image": "almalinux:8",
         "features": {
@@ -243,6 +299,14 @@
             }
         }
     },
+    "alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "features": {
+            "python": {
+                "version": "3.11"
+            }
+        }
+    },
     "fedora": {
         "image": "fedora",
         "features": {
@@ -253,6 +317,15 @@
     },
     "install_python_shared_lib_deb": {
         "image": "ubuntu:focal",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "enableShared": true
+            }
+        }
+    },
+    "install_python_shared_lib_alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "features": {
             "python": {
                 "version": "3.11",
