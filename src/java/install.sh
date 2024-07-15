@@ -199,6 +199,7 @@ get_jdk_distro() {
 
 # Use SDKMAN to install something using a partial version match
 sdk_install() {
+    set -x
     local install_type=$1
     local requested_version=$2
     local prefix=$3
@@ -206,7 +207,6 @@ sdk_install() {
     local full_version_check=${5:-".*-[a-z]+"}
     local set_as_default=${6:-"true"}
     if [ "${requested_version}" = "none" ]; then return; fi
-     # Blank will install default version SDKMAN has
     if [ "${requested_version}" = "default" ]; then
          requested_version=""
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
@@ -214,7 +214,14 @@ sdk_install() {
     else
         local regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
         local version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
-        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
+        if [ "${requested_version}" = "lts" ]; then
+            check_packages jq
+            all_lts_versions=$(curl -s https://api.adoptopenjdk.net/v3/info/available_releases)
+            major_version=$(echo "$all_lts_versions" | jq -r '.available_lts_releases | sort | .[-1]')
+            regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}"
+            version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
+            requested_version="$(echo "${version_list}" | head -n 1)"
+        elif [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
             set +e
@@ -231,6 +238,7 @@ sdk_install() {
     fi
 
     su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install ${install_type} ${requested_version} && sdk flush archives && sdk flush temp"
+    set +x
 }
 
 export DEBIAN_FRONTEND=noninteractive
