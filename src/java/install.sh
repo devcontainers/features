@@ -199,7 +199,6 @@ get_jdk_distro() {
 
 # Use SDKMAN to install something using a partial version match
 sdk_install() {
-    set -x
     local install_type=$1
     local requested_version=$2
     local prefix=$3
@@ -238,7 +237,6 @@ sdk_install() {
     fi
 
     su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install ${install_type} ${requested_version} && sdk flush archives && sdk flush temp"
-    set +x
 }
 
 export DEBIAN_FRONTEND=noninteractive
