@@ -56,8 +56,7 @@
             "extensions": [
                 "vadimcn.vscode-lldb",
                 "rust-lang.rust-analyzer",
-                "tamasfe.even-better-toml",
-                "fill-labs.dependi"
+                "tamasfe.even-better-toml"
             ],
             "settings": {
                 "files.watcherExclude": {
