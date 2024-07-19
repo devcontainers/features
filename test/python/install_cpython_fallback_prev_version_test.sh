@@ -17,7 +17,7 @@ fi
 . /etc/os-release
 # Get an adjusted ID independent of distro variants
 MAJOR_VERSION_ID=$(echo ${VERSION_ID} | cut -d . -f 1)
-if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = *"debian"* ]; then
     ADJUSTED_ID="debian"
 elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
@@ -125,7 +125,7 @@ get_gpg_key_servers() {
     fi
 }
 
-# Import the specified key in a variable name passed in as 
+# Import the specified key in a variable name passed in as
 receive_gpg_keys() {
     local keys=${!1}
     local keyring_args=""
@@ -152,7 +152,7 @@ receive_gpg_keys() {
     local retry_count=0
     local gpg_ok="false"
     set +e
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
+    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ];
     do
         echo "(*) Downloading GPG key..."
         ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
@@ -228,7 +228,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -288,7 +288,7 @@ find_prev_version_from_git_tags() {
             ((breakfix=breakfix-1))
             if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
                 declare -g ${variable_name}="${major}.${minor}"
-            else 
+            else
                 declare -g ${variable_name}="${major}.${minor}.${breakfix}"
             fi
         fi
@@ -298,13 +298,13 @@ find_prev_version_from_git_tags() {
 add_symlink() {
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
     if [[ ! -d "${CURRENT_PATH}" ]]; then
-        ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}" 
+        ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"
     fi
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
         if [[ $(ls -l ${CURRENT_PATH}) != *"-> ${INSTALL_PATH}"* ]] ; then
             rm "${CURRENT_PATH}"
-            ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}" 
+            ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"
         fi
     fi
 }
@@ -329,7 +329,7 @@ install_cpython() {
 }
 
 install_from_source() {
-    VERSION=$1  
+    VERSION=$1
     echo "(*) Building Python ${VERSION} from source..."
     echo "(*) Building Python ${VERSION} from source..."
     if ! type git > /dev/null 2>&1; then
@@ -347,7 +347,7 @@ install_from_source() {
             install_prev_vers_cpython "${VERSION}"
         fi
     fi;
-    
+
     # Verify signature
     if [[ ${VERSION_CODENAME} = "centos7" ]] || [[ ${VERSION_CODENAME} = "rhel7" ]]; then
         receive_gpg_keys_centos7 PYTHON_SOURCE_GPG_KEYS
@@ -361,7 +361,7 @@ install_from_source() {
     # Untar and build
     tar -xzf "/tmp/python-src/${cpython_tgz_filename}" -C "/tmp/python-src" --strip-components=1
     local config_args=""
- 
+
     if [ "${OPTIMIZE_BUILD_FROM_SOURCE}" = "true" ]; then
         config_args="${config_args} --enable-optimizations"
     fi
