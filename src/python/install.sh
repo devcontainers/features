@@ -46,7 +46,7 @@ fi
 . /etc/os-release
 # Get an adjusted ID independent of distro variants
 MAJOR_VERSION_ID=$(echo ${VERSION_ID} | cut -d . -f 1)
-if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = *"debian"* ]; then
     ADJUSTED_ID="debian"
 elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
