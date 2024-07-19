@@ -221,7 +221,9 @@ install_using_github() {
         echo "${powershell_archive_sha256} *${powershell_filename}" | sha256sum -c -
     fi
     tar xf "${powershell_filename}" -C "${powershell_target_path}"
-    ln -s "${powershell_target_path}/pwsh" /usr/local/bin/pwsh
+    chmod 755 "${powershell_target_path}/pwsh"
+    ln -s "${powershell_target_path}/pwsh" /usr/bin/pwsh
+    add-shell "/usr/bin/pwsh"
     rm -rf /tmp/pwsh
 }
 
