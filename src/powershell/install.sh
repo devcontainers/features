@@ -18,7 +18,7 @@ POWERSHELL_PROFILE_URL="${POWERSHELLPROFILEURL}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 POWERSHELL_ARCHIVE_ARCHITECTURES="amd64"
-POWERSHELL_ARCHIVE_VERSION_CODENAMES="stretch buster bionic focal bullseye jammy"
+POWERSHELL_ARCHIVE_VERSION_CODENAMES="stretch buster bionic focal bullseye jammy bookworm noble"
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkp://keyserver.ubuntu.com:80
 keyserver hkps://keys.openpgp.org
