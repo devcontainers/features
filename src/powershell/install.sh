@@ -222,26 +222,30 @@ install_using_github() {
     fi
     tar xf "${powershell_filename}" -C "${powershell_target_path}"
     chmod 755 "${powershell_target_path}/pwsh"
-    ln -s "${powershell_target_path}/pwsh" /usr/bin/pwsh
+    ln -sf "${powershell_target_path}/pwsh" /usr/bin/pwsh
     add-shell "/usr/bin/pwsh"
     rm -rf /tmp/pwsh
 }
 
-export DEBIAN_FRONTEND=noninteractive
+if ! type pwsh >/dev/null 2>&1; then
+    export DEBIAN_FRONTEND=noninteractive
+    
+    # Source /etc/os-release to get OS info
+    . /etc/os-release
+    architecture="$(dpkg --print-architecture)"
 
-# Source /etc/os-release to get OS info
-. /etc/os-release
-architecture="$(dpkg --print-architecture)"
-
-if [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${POWERSHELL_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
-    install_using_apt || use_github="true"
+    if [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${POWERSHELL_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
+        install_using_apt || use_github="true"
+    else
+        use_github="true"
+    fi
+    
+    if [ "${use_github}" = "true" ]; then
+        echo "Attempting install from GitHub release..."
+        install_using_github
+    fi
 else
-    use_github="true"
-fi
-
-if [ "${use_github}" = "true" ]; then
-    echo "Attempting install from GitHub release..."
-    install_using_github
+    echo "PowerShell is already installed."
 fi
 
 # If PowerShell modules are requested, loop through and install
