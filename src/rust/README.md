@@ -26,7 +26,6 @@ Installs Rust, common Rust utilities, and their required dependencies
 - `vadimcn.vscode-lldb`
 - `rust-lang.rust-analyzer`
 - `tamasfe.even-better-toml`
-- `serayuzgur.crates`
 
 
 
