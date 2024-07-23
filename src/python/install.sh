@@ -886,8 +886,15 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
                     # Add pipx to PATH
                     export PATH=$PATH:~/.local/bin
                 fi
-                # Install setuptools using pip
-                pip install setuptools==70.0.0
+                if ! type pipx > /dev/null 2>&1; then
+                    if python_is_externally_managed ${PYTHON_SRC}; then
+                        check_packages pipx
+                        "${PIPX_DIR}pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' 'setuptools==70.0.0'
+                    else 
+                        # Install setuptools using pip
+                        pip install setuptools==70.0.0
+                    fi
+                fi
             else 
                 install_user_package "$INSTALL_UNDER_ROOT" "setuptools==70.0.0"
             fi
