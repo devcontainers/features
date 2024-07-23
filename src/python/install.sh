@@ -878,7 +878,7 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
                 rm -rf /tmp/setuptools_downloaded /tmp/setuptools_src_dist
             fi
         else 
-            install_user_package "$INSTALL_UNDER_ROOT" "setuptools==70.0.0"
+            "${PIPX_DIR}pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util} "setuptools==70.0.0"
         fi
     fi
 
