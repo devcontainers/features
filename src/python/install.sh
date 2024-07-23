@@ -803,16 +803,11 @@ fi
 patch_setuptools() {
     if [ "$(grep '^ID=' /etc/os-release | cut -d'=' -f2)" != "debian" ]; then
         # Check if pipx is installed
-        if ! type pipx > /dev/null 2>&1; then
-            # Install pipx using pip
-            pip install pipx
-            # Add pipx to PATH
-            export PATH=$PATH:~/.local/bin
-        fi
         PIPX_DIR=""
         if ! type pipx > /dev/null 2>&1; then
             if python_is_externally_managed ${PYTHON_SRC}; then
                 check_packages pipx
+                export PATH=$PATH:~/.local/bin
                 "${PIPX_DIR}pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' 'setuptools==70.0.0'
             else 
                 pip install setuptools==70.0.0
