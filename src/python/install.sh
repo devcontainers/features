@@ -878,7 +878,19 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
                 rm -rf /tmp/setuptools_downloaded /tmp/setuptools_src_dist
             fi
         else 
-            install_user_package "$INSTALL_UNDER_ROOT" "setuptools==70.0.0"
+            if [ "$(grep '^ID=' /etc/os-release | cut -d'=' -f2)" != "debian" ]; then
+                # Check if pipx is installed
+                if ! type pipx > /dev/null 2>&1; then
+                    # Install pipx using pip
+                    pip install pipx
+                    # Add pipx to PATH
+                    export PATH=$PATH:~/.local/bin
+                fi
+                # Install setuptools using pipx
+                "${PIPX_DIR}pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' "setuptools==70.0.0"
+            else 
+                install_user_package "$INSTALL_UNDER_ROOT" "setuptools==70.0.0"
+            fi
         fi
     fi
 
