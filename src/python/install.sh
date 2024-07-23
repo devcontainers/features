@@ -803,12 +803,13 @@ fi
 patch_setuptools() {
     if [ "$(grep '^ID=' /etc/os-release | cut -d'=' -f2)" != "debian" ]; then
         # Check if pipx is installed
+        export PYTHONUSERBASE=/tmp/pip-tmp
+        export PIP_CACHE_DIR=/tmp/pip-tmp/cache
         PIPX_DIR=""
         if ! type pipx > /dev/null 2>&1; then
             if python_is_externally_managed ${PYTHON_SRC}; then
                 check_packages pipx
-                export PATH=$PATH:~/.local/bin
-                "${PIPX_DIR}pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' 'setuptools==70.0.0'
+                "${PIPX_DIR}pipx" install 'setuptools==70.0.0'
             else 
                 pip install setuptools==70.0.0
             fi
@@ -817,6 +818,8 @@ patch_setuptools() {
         install_user_package "$INSTALL_UNDER_ROOT" "setuptools==70.0.0"
     fi
 }
+
+patch_setuptools
 
 # Install Python tools if needed
 if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
@@ -896,11 +899,7 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
                 # cleanup created dir's
                 rm -rf /tmp/setuptools_downloaded /tmp/setuptools_src_dist
             fi
-        else 
-            patch_setuptools
         fi
-    else 
-        patch_setuptools
     fi
 
     rm -rf /tmp/pip-tmp
