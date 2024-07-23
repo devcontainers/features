@@ -11,7 +11,7 @@ if [ -t 1 ] && { [ "${TERM_PROGRAM}" = "vscode" ] || [ "${TERM_PROGRAM}" = "code
     fi
     mkdir -p "$HOME/.config/vscode-dev-containers"
     # Mark first run notice as displayed after 10s to avoid problems with fast terminal refreshes hiding it
-    ((sleep 10s; touch "$HOME/.config/vscode-dev-containers/first-run-notice-already-displayed") &)
+    ( (sleep 10s; touch "$HOME/.config/vscode-dev-containers/first-run-notice-already-displayed") &)
 fi
 
 # Set the default git editor if not already set
