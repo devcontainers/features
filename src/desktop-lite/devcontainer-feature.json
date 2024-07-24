@@ -47,6 +47,11 @@
             ],
             "default": "5901",
             "description": "Enter a port for the desktop VNC server (TigerVNC)"
+        },
+        "installFluxbox": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether or not to install Fluxbox (set to false if you plan on using a different desktop environment)"
         }
     },
     "init": true,
