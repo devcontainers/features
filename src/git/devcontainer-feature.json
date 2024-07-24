@@ -9,6 +9,7 @@
             "type": "string",
             "proposals": [
                 "latest",
+                "system",
                 "os-provided"
             ],
             "default": "os-provided",
