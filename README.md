@@ -109,7 +109,3 @@ We are eager to hear your feedback on self-authoring!  Please provide comments a
 
 This repository will accept improvement and bug fix contributions related to the
 [current set of maintained Features](./src).
-
-🤝 You can read more about how to contribute in [`CONTRIBUTING.md`]. ❤️
-
-[`CONTRIBUTING.md`]: CONTRIBUTING.md
