@@ -266,17 +266,7 @@ elif [ "${ADJUSTED_ID}" = "alpine" ]; then
     check_packages asciidoc curl-dev expat-dev g++ gcc openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto
 
 elif [ "${ADJUSTED_ID}" = "rhel" ]; then
-
-    if [ $VERSION_CODENAME = "centos7" ]; then
-        check_packages centos-release-scl
-        check_packages devtoolset-11
-        source /opt/rh/devtoolset-11/enable
-    else
-        check_packages gcc
-    fi
-
-
-    check_packages libcurl-devel expat-devel gettext-devel openssl-devel perl-devel zlib-devel cmake pcre2-devel tar gzip ca-certificates
+    check_packages gcc libcurl-devel expat-devel gettext-devel openssl-devel perl-devel zlib-devel cmake pcre2-devel tar gzip ca-certificates
     if ! type curl > /dev/null 2>&1; then
         check_packages curl
     fi
