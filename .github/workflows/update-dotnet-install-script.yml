@@ -39,7 +39,7 @@ jobs:
 
           # Add / update and commit
           git add src/dotnet/scripts/vendor/dotnet-install.sh
-          git add src/dotnet/scripts/vendor/dotnet-install.sh
+          git add src/oryx/scripts/vendor/dotnet-install.sh
 
           git commit -m 'Automated dotnet-install script update' || export NO_UPDATES=true
 
