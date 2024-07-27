@@ -346,11 +346,20 @@ if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
 elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
+    VERSION_CODENAME="${ID}${VERSION_ID}"
 elif [ "${ID}" = "alpine" ]; then
     ADJUSTED_ID="alpine"
 else
     echo "Linux distro ${ID} not supported."
     exit 1
+fi
+
+if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
+    # As of 1 July 2024, mirrorlist.centos.org no longer exists.
+    # Update the repo files to reference vault.centos.org.
+    sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
 fi
 
 # Install packages for appropriate OS
