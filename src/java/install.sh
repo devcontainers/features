@@ -215,8 +215,8 @@ sdk_install() {
         local version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
         if [ "${requested_version}" = "lts" ]; then
             check_packages jq
-            all_lts_versions=$(curl -s https://api.adoptopenjdk.net/v3/info/available_releases)
-            major_version=$(echo "$all_lts_versions" | jq -r '.available_lts_releases | sort | .[-1]')
+            all_lts_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
+            major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_lts')
             regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}"
             version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
             requested_version="$(echo "${version_list}" | head -n 1)"
