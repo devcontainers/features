@@ -26,6 +26,15 @@
             }
         }
     },
+    "install_git_from_ppa_bionic": {
+        "image": "ubuntu:bionic",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "true"
+            }
+        }
+    },
     "install_git_from_src_bionic": {
         "image": "ubuntu:bionic",
         "features": {
