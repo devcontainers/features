@@ -59,7 +59,7 @@
         "ip6tables": {
             "type": "boolean",
             "default": true,
-            "description": "toggle ip6tables setting"
+            "description": "Disable ip6tables"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",
