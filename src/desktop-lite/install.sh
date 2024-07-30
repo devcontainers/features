@@ -332,20 +332,20 @@ keepRunningInBackground()
 # Use sudo to run as root when required
 sudoIf()
 {
-    if [ "\$(id -u)" -ne 0 ]; then
-        sudo "\$@"
+    if [ "$(id -u)" -ne 0 ]; then
+        sudo "$@"
     else
-        "\$@"
+        "$@"
     fi
 }
 
 # Use sudo to run as non-root user if not already running
 sudoUserIf()
 {
-    if [ "\$(id -u)" -eq 0 ] && [ "\${user_name}" != "root" ]; then
-        sudo -u \${user_name} "\$@"
+    if [ "$(id -u)" -eq 0 ] && [ "${user_name}" != "root" ]; then
+        sudo -u "${user_name}" "$@"
     else
-        "\$@"
+        "$@"
     fi
 }
 
