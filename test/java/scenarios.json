@@ -206,5 +206,11 @@
         "features": {
             "java": {}
         }
+    },
+    "alpine": {
+        "image": "mcr.microsoft.com/devcontainers/base:alpine",
+        "features": {
+            "java": {}
+        }
     }
 }

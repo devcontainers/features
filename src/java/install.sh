@@ -41,6 +41,8 @@ fi
 MAJOR_VERSION_ID=$(echo ${VERSION_ID} | cut -d . -f 1)
 if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
+elif [ "${ID}" = "alpine" ]; then
+    ADJUSTED_ID="alpine"
 elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     if [[ "${ID}" = "rhel" ]] || [[ "${ID}" = *"alma"* ]] || [[ "${ID}" = *"rocky"* ]]; then
@@ -77,6 +79,9 @@ clean_up() {
     case ${ADJUSTED_ID} in
         debian)
             rm -rf /var/lib/apt/lists/*
+            ;;
+        alpine)
+            rm -rf /var/cache/apk/*
             ;;
         rhel)
             for pkg in epel-release epel-release-latest packages-microsoft-prod; do
@@ -144,6 +149,12 @@ pkg_manager_update() {
                 ${PKG_MGR_CMD} update -y
             fi
             ;;
+        alpine)
+            if [ "$(find /var/cache/apk/* | wc -l)" = "0" ]; then
+                echo "Running apk update..."
+                ${PKG_MRG_CMD} update
+            fi
+            ;;
         rhel)
             if [ ${PKG_MGR_CMD} = "microdnf" ]; then
                 if [ "$(ls /var/cache/yum/* 2>/dev/null | wc -l)" = 0 ]; then
@@ -177,6 +188,10 @@ check_packages() {
                 pkg_manager_update
                 ${INSTALL_CMD} "$@"
             fi
+            ;;
+        alpine)
+            pkg_manager_update
+            ${INSTALL_CMD} add --no-cache "$@"
             ;;
         rhel)
             if ! rpm -q "$@" > /dev/null 2>&1; then
