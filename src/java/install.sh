@@ -214,7 +214,7 @@ sdk_install() {
     local full_version_check=${5:-".*-[a-z]+"}
     local set_as_default=${6:-"true"}
     if [ "${requested_version}" = "none" ]; then return; fi
-    if [ "${requested_version}" = "default" ] || [ ( "${install_type}" = "maven" -o "${install_type}" = "groovy" ) -a ( "${requested_version}" = "latest" ) ]; then
+    if [ "${requested_version}" = "default" ] || { { [ "${install_type}" = "maven" ] || [ "${install_type}" = "groovy" ] } && [ "${requested_version}" = "latest" ]; }; then
         requested_version=""
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
