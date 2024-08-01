@@ -213,10 +213,12 @@ sdk_install() {
     local suffix="${4:-"\\s*"}"
     local full_version_check=${5:-".*-[a-z]+"}
     local set_as_default=${6:-"true"}
+    pkgs=("maven" "gradle" "ant" "groovy")
+    pkg_vals="${pkgs[@]}"
     if [ "${requested_version}" = "none" ]; then return; fi
     if [ "${requested_version}" = "default" ]; then
         requested_version=""
-    elif ( [ "${install_type}" = "maven" ] || [ "${install_type}" = "groovy" ] ) && [ "${requested_version}" = "latest" ]; then
+    elif [[ "${pkg_vals}" =~ "${install_type}" ]] && [ "${requested_version}" = "latest" ]; then
         requested_version=""
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
