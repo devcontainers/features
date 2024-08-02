@@ -16,6 +16,24 @@ EOF
 cd /tmp && ant init
 check "ant-src exists" grep "ant-src" <(ls -la /tmp)
 
+check "contents of tmp directory" ls -l /tmp
+
+current_user=$(whoami)
+
+# Change ownership of the files
+sudo chown $current_user:$current_user /tmp/build-features-src
+sudo chown $current_user:$current_user /tmp/dev-container-features
+
+sudo chmod 777 /tmp/build-features-src
+sudo chmod 777 /tmp/dev-container-features
+
+check "contents of tmp->build-features-src directory" ls -lrt /tmp/build-features-src
+check "contents of tmp->dev-container-features directory" ls -lrt /tmp/dev-container-features
+
+sudo rm -rf /tmp/*
+
+check "contents of tmp directory" ls -l /tmp
+
 check "gradle" gradle --version
 cd /tmp && gradle init --type basic --dsl groovy --incubating --project-name test
 check "GRADLE_USER_HOME exists" grep ".gradle" <(ls -la /root)
