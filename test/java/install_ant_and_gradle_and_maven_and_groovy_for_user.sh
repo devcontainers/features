@@ -23,8 +23,6 @@ check "contents of tmp directory" ls -l /tmp
 
 current_user=$(whoami)
 
-check "current_user_name" $current_user
-
 # Change ownership of the files
 sudo chown $current_user:$current_user /tmp/build-features-src
 sudo chown $current_user:$current_user /tmp/dev-container-features
