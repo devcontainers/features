@@ -1,13 +1,13 @@
 
-# AWS CLI (aws-cli)
+# CACHIMAN CLI (CACHIMAN-cli)
 
-Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.
+Installs the cachiman CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.
 
 ## Example Usage
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/aws-cli:1": {}
+    "ghcr.io/devcontainers/features/cachiman-cli:1": {}
 }
 ```
 
@@ -15,15 +15,15 @@ Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| version | Select or enter an AWS CLI version. | string | latest |
+| version | Select or enter an CACHIMAN CLI version. | string | latest |
 
 ## Customizations
 
 ### VS Code Extensions
 
-- `AmazonWebServices.aws-toolkit-vscode`
+- `cachimandeveloper.cachiman-toolkit-vscode`
 
-Available versions of the AWS CLI can be found here: https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst.
+Available versions of the cachiman CLI can be found here: https://github.com/cachiman/cachiman-cli/blob/v2/CHANGELOG.rst.
 
 ## OS Support
 
@@ -34,4 +34,4 @@ This Feature should work on recent versions of Debian/Ubuntu-based distributions
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/aws-cli/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/cachiman-cli/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
