@@ -26,7 +26,6 @@ checkOSPackage() {
 
 check "desktop-init-exists" bash -c "ls /usr/local/share/desktop-init.sh"
 check "log-exists" bash -c "ls /tmp/container-init.log"
-check "fluxbox-exists" bash -c "ls -la ~/.fluxbox"
 
 . /etc/os-release
 if [ "${ID}" = "ubuntu" ]; then

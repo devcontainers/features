@@ -1,0 +1,19 @@
+{
+    "with_fluxbox": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "desktop-lite": {
+                "installFluxbox": true
+            }
+        }
+    },
+
+    "without_fluxbox": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "desktop-lite": {
+                "installFluxbox": false
+            }
+        }
+    }
+}
