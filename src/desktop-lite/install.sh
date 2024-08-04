@@ -18,12 +18,13 @@ VNC_PORT="${VNCPORT:-5901}"
 INSTALL_NOVNC="${INSTALL_NOVNC:-"true"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
+INSTALL_FLUXBOX="${INSTALLFLUXBOX:-"true"}"
+
 WEBSOCKETIFY_VERSION=0.10.0
 
 package_list="
     tigervnc-standalone-server \
     tigervnc-common \
-    fluxbox \
     dbus-x11 \
     x11-utils \
     x11-xserver-utils \
@@ -88,6 +89,7 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
 elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
     USERNAME=root
 fi
+
 # Add default Fluxbox config files if none are already present
 fluxbox_apps="$(cat \
 << 'EOF'
@@ -197,7 +199,12 @@ else
     package_list="${package_list} tilix"
 fi
 
-# Install X11, fluxbox and VS Code dependencies
+# If we want to install Fluxbox, then add it to the list of pacakges
+if [ "${INSTALL_FLUXBOX}" = "true" ]; then
+    package_list="${package_list} fluxbox"
+fi
+
+# Install X11 and VS Code dependencies
 check_packages ${package_list}
 
 # if Ubuntu-24.04, noble(numbat) found, then will install libasound2-dev instead of libasound2.
@@ -377,7 +384,7 @@ screen_geometry="\${VNC_RESOLUTION%*x*}"
 screen_depth="\${VNC_RESOLUTION##*x}"
 
 # Check if VNC_PASSWORD is set and use the appropriate command
-common_options="tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -desktop fluxbox -fg"
+common_options="tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -fg"
 
 if [ -n "\${VNC_PASSWORD+x}" ]; then
     startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "\${common_options} -passwd /usr/local/etc/vscode-dev-containers/vnc-passwd"
@@ -404,11 +411,14 @@ if [ -n "${VNC_PASSWORD+x}" ]; then
 fi
 chmod +x /usr/local/share/desktop-init.sh /usr/local/bin/set-resolution
 
-# Set up fluxbox config
-copy_fluxbox_config "/root"
-if [ "${USERNAME}" != "root" ]; then
-    copy_fluxbox_config "/home/${USERNAME}"
-    chown -R ${USERNAME} /home/${USERNAME}/.Xmodmap /home/${USERNAME}/.fluxbox
+# If we installed Fluxbox, set up fluxbox config
+if [ "${INSTALL_FLUXBOX}" = "true" ]; then
+    copy_fluxbox_config "/root"
+
+    if [ "${USERNAME}" != "root" ]; then
+        copy_fluxbox_config "/home/${USERNAME}"
+        chown -R ${USERNAME} /home/${USERNAME}/.Xmodmap /home/${USERNAME}/.fluxbox
+    fi
 fi
 
 # Clean up
