@@ -329,10 +329,26 @@ keepRunningInBackground()
     ($2 bash -c "while :; do echo [\\$(date)] Process started.; $3; echo [\\$(date)] Process exited!; sleep 5; done 2>&1" | sudoIf tee -a /tmp/\$1.log > /dev/null & echo "\$!" | sudoIf tee /tmp/\$1.pid > /dev/null)
 }
 
+apt_get_update()
+{
+    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+        echo "Running apt-get update..."
+        apt-get update -y
+    fi
+}
+
+check_packages() {
+    if ! dpkg -s "$@" > /dev/null 2>&1; then
+        apt_get_update
+        apt-get -y install --no-install-recommends "$@"
+    fi
+}
+
 # Use sudo to run as root when required
 sudoIf()
 {
     if [ "$(id -u)" -ne 0 ]; then
+        check_packages sudo
         sudo "$@"
     else
         "$@"
@@ -343,6 +359,7 @@ sudoIf()
 sudoUserIf()
 {
     if [ "$(id -u)" -eq 0 ] && [ "${user_name}" != "root" ]; then
+        check_packages sudo
         sudo -u "${user_name}" "$@"
     else
         "$@"
