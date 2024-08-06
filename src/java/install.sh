@@ -205,6 +205,22 @@ get_jdk_distro() {
     fi
 }
 
+find_version_list() {
+    prefix="$1"
+    suffix="$2"
+    install_type=$3
+    ifLts="$4"
+    if [ "${ifLts}" = "true" ]; then 
+        all_lts_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
+        major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_lts')
+        regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}"
+    else 
+        regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
+    fi
+    version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
+    echo $version_list
+}
+
 # Use SDKMAN to install something using a partial version match
 sdk_install() {
     local install_type=$1
@@ -220,19 +236,15 @@ sdk_install() {
         requested_version=""
     elif [[ "${pkg_vals}" =~ "${install_type}" ]] && [ "${requested_version}" = "latest" ]; then
         requested_version=""
+    elif [ "${requested_version}" = "lts" ]; then
+            check_packages jq
+            version_list=$(find_version_list "$prefix" "$suffix" "$install_type" "true")
+            requested_version="$(echo "${version_list}" | head -n 1)"
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
-    else
-        local regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
-        local version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
-        if [ "${requested_version}" = "lts" ]; then
-            check_packages jq
-            all_lts_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
-            major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_lts')
-            regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}"
-            version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
-            requested_version="$(echo "${version_list}" | head -n 1)"
-        elif [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
+    else 
+        version_list=$(find_version_list "$prefix" "$suffix" "$install_type" "false")
+        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
             set +e
