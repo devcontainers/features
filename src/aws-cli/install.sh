@@ -112,7 +112,7 @@ install() {
     fi
 
     unzip "${scriptZipFile}"
-    ./aws/install
+    ./aws/install -i /usr/local/aws-cli
 
     rm -rf ./aws
 }
