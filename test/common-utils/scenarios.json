@@ -180,12 +180,18 @@
         }
     },
     "configure_zsh_no_template_first_step": {
-        "image": "debian:bullseye",
-        "remoteUser": "devcontainer",
+        "image": "ghcr.io/rails/devcontainer/images/ruby:3.2.5",
+        "remoteUser": "vscode",
         "features": {
             "common-utils": {
                 "installZsh": true,
-                "installOhMyZshConfig": false
+                "username": "vscode",
+                "userUid": "1000",
+                "userGid": "1000",
+                "upgradePackages": true,
+                "installOhMyZsh": true,
+                "installOhMyZshConfig": true,
+                "configureZshAsDefaultShell": true
             }
         }
     },
