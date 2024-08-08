@@ -189,22 +189,6 @@
             }
         }
     },
-    "configure_zshrc_without_overwrite": {
-        "image": "ghcr.io/rails/devcontainer/images/ruby:3.2.5",
-        "remoteUser": "vscode",
-        "features": {
-            "common-utils": {
-                "installZsh": true,
-                "username": "vscode",
-                "userUid": "1000",
-                "userGid": "1000",
-                "upgradePackages": true,
-                "installOhMyZsh": true,
-                "installOhMyZshConfig": true,
-                "configureZshAsDefaultShell": true
-            }
-        }
-    },
     "config-subdirectory": {
         "image": "alpine",
         "remoteUser": "devcontainer",
@@ -248,6 +232,24 @@
                 "userGid": "1000",
                 "upgradePackages": true,
                 "installZsh": true
+            }
+        }
+    },
+    "devcontainer-ruby-zshrc": {
+        "build": {
+            "dockerfile": "Dockerfile"
+        },
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "installZsh": true,
+                "username": "vscode",
+                "userUid": "1000",
+                "userGid": "1000",
+                "upgradePackages": true,
+                "installOhMyZsh": true,
+                "installOhMyZshConfig": true,
+                "configureZshAsDefaultShell": true
             }
         }
     },

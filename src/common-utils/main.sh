@@ -518,7 +518,6 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     # See https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/install.sh for official script.
     if [ "${INSTALL_OH_MY_ZSH}" = "true" ]; then
         user_rc_file="${user_home}/.zshrc"
-        copy_user_rc_file="${user_home}/.zshrc-copy"
         oh_my_install_dir="${user_home}/.oh-my-zsh"
         template_path="${oh_my_install_dir}/templates/zshrc.zsh-template"
         if [ ! -d "${oh_my_install_dir}" ]; then
@@ -544,13 +543,10 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
 
         # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
-            if [ -f "$user_rc_file" ]; then
-                cp -f ${user_rc_file} ${copy_user_rc_file}
-            fi
-            echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
-            sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
-            if [ -f "$user_rc_file" ]; then
-                diff ${user_rc_file} ${copy_user_rc_file} | grep '^>' | sed 's/^>\ //' >> ${user_rc_file}
+            if [ ! -f "$user_rc_file" ]; then
+                echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
+            else
+                sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
             fi
         fi
 
