@@ -148,44 +148,15 @@ check_packages() {
         rhel)
             if ! rpm -q "$@" > /dev/null 2>&1; then
                 pkg_mgr_update
+                if [ "${ID}" = "centos" ]; then
+                    if [ "$*" = "jq" ]; then
+                        ${INSTALL_CMD} epel-release
+                    fi
+                fi
                 ${INSTALL_CMD} "$@"
             fi
             ;;
     esac
-}
-
-# Figure out correct version of a three part version number is not passed
-find_version_from_git_tags() {
-    local variable_name=$1
-    local requested_version=${!variable_name}
-    if [ "${requested_version}" = "none" ]; then return; fi
-    local repository=$2
-    local prefix=${3:-"tags/v"}
-    local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}
-    if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
-        local escaped_separator=${separator//./\\.}
-        local last_part
-        if [ "${last_part_optional}" = "true" ]; then
-            last_part="(${escaped_separator}[0-9]+)?"
-        else
-            last_part="${escaped_separator}[0-9]+"
-        fi
-        local regex="${prefix}\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
-        local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
-        if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
-            declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
-        else
-            set +e
-            declare -g ${variable_name}="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
-            set -e
-        fi
-    fi
-    if [ -z "${!variable_name}" ] || ! echo "${version_list}" | grep "^${!variable_name//./\\.}$" > /dev/null 2>&1; then
-        echo -e "Invalid ${variable_name} value: ${requested_version}\nValid values:\n${version_list}" >&2
-        exit 1
-    fi
-    echo "${variable_name}=${!variable_name}"
 }
 
 install_yarn() {
@@ -229,6 +200,10 @@ install_yarn() {
 # node via npm.
 if ! type awk >/dev/null 2>&1; then
     check_packages awk
+fi
+
+if ! type jq >/dev/null 2>&1; then
+    check_packages jq
 fi
 
 # Determine the appropriate non-root user
@@ -287,19 +262,13 @@ elif [ "${NODE_VERSION}" = "latest" ]; then
     export NODE_VERSION="node"
 fi
 
-find_version_from_git_tags NVM_VERSION "https://github.com/nvm-sh/nvm"
-
 # Install snipppet that we will run as the user
 nvm_install_snippet="$(cat << EOF
 set -e
 umask 0002
 # Do not update profile - we'll do this manually
 export PROFILE=/dev/null
-curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash ||  {
-    PREV_NVM_VERSION=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
-    curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/\${PREV_NVM_VERSION}/install.sh" | bash
-    NVM_VERSION="\${PREV_NVM_VERSION}"
-}
+./install_nvm_with_retries.sh
 source "${NVM_DIR}/nvm.sh"
 if [ "${NODE_VERSION}" != "" ]; then
     nvm alias default "${NODE_VERSION}"
@@ -333,7 +302,8 @@ if [ ! -d "${NVM_DIR}" ]; then
     mkdir -p "${NVM_DIR}"
     chown "${USERNAME}:nvm" "${NVM_DIR}"
     chmod g+rws "${NVM_DIR}"
-    su ${USERNAME} -c "${nvm_install_snippet}" 2>&1
+    
+    su ${USERNAME} -c "source ./install_nvm_with_retries.sh && ${nvm_install_snippet}" 2>&1
     # Update rc files
     if [ "${UPDATE_RC}" = "true" ]; then
         updaterc "${nvm_rc_snippet}"
