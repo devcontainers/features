@@ -180,6 +180,16 @@
         }
     },
     "configure_zsh_no_template_first_step": {
+        "image": "debian:bullseye",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {
+                "installZsh": true,
+                "installOhMyZshConfig": false
+            }
+        }
+    },
+    "configure_zshrc_without_overwrite": {
         "image": "ghcr.io/rails/devcontainer/images/ruby:3.2.5",
         "remoteUser": "vscode",
         "features": {
