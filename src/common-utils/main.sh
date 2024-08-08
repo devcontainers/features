@@ -491,7 +491,6 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         echo 'source $HOME/.profile' >> "${user_home}/.zprofile" # TODO: Reconsider adding '.profile' to '.zprofile'
         chown ${USERNAME}:${group_name} "${user_home}/.zprofile"
     fi
-    
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
         if [ "${ADJUSTED_ID}" = "rhel" ]; then
              global_rc_path="/etc/zshrc"
