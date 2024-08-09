@@ -45,6 +45,14 @@ else
     exit 1
 fi
 
+if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
+    # As of 1 July 2024, mirrorlist.centos.org no longer exists.
+    # Update the repo files to reference vault.centos.org.
+    sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+fi
+
 # Setup INSTALL_CMD & PKG_MGR_CMD
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
@@ -370,20 +378,20 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
 fi
 
 # Install pnpm
-if bash -c ". '${NVM_DIR}/nvm.sh' && type pnpm >/dev/null 2>&1"; then
-    echo "pnpm already installed."
+if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
+    (
+        . "${NVM_DIR}/nvm.sh"
+        [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
+        [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
+        [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
+        if [ "${NODE_VERSION}" = "16" ]; then
+            npm install -g --force pnpm@7
+        else
+            npm install -g --force pnpm
+        fi
+    )
 else
-    if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
-        (
-            . "${NVM_DIR}/nvm.sh"
-            [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
-            [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
-            [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
-            npm install -g pnpm
-        )
-    else
-        echo "Skip installing pnpm because npm is missing"
-    fi
+    echo "Skip installing pnpm because npm is missing"
 fi
 
 # If enabled, verify "python3", "make", "gcc", "g++" commands are available so node-gyp works - https://github.com/nodejs/node-gyp

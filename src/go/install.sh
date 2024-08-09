@@ -43,6 +43,14 @@ else
     exit 1
 fi
 
+if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
+    # As of 1 July 2024, mirrorlist.centos.org no longer exists.
+    # Update the repo files to reference vault.centos.org.
+    sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+fi
+
 # Setup INSTALL_CMD & PKG_MGR_CMD
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
