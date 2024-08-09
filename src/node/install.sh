@@ -387,7 +387,11 @@ else
             [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
             [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
             [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
-            npm install -g @pnpm/exe
+            if [ "${NODE_VERSION}" = "16" ]; then
+                npm install -g pnpm@7
+            else
+                npm install -g pnpm
+            fi
         )
     else
         echo "Skip installing pnpm because npm is missing"
