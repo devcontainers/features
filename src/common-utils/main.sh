@@ -491,7 +491,6 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         echo 'source $HOME/.profile' >> "${user_home}/.zprofile" # TODO: Reconsider adding '.profile' to '.zprofile'
         chown ${USERNAME}:${group_name} "${user_home}/.zprofile"
     fi
-
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
         if [ "${ADJUSTED_ID}" = "rhel" ]; then
              global_rc_path="/etc/zshrc"
@@ -543,7 +542,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
 
         # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
-            echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
+            echo -e "$(cat "${template_path}")\n$(cat ${user_rc_file})\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
 
