@@ -543,10 +543,9 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
             if [ ! -f "$user_rc_file" ]; then
-                echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
-            else
-                sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
+                echo -e "$(cat "${template_path}")\n$(cat ${user_rc_file})\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
             fi
+            sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
 
         # Copy to non-root user if one is specified
