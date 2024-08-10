@@ -9,7 +9,7 @@
 #
 # Syntax: ./java-debian.sh [JDK version] [SDKMAN_DIR] [non-root user] [Add to rc files flag]
 
-JAVA_VERSION="${VERSION:-"lts"}"
+JAVA_VERSION="${VERSION:-"latest"}"
 INSTALL_GRADLE="${INSTALLGRADLE:-"false"}"
 GRADLE_VERSION="${GRADLEVERSION:-"latest"}"
 INSTALL_MAVEN="${INSTALLMAVEN:-"false"}"
@@ -51,6 +51,14 @@ elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_L
 else
     echo "Linux distro ${ID} not supported."
     exit 1
+fi
+
+if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
+    # As of 1 July 2024, mirrorlist.centos.org no longer exists.
+    # Update the repo files to reference vault.centos.org.
+    sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
 fi
 
 # Setup INSTALL_CMD & PKG_MGR_CMD
@@ -197,6 +205,22 @@ get_jdk_distro() {
     fi
 }
 
+find_version_list() {
+    prefix="$1"
+    suffix="$2"
+    install_type=$3
+    ifLts="$4"
+    version_list=$5
+    if [ "${ifLts}" = "true" ]; then 
+        all_lts_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
+        major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_lts')
+        regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}"
+    else 
+        regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
+    fi
+    declare -g ${version_list}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
+}
+
 # Use SDKMAN to install something using a partial version match
 sdk_install() {
     local install_type=$1
@@ -205,15 +229,21 @@ sdk_install() {
     local suffix="${4:-"\\s*"}"
     local full_version_check=${5:-".*-[a-z]+"}
     local set_as_default=${6:-"true"}
+    pkgs=("maven" "gradle" "ant" "groovy")
+    pkg_vals="${pkgs[@]}"
     if [ "${requested_version}" = "none" ]; then return; fi
-    # Blank will install latest stable version SDKMAN has
-    if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "default" ]; then
-         requested_version=""
+    if [ "${requested_version}" = "default" ]; then
+        requested_version=""
+    elif [[ "${pkg_vals}" =~ "${install_type}" ]] && [ "${requested_version}" = "latest" ]; then
+        requested_version=""
+    elif [ "${requested_version}" = "lts" ]; then
+            check_packages jq
+            find_version_list "$prefix" "$suffix" "$install_type" "true" version_list
+            requested_version="$(echo "${version_list}" | head -n 1)"
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
-    else
-        local regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
-        local version_list=$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")
+    else 
+        find_version_list "$prefix" "$suffix" "$install_type" "false" version_list
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else

@@ -17,6 +17,7 @@ Installs Rust, common Rust utilities, and their required dependencies
 |-----|-----|-----|-----|
 | version | Select or enter a version of Rust to install. | string | latest |
 | profile | Select a rustup install profile. | string | minimal |
+| targets | Optional comma separated list of additional Rust targets to install. | string | - |
 
 ## Customizations
 
@@ -25,7 +26,6 @@ Installs Rust, common Rust utilities, and their required dependencies
 - `vadimcn.vscode-lldb`
 - `rust-lang.rust-analyzer`
 - `tamasfe.even-better-toml`
-- `serayuzgur.crates`
 
 
 

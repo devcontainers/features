@@ -10,6 +10,7 @@ check "user is vscode" grep vscode <(whoami)
 check "java" java --version
 
 check "ant" ant -version
+
 cat << EOF > /tmp/build.xml
 <project><target name="init"><mkdir dir="ant-src"/></target></project>
 EOF
@@ -17,7 +18,7 @@ cd /tmp && ant init
 check "ant-src exists" grep "ant-src" <(ls -la /tmp)
 
 check "gradle" gradle --version
-cd /tmp && gradle init --type basic --dsl groovy --incubating --project-name test
+cd /tmp && gradle init --type basic --dsl groovy --overwrite --incubating --project-name test
 check "GRADLE_USER_HOME exists" grep ".gradle" <(ls -la /home/vscode)
 
 check "maven" mvn --version
