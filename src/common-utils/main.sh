@@ -550,17 +550,6 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
 
-# Copy to non-root user if one is specified
-if [ "${USERNAME}" != "root" ]; then
-    copy_to_user_files=("${oh_my_install_dir}")
-    [ -f "$user_rc_file" ] && copy_to_user_files+=("$user_rc_file")
-    cp -rf "${copy_to_user_files[@]}" /root
-    chown -R ${USERNAME}:${group_name} "${copy_to_user_files[@]}"
-fi
-            echo -e "$(cat "${template_path}")\n$(cat ${user_rc_file})\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
-            sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
-        fi
-
         # Copy to non-root user if one is specified
         if [ "${USERNAME}" != "root" ]; then
             copy_to_user_files=("${oh_my_install_dir}")
