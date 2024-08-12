@@ -25,7 +25,7 @@ Adds a lightweight Fluxbox based desktop to the container that can be accessed u
 
 This feature provides two ways of connecting to the desktop environment it adds. The first is to connect using a web browser. To do so:
 
-1. Forward the noVNC port (`6080` by default) to your local machine using either the `forwardPorts` property in `devcontainer.json` or the user interface in your tool (e.g., you can press <kbd>F1</kbd> or <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> and select **Ports: Focus on Ports View** in VS Code to bring it into focus). If using the [Dev Conatiner Cli](https://github.com/devcontainers/cli), you should use the `appPort` property in `devcontainer.json` instead.
+1. Forward the noVNC port (`6080` by default) to your local machine using either the `forwardPorts` property in `devcontainer.json` or the user interface in your tool (e.g., you can press <kbd>F1</kbd> or <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> and select **Ports: Focus on Ports View** in VS Code to bring it into focus).
 1. Open the ports view in your tool, select the noVNC port, and click the Globe icon.
 1. In the browser that appears, click the **Connect** button and enter the desktop password (`vscode` by default).
 
