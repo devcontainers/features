@@ -401,7 +401,7 @@ fi
 
 # Run whatever was passed in
 log "Executing \"\$@\"."
-exec "\$@"
+exec "$@"
 log "** SCRIPT EXIT **"
 EOF
 
