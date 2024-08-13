@@ -33,7 +33,7 @@ If you add custom content to your base image or a Dockerfile in this location, t
 
 See the [Fluxbox menu documentation](http://www.fluxbox.org/help/man-fluxbox-menu.php) for format details. More information on additional customization can be found in Fluxbox's [help](http://www.fluxbox.org/help/) and [general](http://fluxbox.sourceforge.net/docbook/en/html/book1.html) documentation.
 
-If you prefer not to use Fluxbox, you can set the `installFluxbox` Feature option to `false` and install your own window manager.
+If you prefer not to use Fluxbox, you can set the `installFluxbox` feature option to `false` and install your own window manager.
 
 ## Resolving crashes
 
