@@ -23,5 +23,9 @@ check "Whether xtigervnc is Running" check_process_running 5901
 sleep 1
 check "Whether no_vnc is Running" check_process_running 6080
 
+check "desktop-init-exists" bash -c "ls /usr/local/share/desktop-init.sh"
+check "log-exists" bash -c "ls /tmp/container-init.log"
+check "log file contents" bash -c "cat /tmp/container-init.log"
+
 # Report result
 reportResults
