@@ -311,6 +311,16 @@ if [ ${HELM_VERSION} != "none" ]; then
         echo '(!) Helm installation failed!'
         exit 1
     fi
+
+    # helm bash completion
+    helm completion bash > /etc/bash_completion.d/helm
+
+    # helm zsh completion
+    if [ -e "${USERHOME}/.oh-my-zsh" ]; then
+        mkdir -p "${USERHOME}/.oh-my-zsh/completions"
+        helm completion zsh > "${USERHOME}/.oh-my-zsh/completions/_helm"
+        chown -R "${USERNAME}" "${USERHOME}/.oh-my-zsh"
+    fi
 fi
 
 # Install Minikube, verify checksum
