@@ -1,4 +1,3 @@
-
 if [ -z "${USER}" ]; then export USER=$(whoami); fi
 if [[ "${PATH}" != *"$HOME/.local/bin"* ]]; then export PATH="${PATH}:$HOME/.local/bin"; fi
 
@@ -24,3 +23,20 @@ if [ -z "$(git config --get core.editor)" ] && [ -z "${GIT_EDITOR}" ]; then
         fi
     fi
 fi
+
+# Function to set the terminal title to the command being executed
+preexec() {
+    local cmd=$(history 1 | sed 's/^[ ]*[0-9]*[ ]*//')
+    echo -ne "\033]0;${cmd}\007"
+}
+
+# Function to reset the terminal title to the shell type after the command is executed
+precmd() {
+    echo -ne "\033]0;${SHELL}\007"
+}
+
+# Trap DEBUG signal to call preexec before each command
+trap 'preexec' DEBUG
+
+# Set the PROMPT_COMMAND to call precmd before displaying the prompt
+PROMPT_COMMAND='precmd'
