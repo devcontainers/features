@@ -25,19 +25,18 @@ __zsh_prompt() {
 }
 __zsh_prompt
 
-# Function to set the terminal title to the command being executed
+# Function to set the terminal title to the current command
 preexec() {
-    local cmd=$(history 1 | sed 's/^[ ]*[0-9]*[ ]*//')
-    echo -ne "\033]0;${cmd}\007"
+    local cmd=${1}
+    echo -ne "\033]0;${USER}@${HOST}: ${cmd}\007"
 }
 
 # Function to reset the terminal title to the shell type after the command is executed
 precmd() {
-    echo -ne "\033]0;${SHELL}\007"
+    echo -ne "\033]0;${USER}@${HOST}: ${SHELL}\007"
 }
 
-# Trap DEBUG signal to call preexec before each command
-trap 'preexec' DEBUG
-
-# Set the PROMPT_COMMAND to call precmd before displaying the prompt
-PROMPT_COMMAND='precmd'
+# Add the preexec and precmd functions to the corresponding hooks
+autoload -Uz add-zsh-hook
+add-zsh-hook preexec preexec
+add-zsh-hook precmd precmd
