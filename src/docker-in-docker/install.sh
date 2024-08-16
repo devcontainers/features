@@ -20,7 +20,7 @@ INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy noble"
-TOGGLE_IP6TABLES_SETTING="${IP6TABLES:-"true"}"
+IP6_TABLES="${IP6TABLES:-"true"}"
 
 # Default: Exit on any failure.
 set -e
@@ -563,7 +563,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     fi
 
     # Start docker/moby engine
-    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL > /tmp/dockerd.log 2>&1 ) &
+    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL --ip6tables=$IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
 )"
 
