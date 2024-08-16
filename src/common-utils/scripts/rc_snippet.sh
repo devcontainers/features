@@ -24,19 +24,26 @@ if [ -z "$(git config --get core.editor)" ] && [ -z "${GIT_EDITOR}" ]; then
     fi
 fi
 
-# Function to set the terminal title to the command being executed
-preexec() {
-    local cmd=$(history 1 | sed 's/^[ ]*[0-9]*[ ]*//')
-    echo -ne "\033]0;${USER}@${HOSTNAME}: ${cmd}\007"
-}
+# Check if the terminal is xterm
+if [[ "$TERM" == "xterm" ]]; then
+    # Function to set the terminal title to the current command
+    preexec() {
+        local cmd="${BASH_COMMAND}"
+        echo -ne "\033]0;${USER}@${HOSTNAME}: ${cmd}\007"
+    }
 
-# Function to reset the terminal title to the shell type after the command is executed
-precmd() {
-    echo -ne "\033]0;${USER}@${HOSTNAME}: ${SHELL}\007"
-}
+    # Function to reset the terminal title to the shell type after the command is executed
+    precmd() {
+        echo -ne "\033]0;${USER}@${HOSTNAME}: ${SHELL}\007"
+    }
 
-# Trap DEBUG signal to call preexec before each command
-trap 'preexec' DEBUG
+    # Trap DEBUG signal to call preexec before each command
+    trap 'preexec' DEBUG
 
-# Set the PROMPT_COMMAND to call precmd before displaying the prompt
-PROMPT_COMMAND='precmd'
+    # Append precmd to PROMPT_COMMAND if it is already set
+    if [[ -n "$PROMPT_COMMAND" ]]; then
+        PROMPT_COMMAND="${PROMPT_COMMAND}; precmd"
+    else
+        PROMPT_COMMAND='precmd'
+    fi
+fi
