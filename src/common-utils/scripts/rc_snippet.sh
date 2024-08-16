@@ -23,23 +23,3 @@ if [ -z "$(git config --get core.editor)" ] && [ -z "${GIT_EDITOR}" ]; then
         fi
     fi
 fi
-
-# Check if the terminal is xterm
-if [[ "$TERM" == "xterm" ]]; then
-    # Function to set the terminal title to the current command
-    preexec() {
-        local cmd="${BASH_COMMAND}"
-        echo -ne "\033]0;${USER}@${HOSTNAME}: ${cmd}\007"
-    }
-
-    # Function to reset the terminal title to the shell type after the command is executed
-    precmd() {
-        echo -ne "\033]0;${USER}@${HOSTNAME}: ${SHELL}\007"
-    }
-
-    # Trap DEBUG signal to call preexec before each command
-    trap 'preexec' DEBUG
-
-    # Append to PROMPT_COMMAND to call precmd before displaying the prompt
-    PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }precmd"
-fi
