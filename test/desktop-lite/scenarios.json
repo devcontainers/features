@@ -1,0 +1,8 @@
+{
+    "test_xtigervnc_novnc_started": {
+        "image": "ubuntu:noble",
+        "features": {
+            "desktop-lite": {}
+        }
+    }
+}
