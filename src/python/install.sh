@@ -839,6 +839,7 @@ case ${ADJUSTED_ID} in
         ;;
 esac
 
+clean_up
 check_packages ${REQUIRED_PKGS}
 
 # Install Python from source if needed
