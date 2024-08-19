@@ -259,5 +259,20 @@
         "features": {
             "common-utils": {}
         }
+    },
+    "terminal-title-on-xterm": {
+        "image": "node",
+        "features": {
+            "common-utils": {}
+        },
+        "containerEnv": {
+            "TERM": "xterm"
+        }
+    },
+    "no-terminal-title-by-default": {
+        "image": "node",
+        "features": {
+            "common-utils": {}
+        }
     }
 }
