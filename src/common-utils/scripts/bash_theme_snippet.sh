@@ -39,7 +39,6 @@ if [[ "$TERM" == "xterm" ]]; then
     # Trap DEBUG signal to call preexec before each command
     trap 'preexec' DEBUG
 
-    # Append precmd to PROMPT_COMMAND if it is already set
     # Append to PROMPT_COMMAND to call precmd before displaying the prompt
     PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }precmd"
 fi
