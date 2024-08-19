@@ -1,4 +1,3 @@
-
 # bash theme - partly inspired by https://github.com/ohmyzsh/ohmyzsh/blob/master/themes/robbyrussell.zsh-theme
 __bash_prompt() {
     local userpart='`export XIT=$? \
@@ -23,3 +22,23 @@ __bash_prompt() {
 }
 __bash_prompt
 export PROMPT_DIRTRIM=4
+
+# Check if the terminal is xterm
+if [[ "$TERM" == "xterm" ]]; then
+    # Function to set the terminal title to the current command
+    preexec() {
+        local cmd="${BASH_COMMAND}"
+        echo -ne "\033]0;${USER}@${HOSTNAME}: ${cmd}\007"
+    }
+
+    # Function to reset the terminal title to the shell type after the command is executed
+    precmd() {
+        echo -ne "\033]0;${USER}@${HOSTNAME}: ${SHELL}\007"
+    }
+
+    # Trap DEBUG signal to call preexec before each command
+    trap 'preexec' DEBUG
+
+    # Append to PROMPT_COMMAND to call precmd before displaying the prompt
+    PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }precmd"
+fi
