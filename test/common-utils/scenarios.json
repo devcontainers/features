@@ -273,8 +273,6 @@
         "image": "node",
         "features": {
             "common-utils": {}
-        },
-        "containerEnv": {
         }
     }
 }
