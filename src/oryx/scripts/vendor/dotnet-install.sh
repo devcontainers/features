@@ -331,6 +331,10 @@ get_machine_architecture() {
             echo "riscv64"
             return 0
             ;;
+        powerpc|ppc)
+            echo "ppc"
+            return 0
+            ;;
         esac
     fi
 
