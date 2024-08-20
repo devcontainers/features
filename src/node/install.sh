@@ -384,11 +384,12 @@ if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
         [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
         [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
         [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
+        PNPM_VERSION="pnpm"
         if [ "${NODE_VERSION}" = "16" ]; then
-            npm install -g --force pnpm@7
-        else
-            npm install -g --force pnpm
+            PNPM_VERSION+="@7"
         fi
+
+        npm install -g --force ${PNPM_VERSION}
     )
 else
     echo "Skip installing pnpm because npm is missing"
