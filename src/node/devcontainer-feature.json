@@ -28,6 +28,19 @@
             "default": "/usr/local/share/nvm",
             "description": "The path where NVM will be installed."
         },
+        "pnpmVersion": {
+            "type": "string",
+            "proposals": [
+                "8.8.0",
+                "8.0.0",
+                "7.30.0",
+                "6.14.8",
+                "5.18.10",
+                "none"
+            ],
+            "default": "none",
+            "description": "Version of PNPM to install."
+        },
         "nvmVersion": {
             "type": "string",
             "proposals": [

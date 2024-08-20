@@ -8,6 +8,7 @@
 # Maintainer: The Dev Container spec maintainers
 
 export NODE_VERSION="${VERSION:-"lts"}"
+export PNPM_VERSION="${PNPMVERSION:-"none"}"
 export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
@@ -378,33 +379,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
 fi
 
 # Install pnpm
-# Declare an associative array
-declare -A node_pnpm_map
-
-# Populate the associative array with Node.js version to pnpm version mappings
-node_pnpm_map["10.13.0"]="5.18.10"
-node_pnpm_map["12.0.0"]="6.14.8"
-node_pnpm_map["14.0.0"]="7.30.0"
-node_pnpm_map["16.0.0"]="8.0.0"
-node_pnpm_map["18.0.0"]="8.8.0"
-node_pnpm_map["20.0.0"]="8.8.0"
-
-# Function to get the closest matching pnpm version for a given Node.js version
-get_pnpm_version() {
-  local node_version=$1
-  local pnpm_version=""
-  
-  for key in "${!node_pnpm_map[@]}"; do
-    if [[ "$node_version" < "$key" ]]; then
-      break
-    fi
-    pnpm_version="${node_pnpm_map[$key]}"
-  done
-  
-  echo "$pnpm_version"
-}
-
-if bash -c ". '${NVM_DIR}/nvm.sh' && type pnpm >/dev/null 2>&1"; then
+if bash -c ". '${NVM_DIR}/nvm.sh' && [ -z "${PNPM_VERSION}" ] && [ "${PNPM_VERSION}" = "none" ]"; then
     echo "pnpm already installed."
 else
     if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
@@ -413,8 +388,6 @@ else
             [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
             [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
             [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
-            NODE_VER=$(node -v | sed 's/^v//')
-            PNPM_VERSION=$(get_pnpm_version "$NODE_VER")
             npm install -g pnpm@$PNPM_VERSION --force
         )
     else
