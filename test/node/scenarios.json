@@ -12,7 +12,8 @@
         "features": {
             "node": {
                 "version": "lts",
-                "additionalVersions": "v17.9.1,v14.19.3"
+                "additionalVersions": "v17.9.1,v14.19.3",
+                "pnpmVersion": "6.16.0"
             }
         }
     },
@@ -21,7 +22,8 @@
         "features": {
             "node": {
                 "version": "lts",
-                "additionalVersions": "v17.9.1,v14.19.3"
+                "additionalVersions": "v17.9.1,v14.19.3",
+                "pnpmVersion": "6.16.0"
             }
         }
     },
@@ -78,7 +80,8 @@
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-18.04",
         "features": {
             "node": {
-                "version": "16"
+                "version": "16",
+                "pnpmVersion":"8.8.0"
             }
         }
     },
@@ -86,7 +89,8 @@
         "image": "mcr.microsoft.com/devcontainers/base",
         "features": {
             "node": {
-                "nvmVersion": "0.39"
+                "nvmVersion": "0.39",
+                "pnpmVersion": "6.16.0"
             }
         }
     },
