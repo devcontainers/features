@@ -387,7 +387,7 @@ if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
         if [ "${NODE_VERSION}" = "16" ]; then
             npm install -g --force pnpm@7
         else
-            npm install -g pnpm
+            npm install -g --force pnpm
         fi
     )
 else
