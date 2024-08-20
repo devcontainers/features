@@ -387,7 +387,7 @@ else
             [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
             [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
             [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
-            npm install -g pnpm
+            npm install -g @pnpm/exe
         )
     else
         echo "Skip installing pnpm because npm is missing"
