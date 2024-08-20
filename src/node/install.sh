@@ -379,7 +379,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
 fi
 
 # Install pnpm
-if bash -c ". '${NVM_DIR}/nvm.sh' && [ -z "${PNPM_VERSION}" ] && [ "${PNPM_VERSION}" = "none" ]"; then
+if bash -c ". '${NVM_DIR}/nvm.sh' && [ ! -z "${PNPM_VERSION}" ] && [ "${PNPM_VERSION}" = "none" ]"; then
     echo "pnpm already installed."
 else
     if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
