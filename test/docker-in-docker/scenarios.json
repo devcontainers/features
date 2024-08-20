@@ -8,6 +8,22 @@
             }
         }
     },
+    "dockerIp6tablesDisabledTest": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-in-docker": {
+                "ip6tables": false
+            }
+        }
+    },
+    "dockerIp6tablesEnabledTest": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-in-docker": {
+                "ip6tables": true
+            }
+        }
+    },
     "dockerDefaultAddressPool": {
         "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
         "remoteUser": "node",
