@@ -378,21 +378,48 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
 fi
 
 # Install pnpm
-if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
-    (
-        . "${NVM_DIR}/nvm.sh"
-        [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
-        [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
-        [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
-        PNPM_VERSION="pnpm"
-        if [ "${NODE_VERSION}" = "16" ]; then
-            PNPM_VERSION+="@7"
-        fi
+# Declare an associative array
+declare -A node_pnpm_map
 
-        npm install -g --force ${PNPM_VERSION}
-    )
+# Populate the associative array with Node.js version to pnpm version mappings
+node_pnpm_map["10.13.0"]="5.18.10"
+node_pnpm_map["12.0.0"]="6.14.8"
+node_pnpm_map["14.0.0"]="7.30.0"
+node_pnpm_map["16.0.0"]="8.0.0"
+node_pnpm_map["18.0.0"]="8.8.0"
+node_pnpm_map["20.0.0"]="8.8.0"
+
+# Function to get the closest matching pnpm version for a given Node.js version
+get_pnpm_version() {
+  local node_version=$1
+  local pnpm_version=""
+  
+  for key in "${!node_pnpm_map[@]}"; do
+    if [[ "$node_version" < "$key" ]]; then
+      break
+    fi
+    pnpm_version="${node_pnpm_map[$key]}"
+  done
+  
+  echo "$pnpm_version"
+}
+
+if bash -c ". '${NVM_DIR}/nvm.sh' && type pnpm >/dev/null 2>&1"; then
+    echo "pnpm already installed."
 else
-    echo "Skip installing pnpm because npm is missing"
+    if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
+        (
+            . "${NVM_DIR}/nvm.sh"
+            [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
+            [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
+            [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
+            NODE_VER=$(node -v | sed 's/^v//')
+            PNPM_VERSION=$(get_pnpm_version "$NODE_VER")
+            npm install -g pnpm@$PNPM_VERSION --force
+        )
+    else
+        echo "Skip installing pnpm because npm is missing"
+    fi
 fi
 
 # If enabled, verify "python3", "make", "gcc", "g++" commands are available so node-gyp works - https://github.com/nodejs/node-gyp
