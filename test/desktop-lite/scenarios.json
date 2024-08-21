@@ -4,5 +4,13 @@
         "features": {
             "desktop-lite": {}
         }
+    },
+    "test_vncResolution_config": {
+        "image": "ubuntu:noble",
+        "features": {
+            "desktop-lite": {
+                "vncResolution": "1920x1080x32"
+            }
+        }
     }
 }
