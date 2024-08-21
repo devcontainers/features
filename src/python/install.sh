@@ -717,7 +717,7 @@ if ! type awk >/dev/null 2>&1; then
 fi
 
 # Some distributions do not include a PCRE-enabled grep by default (e.g., Alpine)
-${INSTALL_CMD} --upgrade grep
+check_packages grep
 
 # Determine the appropriate non-root user
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
