@@ -122,7 +122,7 @@ install() {
     # kubectl zsh completion
     if [ -e "${USERHOME}/.oh-my-zsh" ]; then
         mkdir -p "${USERHOME}/.oh-my-zsh/completions"
-        cp ./aws_zsh_completer.sh > "${USERHOME}/.oh-my-zsh/completions/_aws"
+        cp ./aws_zsh_completer.sh "${USERHOME}/.oh-my-zsh/completions/_aws"
         chown -R "${USERNAME}" "${USERHOME}/.oh-my-zsh"
     fi
 
