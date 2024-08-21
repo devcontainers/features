@@ -117,12 +117,12 @@ install() {
     ls -la ./aws_bash_completer
     mkdir -p /etc/bash_completion.d
     ls -la /etc/bash_completion.d
-    cp ./aws_bash_completer /etc/bash_completion.d/aws
+    cp ./scripts/vendor/aws_bash_completer /etc/bash_completion.d/aws
 
     # kubectl zsh completion
     if [ -e "${USERHOME}/.oh-my-zsh" ]; then
         mkdir -p "${USERHOME}/.oh-my-zsh/completions"
-        cp ./aws_zsh_completer.sh "${USERHOME}/.oh-my-zsh/completions/_aws"
+        cp ./scripts/vendor/aws_zsh_completer.sh "${USERHOME}/.oh-my-zsh/completions/_aws"
         chown -R "${USERNAME}" "${USERHOME}/.oh-my-zsh"
     fi
 
