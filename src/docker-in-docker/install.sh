@@ -20,7 +20,7 @@ INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy noble"
-IP6_TABLES="${IP6TABLES:-""}"
+IP6_TABLES="${IP6TABLES:-true}"
 
 # Default: Exit on any failure.
 set -e
@@ -563,17 +563,10 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
     fi
 
-    if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ]
-    then
-        DEFAULT_IP6_TABLES=true
-    else
-        DEFAULT_IP6_TABLES=$DOCKER_DEFAULT_IP6_TABLES
-    fi
-
     # Create the daemon.json file with the provided value
     cat <<JSON_EOF > /etc/docker/daemon.json
 {
-    "ip6tables": $DEFAULT_IP6_TABLES
+    "ip6tables": $DOCKER_DEFAULT_IP6_TABLES
 }
 JSON_EOF
 
