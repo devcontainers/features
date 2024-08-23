@@ -114,9 +114,7 @@ install() {
     ./aws/install
 
     # kubectl bash completion
-    ls -la ./aws_bash_completer
     mkdir -p /etc/bash_completion.d
-    ls -la /etc/bash_completion.d
     cp ./scripts/vendor/aws_bash_completer /etc/bash_completion.d/aws
 
     # kubectl zsh completion
