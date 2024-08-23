@@ -32,7 +32,7 @@ jobs:
 
           branch=automated-script-update-$GITHUB_RUN_ID
           git checkout -b $branch
-          message='[Updates] Automated vendor completer scripts'
+          message='[Updates] Automated vendor 'aws-cli' completer scripts'
 
           # Add / update and commit
           git add src/aws-cli/scripts/vendor/aws_bash_completer
