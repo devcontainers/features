@@ -8,6 +8,14 @@
             }
         }
     },
+    "install_lts_version": {
+        "image": "ubuntu:focal",
+        "features": {
+            "java": {
+                "version": "lts"
+            }
+        }
+    },
     "install_additional_java": {
         "image": "ubuntu:focal",
         "features": {

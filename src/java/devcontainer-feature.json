@@ -1,6 +1,6 @@
 {
   "id": "java",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "name": "Java (via SDKMAN!)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/java",
   "description": "Installs Java, SDKMAN! (if not installed), and needed dependencies.",

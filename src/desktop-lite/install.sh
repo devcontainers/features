@@ -394,8 +394,12 @@ else
 fi
 
 # Run whatever was passed in
-log "Executing \"\$@\"."
-exec "\$@"
+if [ -n "$1" ]; then
+    log "Executing \"\$@\"."
+    exec "$@"
+else
+    log "No command provided to execute."
+fi
 log "** SCRIPT EXIT **"
 EOF
 

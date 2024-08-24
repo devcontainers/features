@@ -1,6 +1,6 @@
 {
     "id": "common-utils",
-    "version": "2.4.4",
+    "version": "2.5.1",
     "name": "Common Utilities",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/common-utils",
     "description": "Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.",
