@@ -24,5 +24,11 @@
         "modules": "az.resources==2.5.0, az.storage==4.3.0"
       }
     }
+  },
+  "validate_powershell_installation": {
+    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "features": {
+      "powershell": {}
+    }
   }
 }
