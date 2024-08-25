@@ -168,9 +168,10 @@ install_using_github() {
         echo "${powershell_archive_sha256} *${powershell_filename}" | sha256sum -c -
     fi
     sudo tar xf "${powershell_filename}" -C "${powershell_target_path}"
-    sudo ln -s "${powershell_target_path}/pwsh" /usr/local/bin/pwsh
-    sudo rm -rf /tmp/pwsh /usr/local/bin/pwsh
-
+    sudo chmod 755 "${powershell_target_path}/pwsh"
+    sudo ln -sf "${powershell_target_path}/pwsh" /usr/bin/pwsh
+    sudo add-shell "/usr/bin/pwsh"
+    sudo rm -rf /tmp/pwsh
 }
 
 echo -e "\nInstalling Powershell with find_prev_version_from_git_tags() fn 👈🏻"
