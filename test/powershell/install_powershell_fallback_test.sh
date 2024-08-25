@@ -171,6 +171,7 @@ install_using_github() {
     sudo chmod 755 "${powershell_target_path}/pwsh"
     sudo ln -sf "${powershell_target_path}/pwsh" /usr/bin/pwsh
     sudo add-shell "/usr/bin/pwsh"
+    cd /tmp
     sudo rm -rf /tmp/pwsh
 }
 
