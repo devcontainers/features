@@ -224,6 +224,7 @@ install_using_github() {
     chmod 755 "${powershell_target_path}/pwsh"
     ln -sf "${powershell_target_path}/pwsh" /usr/bin/pwsh
     add-shell "/usr/bin/pwsh"
+    cd /tmp
     rm -rf /tmp/pwsh
 }
 
