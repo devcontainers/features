@@ -8,7 +8,7 @@
 # Maintainer: The Dev Container spec maintainers
 
 export NODE_VERSION="${VERSION:-"lts"}"
-export PNPM_VERSION="${PNPMVERSION:-"none"}"
+export PNPM_VERSION="${PNPMVERSION:-"latest"}"
 export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
@@ -379,8 +379,8 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
 fi
 
 # Install pnpm
-if bash -c ". '${NVM_DIR}/nvm.sh' && [ ! -z "${PNPM_VERSION}" ] && [ "${PNPM_VERSION}" = "none" ]"; then
-    echo "pnpm already installed."
+if [ ! -z "${PNPM_VERSION}" ] && [ "${PNPM_VERSION}" = "none" ]; then
+    echo "Ignoring installation of PNPM"
 else
     if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
         (

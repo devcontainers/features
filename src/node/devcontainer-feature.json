@@ -31,6 +31,7 @@
         "pnpmVersion": {
             "type": "string",
             "proposals": [
+                "latest",
                 "8.8.0",
                 "8.0.0",
                 "7.30.0",
@@ -38,8 +39,8 @@
                 "5.18.10",
                 "none"
             ],
-            "default": "8.8.0",
-            "description": "Version of PNPM to install."
+            "default": "latest",
+            "description": "Select or enter the PNPM version to install"
         },
         "nvmVersion": {
             "type": "string",
