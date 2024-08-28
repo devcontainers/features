@@ -565,7 +565,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     fi
 
     semver_regex="^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$"
-    if [[ $DOCKER_VERSION =~ $semver_regex ]]; then
+    if [ $DOCKER_VERSION =~ $semver_regex ]; then
         major_version=$(echo $DOCKER_VERSION | cut -d. -f1)
         if [ "$major_version" -le 20 ]; then
             if [ $DOCKER_DEFAULT_IP6_TABLES = true ]; then
