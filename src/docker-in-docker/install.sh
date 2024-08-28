@@ -482,11 +482,12 @@ set -e
 AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION}
 DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL}
 DOCKER_DEFAULT_IP6_TABLES=${IP6_TABLES}
+DOCKER_VERSION=${DOCKER_VERSION}
 EOF
 
 tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
-dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES} $(cat << 'INNEREOF'
+dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES} DOCKER_VERSION=${DOCKER_VERSION} $(cat << 'INNEREOF'
     # explicitly remove dockerd and containerd PID file to ensure that it can start properly if it was stopped uncleanly
     find /run /var/run -iname 'docker*.pid' -delete || :
     find /run /var/run -iname 'container*.pid' -delete || :
@@ -563,11 +564,28 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
     fi
 
-    if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ]
-    then
-        DEFAULT_IP6_TABLES=""
-    else
-        DEFAULT_IP6_TABLES="--ip6tables=$DOCKER_DEFAULT_IP6_TABLES"
+    DEFAULT_IP6_TABLES=""
+    major_version=$(echo $DOCKER_VERSION | cut -d. -f1)
+    if [ "$major_version" -le 20 ]; then
+        if [ $DOCKER_DEFAULT_IP6_TABLES = true ]; then
+            mkdir -p /etc/docker
+            # Create the daemon.json file for enabling ip6tables
+            tee /etc/docker/daemon.json > /dev/null <<JSON_EOF
+{
+  "experimental": true,
+  "ipv6": true,
+  "ip6tables": true,
+  "fixed-cidr-v6": "2001:db8:1::/64"
+}
+JSON_EOF
+        fi
+    else 
+        if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ]
+        then
+            DEFAULT_IP6_TABLES=""
+        else
+            DEFAULT_IP6_TABLES="--ip6tables=$DOCKER_DEFAULT_IP6_TABLES"
+        fi
     fi
 
     # Start docker/moby engine
