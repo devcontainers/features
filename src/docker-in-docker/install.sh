@@ -563,31 +563,15 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     else
         DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
     fi
-
     semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
-    if echo "$DOCKER_INSTALL_VERSION" | grep -Eq "^-?[0-9]+$" || echo "$DOCKER_INSTALL_VERSION" | grep -Eq "$semver_regex"; then
-        major_version=$(echo $DOCKER_INSTALL_VERSION | cut -d. -f1)
-        if [ "$major_version" -le 26 ]; then
-            if [ "${DOCKER_DEFAULT_IP6_TABLES}" != "" ] && [ ${DOCKER_DEFAULT_IP6_TABLES} = true ]; then
-                mkdir -p /etc/docker
-                # Create the daemon.json file for enabling ip6tables
-                tee /etc/docker/daemon.json > /dev/null <<JSON_EOF
-{
-  "experimental": true,
-  "ipv6": true,
-  "ip6tables": true,
-  "fixed-cidr-v6": "2001:db8:1::/64"
-}
-JSON_EOF
-            fi
-        else 
-            if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ]; then
-                DEFAULT_IP6_TABLES=""
-            else
-                DEFAULT_IP6_TABLES="--ip6tables=$DOCKER_DEFAULT_IP6_TABLES"
-            fi
-        fi
-    else 
+    if echo "$DOCKER_INSTALL_VERSION" | grep -Eq "$semver_regex"; then
+        version_to_check=$(echo $DOCKER_INSTALL_VERSION | cut -d. -f1)
+    elif echo "$DOCKER_INSTALL_VERSION" | grep -Eq "^-?[0-9]+$"; then
+        version_to_check=$DOCKER_INSTALL_VERSION
+    fi
+
+    DEFAULT_IP6_TABLES=""
+    if [ "$version_to_check" -ge 27 ] || [ "$DOCKER_INSTALL_VERSION" = "latest" ]; then
         if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ]; then
             DEFAULT_IP6_TABLES=""
         else
