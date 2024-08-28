@@ -563,6 +563,8 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     else
         DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
     fi
+
+    version_to_check=""
     semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
     if echo "$DOCKER_INSTALL_VERSION" | grep -Eq "$semver_regex"; then
         version_to_check=$(echo $DOCKER_INSTALL_VERSION | cut -d. -f1)
@@ -571,14 +573,14 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     fi
 
     DEFAULT_IP6_TABLES=""
-    if echo "$DOCKER_INSTALL_VERSION" | grep -Eq "^[0-9]+$" && [ "$version_to_check" -ge 27 ] || [ "$DOCKER_INSTALL_VERSION" = "latest" ]; then
+    if [ -n "$version_to_check" ] && [ "$version_to_check" -ge 27 ] || [ "$DOCKER_INSTALL_VERSION" = "latest" ]; then
         if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ]; then
             DEFAULT_IP6_TABLES=""
         else
             DEFAULT_IP6_TABLES="--ip6tables=$DOCKER_DEFAULT_IP6_TABLES"
         fi
     fi
-
+    
     # Start docker/moby engine
     ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
