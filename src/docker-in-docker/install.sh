@@ -571,7 +571,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     fi
 
     DEFAULT_IP6_TABLES=""
-    if [ "$version_to_check" -ge 27 ] || [ "$DOCKER_INSTALL_VERSION" = "latest" ]; then
+    if echo "$DOCKER_INSTALL_VERSION" | grep -Eq "^[0-9]+$" && [ "$version_to_check" -ge 27 ] || [ "$DOCKER_INSTALL_VERSION" = "latest" ]; then
         if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ]; then
             DEFAULT_IP6_TABLES=""
         else
