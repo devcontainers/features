@@ -18,5 +18,6 @@ ip6tablesCheck() {
 }
 
 check "ip6tables" ip6tablesCheck
+check "ip6tables check" bash -c "docker network inspect bridge"
 
 reportResults

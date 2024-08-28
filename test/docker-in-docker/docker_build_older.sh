@@ -10,7 +10,6 @@ check "docker-buildx" docker buildx version
 check "docker-build" docker build ./
 check "docker-buildx" bash -c "docker buildx version"
 check "docker-buildx-path" bash -c "ls -la /usr/libexec/docker/cli-plugins/docker-buildx"
-check "ip6tables check" bash -c "docker network inspect bridge"
 
 # Report result
 reportResults
