@@ -8,7 +8,7 @@ source dev-container-features-test-lib
 # Extension-specific tests
 check "az.resources" pwsh -Command "(Get-Module -ListAvailable -Name Az.Resources).Version.ToString()"
 check "az.storage" pwsh -Command "(Get-Module -ListAvailable -Name Az.Storage).Version.ToString()"
-check "profile" pwsh -Command "(Get-Variable $env:ProfileLoaded).Value"
+check "profile" pwsh -Command "if (\$null -eq \$env:ProfileLoaded) { echo 'Not set!'; exit 1 } else { if ( [bool]\$env:ProfileLoaded ) { echo 'Profile loaded.'; exit 0 } else { echo 'False value!'; exit 1 } }"
 
 check "Powershell version as installed by feature" bash -c "pwsh --version"
 
@@ -168,9 +168,11 @@ install_using_github() {
         echo "${powershell_archive_sha256} *${powershell_filename}" | sha256sum -c -
     fi
     sudo tar xf "${powershell_filename}" -C "${powershell_target_path}"
-    sudo ln -s "${powershell_target_path}/pwsh" /usr/local/bin/pwsh
-    sudo rm -rf /tmp/pwsh /usr/local/bin/pwsh
-
+    sudo chmod 755 "${powershell_target_path}/pwsh"
+    sudo ln -sf "${powershell_target_path}/pwsh" /usr/bin/pwsh
+    sudo add-shell "/usr/bin/pwsh"
+    cd /tmp
+    sudo rm -rf /tmp/pwsh
 }
 
 echo -e "\nInstalling Powershell with find_prev_version_from_git_tags() fn 👈🏻"
