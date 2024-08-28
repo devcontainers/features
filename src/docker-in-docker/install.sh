@@ -482,12 +482,12 @@ set -e
 AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION}
 DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL}
 DOCKER_DEFAULT_IP6_TABLES=${IP6_TABLES}
-DOCKER_VERSION=${DOCKER_VERSION}
+DOCKER_INSTALL_VERSION=${DOCKER_VERSION}
 EOF
 
 tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
-dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES} DOCKER_VERSION=${DOCKER_VERSION} $(cat << 'INNEREOF'
+dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES} DOCKER_INSTALL_VERSION=${DOCKER_INSTALL_VERSION} $(cat << 'INNEREOF'
     # explicitly remove dockerd and containerd PID file to ensure that it can start properly if it was stopped uncleanly
     find /run /var/run -iname 'docker*.pid' -delete || :
     find /run /var/run -iname 'container*.pid' -delete || :
@@ -563,12 +563,11 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     else
         DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
     fi
-
-    semver_regex="^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$"
-    if echo "$DOCKER_VERSION" | grep -Eq "$semver_regex"; then
-        major_version=$(echo $DOCKER_VERSION | cut -d. -f1)
-        if [ "$major_version" -le 20 ]; then
-            if [ $DOCKER_DEFAULT_IP6_TABLES = true ]; then
+    semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+    if echo "$DOCKER_INSTALL_VERSION" | grep -Eq "^-?[0-9]+$" || echo "$DOCKER_INSTALL_VERSION" | grep -Eq "$semver_regex"; then
+        major_version=$(echo $DOCKER_INSTALL_VERSION | cut -d. -f1)
+        if [ "$major_version" -le 26 ]; then
+            if [ "${DOCKER_DEFAULT_IP6_TABLES}" = true ]; then
                 mkdir -p /etc/docker
                 # Create the daemon.json file for enabling ip6tables
                 tee /etc/docker/daemon.json > /dev/null <<JSON_EOF
