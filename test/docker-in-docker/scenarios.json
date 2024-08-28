@@ -20,6 +20,7 @@
         "image": "ubuntu:focal",
         "features": {
             "docker-in-docker": {
+                "version": "27.0.3",
                 "ip6tables": true
             }
         }
