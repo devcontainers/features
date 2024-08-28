@@ -563,11 +563,12 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     else
         DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
     fi
+
     semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
     if echo "$DOCKER_INSTALL_VERSION" | grep -Eq "^-?[0-9]+$" || echo "$DOCKER_INSTALL_VERSION" | grep -Eq "$semver_regex"; then
         major_version=$(echo $DOCKER_INSTALL_VERSION | cut -d. -f1)
         if [ "$major_version" -le 26 ]; then
-            if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ] && [ "${DOCKER_DEFAULT_IP6_TABLES}" = true ]; then
+            if [ "${DOCKER_DEFAULT_IP6_TABLES}" != "" ] && [ ${DOCKER_DEFAULT_IP6_TABLES} = true ]; then
                 mkdir -p /etc/docker
                 # Create the daemon.json file for enabling ip6tables
                 tee /etc/docker/daemon.json > /dev/null <<JSON_EOF
