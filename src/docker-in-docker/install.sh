@@ -564,13 +564,21 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
     fi
 
-    DEFAULT_IP6_TABLES=""
-    major_version=$(echo $DOCKER_VERSION | cut -d. -f1)
-    if [ "$major_version" -le 20 ]; then
-        if [ $DOCKER_DEFAULT_IP6_TABLES = true ]; then
-            mkdir -p /etc/docker
-            # Create the daemon.json file for enabling ip6tables
-            tee /etc/docker/daemon.json > /dev/null <<JSON_EOF
+    condition_check='
+    if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ]; then
+        DEFAULT_IP6_TABLES=""
+    else
+        DEFAULT_IP6_TABLES="--ip6tables=$DOCKER_DEFAULT_IP6_TABLES"
+    fi
+    '
+    semver_regex="^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$"
+    if [[ $version =~ $semver_regex ]]; then
+        major_version=$(echo $DOCKER_VERSION | cut -d. -f1)
+        if [ "$major_version" -le 20 ]; then
+            if [ $DOCKER_DEFAULT_IP6_TABLES = true ]; then
+                mkdir -p /etc/docker
+                # Create the daemon.json file for enabling ip6tables
+                tee /etc/docker/daemon.json > /dev/null <<JSON_EOF
 {
   "experimental": true,
   "ipv6": true,
@@ -578,14 +586,12 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
   "fixed-cidr-v6": "2001:db8:1::/64"
 }
 JSON_EOF
+            fi
+        else 
+            eval "$condition_check"
         fi
     else 
-        if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ]
-        then
-            DEFAULT_IP6_TABLES=""
-        else
-            DEFAULT_IP6_TABLES="--ip6tables=$DOCKER_DEFAULT_IP6_TABLES"
-        fi
+        eval "$condition_check"
     fi
 
     # Start docker/moby engine
