@@ -1,6 +1,6 @@
 {
     "id": "node",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "name": "Node.js (via nvm), yarn and pnpm",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/node",
     "description": "Installs Node.js, nvm, yarn, pnpm, and needed dependencies.",
@@ -27,6 +27,20 @@
             "type": "string",
             "default": "/usr/local/share/nvm",
             "description": "The path where NVM will be installed."
+        },
+        "pnpmVersion": {
+            "type": "string",
+            "proposals": [
+                "latest",
+                "8.8.0",
+                "8.0.0",
+                "7.30.0",
+                "6.14.8",
+                "5.18.10",
+                "none"
+            ],
+            "default": "latest",
+            "description": "Select or enter the PNPM version to install"
         },
         "nvmVersion": {
             "type": "string",
