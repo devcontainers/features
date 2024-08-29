@@ -292,30 +292,17 @@ fi
 echo -e "\nSuccess!\n"
 EOF
 
-USER_ID=$(id -u)
-
 # Container ENTRYPOINT script
-tee /usr/local/share/desktop-init.sh > /dev/null \
-<< EOF
+cat << EOF > /usr/local/share/desktop-init.sh
 #!/bin/bash
 
-set -e
-
-VNC_RESOLUTION="${VNC_RESOLUTION}"
-USER_ID=${USER_ID}
-USERNAME="${USERNAME}"
-EOF
-
-tee -a /usr/local/share/desktop-init.sh > /dev/null \
-<< 'EOF'
-script_start="VNC_RESOLUTION=${VNC_RESOLUTION} USERNAME=${USERNAME} $(cat << 'INNEREOF' 
 user_name="${USERNAME}"
 group_name="$(id -gn ${USERNAME})"
 LOG=/tmp/container-init.log
 
 export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-"autolaunch:"}"
 export DISPLAY="${DISPLAY:-:1}"
-export VNC_RESOLUTION="${VNC_RESOLUTION}" 
+export VNC_RESOLUTION="${VNC_RESOLUTION:-1440x768x16}" 
 export LANG="${LANG:-"en_US.UTF-8"}"
 export LANGUAGE="${LANGUAGE:-"en_US.UTF-8"}"
 
@@ -413,19 +400,9 @@ if [ -n "$1" ]; then
 else
     log "No command provided to execute."
 fi
-
-log "** SCRIPT EXIT **" & 
-
-INNEREOF
-)"
-
-# Start using sudo if not invoked as root
-if [[ $((USER_ID)) -ne 0 ]]; then
-    sudo /bin/sh -c ${script_start}
-else
-    eval ${script_start}
-fi
+log "** SCRIPT EXIT **"
 EOF
+
 
 if [ -n "${VNC_PASSWORD+x}" ]; then
     echo "${VNC_PASSWORD}" | vncpasswd -f > /usr/local/etc/vscode-dev-containers/vnc-passwd
