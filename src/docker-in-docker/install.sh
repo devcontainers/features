@@ -481,7 +481,7 @@ DEFAULT_IP6_TABLES=""
 if [ -n "$version_to_check" ] && [ "$version_to_check" -ge 27 ] || [ "$DOCKER_VERSION" = "latest" ]; then
     if [ -z "$IP6_TABLES" ]; then
         DEFAULT_IP6_TABLES=""
-    else
+    elif [ "$IP6_TABLES" == false ]; then
         DEFAULT_IP6_TABLES="--ip6tables=$IP6_TABLES"
     fi
 fi
