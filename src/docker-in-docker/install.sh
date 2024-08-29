@@ -469,6 +469,23 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
 
+version_to_check=""
+semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+if echo "$DOCKER_VERSION" | grep -Eq "$semver_regex"; then
+    version_to_check=$(echo $DOCKER_VERSION | cut -d. -f1)
+elif echo "$DOCKER_VERSION" | grep -Eq "^-?[0-9]+$"; then
+    version_to_check=$DOCKER_VERSION
+fi
+
+DEFAULT_IP6_TABLES=""
+if [ -n "$version_to_check" ] && [ "$version_to_check" -ge 27 ] || [ "$DOCKER_VERSION" = "latest" ]; then
+    if [ -z "$IP6_TABLES" ]; then
+        DEFAULT_IP6_TABLES=""
+    else
+        DEFAULT_IP6_TABLES="--ip6tables=$IP6_TABLES"
+    fi
+fi
+
 tee /usr/local/share/docker-init.sh > /dev/null \
 << EOF
 #!/bin/sh
@@ -481,13 +498,12 @@ set -e
 
 AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION}
 DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL}
-DOCKER_DEFAULT_IP6_TABLES=${IP6_TABLES}
-DOCKER_INSTALL_VERSION=${DOCKER_VERSION}
+DOCKER_DEFAULT_IP6_TABLES=${DEFAULT_IP6_TABLES}
 EOF
 
 tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
-dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES} DOCKER_INSTALL_VERSION=${DOCKER_INSTALL_VERSION} $(cat << 'INNEREOF'
+dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES} $(cat << 'INNEREOF'
     # explicitly remove dockerd and containerd PID file to ensure that it can start properly if it was stopped uncleanly
     find /run /var/run -iname 'docker*.pid' -delete || :
     find /run /var/run -iname 'container*.pid' -delete || :
@@ -564,25 +580,8 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
     fi
 
-    version_to_check=""
-    semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
-    if echo "$DOCKER_INSTALL_VERSION" | grep -Eq "$semver_regex"; then
-        version_to_check=$(echo $DOCKER_INSTALL_VERSION | cut -d. -f1)
-    elif echo "$DOCKER_INSTALL_VERSION" | grep -Eq "^-?[0-9]+$"; then
-        version_to_check=$DOCKER_INSTALL_VERSION
-    fi
-
-    DEFAULT_IP6_TABLES=""
-    if [ -n "$version_to_check" ] && [ "$version_to_check" -ge 27 ] || [ "$DOCKER_INSTALL_VERSION" = "latest" ]; then
-        if [ -z "$DOCKER_DEFAULT_IP6_TABLES" ]; then
-            DEFAULT_IP6_TABLES=""
-        else
-            DEFAULT_IP6_TABLES="--ip6tables=$DOCKER_DEFAULT_IP6_TABLES"
-        fi
-    fi
-    
     # Start docker/moby engine
-    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
+    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DEFAULT_IP6_TABLES $DOCKER_DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
 )"
 
