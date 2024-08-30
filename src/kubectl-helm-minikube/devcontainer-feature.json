@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
     "id": "kubectl-helm-minikube",
     "version": "1.2.0",
     "name": "Kubectl, Helm, and Minikube",
@@ -45,15 +46,61 @@
             "default": "/usr/local/bin",
             "description": "Specify the path used for installing tools"
         }
+  "description": "Installs latest version of kubectl, Helm, and optionally minikube. Auto-detects latest versions and installs needed dependencies.",
+  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/kubectl-helm-minikube",
+  "id": "kubectl-helm-minikube",
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/common-utils"
+  ],
+  "mounts": [
+    {
+      "source": "minikube-config",
+      "target": "/home/vscode/.minikube",
+      "type": "volume"
+    }
+  ],
+  "name": "Kubectl, Helm, and Minikube",
+  "options": {
+    "helm": {
+      "default": "latest",
+      "description": "Select or enter a Helm version to install",
+      "proposals": [
+        "latest",
+        "none"
+      ],
+      "type": "string"
     },
-    "mounts": [
-        {
-            "source": "minikube-config",
-            "target": "/home/vscode/.minikube",
-            "type": "volume"
-        }
-    ],
-    "installsAfter": [
-        "ghcr.io/devcontainers/features/common-utils"
-    ]
+    "minikube": {
+      "default": "latest",
+      "description": "Select or enter a Minikube version to install",
+      "proposals": [
+        "latest",
+        "none"
+      ],
+      "type": "string"
+    },
+    "tools_path": {
+      "default": "/usr/local/bin",
+      "description": "Path to install tools",
+      "proposals": [
+        "/usr/bin",
+        "/usr/local/bin"
+      ],
+      "type": "string"
+    },
+    "version": {
+      "default": "latest",
+      "description": "Select or enter a Kubernetes version to install",
+      "proposals": [
+        "latest",
+        "none",
+        "1.23",
+        "1.22",
+        "1.21",
+        "none"
+      ],
+      "type": "string"
+    }
+  },
+  "version": "1.1.11"
 }
