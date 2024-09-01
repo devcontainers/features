@@ -17,7 +17,7 @@ jobs:
             azure-cli: ./**/azure-cli/**
             common-utils: ./**/common-utils/**
             conda: ./**/conda/**
-            desktop-lite: ./**/desktop-lite/** 
+            desktop-lite: ./**/desktop-lite/**
             docker-outside-of-docker: ./**/docker-outside-of-docker/**
             docker-in-docker: ./**/docker-in-docker/**
             dotnet: ./**/dotnet/**
@@ -58,7 +58,7 @@ jobs:
             "mcr.microsoft.com/devcontainers/base:noble"
           ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
@@ -74,7 +74,7 @@ jobs:
       matrix:
         features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
