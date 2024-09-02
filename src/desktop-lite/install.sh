@@ -296,15 +296,15 @@ EOF
 cat << EOF > /usr/local/share/desktop-init.sh
 #!/bin/bash
 
-user_name="${USERNAME}"
+user_name="\${USERNAME}"
 group_name="$(id -gn ${USERNAME})"
 LOG=/tmp/container-init.log
 
-export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-"autolaunch:"}"
-export DISPLAY="${DISPLAY:-:1}"
-export VNC_RESOLUTION="${VNC_RESOLUTION:-1440x768x16}" 
-export LANG="${LANG:-"en_US.UTF-8"}"
-export LANGUAGE="${LANGUAGE:-"en_US.UTF-8"}"
+export DBUS_SESSION_BUS_ADDRESS="\${DBUS_SESSION_BUS_ADDRESS:-"autolaunch:"}"
+export DISPLAY="\${DISPLAY:-:1}"
+export VNC_RESOLUTION="\${VNC_RESOLUTION:-1440x768x16}" 
+export LANG="\${LANG:-"en_US.UTF-8"}"
+export LANGUAGE="\${LANGUAGE:-"en_US.UTF-8"}"
 
 # Execute the command it not already running
 startInBackgroundIfNotRunning()
