@@ -8,17 +8,18 @@
     "test_vnc_resolution_as_env_var": {
         "image": "ubuntu:noble",
         "features": {
-            "desktop-lite": {},
-            "containerEnv": {
-                "VNC_RESOLUTION": "1920x1080x32"
-            },
-            "remoteEnv": {
-                "VNC_RESOLUTION": "1920x1080x32"
-            },
-            "forwardPorts": [
-                5901,
-                6080
-            ]
+            "desktop-lite": {}
         }
+        ,
+        "containerEnv": {
+            "VNC_RESOLUTION": "1920x1080x32"
+        },
+        "remoteEnv": {
+            "VNC_RESOLUTION": "1920x1080x32"
+        },
+        "forwardPorts": [
+            5901,
+            6080
+        ]
     }
 }
