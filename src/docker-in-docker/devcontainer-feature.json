@@ -58,7 +58,7 @@
         },
         "disableIp6tables": {
             "type": "boolean",
-            "default": false,
+            "default": "",
             "description": "Disable ip6tables"
         }
     },
