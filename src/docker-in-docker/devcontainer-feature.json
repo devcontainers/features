@@ -56,9 +56,9 @@
             "default": true,
             "description": "Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter."
         },
-        "ip6tables": {
+        "disableIp6tables": {
             "type": "boolean",
-            "default": true,
+            "default": "",
             "description": "Disable ip6tables"
         }
     },
