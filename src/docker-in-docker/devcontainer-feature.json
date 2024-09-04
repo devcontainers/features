@@ -58,8 +58,8 @@
         },
         "disableIp6tables": {
             "type": "boolean",
-            "default": "",
-            "description": "Disable ip6tables"
+            "default": "false",
+            "description": "Disable ip6tables (this option is only applicable for Docker versions 27 and greater)"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",

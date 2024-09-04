@@ -20,7 +20,7 @@ INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy noble"
-DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-""}"
+DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-"false"}"
 
 # Default: Exit on any failure.
 set -e
@@ -469,32 +469,24 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
 
-if [ -z "$DISABLE_IP6_TABLES" ]; then
-    DOCKER_DEFAULT_IP6_TABLES=""
-else
-    version_to_check=""
-    semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
-    if echo "$DOCKER_VERSION" | grep -Eq "$semver_regex"; then
-        version_to_check=$(echo $DOCKER_VERSION | cut -d. -f1)
-    elif echo "$DOCKER_VERSION" | grep -Eq "^-?[0-9]+$"; then
-        version_to_check=$DOCKER_VERSION
-    fi
+DOCKER_DEFAULT_IP6_TABLES=""
+version_to_check=""
+semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+if echo "$DOCKER_VERSION" | grep -Eq "$semver_regex"; then
+    version_to_check=$(echo $DOCKER_VERSION | cut -d. -f1)
+elif echo "$DOCKER_VERSION" | grep -Eq "^-?[0-9]+$"; then
+    version_to_check=$DOCKER_VERSION
+fi
 
-    if [ -n "$version_to_check" ] && [ "$version_to_check" -ge 27 ] || [ "$DOCKER_VERSION" = "latest" ]; then
-            if [ "$DISABLE_IP6_TABLES" == false ]; then
-                DOCKER_DEFAULT_IP6_TABLES=""
-            else
-                echo "Info: Ip6tables feature is enabled by default in docker engine v27 & later. Disabling.."
-                DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
-            fi
-    else 
+if [[ -n "$version_to_check" && "$version_to_check" -ge 27 ]] || [ "$DOCKER_VERSION" = "latest" ]; then
         if [ "$DISABLE_IP6_TABLES" == true ]; then
-            echo "Info: Ip6tables feature is already disabled in docker engine v26 & lower."
-            DOCKER_DEFAULT_IP6_TABLES=""
-        else
-            echo "Error: Ip6tables in docker engine v26 & lower is an experimental feature. Enabling is not supported."
-            exit 1
+            echo "Info: Ip6tables feature is enabled by default in docker engine v27 & later. Disabling.."
+            DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
         fi
+else 
+    if [ "$DISABLE_IP6_TABLES" == false ]; then
+        echo "Error: Ip6tables in docker engine v26 & lower is an experimental feature. Enabling is not supported. Aborting.."
+        exit 1
     fi
 fi
 
