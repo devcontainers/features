@@ -467,7 +467,6 @@ install_cpython() {
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${VERSION} already exists."
-        exit 1
     fi
     mkdir -p /tmp/python-src ${INSTALL_PATH}
     cd /tmp/python-src
@@ -562,7 +561,6 @@ install_using_oryx() {
 
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${VERSION} already exists."
-        exit 1
     fi
 
     # The python install root path may not exist, so create it
