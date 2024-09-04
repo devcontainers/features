@@ -12,7 +12,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run fetch-latest-completer-scripts.sh
         run: src/aws-cli/scripts/fetch-latest-completer-scripts.sh
@@ -42,7 +42,7 @@ jobs:
 
           # Bump version and push
           if [ "$NO_UPDATES" != "true" ] ; then
-              echo "$(jq --indent 4 '.version = (.version | split(".") | map(tonumber) | .[2] += 1 | join("."))' src/aws-cli/devcontainer-feature.json)"  > src/aws-cli/devcontainer-feature.json 
+              echo "$(jq --indent 4 '.version = (.version | split(".") | map(tonumber) | .[2] += 1 | join("."))' src/aws-cli/devcontainer-feature.json)"  > src/aws-cli/devcontainer-feature.json
               git add src/aws-cli/devcontainer-feature.json
 
               git commit -m 'Bump version'
