@@ -58,7 +58,7 @@
         },
         "disableIp6tables": {
             "type": "boolean",
-            "default": "false",
+            "default": false,
             "description": "Disable ip6tables (this option is only applicable for Docker versions 27 and greater)"
         }
     },
