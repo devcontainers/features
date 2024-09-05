@@ -470,22 +470,24 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
 fi
 
 DOCKER_DEFAULT_IP6_TABLES=""
-version_to_check=""
+requested_version=""
+# checking whether the version requested either is in semver format or just a number denoting the major version
+# extracting the major version number out of the two scenarios
 semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
 if echo "$DOCKER_VERSION" | grep -Eq "$semver_regex"; then
-    version_to_check=$(echo $DOCKER_VERSION | cut -d. -f1)
+    requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
 elif echo "$DOCKER_VERSION" | grep -Eq "^-?[0-9]+$"; then
-    version_to_check=$DOCKER_VERSION
+    requested_version=$DOCKER_VERSION
 fi
 
-if [[ -n "$version_to_check" && "$version_to_check" -ge 27 ]] || [ "$DOCKER_VERSION" = "latest" ]; then
+if [[ -n "$requested_version" && "$requested_version" -ge 27 ]] || [ "$DOCKER_VERSION" = "latest" ]; then
         if [ "$DISABLE_IP6_TABLES" == true ]; then
-            echo "Info: Ip6tables feature is enabled by default in docker engine v27 & later. Disabling.."
             DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
+            echo "(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}'"
         fi
 else 
     if [ "$DISABLE_IP6_TABLES" == false ]; then
-        echo "Error: Ip6tables in docker engine v26 & lower is an experimental feature. Enabling is not supported. Aborting.."
+        echo "ERR: Passing --ip6tables=true is not supported for Docker v26 and below... Remove 'disableIp6tables:false' from Feature options..."
         exit 1
     fi
 fi
