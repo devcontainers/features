@@ -227,7 +227,7 @@ install_yarn() {
                 # Yum/DNF want to install nodejs dependencies, we'll use NPM to install yarn
                 su ${USERNAME} -c "umask 0002 && . '${NVM_DIR}/nvm.sh' && nvm use ${_ver} && npm install --global yarn"
             fi
-        else 
+        else
             echo "Yarn already installed."
         fi
     fi
@@ -309,7 +309,8 @@ curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.
     curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/\${PREV_NVM_VERSION}/install.sh" | bash
     NVM_VERSION="\${PREV_NVM_VERSION}"
 }
-source "${NVM_DIR}/nvm.sh"
+export NVM_DIR="${NVM_DIR}"
+[ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
 if [ "${NODE_VERSION}" != "" ]; then
     nvm alias default "${NODE_VERSION}"
 fi
