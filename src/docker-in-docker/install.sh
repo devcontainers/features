@@ -476,19 +476,14 @@ requested_version=""
 semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
 if echo "$DOCKER_VERSION" | grep -Eq "$semver_regex"; then
     requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
-elif echo "$DOCKER_VERSION" | grep -Eq "^-?[0-9]+$"; then
+elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
     requested_version=$DOCKER_VERSION
 fi
 
 if [[ -n "$requested_version" && "$requested_version" -ge 27 ]] || [ "$DOCKER_VERSION" = "latest" ]; then
-        if [ "$DISABLE_IP6_TABLES" == true ]; then
-            DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
-            echo "(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}'"
-        fi
-else 
-    if [ "$DISABLE_IP6_TABLES" == false ]; then
-        echo "ERR: Passing --ip6tables=true is not supported for Docker v26 and below... Remove 'disableIp6tables:false' from Feature options..."
-        exit 1
+    if [ "$DISABLE_IP6_TABLES" == true ]; then
+        DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
+        echo "(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}'"
     fi
 fi
 
