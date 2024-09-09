@@ -60,6 +60,14 @@ else
     exit 1
 fi
 
+if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
+    # As of 1 July 2024, mirrorlist.centos.org no longer exists.
+    # Update the repo files to reference vault.centos.org.
+    sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+fi
+
 # To find some devel packages, some rhel need to enable specific extra repos, but not on RedHat ubi images...
 INSTALL_CMD_ADDL_REPO=""
 if [ ${ADJUSTED_ID} = "rhel" ] && [ ${ID} != "rhel" ]; then
