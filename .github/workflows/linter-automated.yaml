@@ -1,5 +1,5 @@
 name: "CI - Shell Script Linter"
-on: 
+on:
   push:
     branches:
       - main
@@ -9,7 +9,7 @@ jobs:
   shellchecker:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Shell Linter
       uses: azohra/shell-linter@v0.6.0
