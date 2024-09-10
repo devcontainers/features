@@ -470,18 +470,17 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
 fi
 
 DOCKER_DEFAULT_IP6_TABLES=""
-requested_version=""
-# checking whether the version requested either is in semver format or just a number denoting the major version
-# extracting the major version number out of the two scenarios
-semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
-if echo "$DOCKER_VERSION" | grep -Eq "$semver_regex"; then
-    requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
-elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
-    requested_version=$DOCKER_VERSION
-fi
-
-if [[ -n "$requested_version" && "$requested_version" -ge 27 ]] || [ "$DOCKER_VERSION" = "latest" ]; then
-    if [ "$DISABLE_IP6_TABLES" == true ]; then
+if [ "$DISABLE_IP6_TABLES" == true ]; then
+    requested_version=""
+    # checking whether the version requested either is in semver format or just a number denoting the major version
+    # and, extracting the major version number out of the two scenarios
+    semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$"
+    if echo "$DOCKER_VERSION" | grep -Eq $semver_regex; then
+        requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
+    elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
+        requested_version=$DOCKER_VERSION
+    fi
+    if [[ -n "$requested_version" && "$requested_version" -ge 27 ]] || [ "$DOCKER_VERSION" = "latest" ]; then
         DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
         echo "(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}'"
     fi
