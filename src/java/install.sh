@@ -201,15 +201,16 @@ find_version_list() {
     install_type=$3
     ifLts="$4"
     version_list=$5
+    java_ver=$6
     
     check_packages jq
     all_lts_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
     if [ "${ifLts}" = "true" ]; then 
         major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_lts')
-    elif [ "${VERSION}" = "latest" ]; then
+    elif [ "${java_ver}" = "latest" ]; then
         major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_feature_release') 
     else 
-        major_version=$(echo "${JAVA_VERSION}" | cut -d '.' -f 1)
+        major_version=$(echo "$java_ver" | cut -d '.' -f 1)
     fi
     
     if [ "${JDK_DISTRO}" = "ms" ]; then
@@ -238,12 +239,12 @@ sdk_install() {
     elif [[ "${pkg_vals}" =~ "${install_type}" ]] && [ "${requested_version}" = "latest" ]; then
         requested_version=""
     elif [ "${requested_version}" = "lts" ]; then
-            find_version_list "$prefix" "$suffix" "$install_type" "true" version_list
+            find_version_list "$prefix" "$suffix" "$install_type" "true" version_list "${requested_version}"
             requested_version="$(echo "${version_list}" | head -n 1)"
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
     else 
-        find_version_list "$prefix" "$suffix" "$install_type" "false" version_list
+        find_version_list "$prefix" "$suffix" "$install_type" "false" version_list "${requested_version}"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
