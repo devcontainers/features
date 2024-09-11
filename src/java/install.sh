@@ -242,8 +242,6 @@ sdk_install() {
         echo "${requested_version}"
     else 
         find_version_list "$prefix" "$suffix" "$install_type" "false" version_list
-        echo "Available versions: ${version_list}"
-        exit 1
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
