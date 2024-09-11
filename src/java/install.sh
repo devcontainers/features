@@ -204,11 +204,11 @@ find_version_list() {
     java_ver=$6
     
     check_packages jq
-    all_lts_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
+    all_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
     if [ "${ifLts}" = "true" ]; then 
-        major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_lts')
+        major_version=$(echo "$all_versions" | jq -r '.most_recent_lts')
     elif [ "${java_ver}" = "latest" ]; then
-        major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_feature_release') 
+        major_version=$(echo "$all_versions" | jq -r '.most_recent_feature_release') 
     else
         major_version=$(echo "$java_ver" | cut -d '.' -f 1)
     fi
