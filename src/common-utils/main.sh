@@ -156,7 +156,7 @@ install_debian_packages() {
     rm -rf /var/lib/apt/lists/*
 }
 
-# RedHat / RockyLinux / CentOS / Fedora packages
+# RedHat / RockyLinux / CentOS / Fedora / AmazonLinux 2023 packages
 install_redhat_packages() {
     local package_list=""
     local remove_epel="false"
@@ -173,7 +173,6 @@ install_redhat_packages() {
             gawk \
             bash-completion \
             openssh-clients \
-            gnupg2 \
             iproute \
             procps \
             lsof \
@@ -199,6 +198,13 @@ install_redhat_packages() {
             which \
             man-db \
             strace"
+
+        # amazonlinux:2023 installs:
+        # 'curl-minimal' which clashes with 'curl'
+        # 'gnupg2-minimal' which clashes with 'gnupg2'
+        if [[ "${ID}" != "amzn" ]] && [[ "${ID}" != "rocky ]]; then
+            package_list="${package_list} curl gnupg2"
+        fi
 
         # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
         # Install 'curl' for every OS except this rockylinux:9
