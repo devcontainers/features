@@ -206,8 +206,10 @@ find_version_list() {
     all_lts_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
     if [ "${ifLts}" = "true" ]; then 
         major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_lts')
-    else
+    elif [ "${VERSION}" = "latest" ]; then
         major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_feature_release') 
+    else 
+        major_version=$(echo "${JAVA_VERSION}" | cut -d '.' -f 1)
     fi
     
     if [ "${JDK_DISTRO}" = "ms" ]; then
@@ -217,7 +219,6 @@ find_version_list() {
     fi
 
     regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
-    echo "regex: ${regex}"
     declare -g ${version_list}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
 }
 
@@ -237,7 +238,6 @@ sdk_install() {
     elif [[ "${pkg_vals}" =~ "${install_type}" ]] && [ "${requested_version}" = "latest" ]; then
         requested_version=""
     elif [ "${requested_version}" = "lts" ]; then
-            check_packages jq
             find_version_list "$prefix" "$suffix" "$install_type" "true" version_list
             requested_version="$(echo "${version_list}" | head -n 1)"
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
