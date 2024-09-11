@@ -209,7 +209,7 @@ find_version_list() {
         major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_lts')
     elif [ "${java_ver}" = "latest" ]; then
         major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_feature_release') 
-    else 
+    else
         major_version=$(echo "$java_ver" | cut -d '.' -f 1)
     fi
     
@@ -218,8 +218,11 @@ find_version_list() {
             JDK_DISTRO="tem"
         fi
     fi
-
-    regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
+    if [ "${install_type}" != "java" ]; then
+        regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
+    else
+        regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
+    fi
     declare -g ${version_list}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
 }
 
