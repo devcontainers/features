@@ -480,7 +480,7 @@ if [ "$DISABLE_IP6_TABLES" == true ]; then
     elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
         requested_version=$DOCKER_VERSION
     fi
-    if [[ -n "$requested_version" && "$requested_version" -ge 27 ]] || [ "$DOCKER_VERSION" = "latest" ]; then
+    if [ "$DOCKER_VERSION" = "latest" ] || [[ -n "$requested_version" && "$requested_version" -ge 27 ]] ; then
         DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
         echo "(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}'"
     fi
