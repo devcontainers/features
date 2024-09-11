@@ -60,7 +60,7 @@ if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
     sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
     sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
     yum update -y
-    yum install epel-release -y
+    check_packages epel-release
 fi
 
 # Setup INSTALL_CMD & PKG_MGR_CMD
