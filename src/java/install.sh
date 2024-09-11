@@ -53,6 +53,57 @@ else
     exit 1
 fi
 
+pkg_manager_update() {
+    case $ADJUSTED_ID in
+        debian)
+            if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+                echo "Running apt-get update..."
+                ${PKG_MGR_CMD} update -y
+            fi
+            ;;
+        rhel)
+            if [ ${PKG_MGR_CMD} = "microdnf" ]; then
+                if [ "$(ls /var/cache/yum/* 2>/dev/null | wc -l)" = 0 ]; then
+                    echo "Running ${PKG_MGR_CMD} makecache ..."
+                    ${PKG_MGR_CMD} makecache
+                fi
+            else
+                if [ "$(ls /var/cache/${PKG_MGR_CMD}/* 2>/dev/null | wc -l)" = 0 ]; then
+                    echo "Running ${PKG_MGR_CMD} check-update ..."
+                    set +e
+                        stderr_messages=$(${PKG_MGR_CMD} -q check-update 2>&1)
+                        rc=$?
+                        # centos 7 sometimes returns a status of 100 when it apears to work.
+                        if [ $rc != 0 ] && [ $rc != 100 ]; then
+                            echo "(Error) ${PKG_MGR_CMD} check-update produced the following error message(s):"
+                            echo "${stderr_messages}"
+                            exit 1
+                        fi
+                    set -e
+                fi
+            fi
+            ;;
+    esac
+}
+
+# Checks if packages are installed and installs them if not
+check_packages() {
+    case ${ADJUSTED_ID} in
+        debian)
+            if ! dpkg -s "$@" > /dev/null 2>&1; then
+                pkg_manager_update
+                ${INSTALL_CMD} "$@"
+            fi
+            ;;
+        rhel)
+            if ! rpm -q "$@" > /dev/null 2>&1; then
+                pkg_manager_update
+                ${INSTALL_CMD} "$@"
+            fi
+            ;;
+    esac
+}
+
 if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
     # As of 1 July 2024, mirrorlist.centos.org no longer exists.
     # Update the repo files to reference vault.centos.org.
@@ -142,58 +193,6 @@ updaterc() {
             echo -e "$1" >> "${_zshrc}"
         fi
     fi
-}
-
-
-pkg_manager_update() {
-    case $ADJUSTED_ID in
-        debian)
-            if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-                echo "Running apt-get update..."
-                ${PKG_MGR_CMD} update -y
-            fi
-            ;;
-        rhel)
-            if [ ${PKG_MGR_CMD} = "microdnf" ]; then
-                if [ "$(ls /var/cache/yum/* 2>/dev/null | wc -l)" = 0 ]; then
-                    echo "Running ${PKG_MGR_CMD} makecache ..."
-                    ${PKG_MGR_CMD} makecache
-                fi
-            else
-                if [ "$(ls /var/cache/${PKG_MGR_CMD}/* 2>/dev/null | wc -l)" = 0 ]; then
-                    echo "Running ${PKG_MGR_CMD} check-update ..."
-                    set +e
-                        stderr_messages=$(${PKG_MGR_CMD} -q check-update 2>&1)
-                        rc=$?
-                        # centos 7 sometimes returns a status of 100 when it apears to work.
-                        if [ $rc != 0 ] && [ $rc != 100 ]; then
-                            echo "(Error) ${PKG_MGR_CMD} check-update produced the following error message(s):"
-                            echo "${stderr_messages}"
-                            exit 1
-                        fi
-                    set -e
-                fi
-            fi
-            ;;
-    esac
-}
-
-# Checks if packages are installed and installs them if not
-check_packages() {
-    case ${ADJUSTED_ID} in
-        debian)
-            if ! dpkg -s "$@" > /dev/null 2>&1; then
-                pkg_manager_update
-                ${INSTALL_CMD} "$@"
-            fi
-            ;;
-        rhel)
-            if ! rpm -q "$@" > /dev/null 2>&1; then
-                pkg_manager_update
-                ${INSTALL_CMD} "$@"
-            fi
-            ;;
-    esac
 }
 
 find_version_list() {
