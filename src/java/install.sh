@@ -195,29 +195,27 @@ check_packages() {
     esac
 }
 
-# Use Microsoft JDK for everything but JDK 8 and 18 (unless specified differently with jdkDistro option)
-get_jdk_distro() {
-    VERSION="$1"
-    if [ "${JDK_DISTRO}" = "ms" ]; then
-        if echo "${VERSION}" | grep -E '^8([\s\.]|$)' > /dev/null 2>&1 || echo "${VERSION}" | grep -E '^18([\s\.]|$)' > /dev/null 2>&1; then
-            JDK_DISTRO="tem"
-        fi
-    fi
-}
-
 find_version_list() {
     prefix="$1"
     suffix="$2"
     install_type=$3
     ifLts="$4"
     version_list=$5
+    
+    check_packages jq
+    all_lts_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
     if [ "${ifLts}" = "true" ]; then 
-        all_lts_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
         major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_lts')
-        regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}"
-    else 
-        regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
+    else
+        major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_feature_release') 
     fi
+    
+    if [ "${major_version}" = "8" ] || [ "${major_version}" = "18" ] || [ "${major_version}" = "22" ]; then
+        JDK_DISTRO="tem"
+    fi
+
+    regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
+    echo "regex: ${regex}"
     declare -g ${version_list}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
 }
 
@@ -244,6 +242,8 @@ sdk_install() {
         echo "${requested_version}"
     else 
         find_version_list "$prefix" "$suffix" "$install_type" "false" version_list
+        echo "Available versions: ${version_list}"
+        exit 1
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
@@ -301,8 +301,7 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
 fi
 
-get_jdk_distro ${JAVA_VERSION}
-sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "true"
+sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-" ".*-[a-z]+$" "true"
 
 # Additional java versions to be installed but not be set as default.
 if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
@@ -310,8 +309,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     IFS=","
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
-            get_jdk_distro ${version}
-            sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "false"
+            sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-" ".*-[a-z]+$" "false"
         done
     IFS=$OLDIFS
     su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk default java ${JAVA_VERSION}"
