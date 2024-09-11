@@ -53,6 +53,24 @@ else
     exit 1
 fi
 
+# Setup INSTALL_CMD & PKG_MGR_CMD
+if type apt-get > /dev/null 2>&1; then
+    PKG_MGR_CMD=apt-get
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
+elif type microdnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=microdnf
+    INSTALL_CMD="${PKG_MGR_CMD} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+elif type dnf > /dev/null 2>&1; then
+    PKG_MGR_CMD=dnf
+    INSTALL_CMD="${PKG_MGR_CMD} -y install"
+elif type yum > /dev/null 2>&1; then
+    PKG_MGR_CMD=yum
+    INSTALL_CMD="${PKG_MGR_CMD} -y install"
+else
+    echo "(Error) Unable to find a supported package manager."
+    exit 1
+fi
+
 pkg_manager_update() {
     case $ADJUSTED_ID in
         debian)
@@ -112,24 +130,6 @@ if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
     sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
     yum update -y
     check_packages epel-release
-fi
-
-# Setup INSTALL_CMD & PKG_MGR_CMD
-if type apt-get > /dev/null 2>&1; then
-    PKG_MGR_CMD=apt-get
-    INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
-elif type microdnf > /dev/null 2>&1; then
-    PKG_MGR_CMD=microdnf
-    INSTALL_CMD="${PKG_MGR_CMD} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
-elif type dnf > /dev/null 2>&1; then
-    PKG_MGR_CMD=dnf
-    INSTALL_CMD="${PKG_MGR_CMD} -y install"
-elif type yum > /dev/null 2>&1; then
-    PKG_MGR_CMD=yum
-    INSTALL_CMD="${PKG_MGR_CMD} -y install"
-else
-    echo "(Error) Unable to find a supported package manager."
-    exit 1
 fi
 
 # Clean up
