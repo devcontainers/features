@@ -210,8 +210,10 @@ find_version_list() {
         major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_feature_release') 
     fi
     
-    if [ "${major_version}" = "8" ] || [ "${major_version}" = "18" ] || [ "${major_version}" = "22" ]; then
-        JDK_DISTRO="tem"
+    if [ "${JDK_DISTRO}" = "ms" ]; then
+        if [ "${major_version}" = "8" ] || [ "${major_version}" = "18" ] || [ "${major_version}" = "22" ]; then
+            JDK_DISTRO="tem"
+        fi
     fi
 
     regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
