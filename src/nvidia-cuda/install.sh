@@ -68,8 +68,18 @@ echo "Installing CUDA libraries..."
 apt-get install -yq "$cuda_pkg"
 
 if [ "$INSTALL_CUDNN" = "true" ]; then
+    major_cudnn_version=$(echo "${CUDNN_VERSION}" | cut -d '.' -f 1)
     # Ensure that the requested version of cuDNN is available AND compatible
-    cudnn_pkg_version="libcudnn8=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+    #if major cudnn version is 9, then we need to install libcudnn9-cuda-<major_version> package
+    #else we need to install libcudnn8-cuda-<major_version> package
+    if [[ $major_cudnn_version = "9" ]]
+    then
+        major_version=$(echo "${CUDA_VERSION}" | cut -d '.' -f 1)
+        cudnn_pkg_version="libcudnn9=libcudnn9-cuda-${major_version} ${CUDNN_VERSION}-1"
+    else
+        cudnn_pkg_version="libcudnn8=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+    fi
+
     if ! apt-cache show "$cudnn_pkg_version"; then
         echo "The requested version of cuDNN is not available: cuDNN $CUDNN_VERSION for CUDA $CUDA_VERSION"
         exit 1
