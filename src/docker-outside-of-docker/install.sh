@@ -302,35 +302,39 @@ fi
 
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
+    case "${architecture}" in
+        amd64) target_compose_arch=x86_64 ;;
+        arm64) target_compose_arch=aarch64 ;;
+        *)
+            echo "(!) Docker in docker does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
+            exit 1
+    esac
+    docker_compose_path="/usr/local/bin/docker-compose" 
     # Install Docker Compose if not already installed  and is on a supported architecture
     if type docker-compose > /dev/null 2>&1; then
         echo "Docker Compose already installed."
     elif [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
-        TARGET_COMPOSE_ARCH="$(uname -m)"
-        if [ "${TARGET_COMPOSE_ARCH}" = "amd64" ]; then
-            TARGET_COMPOSE_ARCH="x86_64"
-        fi
-        if [ "${TARGET_COMPOSE_ARCH}" != "x86_64" ]; then
+        err "The final Compose V1 release, version 1.29.2, was May 10, 2021. These packages haven't received any security updates since then. Use at your own risk."
+        INSTALL_DOCKER_COMPOSE_SWITCH="false"
+
+        if [ "${target_compose_arch}" = "x86_64" ]; then
+            echo "(*) Installing docker compose v1..."
+            curl -fsSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64" -o ${docker_compose_path}
+            chmod +x ${docker_compose_path}
+
+            # Download the SHA256 checksum
+            DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64.sha256" | awk '{print $1}')"
+            echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
+            sha256sum -c docker-compose.sha256sum --ignore-missing
+        elif [ "${VERSION_CODENAME}" = "bookworm" ]; then
+            err "Docker compose v1 is unavailable for 'bookworm' on Arm64. Kindly switch to use v2"
+            exit 1
+        else
             # Use pip to get a version that runs on this architecture
             check_packages python3-minimal python3-pip libffi-dev python3-venv
-            export PIPX_HOME=/usr/local/pipx
-            mkdir -p ${PIPX_HOME}
-            export PIPX_BIN_DIR=/usr/local/bin
-            export PYTHONUSERBASE=/tmp/pip-tmp
-            export PIP_CACHE_DIR=/tmp/pip-tmp/cache
-            pipx_bin=pipx
-            if ! type pipx > /dev/null 2>&1; then
-                pip3 install --disable-pip-version-check --no-cache-dir --user pipx
-                pipx_bin=/tmp/pip-tmp/bin/pipx
-            fi
-            ${pipx_bin} install --pip-args '--no-cache-dir --force-reinstall' docker-compose
-            rm -rf /tmp/pip-tmp
-        else
-            compose_v1_version="1"
-            find_version_from_git_tags compose_v1_version "https://github.com/docker/compose" "tags/"
-            echo "(*) Installing docker-compose ${compose_v1_version}..."
-            curl -fsSL "https://github.com/docker/compose/releases/download/${compose_v1_version}/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
-            chmod +x /usr/local/bin/docker-compose
+            echo "(*) Installing docker compose v1 via pip..."
+            export PYTHONUSERBASE=/usr/local
+            pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
         fi
     else
         echo "(*) Installing compose-switch as docker-compose..."

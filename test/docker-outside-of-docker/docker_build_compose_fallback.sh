@@ -112,20 +112,14 @@ get_previous_version() {
     local variable_name=$3
     local mode=$4
     prev_version=${!variable_name}
-    
+
     output=$(curl -s "$repo_url");
 
     check_packages jq
 
     message=$(echo "$output" | jq -r '.message')
-
-    if [[ $mode == 'mode1' ]]; then
-        message="API rate limit exceeded"
-    else 
-        message=""
-    fi
     
-    if [[ $message == "API rate limit exceeded"* ]]; then
+    if [[ $message == "API rate limit exceeded"* ]] || [[ $mode == 'mode1' ]]; then
         echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
         echo -e "\nAttempting to find latest version using GitHub tags."
         find_prev_version_from_git_tags prev_version "$url" "tags/v"
