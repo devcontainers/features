@@ -20,6 +20,7 @@ INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy noble"
+DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
 
 # Default: Exit on any failure.
 set -e
@@ -468,6 +469,23 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
 
+DOCKER_DEFAULT_IP6_TABLES=""
+if [ "$DISABLE_IP6_TABLES" == true ]; then
+    requested_version=""
+    # checking whether the version requested either is in semver format or just a number denoting the major version
+    # and, extracting the major version number out of the two scenarios
+    semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$"
+    if echo "$DOCKER_VERSION" | grep -Eq $semver_regex; then
+        requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
+    elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
+        requested_version=$DOCKER_VERSION
+    fi
+    if [ "$DOCKER_VERSION" = "latest" ] || [[ -n "$requested_version" && "$requested_version" -ge 27 ]] ; then
+        DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
+        echo "(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}'"
+    fi
+fi
+
 tee /usr/local/share/docker-init.sh > /dev/null \
 << EOF
 #!/bin/sh
@@ -480,11 +498,12 @@ set -e
 
 AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION}
 DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL}
+DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES}
 EOF
 
 tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
-dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} $(cat << 'INNEREOF'
+dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES} $(cat << 'INNEREOF'
     # explicitly remove dockerd and containerd PID file to ensure that it can start properly if it was stopped uncleanly
     find /run /var/run -iname 'docker*.pid' -delete || :
     find /run /var/run -iname 'container*.pid' -delete || :
@@ -562,7 +581,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     fi
 
     # Start docker/moby engine
-    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL > /tmp/dockerd.log 2>&1 ) &
+    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DOCKER_DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
 )"
 
