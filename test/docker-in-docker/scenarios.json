@@ -8,6 +8,15 @@
             }
         }
     },
+    "dockerIp6tablesDisabledTest": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-in-docker": {
+                "version": "27.0.3",
+                "disableIp6tables": true
+            }
+        }
+    },
     "dockerDefaultAddressPool": {
         "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
         "remoteUser": "node",
