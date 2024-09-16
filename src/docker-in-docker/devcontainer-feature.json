@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "2.11.0",
+    "version": "2.12.0",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -55,6 +55,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter."
+        },
+        "disableIp6tables": {
+            "type": "boolean",
+            "default": false,
+            "description": "Disable ip6tables (this option is only applicable for Docker versions 27 and greater)"
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",
