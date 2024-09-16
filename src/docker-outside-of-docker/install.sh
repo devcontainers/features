@@ -17,6 +17,7 @@ SOURCE_SOCKET="${SOURCE_SOCKET:-"/var/run/docker-host.sock"}"
 TARGET_SOCKET="${TARGET_SOCKET:-"/var/run/docker.sock"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
+INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy noble"
@@ -182,7 +183,7 @@ install_compose_switch_fallback() {
     echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
     get_previous_version "${compose_switch_url}" "${repo_url}" compose_switch_version
     echo -e "\nAttempting to install v${compose_switch_version}"
-    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose
+    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
 }
 
 # Ensure apt is in non-interactive to avoid prompts
@@ -278,6 +279,22 @@ if [ "${USE_MOBY}" = "true" ]; then
     fi
 fi
 
+
+docker_home="/usr/libexec/docker"
+cli_plugins_dir="${docker_home}/cli-plugins"
+
+fallback_compose(){
+    local url=$1
+    local compose_version=$2
+    local target_compose_arch=$3
+    local docker_compose_path=$4
+    local repo_url=$(get_github_api_repo_url "$url")
+    echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
+    get_previous_version "${url}" "${repo_url}" compose_version
+    echo -e "\nAttempting to install v${compose_version}"
+    curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
+}
+
 # Install Docker / Moby CLI if not already installed
 if type docker > /dev/null 2>&1; then
     echo "Docker / Moby CLI already installed."
@@ -341,15 +358,52 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
             pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
         fi
     else
-        echo "(*) Installing compose-switch as docker-compose..."
+        compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
+        docker_compose_url="https://github.com/docker/compose"
+        find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
+        echo "(*) Installing docker-compose ${compose_version}..."
+        curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
+            if [[ $DOCKER_DASH_COMPOSE_VERSION == "latest" ]]; then 
+                fallback_compose "$docker_compose_url" "$compose_version" "$target_compose_arch" "$docker_compose_path"
+            else
+                echo -e "Error: Failed to install docker-compose v${compose_version}" 
+            fi
+        }
+        chmod +x ${docker_compose_path}
+
+        # Download the SHA256 checksum
+        DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}.sha256" | awk '{print $1}')"
+        echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
+        sha256sum -c docker-compose.sha256sum --ignore-missing
+
+        mkdir -p ${cli_plugins_dir}
+        cp ${docker_compose_path} ${cli_plugins_dir}
+    fi
+fi
+
+# Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
+if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /dev/null 2>&1; then
+    if type docker-compose > /dev/null 2>&1; then
+    set -x
+        echo "(*) Installing compose-switch..."
+        current_compose_path="$(which docker-compose)"
+        target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
         compose_switch_version="latest"
         compose_switch_url="https://github.com/docker/compose-switch"
         find_version_from_git_tags compose_switch_version "${compose_switch_url}"
-        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/docker-compose || install_compose_switch_fallback "${compose_switch_url}"
+        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || install_compose_switch_fallback "${compose_switch_url}"
         chmod +x /usr/local/bin/docker-compose
         # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
+        # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
+        mv "${current_compose_path}" "${target_compose_path}"
+        update-alternatives --install ${docker_compose_path} docker-compose /usr/local/bin/compose-switch 99
+        update-alternatives --install ${docker_compose_path} docker-compose "${target_compose_path}" 1
+    else
+        err "Skipping installation of compose-switch as docker compose is unavailable..."
+    set +x
     fi
 fi
+
 
 # Setup a docker group in the event the docker socket's group is not root
 if ! grep -qE '^docker:' /etc/group; then
