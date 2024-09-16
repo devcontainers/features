@@ -384,7 +384,6 @@ fi
 # Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
 if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /dev/null 2>&1; then
     if type docker-compose > /dev/null 2>&1; then
-    set -x
         echo "(*) Installing compose-switch..."
         current_compose_path="$(which docker-compose)"
         target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
@@ -400,7 +399,6 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
         update-alternatives --install ${docker_compose_path} docker-compose "${target_compose_path}" 1
     else
         err "Skipping installation of compose-switch as docker compose is unavailable..."
-    set +x
     fi
 fi
 
