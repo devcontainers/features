@@ -142,5 +142,13 @@
                 "mobyBuildxVersion": "0.12.0"
             }
         }
+    },
+    "docker_on_docker_shim_not_as_docker": {
+        "image": "ubuntu:focal",
+        "features": {
+            "docker-outside-of-docker": {
+                "useDockerOnDockerShimAsDocker": false
+            }
+        }
     }
 }
