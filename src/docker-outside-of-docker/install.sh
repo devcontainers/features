@@ -391,7 +391,7 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
         compose_switch_url="https://github.com/docker/compose-switch"
         find_version_from_git_tags compose_switch_version "${compose_switch_url}"
         curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || install_compose_switch_fallback "${compose_switch_url}"
-        chmod +x /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/compose-switch
         # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
         # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
         mv "${current_compose_path}" "${target_compose_path}"
