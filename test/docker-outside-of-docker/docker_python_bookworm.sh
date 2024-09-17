@@ -13,8 +13,6 @@ check "docker-buildx" docker buildx version
 check "docker-build" docker build ./
 
 check "installs docker-compose v2 install" bash -c "type docker-compose"
-sudo chown $(whoami) /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
 check "docker compose" bash -c "docker compose version | grep -E '2.[0-9]+.[0-9]+'"
 check "docker-compose" bash -c "docker-compose --version | grep -E '2.[0-9]+.[0-9]+'"
 
