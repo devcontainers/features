@@ -70,16 +70,11 @@ get_gpg_key_servers() {
         ["hkp://keyserver.pgp.com"]="http://keyserver.pgp.com:11371"
     )
 
-    local curl_args=""
     local keyserver_reachable=false  # Flag to indicate if any keyserver is reachable
-
-    if [ ! -z "${KEYSERVER_PROXY}" ]; then
-        curl_args="--proxy ${KEYSERVER_PROXY}"
-    fi
 
     for keyserver in "${!keyservers_curl_map[@]}"; do
         local keyserver_curl_url="${keyservers_curl_map[${keyserver}]}"
-        if curl -s ${curl_args} --max-time 5 ${keyserver_curl_url} > /dev/null; then
+        if curl -s --max-time 5 ${keyserver_curl_url} > /dev/null; then
             echo "keyserver ${keyserver}"
             keyserver_reachable=true
         else

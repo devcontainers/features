@@ -75,17 +75,12 @@ clean_up
 
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
-    local curl_args=""
     local keyserver_reachable=false  # Flag to indicate if any keyserver is reachable
-
-    if [ ! -z "${KEYSERVER_PROXY}" ]; then
-        curl_args="--proxy ${KEYSERVER_PROXY}"
-    fi
 
     test_keyserver() {
         local keyserver="$1"
         local keyserver_curl_url="$2"
-        if curl -s ${curl_args} --max-time 5 "${keyserver_curl_url}" > /dev/null; then
+        if curl -s --max-time 5 "${keyserver_curl_url}" > /dev/null; then
             echo "keyserver ${keyserver}"
             keyserver_reachable=true
         else
