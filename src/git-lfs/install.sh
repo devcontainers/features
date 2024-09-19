@@ -62,13 +62,6 @@ find_version_from_git_tags() {
 
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
-    declare -A keyservers_curl_map=(
-        ["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
-        ["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
-        ["hkps://keys.openpgp.org"]="https://keys.openpgp.org"
-        ["hkp://keyserver.pgp.com"]="http://keyserver.pgp.com:11371"
-    )
-
     local curl_args=""
     local keyserver_reachable=false  # Flag to indicate if any keyserver is reachable
 
@@ -76,15 +69,26 @@ get_gpg_key_servers() {
         curl_args="--proxy ${KEYSERVER_PROXY}"
     fi
 
-    for keyserver in "${!keyservers_curl_map[@]}"; do
-        local keyserver_curl_url="${keyservers_curl_map[${keyserver}]}"
-        if curl -s ${curl_args} --max-time 5 ${keyserver_curl_url} > /dev/null; then
+    test_keyserver() {
+        local keyserver="$1"
+        local keyserver_curl_url="$2"
+        if curl -s ${curl_args} --max-time 5 "${keyserver_curl_url}" > /dev/null; then
             echo "keyserver ${keyserver}"
             keyserver_reachable=true
         else
             echo "(*) Keyserver ${keyserver} is not reachable." >&2
         fi
-    done
+    }
+
+    # Explicitly test these in order because Bash v4.4.20 (Ubuntu Bionic)
+    # enumerates associative array keys in a different order than Bash v5
+    test_keyserver "hkp://keyserver.ubuntu.com"    "http://keyserver.ubuntu.com:11371"
+    test_keyserver "hkp://keyserver.ubuntu.com:80" "http://keyserver.ubuntu.com"
+    test_keyserver "hkp://keyserver.pgp.com"       "http://keyserver.pgp.com:11371"
+    # Test this server last because keys.openpgp.org strips user IDs from keys unless
+    # the owner gives permission, which causes gpg in Ubuntu Bionic to reject the key
+    # (https://github.com/devcontainers/features/issues/1055)
+    test_keyserver "hkps://keys.openpgp.org"       "https://keys.openpgp.org"
 
     if ! $keyserver_reachable; then
         echo "(!) No keyserver is reachable." >&2
