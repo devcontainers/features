@@ -23,6 +23,7 @@ ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 DEFAULT_GEMS="rake"
 
 RVM_GPG_KEYS="409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
+KEYSERVER_PROXY="${HTTP_PROXY:-""}"
 
 set -e
 
@@ -104,8 +105,14 @@ get_gpg_key_servers() {
 receive_gpg_keys() {
     local keys=${!1}
     local keyring_args=""
+    local gpg_cmd="gpg"
+
     if [ ! -z "$2" ]; then
-        keyring_args="--no-default-keyring --keyring \"$2\""
+        mkdir -p "$(dirname \"$2\")"
+        keyring_args="--no-default-keyring --keyring $2"
+    fi
+    if [ ! -z "${KEYSERVER_PROXY}" ]; then
+        keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
     fi
 
     # Install curl
@@ -122,16 +129,15 @@ receive_gpg_keys() {
     local retry_count=0
     local gpg_ok="false"
     set +e
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
-    do
-        echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
-        if [ "${gpg_ok}" != "true" ]; then
-            echo "(*) Failed getting key, retrying in 10s..."
-            (( retry_count++ ))
-            sleep 10s
-        fi
-    done
+        until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; do
+            echo "(*) Downloading GPG key..."
+            (echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+            if [ "${gpg_ok}" != "true" ]; then
+                echo "(*) Failed getting key, retrying in 10s..."
+                (( retry_count++ ))
+                sleep 10s
+            fi
+        done
     set -e
     if [ "${gpg_ok}" = "false" ]; then
         echo "(!) Failed to get gpg key."

@@ -9,6 +9,9 @@ PYTHON_INSTALL_PATH="/usr/local/python"
 OPTIMIZE_BUILD_FROM_SOURCE="false"
 OVERRIDE_DEFAULT_VERSION="true"
 ENABLESHARED="false"
+
+KEYSERVER_PROXY="${HTTP_PROXY:-""}"
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -130,6 +133,7 @@ receive_gpg_keys() {
     local keys=${!1}
     local keyring_args=""
     local gpg_cmd="gpg"
+
     if [ ! -z "$2" ]; then
         mkdir -p "$(dirname \"$2\")"
         keyring_args="--no-default-keyring --keyring $2"
@@ -152,22 +156,22 @@ receive_gpg_keys() {
     local retry_count=0
     local gpg_ok="false"
     set +e
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
-    do
-        echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
-        if [ "${gpg_ok}" != "true" ]; then
-            echo "(*) Failed getting key, retrying in 10s..."
-            (( retry_count++ ))
-            sleep 10s
-        fi
-    done
+        until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; do
+            echo "(*) Downloading GPG key..."
+            (echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+            if [ "${gpg_ok}" != "true" ]; then
+                echo "(*) Failed getting key, retrying in 10s..."
+                (( retry_count++ ))
+                sleep 10s
+            fi
+        done
     set -e
     if [ "${gpg_ok}" = "false" ]; then
         echo "(!) Failed to get gpg key."
         exit 1
     fi
 }
+
 # RHEL7/CentOS7 has an older gpg that does not have dirmngr
 # Iterate through keyservers until we have all the keys downloaded
 receive_gpg_keys_centos7() {

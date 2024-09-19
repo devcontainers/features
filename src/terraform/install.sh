@@ -28,7 +28,7 @@ TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
 
 TERRAFORM_GPG_KEY="72D7468F"
 TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/v0.46.1/8CE69160EB3F2FE9.key"
-KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
+KEYSERVER_PROXY="${HTTP_PROXY:-""}"
 
 architecture="$(uname -m)"
 case ${architecture} in
@@ -79,11 +79,14 @@ get_gpg_key_servers() {
 receive_gpg_keys() {
     local keys=${!1}
     local keyring_args=""
+    local gpg_cmd="gpg"
+
     if [ ! -z "$2" ]; then
+        mkdir -p "$(dirname \"$2\")"
         keyring_args="--no-default-keyring --keyring $2"
     fi
     if [ ! -z "${KEYSERVER_PROXY}" ]; then
-	keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
+        keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
     fi
 
     # Install curl
@@ -100,35 +103,15 @@ receive_gpg_keys() {
     local retry_count=0
     local gpg_ok="false"
     set +e
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
-    do
-        echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
-        if [ "${gpg_ok}" != "true" ]; then
-            echo "(*) Failed getting key, retrying in 10s..."
-            (( retry_count++ ))
-            sleep 10s
-        fi
-    done
-
-    # If all attempts fail, try getting the keyserver IP address and explicitly passing it to gpg
-    if [ "${gpg_ok}" = "false" ]; then
-        retry_count=0;
-        echo "(*) Resolving GPG keyserver IP address..."
-        local keyserver_ip_address=$( dig +short keyserver.ubuntu.com | head -n1 )
-        echo "(*) GPG keyserver IP address $keyserver_ip_address"
-        
-        until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "3" ]; 
-        do
+        until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; do
             echo "(*) Downloading GPG key..."
-            ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys --keyserver ${keyserver_ip_address}) 2>&1 && gpg_ok="true"
+            (echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
             if [ "${gpg_ok}" != "true" ]; then
                 echo "(*) Failed getting key, retrying in 10s..."
                 (( retry_count++ ))
                 sleep 10s
             fi
         done
-    fi
     set -e
     if [ "${gpg_ok}" = "false" ]; then
         echo "(!) Failed to get gpg key."

@@ -56,11 +56,6 @@
       "type": "string",
       "default": "",
       "description": "Configure JupyterLab to accept HTTP requests from the specified origin"
-    },
-    "httpProxy": {
-      "type": "string",
-      "default": "",
-      "description": "Connect to GPG keyservers using a proxy for fetching source code signatures by configuring this option"
     }
   },
   "containerEnv": {
@@ -78,9 +73,9 @@
       ],
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
-	      "[python]": {
-	        "editor.defaultFormatter": "ms-python.autopep8"
-	      }
+        "[python]": {
+          "editor.defaultFormatter": "ms-python.autopep8"
+        }
       }
     }
   },

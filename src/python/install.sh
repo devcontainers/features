@@ -32,8 +32,7 @@ ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 IFS="," read -r -a DEFAULT_UTILS <<< "${TOOLSTOINSTALL:-flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest}"
 
 PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB9921286F5E1540 3A5CA953F73C700D 04C367C218ADD4FF 0EDDC5F26A45C816 6AF053F07D9DC8D2 C9BE28DEE6DF025C 126EB563A74B06BF D9866941EA5BBD71 ED9D77D5 A821E680E5FA6305"
-
-KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
+KEYSERVER_PROXY="${HTTP_PROXY:-""}"
 
 set -e
 
@@ -170,6 +169,7 @@ receive_gpg_keys() {
     local keys=${!1}
     local keyring_args=""
     local gpg_cmd="gpg"
+
     if [ ! -z "$2" ]; then
         mkdir -p "$(dirname \"$2\")"
         keyring_args="--no-default-keyring --keyring $2"
@@ -192,22 +192,22 @@ receive_gpg_keys() {
     local retry_count=0
     local gpg_ok="false"
     set +e
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ];
-    do
-        echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
-        if [ "${gpg_ok}" != "true" ]; then
-            echo "(*) Failed getting key, retrying in 10s..."
-            (( retry_count++ ))
-            sleep 10s
-        fi
-    done
+        until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; do
+            echo "(*) Downloading GPG key..."
+            (echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+            if [ "${gpg_ok}" != "true" ]; then
+                echo "(*) Failed getting key, retrying in 10s..."
+                (( retry_count++ ))
+                sleep 10s
+            fi
+        done
     set -e
     if [ "${gpg_ok}" = "false" ]; then
         echo "(!) Failed to get gpg key."
         exit 1
     fi
 }
+
 # RHEL7/CentOS7 has an older gpg that does not have dirmngr
 # Iterate through keyservers until we have all the keys downloaded
 receive_gpg_keys_centos7() {

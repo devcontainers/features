@@ -15,6 +15,7 @@ GIT_LFS_ARCHIVE_GPG_KEY_URI="https://packagecloud.io/github/git-lfs/gpgkey"
 GIT_LFS_ARCHIVE_ARCHITECTURES="amd64 arm64"
 GIT_LFS_ARCHIVE_VERSION_CODENAMES="stretch buster bullseye bionic focal jammy"
 GIT_LFS_CHECKSUM_GPG_KEYS="0x88ace9b29196305ba9947552f1ba225c0223b187 0x86cd3297749375bcf8206715f54fe648088335a9 0xaa3b3450295830d2de6db90caba67be5a5795889"
+KEYSERVER_PROXY="${HTTP_PROXY:-""}"
 
 set -e
 
@@ -95,6 +96,16 @@ get_gpg_key_servers() {
 # Import the specified key in a variable name passed in as 
 receive_gpg_keys() {
     local keys=${!1}
+    local keyring_args=""
+    local gpg_cmd="gpg"
+
+    if [ ! -z "$2" ]; then
+        mkdir -p "$(dirname \"$2\")"
+        keyring_args="--no-default-keyring --keyring $2"
+    fi
+    if [ ! -z "${KEYSERVER_PROXY}" ]; then
+        keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
+    fi
 
     # Install curl
     if ! type curl > /dev/null 2>&1; then
@@ -110,16 +121,15 @@ receive_gpg_keys() {
     local retry_count=0
     local gpg_ok="false"
     set +e
-    until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
-    do
-        echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg --recv-keys) 2>&1 && gpg_ok="true"
-        if [ "${gpg_ok}" != "true" ]; then
-            echo "(*) Failed getting key, retrying in 10s..."
-            (( retry_count++ ))
-            sleep 10s
-        fi
-    done
+        until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; do
+            echo "(*) Downloading GPG key..."
+            (echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+            if [ "${gpg_ok}" != "true" ]; then
+                echo "(*) Failed getting key, retrying in 10s..."
+                (( retry_count++ ))
+                sleep 10s
+            fi
+        done
     set -e
     if [ "${gpg_ok}" = "false" ]; then
         echo "(!) Failed to get gpg key."

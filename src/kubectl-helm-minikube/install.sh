@@ -22,6 +22,7 @@ MINIKUBE_SHA256="${MINIKUBE_SHA256:-"automatic"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
 HELM_GPG_KEYS_URI="https://raw.githubusercontent.com/helm/helm/main/KEYS"
+KEYSERVER_PROXY="${HTTP_PROXY:-""}"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
