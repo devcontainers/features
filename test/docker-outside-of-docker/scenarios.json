@@ -152,5 +152,25 @@
                 "dockerDashComposeVersion": "v2"
             }
         }
+    },
+    "docker_not_install_compose_switch": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "dockerDashComposeVersion": "latest",
+                "installDockerComposeSwitch": false
+            }
+        },
+        "containerUser": "vscode"
+    },
+    "docker_install_compose_switch": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "dockerDashComposeVersion": "latest",
+                "installDockerComposeSwitch": true
+            }
+        },
+        "containerUser": "vscode"
     }
 }

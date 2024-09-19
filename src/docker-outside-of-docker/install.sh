@@ -283,7 +283,7 @@ fi
 docker_home="/usr/libexec/docker"
 cli_plugins_dir="${docker_home}/cli-plugins"
 
-fallback_compose(){
+install_compose_fallback(){
     local url=$1
     local compose_version=$2
     local target_compose_arch=$3
@@ -365,7 +365,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         echo "(*) Installing docker-compose ${compose_version}..."
         curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
             if [[ $DOCKER_DASH_COMPOSE_VERSION == "latest" ]]; then 
-                fallback_compose "$docker_compose_url" "$compose_version" "$target_compose_arch" "$docker_compose_path"
+                install_compose_fallback "$docker_compose_url" "$compose_version" "$target_compose_arch" "$docker_compose_path"
             else
                 echo -e "Error: Failed to install docker-compose v${compose_version}" 
             fi
