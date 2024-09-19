@@ -337,7 +337,8 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         echo "Docker Compose already installed."
     elif [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
         err "The final Compose V1 release, version 1.29.2, was May 10, 2021. These packages haven't received any security updates since then. Use at your own risk."
-
+        INSTALL_DOCKER_COMPOSE_SWITCH="false"
+        
         if [ "${target_compose_arch}" = "x86_64" ]; then
             echo "(*) Installing docker compose v1..."
             curl -fsSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64" -o ${docker_compose_path}
