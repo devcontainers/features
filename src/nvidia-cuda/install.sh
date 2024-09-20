@@ -73,7 +73,7 @@ if [ "$INSTALL_CUDNN" = "true" ]; then
     # Ensure that the requested version of cuDNN is available AND compatible
     #if major cudnn version is 9, then we need to install libcudnn9-cuda-<major_version> package
     #else we need to install libcudnn8-cuda-<major_version> package
-    if [[ $major_cudnn_version = "9" ]]
+    if [[ $major_cudnn_version -ge "9" ]]
     then
         cudnn_pkg_version="libcudnn9-cuda-${major_cuda_version}=${CUDNN_VERSION}-1"
     else
@@ -91,7 +91,7 @@ fi
 
 if [ "$INSTALL_CUDNNDEV" = "true" ]; then
     # Ensure that the requested version of cuDNN development package is available AND compatible
-    if [[ $major_cudnn_version = "9" ]]
+    if [[ $major_cudnn_version -ge "9" ]]
     then
         cudnn_dev_pkg_version="libcudnn9-dev-cuda-${major_cuda_version}=${CUDNN_VERSION}-1"
     else
