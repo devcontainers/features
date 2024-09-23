@@ -43,5 +43,12 @@
     "containerEnv": {
         "PATH": "/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/default/sbin:${PATH}"
     },
+    "mounts": [
+        { 
+            "source": "devcontainer-nix-store", 
+            "target": "/nix/store", 
+            "type": "volume" 
+        }
+    ],
     "entrypoint": "/usr/local/share/nix-entrypoint.sh"
 }
