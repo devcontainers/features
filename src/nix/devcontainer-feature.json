@@ -46,7 +46,7 @@
     "mounts": [
         { 
             "source": "devcontainer-nix-store", 
-            "target": "/nix/store", 
+            "target": "/nix", 
             "type": "volume" 
         }
     ],
