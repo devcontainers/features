@@ -285,9 +285,6 @@ cli_plugins_dir="${docker_home}/cli-plugins"
 
 install_compose_fallback(){
     local url=$1
-    local compose_version=$2
-    local target_compose_arch=$3
-    local docker_compose_path=$4
     local repo_url=$(get_github_api_repo_url "$url")
     echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
     get_previous_version "${url}" "${repo_url}" compose_version
@@ -402,7 +399,6 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
         err "Skipping installation of compose-switch as docker compose is unavailable..."
     fi
 fi
-
 
 # Setup a docker group in the event the docker socket's group is not root
 if ! grep -qE '^docker:' /etc/group; then
