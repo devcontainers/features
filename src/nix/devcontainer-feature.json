@@ -7,7 +7,10 @@
     "options": {
         "version": {
             "type": "string",
-            "proposals": ["latest", "2.11"],
+            "proposals": [
+                "latest",
+                "2.11"
+            ],
             "default": "latest",
             "description": "Version of Nix to install."
         },
@@ -44,10 +47,10 @@
         "PATH": "/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/default/sbin:${PATH}"
     },
     "mounts": [
-        { 
-            "source": "devcontainer-nix-store", 
-            "target": "/nix", 
-            "type": "volume" 
+        {
+            "source": "${devcontainerId}-nix-store",
+            "target": "/nix",
+            "type": "volume"
         }
     ],
     "entrypoint": "/usr/local/share/nix-entrypoint.sh"
