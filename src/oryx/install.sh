@@ -136,7 +136,7 @@ echo "Installing Oryx..."
 export DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-check_packages git sudo curl ca-certificates apt-transport-https gnupg2 dirmngr libc-bin moreutils
+check_packages git sudo curl ca-certificates apt-transport-https gnupg2 dirmngr libc-bin moreutils 
 
 if ! cat /etc/group | grep -e "^oryx:" > /dev/null 2>&1; then
     groupadd -r oryx
@@ -156,20 +156,21 @@ PATCH_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 3)
 
 PINNED_SDK_VERSION=""
 # Oryx needs to be built with .NET 8
-if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] || [[ $MAJOR_VERSION_ID = "8" && ${PATCH_VERSION_ID} -ge "101" ]] ; then
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] ; then
     echo "'dotnet 8' was not detected. Attempting to install .NET 8 to build oryx."
 
     # The oryx build fails with .Net 8.0.201, see https://github.com/devcontainers/images/issues/974
     # Pinning it to a working version until the upstream Oryx repo updates the dependency
-    # install_dotnet_using_apt
-    PINNED_SDK_VERSION="8.0.101"
-    install_dotnet_with_script ${PINNED_SDK_VERSION}
+    install_dotnet_using_apt
+    # PINNED_SDK_VERSION="8.0.101"
+    # install_dotnet_with_script ${PINNED_SDK_VERSION}
 
     if ! dotnet --version > /dev/null ; then
         echo "(!) Please install Dotnet before installing Oryx"
         exit 1
     fi
 
+    DOTNET_BINARY="/usr/bin/dotnet"
 fi
 
 BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
