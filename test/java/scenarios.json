@@ -8,6 +8,14 @@
             }
         }
     },
+    "install_latest_version": {
+        "image": "ubuntu:focal",
+        "features": {
+            "java": {
+                "version": "latest"
+            }
+        }
+    },
     "install_lts_version": {
         "image": "ubuntu:focal",
         "features": {

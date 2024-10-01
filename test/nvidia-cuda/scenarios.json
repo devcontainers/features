@@ -20,5 +20,44 @@
                 "cudnnVersion": "8.5.0.96"
             }
         }
+    },
+    "install_cudnn_123_version": {
+        "image": "debian",
+        "features": {
+            "nvidia-cuda": {
+                "installCudnn": true,
+                "installNvtx": true,
+                "installCudnnDev": true,
+                "installToolkit": true,
+                "cudaVersion": "12.3",
+                "cudnnVersion": "9.4.0.58"
+            }
+        }
+    },
+    "install_cudnn_124_version": {
+        "image": "debian",
+        "features": {
+            "nvidia-cuda": {
+                "installCudnn": true,
+                "installNvtx": true,
+                "installCudnnDev": true,
+                "installToolkit": true,
+                "cudaVersion": "12.4",
+                "cudnnVersion": "9.4.0.58"
+            }
+        }
+    },
+    "install_cudnn_latest_version": {
+        "image": "debian",
+        "features": {
+            "nvidia-cuda": {
+                "installCudnn": true,
+                "installNvtx": true,
+                "installCudnnDev": true,
+                "installToolkit": true,
+                "cudaVersion": "12.5",
+                "cudnnVersion": "9.4.0.58"
+            }
+        }
     }
 }
