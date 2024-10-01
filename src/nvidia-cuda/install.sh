@@ -10,6 +10,7 @@ INSTALL_CUDNNDEV=${INSTALLCUDNNDEV}
 INSTALL_NVTX=${INSTALLNVTX}
 INSTALL_TOOLKIT=${INSTALLTOOLKIT}
 CUDA_VERSION=${CUDAVERSION}
+CUDNN_VERSION=${CUDNNVERSION}
 
 . /etc/os-release 
 
@@ -58,8 +59,6 @@ apt-get update -yq
 cuda_pkg="cuda-libraries-${CUDA_VERSION/./-}"
 nvtx_pkg="cuda-nvtx-${CUDA_VERSION/./-}"
 toolkit_pkg="cuda-toolkit-${CUDA_VERSION/./-}"
-major_cudnn_version=$(echo "${CUDNN_VERSION}" | cut -d '.' -f 1)
-major_cuda_version=$(echo "${CUDA_VERSION}" | cut -d '.' -f 1)
 if ! apt-cache show "$cuda_pkg"; then
     echo "The requested version of CUDA is not available: CUDA $CUDA_VERSION"
     exit 1
@@ -71,10 +70,12 @@ apt-get update -yq
 
 # auto find recent cudnn version
 major_cuda_version=$(echo "${CUDA_VERSION}" | cut -d '.' -f 1)
-if [[ "$CUDA_VERSION" < "12.3" ]]; then
-    CUDNN_VERSION=$(apt-cache policy libcudnn8 | grep "$CUDA_VERSION" | grep -Eo '^[^-1+]*' | sort -V | tail -n1 | xargs)
-else
-    CUDNN_VERSION=$(apt-cache policy libcudnn9-cuda-$major_cuda_version | grep "Candidate" | awk '{print $2}' | grep -Eo '^[^-1+]*')
+if [ "$CUDNN_VERSION" = "automatic" ]; then
+    if [[ "$CUDA_VERSION" < "12.3" ]]; then
+        CUDNN_VERSION=$(apt-cache policy libcudnn8 | grep "$CUDA_VERSION" | grep -Eo '^[^-1+]*' | sort -V | tail -n1 | xargs)
+    else
+        CUDNN_VERSION=$(apt-cache policy libcudnn9-cuda-$major_cuda_version | grep "Candidate" | awk '{print $2}' | grep -Eo '^[^-1+]*')
+    fi
 fi
 major_cudnn_version=$(echo "${CUDNN_VERSION}" | cut -d '.' -f 1)
 
