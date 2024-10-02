@@ -1,0 +1,16 @@
+{
+  "id": "apt",
+  "version": "1.0.0",
+  "name": "Aptfile Dependencies",
+  "description": "Installs apt dependencies defined in an Aptfile.dev file.",
+  "options": {
+    "devFile": {
+      "type": "string",
+      "description": "Optional custom Aptfile.dev path",
+      "default": "../Aptfile.dev"
+    }
+  },
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/common-utils"
+  ]
+}
