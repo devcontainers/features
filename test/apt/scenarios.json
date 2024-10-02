@@ -1,0 +1,14 @@
+{
+  "install_ffmpeg": {
+    "build": {
+      "dockerfile": "Dockerfile"
+    },
+    "remoteUser": "vscode",
+    "features": {
+      "apt": {
+        "version": "1",
+        "devFile": "Aptfile.dev"
+      }
+    }
+  }
+}
