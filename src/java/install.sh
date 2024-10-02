@@ -53,14 +53,6 @@ else
     exit 1
 fi
 
-if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
-    # As of 1 July 2024, mirrorlist.centos.org no longer exists.
-    # Update the repo files to reference vault.centos.org.
-    sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
-    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
-    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
-fi
-
 # Setup INSTALL_CMD & PKG_MGR_CMD
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
@@ -78,71 +70,6 @@ else
     echo "(Error) Unable to find a supported package manager."
     exit 1
 fi
-
-# Clean up
-clean_up() {
-    local pkg
-    case ${ADJUSTED_ID} in
-        debian)
-            rm -rf /var/lib/apt/lists/*
-            ;;
-        rhel)
-            for pkg in epel-release epel-release-latest packages-microsoft-prod; do
-                ${PKG_MGR_CMD} -y remove $pkg 2>/dev/null || /bin/true
-            done
-            rm -rf /var/cache/dnf/* /var/cache/yum/*
-            rm -f /etc/yum.repos.d/docker-ce.repo
-            ;;
-    esac
-}
-clean_up
-
-# Ensure that login shells get the correct path if the user updated the PATH using ENV.
-rm -f /etc/profile.d/00-restore-env.sh
-echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
-chmod +x /etc/profile.d/00-restore-env.sh
-
-# Determine the appropriate non-root user
-if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-    USERNAME=""
-    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
-            break
-        fi
-    done
-    if [ "${USERNAME}" = "" ]; then
-        USERNAME=root
-    fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
-    USERNAME=root
-fi
-
-updaterc() {
-    local _bashrc
-    local _zshrc
-    if [ "${UPDATE_RC}" = "true" ]; then
-        case $ADJUSTED_ID in
-            debian)
-                _bashrc=/etc/bash.bashrc
-                _zshrc=/etc/zsh/zshrc
-                ;;
-            rhel)
-                _bashrc=/etc/bashrc
-                _zshrc=/etc/zshrc
-            ;;
-        esac
-        echo "Updating ${_bashrc} and ${_zshrc}..."
-        if [[ "$(cat ${_bashrc})" != *"$1"* ]]; then
-            echo -e "$1" >> "${_bashrc}"
-        fi
-        if [ -f "${_zshrc}" ] && [[ "$(cat ${_zshrc})" != *"$1"* ]]; then
-            echo -e "$1" >> "${_zshrc}"
-        fi
-    fi
-}
-
 
 pkg_manager_update() {
     case $ADJUSTED_ID in
@@ -195,12 +122,75 @@ check_packages() {
     esac
 }
 
-# Use Microsoft JDK for everything but JDK 8 and 18 (unless specified differently with jdkDistro option)
-get_jdk_distro() {
-    VERSION="$1"
-    if [ "${JDK_DISTRO}" = "ms" ]; then
-        if echo "${VERSION}" | grep -E '^8([\s\.]|$)' > /dev/null 2>&1 || echo "${VERSION}" | grep -E '^18([\s\.]|$)' > /dev/null 2>&1; then
-            JDK_DISTRO="tem"
+if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
+    # As of 1 July 2024, mirrorlist.centos.org no longer exists.
+    # Update the repo files to reference vault.centos.org.
+    sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+    yum update -y
+    check_packages epel-release
+fi
+
+# Clean up
+clean_up() {
+    local pkg
+    case ${ADJUSTED_ID} in
+        debian)
+            rm -rf /var/lib/apt/lists/*
+            ;;
+        rhel)
+            for pkg in epel-release epel-release-latest packages-microsoft-prod; do
+                ${PKG_MGR_CMD} -y remove $pkg 2>/dev/null || /bin/true
+            done
+            rm -rf /var/cache/dnf/* /var/cache/yum/*
+            rm -f /etc/yum.repos.d/docker-ce.repo
+            ;;
+    esac
+}
+
+# Ensure that login shells get the correct path if the user updated the PATH using ENV.
+rm -f /etc/profile.d/00-restore-env.sh
+echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
+chmod +x /etc/profile.d/00-restore-env.sh
+
+# Determine the appropriate non-root user
+if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
+    USERNAME=""
+    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
+    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
+        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+            USERNAME=${CURRENT_USER}
+            break
+        fi
+    done
+    if [ "${USERNAME}" = "" ]; then
+        USERNAME=root
+    fi
+elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
+    USERNAME=root
+fi
+
+updaterc() {
+    local _bashrc
+    local _zshrc
+    if [ "${UPDATE_RC}" = "true" ]; then
+        case $ADJUSTED_ID in
+            debian)
+                _bashrc=/etc/bash.bashrc
+                _zshrc=/etc/zsh/zshrc
+                ;;
+            rhel)
+                _bashrc=/etc/bashrc
+                _zshrc=/etc/zshrc
+            ;;
+        esac
+        echo "Updating ${_bashrc} and ${_zshrc}..."
+        if [[ "$(cat ${_bashrc})" != *"$1"* ]]; then
+            echo -e "$1" >> "${_bashrc}"
+        fi
+        if [ -f "${_zshrc}" ] && [[ "$(cat ${_zshrc})" != *"$1"* ]]; then
+            echo -e "$1" >> "${_zshrc}"
         fi
     fi
 }
@@ -211,12 +201,27 @@ find_version_list() {
     install_type=$3
     ifLts="$4"
     version_list=$5
+    java_ver=$6
+    
+    check_packages jq
+    all_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
     if [ "${ifLts}" = "true" ]; then 
-        all_lts_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
-        major_version=$(echo "$all_lts_versions" | jq -r '.most_recent_lts')
-        regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}"
-    else 
+        major_version=$(echo "$all_versions" | jq -r '.most_recent_lts')
+    elif [ "${java_ver}" = "latest" ]; then
+        major_version=$(echo "$all_versions" | jq -r '.most_recent_feature_release') 
+    else
+        major_version=$(echo "$java_ver" | cut -d '.' -f 1)
+    fi
+    
+    if [ "${JDK_DISTRO}" = "ms" ]; then
+        if [ "${major_version}" = "8" ] || [ "${major_version}" = "18" ] || [ "${major_version}" = "22" ]; then
+            JDK_DISTRO="tem"
+        fi
+    fi
+    if [ "${install_type}" != "java" ]; then
         regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
+    else
+        regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
     fi
     declare -g ${version_list}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
 }
@@ -237,13 +242,12 @@ sdk_install() {
     elif [[ "${pkg_vals}" =~ "${install_type}" ]] && [ "${requested_version}" = "latest" ]; then
         requested_version=""
     elif [ "${requested_version}" = "lts" ]; then
-            check_packages jq
-            find_version_list "$prefix" "$suffix" "$install_type" "true" version_list
+            find_version_list "$prefix" "$suffix" "$install_type" "true" version_list "${requested_version}"
             requested_version="$(echo "${version_list}" | head -n 1)"
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
     else 
-        find_version_list "$prefix" "$suffix" "$install_type" "false" version_list
+        find_version_list "$prefix" "$suffix" "$install_type" "false" version_list "${requested_version}"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
@@ -301,8 +305,7 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
 fi
 
-get_jdk_distro ${JAVA_VERSION}
-sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "true"
+sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-" ".*-[a-z]+$" "true"
 
 # Additional java versions to be installed but not be set as default.
 if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
@@ -310,8 +313,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     IFS=","
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
-            get_jdk_distro ${version}
-            sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-${JDK_DISTRO}\\s*" ".*-[a-z]+$" "false"
+            sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-" ".*-[a-z]+$" "false"
         done
     IFS=$OLDIFS
     su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk default java ${JAVA_VERSION}"

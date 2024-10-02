@@ -59,6 +59,8 @@ apt-get update -yq
 cuda_pkg="cuda-libraries-${CUDA_VERSION/./-}"
 nvtx_pkg="cuda-nvtx-${CUDA_VERSION/./-}"
 toolkit_pkg="cuda-toolkit-${CUDA_VERSION/./-}"
+major_cudnn_version=$(echo "${CUDNN_VERSION}" | cut -d '.' -f 1)
+major_cuda_version=$(echo "${CUDA_VERSION}" | cut -d '.' -f 1)
 if ! apt-cache show "$cuda_pkg"; then
     echo "The requested version of CUDA is not available: CUDA $CUDA_VERSION"
     exit 1
@@ -69,7 +71,15 @@ apt-get install -yq "$cuda_pkg"
 
 if [ "$INSTALL_CUDNN" = "true" ]; then
     # Ensure that the requested version of cuDNN is available AND compatible
-    cudnn_pkg_version="libcudnn8=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+    #if major cudnn version is 9, then we need to install libcudnn9-cuda-<major_version> package
+    #else we need to install libcudnn8-cuda-<major_version> package
+    if [[ $major_cudnn_version -ge "9" ]]
+    then
+        cudnn_pkg_version="libcudnn9-cuda-${major_cuda_version}=${CUDNN_VERSION}-1"
+    else
+        cudnn_pkg_version="libcudnn8=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+    fi
+
     if ! apt-cache show "$cudnn_pkg_version"; then
         echo "The requested version of cuDNN is not available: cuDNN $CUDNN_VERSION for CUDA $CUDA_VERSION"
         exit 1
@@ -81,7 +91,13 @@ fi
 
 if [ "$INSTALL_CUDNNDEV" = "true" ]; then
     # Ensure that the requested version of cuDNN development package is available AND compatible
-    cudnn_dev_pkg_version="libcudnn8-dev=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+    if [[ $major_cudnn_version -ge "9" ]]
+    then
+        cudnn_dev_pkg_version="libcudnn9-dev-cuda-${major_cuda_version}=${CUDNN_VERSION}-1"
+    else
+        cudnn_dev_pkg_version="libcudnn8-dev=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
+    fi
+    
     if ! apt-cache show "$cudnn_dev_pkg_version"; then
         echo "The requested version of cuDNN development package is not available: cuDNN $CUDNN_VERSION for CUDA $CUDA_VERSION"
         exit 1
