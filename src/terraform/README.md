@@ -1,5 +1,5 @@
 
-# Terraform, tflint, and Terragrunt (terraform)
+# Terraform, tflint, and TFGrunt (terraform)
 
 Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects latest version and installs needed dependencies.
 
