@@ -631,7 +631,7 @@ install_python() {
         fi
         if [ ! -d "${current_bin_path}" ] ; then
             mkdir -p "${current_bin_path}"
-            # Add an interpreter symlink but point it to "/usr" since python is at /usr/bin/python, add other alises
+            # Add an interpreter symlink but point it to "/usr" since python is at /usr/bin/python, add other aliases
             ln -s "${INSTALL_PATH}/bin/python3" "${current_bin_path}/python3"
             ln -s "${INSTALL_PATH}/bin/python3" "${current_bin_path}/python"
             ln -s "${INSTALL_PATH}/bin/pydoc3" "${current_bin_path}/pydoc3"

@@ -406,8 +406,8 @@ get_normalized_architecture_for_specific_sdk_version() {
 
     if [ "$osname" == "osx" ] && [ "$architecture" == "arm64" ] && { [ "$is_version_support_arm64" = false ] || [ "$is_channel_support_arm64" = false ]; }; then
         #check if rosetta is installed
-        if [ "$(/usr/bin/pgrep oahd >/dev/null 2>&1;echo $?)" -eq 0 ]; then 
-            say_verbose "Changing user architecture from '$architecture' to 'x64' because .NET SDKs prior to version 6.0 do not support arm64." 
+        if [ "$(/usr/bin/pgrep oahd >/dev/null 2>&1;echo $?)" -eq 0 ]; then
+            say_verbose "Changing user architecture from '$architecture' to 'x64' because .NET SDKs prior to version 6.0 do not support arm64."
             echo "x64"
             return 0;
         else
@@ -423,17 +423,11 @@ get_normalized_architecture_for_specific_sdk_version() {
 # args:
 # version or channel - $1
 is_arm64_supported() {
-    # Extract the major version by splitting on the dot
-    major_version="${1%%.*}"
-
-    # Check if the major version is a valid number and less than 6
-    case "$major_version" in
-        [0-9]*)  
-            if [ "$major_version" -lt 6 ]; then
-                echo false
-                return 0
-            fi
-            ;;
+    #any channel or version that starts with the specified versions
+    case "$1" in
+        ( "1"* | "2"* | "3"*  | "4"* | "5"*)
+            echo false
+            return 0
     esac
 
     echo true
@@ -591,7 +585,7 @@ is_dotnet_package_installed() {
 # args:
 # downloaded file - $1
 # remote_file_size - $2
-validate_remote_local_file_sizes() 
+validate_remote_local_file_sizes()
 {
     eval $invocation
 
@@ -604,8 +598,8 @@ validate_remote_local_file_sizes()
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         # hardcode in order to avoid conflicts with GNU stat
         file_size="$(/usr/bin/stat -f '%z' "$downloaded_file")"
-    fi  
-    
+    fi
+
     if [ -n "$file_size" ]; then
         say "Downloaded file size is $file_size bytes."
 
@@ -616,10 +610,10 @@ validate_remote_local_file_sizes()
                 say "The remote and local file sizes are equal."
             fi
         fi
-        
+
     else
-        say "Either downloaded or local package size can not be measured. One of them may be corrupted."      
-    fi 
+        say "Either downloaded or local package size can not be measured. One of them may be corrupted."
+    fi
 }
 
 # args:
@@ -799,7 +793,7 @@ get_specific_product_version() {
             fi
         fi
     done
-    
+
     # Getting the version number with productVersion.txt has failed. Try parsing the download link for a version number.
     say_verbose "Failed to get the version using productVersion.txt file. Download link will be parsed instead."
     specific_product_version="$(get_product_specific_version_from_download_link "$package_download_link" "$specific_version")"
@@ -864,7 +858,7 @@ get_product_specific_version_from_download_link()
 
     local download_link="$1"
     local specific_version="$2"
-    local specific_product_version="" 
+    local specific_product_version=""
 
     if [ -z "$download_link" ]; then
         echo "$specific_version"
@@ -1055,9 +1049,9 @@ extract_dotnet_package() {
     local folders_with_version_regex='^.*/[0-9]+\.[0-9]+[^/]+/'
     find "$temp_out_path" -type f | grep -Eo "$folders_with_version_regex" | sort | copy_files_or_dirs_from_list "$temp_out_path" "$out_path" false
     find "$temp_out_path" -type f | grep -Ev "$folders_with_version_regex" | copy_files_or_dirs_from_list "$temp_out_path" "$out_path" "$override_non_versioned_files"
-    
+
     validate_remote_local_file_sizes "$zip_path" "$remote_file_size"
-    
+
     rm -rf "$temp_out_path"
     if [ -z ${keep_zip+x} ]; then
         rm -f "$zip_path" && say_verbose "Temporary archive file $zip_path was removed"
@@ -1204,7 +1198,7 @@ downloadcurl() {
         curl $curl_options -o "$out_path" "$remote_path_with_credential" 2>&1
         curl_exit_code=$?
     fi
-    
+
     if [ $curl_exit_code -gt 0 ]; then
         download_error_msg="Unable to download $remote_path."
         # Check for curl timeout codes
@@ -1337,7 +1331,7 @@ get_download_link_from_aka_ms() {
         say_warning "Specifying quality for STS or LTS channel is not supported, the quality will be ignored."
     fi
 
-    say_verbose "Retrieving primary payload URL from aka.ms for channel: '$normalized_channel', quality: '$normalized_quality', product: '$normalized_product', os: '$normalized_os', architecture: '$normalized_architecture'." 
+    say_verbose "Retrieving primary payload URL from aka.ms for channel: '$normalized_channel', quality: '$normalized_quality', product: '$normalized_product', os: '$normalized_os', architecture: '$normalized_architecture'."
 
     #construct aka.ms link
     aka_ms_link="https://aka.ms/dotnet"
@@ -1538,14 +1532,14 @@ generate_regular_links() {
 
     if [ "$valid_legacy_download_link" = true ]; then
         say_verbose "Constructed legacy named payload URL: $legacy_download_link"
-    
+
         download_links+=($legacy_download_link)
         specific_versions+=($specific_version)
         effective_versions+=($effective_version)
         link_types+=("legacy")
     else
         legacy_download_link=""
-        say_verbose "Cound not construct a legacy_download_link; omitting..."
+        say_verbose "Could not construct a legacy_download_link; omitting..."
     fi
 
     #  Check if the SDK version is already installed.
@@ -1566,7 +1560,7 @@ print_dry_run() {
 
     resolved_version=${specific_versions[0]}
     repeatable_command="./$script_name --version "\""$resolved_version"\"" --install-dir "\""$install_root"\"" --architecture "\""$normalized_architecture"\"" --os "\""$normalized_os"\"""
-    
+
     if [ ! -z "$normalized_quality" ]; then
         repeatable_command+=" --quality "\""$normalized_quality"\"""
     fi
@@ -1863,9 +1857,9 @@ do
             echo "  -q,--quality <quality>         Download the latest build of specified quality in the channel."
             echo "      -Quality"
             echo "          The possible values are: daily, signed, validated, preview, GA."
-            echo "          Works only in combination with channel. Not applicable for STS and LTS channels and will be ignored if those channels are used." 
-            echo "          For SDK use channel in A.B.Cxx format. Using quality for SDK together with channel in A.B format is not supported." 
-            echo "          Supported since 5.0 release." 
+            echo "          Works only in combination with channel. Not applicable for STS and LTS channels and will be ignored if those channels are used."
+            echo "          For SDK use channel in A.B.Cxx format. Using quality for SDK together with channel in A.B format is not supported."
+            echo "          Supported since 5.0 release."
             echo "          Note: The version parameter overrides the channel parameter when any version other than 'latest' is used, and therefore overrides the quality."
             echo "  --internal,-Internal               Download internal builds. Requires providing credentials via --feed-credential parameter."
             echo "  --feed-credential <FEEDCREDENTIAL> Token to access Azure feed. Used as a query string to append to the Azure feed."
