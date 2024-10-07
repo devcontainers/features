@@ -19,6 +19,11 @@
             "type": "boolean",
             "default": true,
             "description": "Install from PPA if available (only supported for Ubuntu distributions)"
+        },
+        "installSubtree": {
+            "type": "boolean",
+            "default": false,
+            "description": "Install git/contrib/subtree"
         }
     },
     "installsAfter": [
