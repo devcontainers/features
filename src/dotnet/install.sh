@@ -77,7 +77,7 @@ for aspNetCoreRuntimeVersion in $(split_csv "$ASPNETCORE_RUNTIME_VERSIONS"); do
     aspNetCoreRuntimeVersions+=("$aspNetCoreRuntimeVersion")
 done
 
-# Fail fast in case of bad input to avoid unneccesary work
+# Fail fast in case of bad input to avoid unnecessary work
 # v1 of the .NET feature allowed specifying only a major version 'X' like '3'
 # v2 removed this ability
 # - because install-dotnet.sh does not support it directly
