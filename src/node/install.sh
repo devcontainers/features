@@ -309,7 +309,7 @@ curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.
     curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/\${PREV_NVM_VERSION}/install.sh" | bash
     NVM_VERSION="\${PREV_NVM_VERSION}"
 }
-[ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
+[ -s "${NVM_DIR}/nvm.sh" ] && source "${NVM_DIR}/nvm.sh"
 if [ "${NODE_VERSION}" != "" ]; then
     nvm alias default "${NODE_VERSION}"
 fi
