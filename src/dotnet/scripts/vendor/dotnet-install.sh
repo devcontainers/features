@@ -1545,7 +1545,7 @@ generate_regular_links() {
         link_types+=("legacy")
     else
         legacy_download_link=""
-        say_verbose "Could not construct a legacy_download_link; omitting..."
+        say_verbose "Cound not construct a legacy_download_link; omitting..."
     fi
 
     #  Check if the SDK version is already installed.
