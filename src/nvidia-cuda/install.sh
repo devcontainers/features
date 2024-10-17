@@ -66,7 +66,7 @@ fi
 
 echo "Installing CUDA libraries..."
 apt-get install -yq "$cuda_pkg"
-apt-get update -yq
+apt-get update -yq --fix-missing
 
 # auto find recent cudnn version
 major_cuda_version=$(echo "${CUDA_VERSION}" | cut -d '.' -f 1)
