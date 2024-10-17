@@ -492,16 +492,18 @@ install_prev_vers_cpython() {
 install_cpython() {
     VERSION=$1
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
+
+    # Check if the specified Python version is already installed
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${VERSION} already exists."
-        exit 1
+    else
+        mkdir -p /tmp/python-src ${INSTALL_PATH}
+        cd /tmp/python-src
+        cpython_tgz_filename="Python-${VERSION}.tgz"
+        cpython_tgz_url="https://www.python.org/ftp/python/${VERSION}/${cpython_tgz_filename}"
+        echo "Downloading ${cpython_tgz_filename}..."
+        curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
     fi
-    mkdir -p /tmp/python-src ${INSTALL_PATH}
-    cd /tmp/python-src
-    cpython_tgz_filename="Python-${VERSION}.tgz"
-    cpython_tgz_url="https://www.python.org/ftp/python/${VERSION}/${cpython_tgz_filename}"
-    echo "Downloading ${cpython_tgz_filename}..."
-    curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
 }
 
 install_from_source() {
@@ -587,20 +589,20 @@ install_using_oryx() {
     VERSION=$1
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
 
+    # Check if the specified Python version is already installed
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${VERSION} already exists."
-        exit 1
+    else
+        # The python install root path may not exist, so create it
+        mkdir -p "${PYTHON_INSTALL_PATH}"
+        oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
+
+        ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
+        ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
+        ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
+
+        add_symlink
     fi
-
-    # The python install root path may not exist, so create it
-    mkdir -p "${PYTHON_INSTALL_PATH}"
-    oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
-
-    ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
-    ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
-    ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
-
-    add_symlink
 }
 
 sudo_if() {

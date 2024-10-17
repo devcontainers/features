@@ -23,67 +23,63 @@ fi
 
 detect_user USERNAME
 
-if [ -e "/nix" ]; then
-    echo "(!) Nix is already installed! Skipping installation."
+if [ "${USERNAME}" = "root" ] && [ "${MULTIUSER}" != "true" ]; then
+    echo "(!) A single user install is not allowed for root. Add a non-root user to your image or set multiUser to true in your feature configuration."
+    exit 1
+fi
+
+# Verify dependencies
+apt_get_update_if_exists
+check_command curl "curl ca-certificates" "curl ca-certificates" "curl ca-certificates"
+check_command gpg2 gnupg2 gnupg gnupg2
+check_command dirmngr dirmngr dirmngr dirmngr
+check_command xz xz-utils xz xz
+check_command git git git git
+check_command xargs findutils findutils findutils
+
+# Determine version
+find_version_from_git_tags VERSION https://github.com/NixOS/nix "tags/"
+
+# Download and verify install per https://nixos.org/download.html#nix-verify-installation
+tmpdir="$(mktemp -d)"
+echo "(*) Downloading Nix installer..."
+set +e
+curl -sSLf -o "${tmpdir}/install-nix" https://releases.nixos.org/nix/nix-${VERSION}/install
+exit_code=$?
+set -e
+if [ "$exit_code" != "0" ]; then
+    # Handle situation where git tags are ahead of what was is available to actually download
+    echo "(!) Nix version ${VERSION} failed to download. Attempting to fall back one version to retry..."
+    find_prev_version_from_git_tags VERSION https://github.com/NixOS/nix "tags/"
+    curl -sSLf -o "${tmpdir}/install-nix" https://releases.nixos.org/nix/nix-${VERSION}/install
+fi
+cd "${FEATURE_DIR}"
+
+# Do a multi or single-user setup based on feature config
+if [ "${MULTIUSER}" = "true" ]; then
+    echo "(*) Performing multi-user install..."
+    sh "${tmpdir}/install-nix" --daemon
 else
-    if [ "${USERNAME}" = "root" ] && [ "${MULTIUSER}" != "true" ]; then
-        echo "(!) A single user install is not allowed for root. Add a non-root user to your image or set multiUser to true in your feature configuration."
+    home_dir="$(eval echo ~${USERNAME})"
+    if [ ! -e "${home_dir}" ]; then
+        echo "(!) Home directory ${home_dir} does not exist for ${USERNAME}. Nix install will fail."
         exit 1
     fi
-
-    # Verify dependencies
-    apt_get_update_if_exists
-    check_command curl "curl ca-certificates" "curl ca-certificates" "curl ca-certificates"
-    check_command gpg2 gnupg2 gnupg gnupg2
-    check_command dirmngr dirmngr dirmngr dirmngr
-    check_command xz xz-utils xz xz
-    check_command git git git git
-    check_command xargs findutils findutils findutils
-
-    # Determine version
-    find_version_from_git_tags VERSION https://github.com/NixOS/nix "tags/"
-
-    # Download and verify install per https://nixos.org/download.html#nix-verify-installation
-    tmpdir="$(mktemp -d)"
-    echo "(*) Downloading Nix installer..."
-    set +e
-    curl -sSLf -o "${tmpdir}/install-nix" https://releases.nixos.org/nix/nix-${VERSION}/install
-    exit_code=$?
-    set -e
-    if [ "$exit_code" != "0" ]; then
-        # Handle situation where git tags are ahead of what was is available to actually download
-        echo "(!) Nix version ${VERSION} failed to download. Attempting to fall back one version to retry..."
-        find_prev_version_from_git_tags VERSION https://github.com/NixOS/nix "tags/"
-        curl -sSLf -o "${tmpdir}/install-nix" https://releases.nixos.org/nix/nix-${VERSION}/install
-    fi
-    cd "${FEATURE_DIR}"
-
-    # Do a multi or single-user setup based on feature config
-    if [ "${MULTIUSER}" = "true" ]; then
-        echo "(*) Performing multi-user install..."
-        sh "${tmpdir}/install-nix" --daemon
-    else
-        home_dir="$(eval echo ~${USERNAME})"
-        if [ ! -e "${home_dir}" ]; then
-            echo "(!) Home directory ${home_dir} does not exist for ${USERNAME}. Nix install will fail."
-            exit 1
-        fi
-        echo "(*) Performing single-user install..."
-        echo -e "\n**NOTE: Nix will only work for user ${USERNAME} on Linux if the host machine user's UID is $(id -u ${USERNAME}). You will need to chown /nix otherwise.**\n"
-        # Install per https://nixos.org/manual/nix/stable/installation/installing-binary.html#single-user-installation
-        mkdir -p /nix
-        chown ${USERNAME} /nix ${tmpdir}
-        su ${USERNAME} -c "sh \"${tmpdir}/install-nix\" --no-daemon --no-modify-profile"
-        # nix installer does not update ~/.bashrc, and USER may or may not be defined, so update rc/profile files directly to handle that
-        snippet='
-        if [ "${PATH#*$HOME/.nix-profile/bin}" = "${PATH}" ]; then if [ -z "$USER" ]; then USER=$(whoami); fi; . $HOME/.nix-profile/etc/profile.d/nix.sh; fi
-        '
-        update_rc_file "$home_dir/.bashrc" "${snippet}"
-        update_rc_file "$home_dir/.zshenv" "${snippet}"
-        update_rc_file "$home_dir/.profile" "${snippet}"
-    fi
-    rm -rf "${tmpdir}" "/tmp/tmp-gnupg"
+    echo "(*) Performing single-user install..."
+    echo -e "\n**NOTE: Nix will only work for user ${USERNAME} on Linux if the host machine user's UID is $(id -u ${USERNAME}). You will need to chown /nix otherwise.**\n"
+    # Install per https://nixos.org/manual/nix/stable/installation/installing-binary.html#single-user-installation
+    mkdir -p /nix
+    chown ${USERNAME} /nix ${tmpdir}
+    su ${USERNAME} -c "sh \"${tmpdir}/install-nix\" --no-daemon --no-modify-profile"
+    # nix installer does not update ~/.bashrc, and USER may or may not be defined, so update rc/profile files directly to handle that
+    snippet='
+    if [ "${PATH#*$HOME/.nix-profile/bin}" = "${PATH}" ]; then if [ -z "$USER" ]; then USER=$(whoami); fi; . $HOME/.nix-profile/etc/profile.d/nix.sh; fi
+    '
+    update_rc_file "$home_dir/.bashrc" "${snippet}"
+    update_rc_file "$home_dir/.zshenv" "${snippet}"
+    update_rc_file "$home_dir/.profile" "${snippet}"
 fi
+rm -rf "${tmpdir}" "/tmp/tmp-gnupg"
 
 # Set nix config
 mkdir -p /etc/nix
