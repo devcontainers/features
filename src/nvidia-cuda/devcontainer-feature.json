@@ -48,6 +48,7 @@
     "cudnnVersion": {
       "type": "string",
       "proposals": [
+        "automatic",
         "8.9.5.29",
         "8.9.4.25",
         "8.9.3.28",
@@ -77,8 +78,7 @@
         "9.2.0.82",
         "9.2.1.18",
         "9.3.0.75",
-        "9.4.0.58",
-        "automatic"
+        "9.4.0.58"
       ],
       "default": "automatic",
       "description": "Version of cuDNN to install"
