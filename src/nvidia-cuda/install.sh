@@ -10,7 +10,6 @@ INSTALL_CUDNNDEV=${INSTALLCUDNNDEV}
 INSTALL_NVTX=${INSTALLNVTX}
 INSTALL_TOOLKIT=${INSTALLTOOLKIT}
 CUDA_VERSION=${CUDAVERSION}
-CUDNN_VERSION=${CUDNNVERSION}
 
 . /etc/os-release 
 
@@ -69,10 +68,17 @@ fi
 echo "Installing CUDA libraries..."
 apt-get install -yq "$cuda_pkg"
 
+# auto find recent cudnn version
+major_cuda_version=$(echo "${CUDA_VERSION}" | cut -d '.' -f 1)
+if [[ "$CUDA_VERSION" < "12.3" ]]; then
+    CUDNN_VERSION=$(apt-cache policy libcudnn8 | grep "$CUDA_VERSION" | grep -Eo '^[^-1+]*' | sort -V | tail -n1 | xargs)
+fi
+major_cudnn_version=$(echo "${CUDNN_VERSION}" | cut -d '.' -f 1)
+
 if [ "$INSTALL_CUDNN" = "true" ]; then
     # Ensure that the requested version of cuDNN is available AND compatible
-    #if major cudnn version is 9, then we need to install libcudnn9-cuda-<major_version> package
-    #else we need to install libcudnn8-cuda-<major_version> package
+    #if major cudnn version is 9, then we need to install libcudnn9-cuda-<major_cuda_version>_<CUDNN_VERSION>-1 package
+    #else we need to install libcudnn8_<CUDNN_VERSION>-1+cuda<CUDA_VERSION>" package
     if [[ $major_cudnn_version -ge "9" ]]
     then
         cudnn_pkg_version="libcudnn9-cuda-${major_cuda_version}=${CUDNN_VERSION}-1"
@@ -91,13 +97,14 @@ fi
 
 if [ "$INSTALL_CUDNNDEV" = "true" ]; then
     # Ensure that the requested version of cuDNN development package is available AND compatible
+    #if major cudnn version is 9, then we need to install libcudnn9-dev-cuda-<major_cuda_version>_<CUDNN_VERSION>-1 package
+    #else we need to install libcudnn8-dev_<CUDNN_VERSION>-1+cuda<CUDA_VERSION>" package
     if [[ $major_cudnn_version -ge "9" ]]
     then
         cudnn_dev_pkg_version="libcudnn9-dev-cuda-${major_cuda_version}=${CUDNN_VERSION}-1"
     else
         cudnn_dev_pkg_version="libcudnn8-dev=${CUDNN_VERSION}-1+cuda${CUDA_VERSION}"
     fi
-    
     if ! apt-cache show "$cudnn_dev_pkg_version"; then
         echo "The requested version of cuDNN development package is not available: cuDNN $CUDNN_VERSION for CUDA $CUDA_VERSION"
         exit 1
