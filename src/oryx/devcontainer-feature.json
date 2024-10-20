@@ -1,6 +1,6 @@
 {
     "id": "oryx",
-    "version": "1.3.6",
+    "version": "1.3.7",
     "name": "Oryx",
     "description": "Installs the oryx CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/oryx",
