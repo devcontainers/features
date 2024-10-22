@@ -18,6 +18,7 @@ USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
+ALLOW_SHELL_HISTORY="${ALLOWSHELLHISTORY:-"false"}"
 
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
@@ -565,6 +566,55 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             chown -R ${USERNAME}:${group_name} "${copy_to_user_files[@]}"
         fi
     fi
+fi
+
+# *********************************
+# ** Enable shell history **
+# *********************************
+#
+# Generally, the installation favours configuring a shell to use the mounted volume
+# for storing history rather than symlinking as any operation to recreate files 
+# could delete the symlink. 
+# On shells where this isn't possible, we symlink as a fallback.
+#
+
+if [ "${ALLOW_SHELL_HISTORY}" = "true" ]; then
+# Set HISTFILE for bash
+cat << EOF >> "${user_home}/.bashrc"
+if [[ -z "\$HISTFILE_OLD" ]]; then
+    export HISTFILE_OLD=\$HISTFILE
+fi
+export HISTFILE=/dc/shellhistory/.bash_history
+export PROMPT_COMMAND='history -a'
+sudo chown -R $USERNAME /dc/shellhistory
+EOF
+chown -R $USERNAME ${user_home}/.bashrc
+
+if [ "${INSTALL_ZSH}" = "true" ]; then
+# Set HISTFILE for zsh
+cat << EOF >> "${user_home}/.zshrc"
+export HISTFILE=/dc/shellhistory/.zsh_history
+export PROMPT_COMMAND='history -a'
+sudo chown -R $USERNAME /dc/shellhistory
+EOF
+chown -R $USERNAME ${user_home}/.zshrc
+fi
+
+# Create symlink for fish
+mkdir -p ${user_home}/.config/fish
+cat << EOF >> "${user_home}/.config/fish/config.fish"
+if test -z "\$XDG_DATA_HOME"
+    set history_location ~/.local/share/fish/fish_history
+else
+    set history_location \$XDG_DATA_HOME/fish/fish_history
+end
+if test -f \$history_location
+    mv \$history_location "\$history_location-old"
+end
+ln -s /dc/shellhistory/fish_history \$history_location
+sudo chown -R $USERNAME \$history_location
+EOF
+chown -R $USERNAME ${user_home}/.config/
 fi
 
 # *********************************

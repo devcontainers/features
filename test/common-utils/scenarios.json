@@ -292,5 +292,15 @@
         "features": {
             "common-utils": {}
         }
+    },
+    "allow_shell_history": {
+        "image": "debian:bookworm",
+        "features": {
+            "common-utils": {
+                "installZsh": true,
+                "configureZshAsDefaultShell": true,
+                "allowShellHistory": true
+            }
+        }
     }
 }
