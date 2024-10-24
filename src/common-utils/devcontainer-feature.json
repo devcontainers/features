@@ -64,6 +64,18 @@
             "type": "boolean",
             "default": false,
             "description": "Add packages from non-free Debian repository? (Debian only)"
+        },
+        "allowShellHistory": {
+            "type": "boolean",
+            "default": false,
+            "description": "Preserve shell history across dev container instances? (Currently supports bash, zsh, and fish)"
         }
-    }
+    },
+    "mounts": [
+        {
+            "source": "${devcontainerId}-shellhistory",
+            "target": "/dc/shellhistory",
+            "type": "volume"
+        }
+    ]
 }
