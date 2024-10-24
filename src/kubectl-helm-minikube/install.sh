@@ -15,6 +15,7 @@ rm -rf /var/lib/apt/lists/*
 KUBECTL_VERSION="${VERSION:-"latest"}"
 HELM_VERSION="${HELM:-"latest"}"
 MINIKUBE_VERSION="${MINIKUBE:-"latest"}" # latest is also valid
+INSTALL_TOOL_PATH="${INSTALLTOOLPATH:-"/usr/local/bin"}"
 
 KUBECTL_SHA256="${KUBECTL_SHA256:-"automatic"}"
 HELM_SHA256="${HELM_SHA256:-"automatic"}"
@@ -170,12 +171,12 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     if [ "${KUBECTL_VERSION::1}" != 'v' ]; then
         KUBECTL_VERSION="v${KUBECTL_VERSION}"
     fi
-    curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl"
-    chmod 0755 /usr/local/bin/kubectl
+    curl -sSL -o ${TOOLS_PATH}/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl"
+    chmod 0755 ${TOOLS_PATH}/kubectl
     if [ "$KUBECTL_SHA256" = "automatic" ]; then
         KUBECTL_SHA256="$(curl -sSL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
     fi
-    ([ "${KUBECTL_SHA256}" = "dev-mode" ] || (echo "${KUBECTL_SHA256} */usr/local/bin/kubectl" | sha256sum -c -))
+    ([ "${KUBECTL_SHA256}" = "dev-mode" ] || (echo "${KUBECTL_SHA256} *${TOOLS_PATH}/kubectl" | sha256sum -c -))
     if ! type kubectl > /dev/null 2>&1; then
         echo '(!) kubectl installation failed!'
         exit 1
@@ -304,8 +305,8 @@ if [ ${HELM_VERSION} != "none" ]; then
 
     ([ "${HELM_SHA256}" = "dev-mode" ] || (echo "${HELM_SHA256} *${tmp_helm_filename}" | sha256sum -c -))
     tar xf "${tmp_helm_filename}" -C /tmp/helm
-    mv -f "/tmp/helm/linux-${architecture}/helm" /usr/local/bin/
-    chmod 0755 /usr/local/bin/helm
+    mv -f "/tmp/helm/linux-${architecture}/helm" ${TOOLS_PATH}/
+    chmod 0755 ${TOOLS_PATH}/helm
     rm -rf /tmp/helm
     if ! type helm > /dev/null 2>&1; then
         echo '(!) Helm installation failed!'
@@ -335,12 +336,12 @@ if [ "${MINIKUBE_VERSION}" != "none" ]; then
         fi
     fi
     # latest is also valid in the download URLs 
-    curl -sSL -o /usr/local/bin/minikube "https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-${architecture}"    
-    chmod 0755 /usr/local/bin/minikube
+    curl -sSL -o ${TOOLS_PATH}/minikube "https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-${architecture}"    
+    chmod 0755 ${TOOLS_PATH}/minikube
     if [ "$MINIKUBE_SHA256" = "automatic" ]; then
         MINIKUBE_SHA256="$(curl -sSL "https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-${architecture}.sha256")"
     fi
-    ([ "${MINIKUBE_SHA256}" = "dev-mode" ] || (echo "${MINIKUBE_SHA256} */usr/local/bin/minikube" | sha256sum -c -))
+    ([ "${MINIKUBE_SHA256}" = "dev-mode" ] || (echo "${MINIKUBE_SHA256} *${TOOLS_PATH}/minikube" | sha256sum -c -))
     if ! type minikube > /dev/null 2>&1; then
         echo '(!) minikube installation failed!'
         exit 1
