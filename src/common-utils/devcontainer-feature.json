@@ -72,10 +72,6 @@
         }
     },
     "mounts": [
-        {
-            "source": "${devcontainerId}-shellhistory",
-            "target": "/dc/shellhistory",
-            "type": "volume"
-        }
+        "source=devcontainers,target=/devcontainers,type=volume"
     ]
-}
+}   

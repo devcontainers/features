@@ -571,50 +571,48 @@ fi
 # *********************************
 # ** Enable shell history **
 # *********************************
-#
-# Generally, the installation favours configuring a shell to use the mounted volume
-# for storing history rather than symlinking as any operation to recreate files 
-# could delete the symlink. 
-# On shells where this isn't possible, we symlink as a fallback.
-#
 
 if [ "${ALLOW_SHELL_HISTORY}" = "true" ]; then
-# Set HISTFILE for bash
-cat << EOF >> "${user_home}/.bashrc"
-if [[ -z "\$HISTFILE_OLD" ]]; then
-    export HISTFILE_OLD=\$HISTFILE
-fi
-export HISTFILE=/dc/shellhistory/.bash_history
-export PROMPT_COMMAND='history -a'
-sudo chown -R $USERNAME /dc/shellhistory
-EOF
-chown -R $USERNAME ${user_home}/.bashrc
+    echo "Activating feature 'shell-history'"
+    echo "User: ${USERNAME}     User home: ${user_home}"
 
-if [ "${INSTALL_ZSH}" = "true" ]; then
-# Set HISTFILE for zsh
-cat << EOF >> "${user_home}/.zshrc"
-export HISTFILE=/dc/shellhistory/.zsh_history
-export PROMPT_COMMAND='history -a'
-sudo chown -R $USERNAME /dc/shellhistory
-EOF
-chown -R $USERNAME ${user_home}/.zshrc
-fi
+    if ! command -v uuidgen &> /dev/null; then
+        sudo apt-get update
+        sudo apt-get install -y uuid-runtime
+    fi
+    # Create the shell history directory in the mounted volume
+    DEVCONTAINER_ID=$(uuidgen)
+    HISTORY_DIR="/devcontainers/${DEVCONTAINER_ID}/shellHistory"
+    USER_HISTORY_FILE="${user_home}/.bash_history"
+    VOLUME_HISTORY_FILE="${HISTORY_DIR}/.bash_history"
 
-# Create symlink for fish
-mkdir -p ${user_home}/.config/fish
-cat << EOF >> "${user_home}/.config/fish/config.fish"
-if test -z "\$XDG_DATA_HOME"
-    set history_location ~/.local/share/fish/fish_history
-else
-    set history_location \$XDG_DATA_HOME/fish/fish_history
-end
-if test -f \$history_location
-    mv \$history_location "\$history_location-old"
-end
-ln -s /dc/shellhistory/fish_history \$history_location
-sudo chown -R $USERNAME \$history_location
-EOF
-chown -R $USERNAME ${user_home}/.config/
+    # Create the history directory in the volume, if it doesn’t already exist
+    sudo mkdir -p "${HISTORY_DIR}"
+    sudo chown -R "${USERNAME}" "${HISTORY_DIR}"
+    sudo chmod -R u+rwx "${HISTORY_DIR}"
+
+    # Ensure the volume's history file exists and set permissions
+    if [[ ! -f "${VOLUME_HISTORY_FILE}" ]]; then
+        # Create an empty history file if it doesn’t already exist
+        sudo touch "${VOLUME_HISTORY_FILE}"
+        sudo chown -R "${USERNAME}" "${VOLUME_HISTORY_FILE}"
+        sudo chmod -R u+rwx "${VOLUME_HISTORY_FILE}"
+    fi
+
+    # Create or update the user’s .bash_history to append to the volume’s history
+    if [[ ! -f "${USER_HISTORY_FILE}" ]]; then
+        sudo touch "${USER_HISTORY_FILE}"
+        sudo chown -R "${USERNAME}" "${USER_HISTORY_FILE}"
+        sudo chmod -R u+rwx "${USER_HISTORY_FILE}"
+    fi
+
+    # Symlink for Bash history
+    sudo ln -sf ${USER_HISTORY_FILE} ${VOLUME_HISTORY_FILE}
+
+    # Configure immediate history saving to the volume
+    echo 'PROMPT_COMMAND="history -a; history -c; history -r"' >> "${user_home}/.bashrc"
+
+    echo "Shell history setup for persistent appending is complete."
 fi
 
 # *********************************
