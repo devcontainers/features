@@ -71,7 +71,9 @@
             "description": "Preserve shell history across dev container instances? (Currently supports bash, zsh, and fish)"
         }
     },
-    "mounts": [
-        "source=devcontainers,target=/devcontainers,type=volume"
-    ]
+    "mounts": [{
+        "source": "devcontainers",
+        "target": "/devcontainers",
+        "type": "volume"
+    }]
 }   
