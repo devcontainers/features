@@ -78,7 +78,7 @@
         "type": "volume"
     },
     {
-        "source": "./setup_history.sh",
+        "source": "/workspaces/features/src/common-utils/setup_history.sh",
         "target": "/tmp/setup_history.sh",
         "type": "bind"
     }]
