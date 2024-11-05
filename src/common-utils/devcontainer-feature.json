@@ -76,10 +76,12 @@
         "source": "devcontainers",
         "target": "/devcontainers",
         "type": "volume"
-    },
-    {
-        "source": "${localWorkspaceFolder}/scripts/setup_history.sh",
-        "target": "/tmp/setup_history.sh",
-        "type": "bind"
-    }]
+    }
+    // },
+    // {
+    //     "source": "${localWorkspaceFolder}/scripts/setup_history.sh",
+    //     "target": "/tmp/setup_history.sh",
+    //     "type": "bind"
+    // }]
+    ]
 }   
