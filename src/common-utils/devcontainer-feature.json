@@ -71,9 +71,15 @@
             "description": "Preserve shell history across dev container instances? (Currently supports bash, zsh, and fish)"
         }
     },
+    "postCreateCommand": "export DEVCONTAINER_ID=${devcontainerId} && chmod +x /tmp/setup_history.sh && . /tmp/setup_history.sh",
     "mounts": [{
         "source": "devcontainers",
         "target": "/devcontainers",
         "type": "volume"
+    },
+    {
+        "source": "/workspaces/features/src/common-utils/setup_history.sh",
+        "target": "/tmp/setup_history.sh",
+        "type": "bind"
     }]
 }   

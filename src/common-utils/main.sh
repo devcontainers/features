@@ -572,48 +572,11 @@ fi
 # ** Enable shell history **
 # *********************************
 
-if [ "${ALLOW_SHELL_HISTORY}" = "true" ]; then
-    echo "Activating feature 'shell-history'"
-    echo "User: ${USERNAME}     User home: ${user_home}"
+echo export ALLOW_SHELL_HISTORY="${ALLOW_SHELL_HISTORY}" > /tmp/env.sh
+echo export user_home="${user_home}" >> /tmp/env.sh
+echo export USERNAME="${USERNAME}" >> /tmp/env.sh
 
-    if ! command -v uuidgen &> /dev/null; then
-        sudo apt-get update
-        sudo apt-get install -y uuid-runtime
-    fi
-    # Create the shell history directory in the mounted volume
-    DEVCONTAINER_ID=$(uuidgen)
-    HISTORY_DIR="/devcontainers/${DEVCONTAINER_ID}/shellHistory"
-    USER_HISTORY_FILE="${user_home}/.bash_history"
-    VOLUME_HISTORY_FILE="${HISTORY_DIR}/.bash_history"
-
-    # Create the history directory in the volume, if it doesn’t already exist
-    sudo mkdir -p "${HISTORY_DIR}"
-    sudo chown -R "${USERNAME}" "${HISTORY_DIR}"
-    sudo chmod -R u+rwx "${HISTORY_DIR}"
-
-    # Ensure the volume's history file exists and set permissions
-    if [[ ! -f "${VOLUME_HISTORY_FILE}" ]]; then
-        # Create an empty history file if it doesn’t already exist
-        sudo touch "${VOLUME_HISTORY_FILE}"
-        sudo chown -R "${USERNAME}" "${VOLUME_HISTORY_FILE}"
-        sudo chmod -R u+rwx "${VOLUME_HISTORY_FILE}"
-    fi
-
-    # Create or update the user’s .bash_history to append to the volume’s history
-    if [[ ! -f "${USER_HISTORY_FILE}" ]]; then
-        sudo touch "${USER_HISTORY_FILE}"
-        sudo chown -R "${USERNAME}" "${USER_HISTORY_FILE}"
-        sudo chmod -R u+rwx "${USER_HISTORY_FILE}"
-    fi
-
-    # Symlink for Bash history
-    sudo ln -sf ${USER_HISTORY_FILE} ${VOLUME_HISTORY_FILE}
-
-    # Configure immediate history saving to the volume
-    echo 'PROMPT_COMMAND="history -a; history -c; history -r"' >> "${user_home}/.bashrc"
-
-    echo "Shell history setup for persistent appending is complete."
-fi
+sudo chmod +x /tmp/env.sh
 
 # *********************************
 # ** Ensure config directory **
