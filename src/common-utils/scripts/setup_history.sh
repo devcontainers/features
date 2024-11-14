@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Source the environment variables from env.sh
 if [ -f /tmp/env.sh ]; then
     . /tmp/env.sh

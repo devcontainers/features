@@ -301,6 +301,7 @@
                 "allowShellHistory": true
             }
         },
-        "remoteUser": "vscode"
+        "remoteUser": "vscode",
+        "containerUser": "vscode"
     }
 }

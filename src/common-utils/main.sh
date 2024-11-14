@@ -576,7 +576,10 @@ echo export ALLOW_SHELL_HISTORY="${ALLOW_SHELL_HISTORY}" > /tmp/env.sh
 echo export user_home="${user_home}" >> /tmp/env.sh
 echo export USERNAME="${USERNAME}" >> /tmp/env.sh
 
-sudo chmod +x /tmp/env.sh
+chmod +x /tmp/env.sh
+
+cp -f "${FEATURE_DIR}/scripts/setup_history.sh" /tmp/setup_history.sh
+chmod +x /tmp/setup_history.sh
 
 # *********************************
 # ** Ensure config directory **
