@@ -156,6 +156,75 @@ install_debian_packages() {
     rm -rf /var/lib/apt/lists/*
 }
 
+# openSUSE
+install_opensuse_packages() {
+    package_list=""
+    install_cmd="zypper"
+
+    if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
+        package_list="${package_list} \
+            gawk \
+            bash-completion \
+            openssh-clients \
+            gpg2 \
+            iproute2 \
+            procps \
+            lsof \
+            net-tools \
+            psmisc \
+            wget \
+            ca-certificates \
+            rsync \
+            unzip \
+            xz \
+            zip \
+            nano \
+            vim \
+            less \
+            jq \
+            libopenssl-devel \
+            krb5 \
+            krb5-client \
+            libicu \
+            libz1 \
+            sudo \
+            sed \
+            grep \
+            which \
+            man \
+            curl \
+            jq \
+            lsb-release \
+            strace"
+
+        # Install OpenSSL 1.0 compat if needed
+        if ${install_cmd} se compat-openssl10 >/dev/null 2>&1; then
+            package_list="${package_list} compat-openssl10"
+        fi
+
+        if ! type git > /dev/null 2>&1; then
+            package_list="${package_list} git"
+        fi
+
+    fi
+
+    # Install zsh if needed
+    if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
+        package_list="${package_list} zsh"
+    fi
+
+    if [ -n "${package_list}" ]; then
+        ${install_cmd} install -y ${package_list}
+    fi
+
+    # Get to latest versions of all packages
+    if [ "${UPGRADE_PACKAGES}" = "true" ]; then
+        ${install_cmd} up -y
+    fi
+
+    PACKAGES_ALREADY_INSTALLED="true"                                      
+}
+
 # RedHat / RockyLinux / CentOS / Fedora packages
 install_redhat_packages() {
     local package_list=""
@@ -349,6 +418,8 @@ elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_L
     VERSION_CODENAME="${ID}${VERSION_ID}"
 elif [ "${ID}" = "alpine" ]; then
     ADJUSTED_ID="alpine"
+elif [[ "${ID_LIKE}" = *"opensuse"* ]]; then
+    ADJUSTED_ID="opensuse" 
 else
     echo "Linux distro ${ID} not supported."
     exit 1
@@ -380,6 +451,9 @@ case "${ADJUSTED_ID}" in
         ;;
     "alpine")
         install_alpine_packages
+        ;;
+    "opensuse")
+        install_opensuse_packages
         ;;
 esac
 
@@ -477,6 +551,9 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
         "rhel")
             global_rc_path="/etc/bashrc"
             ;;
+        "opensuse")
+            global_rc_path="/etc/bashrc"
+            ;;
         "alpine")
             global_rc_path="/etc/bash/bashrc"
             # /etc/bash/bashrc does not exist in alpine 3.14 & 3.15
@@ -501,7 +578,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     fi
 
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
-        if [ "${ADJUSTED_ID}" = "rhel" ]; then
+        if [ "${ADJUSTED_ID}" = "rhel" ] || [ "${ADJUSTED_ID}" = "opensuse" ]; then
              global_rc_path="/etc/zshrc"
         else
             global_rc_path="/etc/zsh/zshrc"
