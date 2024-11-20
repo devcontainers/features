@@ -67,7 +67,7 @@ jobs:
       matrix:
         features:
           ["common-utils", "git", "go", "java", "node", "python", "sshd"]
-        baseImage: ["fedora:40", "fedora:41", "alpine:3"]
+        baseImage: ["fedora:40", "fedora:41"]
     steps:
       - uses: actions/checkout@v4
 
