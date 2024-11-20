@@ -215,7 +215,7 @@ tee -a /usr/local/share/ssh-init.sh > /dev/null \
 if [ -f /etc/init.d/ssh ]; then
     sudoIf /etc/init.d/ssh start 2>&1 | sudoIf tee /tmp/sshd.log > /dev/null
 elif [ -f /usr/sbin/sshd ]; then
-    sudoIf /usr/sbin/sshd 2>&1 | sudoIf tee /tmp/sshd.log > /dev/null
+    sudoIf /usr/sbin/sshd 2>&1 -E /tmp/sshd.log
 else
     echo "Unable to find sshd to start"
     exit 1
