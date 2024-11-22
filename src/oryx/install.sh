@@ -156,9 +156,13 @@ PATCH_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 3)
 
 PINNED_SDK_VERSION=""
 # Oryx needs to be built with .NET 8
-if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] ; then
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] || [[ $MAJOR_VERSION_ID = "8" && ${PATCH_VERSION_ID} -ne "202" ]] ; then
     echo "'dotnet 8' was not detected. Attempting to install .NET 8 to build oryx."
-    install_dotnet_using_apt
+    # The oryx build fails with .Net 8.0.201, see https://github.com/devcontainers/images/issues/974
+    # Pinning it to a working version until the upstream Oryx repo updates the dependency
+    # install_dotnet_using_apt
+    PINNED_SDK_VERSION="8.0.202"
+    install_dotnet_with_script ${PINNED_SDK_VERSION}
     if ! dotnet --version > /dev/null ; then
         echo "(!) Please install Dotnet before installing Oryx"
         exit 1
