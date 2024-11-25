@@ -926,6 +926,13 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
             # either string is not found, or file is not present
             # In either case take same action, note >> places at end of file
             echo "${REPLACE_STR}:${PATH}" >> ${SUDOERS_FILE}
+            JUPYTER_INPATH=/home/${USERNAME}/.local/bin
+            if [ ! -d "$JUPYTER_INPATH" ]; then
+                echo "Error: $JUPYTER_INPATH does not exist."
+                exit 1
+            fi
+            JUPYTER_PATH=/usr/local/jupyter
+            ln -s "$JUPYTER_INPATH" "$JUPYTER_PATH"
         fi
     fi
 
