@@ -149,6 +149,7 @@ DOTNET_BINARY=""
 
 if dotnet --version > /dev/null ; then
     DOTNET_BINARY=$(which dotnet)
+    RUNTIME_VERSIONS=$(dotnet --list-runtimes | awk '{print $2}' | sort | uniq)
 fi
 
 MAJOR_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 1)
@@ -233,12 +234,11 @@ fi
 if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     rm -f ${GIT_ORYX}/global.json
     rm -rf /usr/share/dotnet/sdk/$PINNED_SDK_VERSION
-
-    # Extract the major, minor version and the first digit of the patch version
-    MAJOR_MINOR_PATCH1_VERSION=${PINNED_SDK_VERSION%??}
-    rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/$MAJOR_MINOR_PATCH1_VERSION
-    rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$MAJOR_MINOR_PATCH1_VERSION
-    rm -rf /usr/share/dotnet/templates/$MAJOR_MINOR_PATCH1_VERSION
+    NEW_RUNTIME_VERSIONS=$(dotnet --list-runtimes | awk '{print $2}' | sort | uniq)
+    SDK_INSTALLED_RUNTIME=$(echo "$NEW_RUNTIME_VERSIONS" | grep -vxFf <(echo "$RUNTIME_VERSIONS"))
+    rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/$SDK_INSTALLED_RUNTIME
+    rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$SDK_INSTALLED_RUNTIME
+    rm -rf /usr/share/dotnet/templates/$SDK_INSTALLED_RUNTIME
 fi
 
 
