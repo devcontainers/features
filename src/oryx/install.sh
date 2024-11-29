@@ -235,7 +235,11 @@ if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     rm -f ${GIT_ORYX}/global.json
     rm -rf /usr/share/dotnet/sdk/$PINNED_SDK_VERSION
     NEW_RUNTIME_VERSIONS=$(dotnet --list-runtimes | awk '{print $2}' | sort | uniq)
-    SDK_INSTALLED_RUNTIME=$(echo "$NEW_RUNTIME_VERSIONS" | grep -vxFf <(echo "$RUNTIME_VERSIONS"))
+    if [ -n "${RUNTIME_VERSIONS:-}" ]; then
+        SDK_INSTALLED_RUNTIME=$(echo "$NEW_RUNTIME_VERSIONS" | grep -vxFf <(echo "$RUNTIME_VERSIONS"))
+    else
+        SDK_INSTALLED_RUNTIME=$(echo "$NEW_RUNTIME_VERSIONS")
+    fi
     rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/$SDK_INSTALLED_RUNTIME
     rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$SDK_INSTALLED_RUNTIME
     rm -rf /usr/share/dotnet/templates/$SDK_INSTALLED_RUNTIME
