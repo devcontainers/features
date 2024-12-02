@@ -238,7 +238,7 @@ if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     if [ -n "${RUNTIME_VERSIONS:-}" ]; then
         SDK_INSTALLED_RUNTIME=$(echo "$NEW_RUNTIME_VERSIONS" | grep -vxFf <(echo "$RUNTIME_VERSIONS"))
     else
-        SDK_INSTALLED_RUNTIME=$(echo "$NEW_RUNTIME_VERSIONS")
+        SDK_INSTALLED_RUNTIME="$NEW_RUNTIME_VERSIONS"
     fi
     rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/$SDK_INSTALLED_RUNTIME
     rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$SDK_INSTALLED_RUNTIME
