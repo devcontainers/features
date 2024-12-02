@@ -1,6 +1,6 @@
 name: "PR - Test Updated Features"
 on:
-  workflow_dispatch:
+  pull_request:
 
 jobs:
   detect-changes:
