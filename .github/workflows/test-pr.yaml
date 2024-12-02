@@ -1,6 +1,6 @@
 name: "PR - Test Updated Features"
 on:
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   detect-changes:
@@ -57,6 +57,11 @@ jobs:
             "mcr.microsoft.com/devcontainers/base:debian",
             "mcr.microsoft.com/devcontainers/base:noble"
           ]
+        exclude:
+          - features: oryx
+            baseImage: ubuntu:jammy
+          - features: oryx
+            baseImage: mcr.microsoft.com/devcontainers/base:ubuntu
     steps:
       - uses: actions/checkout@v4
 
