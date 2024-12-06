@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
 # Source the environment variables from env.sh
-if [ -f /tmp/env.sh ]; then
-    . /tmp/env.sh
+if [ -f /etc/env.sh ]; then
+    echo "importing values from env.sh.."
+    . /etc/env.sh
 else
     echo "env.sh not found!"
 fi
@@ -13,8 +14,11 @@ if [ "${ALLOW_SHELL_HISTORY}" = "true" ]; then
     echo "Activating feature 'shell-history'"
     echo "User: ${USERNAME}     User home: ${user_home}"
 
+    echo "Creating sub-folder with ${DEVCONTAINER_ID}.."
+
     # Create the shell history directory in the mounted volume
-    HISTORY_DIR="/devcontainers/${DEVCONTAINER_ID}/shellHistory"
+    BASE_HISTORY_DIR="/devcontainers"
+    HISTORY_DIR="${BASE_HISTORY_DIR}/${DEVCONTAINER_ID}/shellHistory"
     USER_HISTORY_FILE="${user_home}/.bash_history"
     VOLUME_HISTORY_FILE="${HISTORY_DIR}/.bash_history"
 
@@ -32,7 +36,9 @@ if [ "${ALLOW_SHELL_HISTORY}" = "true" ]; then
     sudo ln -sf ${USER_HISTORY_FILE} ${VOLUME_HISTORY_FILE}
 
     # Configure immediate history saving to the volume
-    echo 'PROMPT_COMMAND="history -a; history -r;"' >> "${user_home}/.bashrc"
+    if ! grep -q "PROMPT_COMMAND" "${user_home}/.bashrc"; then
+        echo 'PROMPT_COMMAND="history -a; history -r;"' >> "${user_home}/.bashrc"
+    fi
 
-    echo "Shell history setup for persistent appending is complete."
+    echo "Shell history setup for history persistence amongst active containers is complete."
 fi

@@ -296,11 +296,16 @@
     "allow_shell_history": {
         "image": "debian:bookworm",
         "features": {
+            "docker-in-docker": {},
             "common-utils": {
                 "installZsh": true,
                 "allowShellHistory": true
             }
         },
+        "overrideFeatureInstallOrder": [
+            "./common-utils",
+            "./docker-in-docker"
+        ],
         "remoteUser": "vscode",
         "containerUser": "vscode"
     }
