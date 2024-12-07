@@ -9,6 +9,7 @@
 
 GIT_VERSION=${VERSION} # 'system' checks the base image first, else installs 'latest'
 USE_PPA_IF_AVAILABLE=${PPA}
+INSTALL_SUBTREE="${INSTALLSUBTREE:-"true"}"
 
 GIT_CORE_PPA_ARCHIVE_GPG_KEY=E1DD270288B4E6030699E45FA1715D88E1DF1F24
 
@@ -309,6 +310,11 @@ if [ "${ADJUSTED_ID}" = "alpine" ]; then
     git_options+=("NO_GETTEXT=YesPlease")
 fi
 make -s "${git_options[@]}" all && make -s "${git_options[@]}" install 2>&1
+if [[ $INSTALL_SUBTREE = "true" ]]; then
+    cd contrib/subtree/
+    make && make install && make install-doc && cp git-subtree ../.. 2>&1
+    cd ../../
+fi
 rm -rf /tmp/git-${GIT_VERSION}
 clean_up
 echo "Done!"
