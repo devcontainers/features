@@ -423,11 +423,17 @@ get_normalized_architecture_for_specific_sdk_version() {
 # args:
 # version or channel - $1
 is_arm64_supported() {
-    #any channel or version that starts with the specified versions
-    case "$1" in
-        ( "1"* | "2"* | "3"*  | "4"* | "5"*) 
-            echo false
-            return 0
+    # Extract the major version by splitting on the dot
+    major_version="${1%%.*}"
+
+    # Check if the major version is a valid number and less than 6
+    case "$major_version" in
+        [0-9]*)  
+            if [ "$major_version" -lt 6 ]; then
+                echo false
+                return 0
+            fi
+            ;;
     esac
 
     echo true
@@ -951,6 +957,37 @@ get_absolute_path() {
 }
 
 # args:
+# override - $1 (boolean, true or false)
+get_cp_options() {
+    eval $invocation
+
+    local override="$1"
+    local override_switch=""
+
+    if [ "$override" = false ]; then
+        override_switch="-n"
+
+        # create temporary files to check if 'cp -u' is supported
+        tmp_dir="$(mktemp -d)"
+        tmp_file="$tmp_dir/testfile"
+        tmp_file2="$tmp_dir/testfile2"
+
+        touch "$tmp_file"
+
+        # use -u instead of -n if it's available
+        if cp -u "$tmp_file" "$tmp_file2" 2>/dev/null; then
+            override_switch="-u"
+        fi
+
+        # clean up
+        rm -f "$tmp_file" "$tmp_file2"
+        rm -rf "$tmp_dir"
+    fi
+
+    echo "$override_switch"
+}
+
+# args:
 # input_files - stdin
 # root_path - $1
 # out_path - $2
@@ -961,15 +998,7 @@ copy_files_or_dirs_from_list() {
     local root_path="$(remove_trailing_slash "$1")"
     local out_path="$(remove_trailing_slash "$2")"
     local override="$3"
-    local osname="$(get_current_os_name)"
-    local override_switch=$(
-        if [ "$override" = false ]; then
-            if [ "$osname" = "linux-musl" ]; then
-                printf -- "-u";
-            else
-                printf -- "-n";
-            fi
-        fi)
+    local override_switch="$(get_cp_options "$override")"
 
     cat | uniq | while read -r file_path; do
         local path="$(remove_beginning_slash "${file_path#$root_path}")"
@@ -1735,7 +1764,7 @@ do
             zip_path="$1"
             ;;
         -?|--?|-h|--help|-[Hh]elp)
-            script_name="$(basename "$0")"
+            script_name="dotnet-install.sh"
             echo ".NET Tools Installer"
             echo "Usage:"
             echo "       # Install a .NET SDK of a given Quality from a given Channel"
