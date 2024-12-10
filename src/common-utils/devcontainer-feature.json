@@ -90,5 +90,5 @@
         "target": "/var/run/docker.sock",
         "type": "bind"
     }],
-    "entrypoint": ["/usr/local/share/docker-init.sh", "/usr/local/share/ssh-init.sh"]
+    "entrypoint": "/usr/local/share/docker-init.sh"
 }   
