@@ -5,9 +5,6 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-# Initialize an array to store container IDs
-declare -a CONTAINER_IDS
-
 # Name of the generated script file
 SCRIPT_NAME="build_and_run.sh"
 
@@ -18,94 +15,112 @@ cat > $SCRIPT_NAME <<'EOF'
 # Parameters
 BASE_IMAGE=${1:-"ubuntu:latest"}
 IMAGE_NAME=${2:-"custom-image"}
+CONTAINER_NAME=${3:-"${IMAGE_NAME}-container"}
+
+cat > setup_history.sh <<EOL
+#!/bin/sh
+
+set -e
+
+echo "Activating feature 'shell-history'"
+echo "User: vscode     User home: /home/vscode"
+
+echo "Creating sub-folder with random folder named python-app.."
+
+# Create the shell history directory in the mounted volume
+HISTORY_DIR=/devcontainers/python-app/shellHistory
+USER_HISTORY_FILE=/home/vscode/.bash_history
+VOLUME_HISTORY_FILE=/devcontainers/python-app/shellHistory/.bash_history
+
+# Create the history directory in the volume, if it doesn’t already exist
+sudo mkdir -p /devcontainers/python-app/shellHistory
+sudo chown -R vscode /devcontainers/python-app/shellHistory
+sudo chmod -R u+rwx /devcontainers/python-app/shellHistory
+
+# Ensure the volume's history file exists and set permissions
+sudo touch /devcontainers/python-app/shellHistory/.bash_history
+sudo chown -R vscode /devcontainers/python-app/shellHistory/.bash_history
+sudo chmod -R u+rwx /devcontainers/python-app/shellHistory/.bash_history
+
+# Symlink for Bash history
+sudo ln -sf /home/vscode/.bash_history /devcontainers/python-app/shellHistory/.bash_history
+
+# Configure immediate history saving to the volume
+if ! grep -q "PROMPT_COMMAND" "/home/vscode/.bashrc"; then
+    echo 'PROMPT_COMMAND="history -a; history -r;"' >> "/home/vscode/.bashrc"
+fi
+
+echo "Shell history setup for history persistence amongst active containers is complete."
+EOL
+
+# Create entrypoint script
+cat > entrypoint.sh <<EOL
+#!/bin/bash
+
+# Log entrypoint execution
+echo "Executing entrypoint script..." > /var/log/entrypoint.log
+
+# Execute setup history script
+chmod +x /usr/local/bin/setup_history.sh >> /var/log/entrypoint.log 2>&1
+/usr/local/bin/setup_history.sh >> /var/log/entrypoint.log 2>&1
+
+# Keep the container running
+tail -f /dev/null
+EOL
 
 # Create Dockerfile
 cat > Dockerfile <<EOL
 FROM $BASE_IMAGE
 RUN apt-get update && apt-get install -y curl git sudo
 RUN useradd -m vscode
+COPY setup_history.sh /usr/local/bin/setup_history.sh
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
 EOL
 
 # Build and tag the image
 docker build -t $IMAGE_NAME .
 
-# Run the container in the background
-CONTAINER_ID=$(docker run -it -d $IMAGE_NAME)
+# Run the container again for attaching volume
+CONTAINER_ID=$(docker run -v devcontainers:/devcontainers -itd $IMAGE_NAME) > /dev/null
+
+# Output the container ID to a file
+echo "CONTAINER_ID=$CONTAINER_ID" > /tmp/container_id.txt
+
 echo "Started container: $CONTAINER_ID"
-
-
-# Copy the setup_history.sh file to the running container
-sudo docker cp /etc/env.sh $CONTAINER_ID:/etc/env.sh
-sudo docker cp /etc/setup_history.sh $CONTAINER_ID:/etc/setup_history.sh
-
-
-# Execute the command inside the container to set the environment variable and run the script
-docker exec -it $CONTAINER_ID bash -c "chmod +x /etc/setup_history.sh && export DEVCONTAINER_ID=${IMAGE_NAME} && . /etc/setup_history.sh"
-
-docker logs $CONTAINER_ID
 EOF
 
 # Make the generated script executable
 chmod +x $SCRIPT_NAME
-
-echo "The script '$SCRIPT_NAME' has been created. You can execute it with parameters like:"
-echo "./$SCRIPT_NAME python python-app"
-
 ./$SCRIPT_NAME python python-app
-./$SCRIPT_NAME node node-app
-
-# Run the first container (python-app)
-CONTAINER_ID_PYTHON=$(docker run -it -d python-app)
-CONTAINER_IDS+=("$CONTAINER_ID_PYTHON")
-echo "Started python-app container: $CONTAINER_ID_PYTHON"
-
-# Run the second container (node-app)
-CONTAINER_ID_NODE=$(docker run -it -d node-app)
-CONTAINER_IDS+=("$CONTAINER_ID_NODE")
-echo "Started node-app container: $CONTAINER_ID_NODE"
-
-# Export the container ID array to a file for use outside
-export CONTAINER_IDS_STR="${CONTAINER_IDS[*]}"
-
-echo "Container IDs: $CONTAINER_IDS_STR"
-
-container1=${CONTAINER_IDS[0]}
-container2=${CONTAINER_IDS[1]}
 
 # Function to add shell history
 add_shell_history() {
     local container_id=$1
     local history_message=$2
+    echo -e "\nWriting shell history: $history_message";
     docker exec -it $container_id /bin/bash -c "echo \"$history_message\" >> ~/.bash_history"
 }
 
 # Function to check shell history
 check_shell_history() {
     local container_id=$1
+    echo -e "\nChecking shell history from container: ";
     docker exec -it $container_id /bin/bash -c "cat ~/.bash_history"
 }
 
-# Start the first container and add shell history
-docker start $container1
-add_shell_history $container1 "First container shell history"
-docker stop $container1
+source /tmp/container_id.txt
 
-# Start the second container and add shell history
-docker start $container2
-add_shell_history $container2 "Second container shell history"
-docker stop $container2
+# Start the container and add shell history
+docker start $CONTAINER_ID > /dev/null
+add_shell_history $CONTAINER_ID "Shell History for First Container Created."
+docker stop $CONTAINER_ID > /dev/null
 
-# Start both containers and check shell history persistence
-docker start $container1
-echo "Shell history for container 1:"
-check_shell_history $container1
-docker stop $container1
-
-docker start $container2
-echo "Shell history for container 2:"
-check_shell_history $container2
-docker stop $container2
+# Start the container and check shell history persistence
+docker start $CONTAINER_ID > /dev/null
+check_shell_history $CONTAINER_ID
 
 # Report result
 reportResults
