@@ -292,5 +292,21 @@
         "features": {
             "common-utils": {}
         }
+    },
+    "allow_shell_history": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "docker-in-docker": {},
+            "common-utils": {
+                "installZsh": true,
+                "allowShellHistory": true
+            }
+        },
+        "overrideFeatureInstallOrder": [
+            "./common-utils",
+            "./docker-in-docker"
+        ],
+        "remoteUser": "vscode",
+        "containerUser": "vscode"
     }
 }
