@@ -72,7 +72,6 @@ EOL
 cat > Dockerfile <<EOL
 FROM $BASE_IMAGE
 RUN apt-get update && apt-get install -y curl git sudo
-RUN useradd -m vscode
 COPY setup_history.sh /usr/local/bin/setup_history.sh
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
@@ -94,7 +93,7 @@ EOF
 
 # Make the generated script executable
 chmod +x $SCRIPT_NAME
-./$SCRIPT_NAME python python-app
+./$SCRIPT_NAME "mcr.microsoft.com/devcontainers/python:latest" python-app
 
 # Function to add shell history
 add_shell_history() {

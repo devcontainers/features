@@ -294,7 +294,7 @@
         }
     },
     "allow_shell_history": {
-        "image": "debian:bookworm",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "features": {
             "docker-in-docker": {},
             "common-utils": {
