@@ -15,7 +15,6 @@ cat > $SCRIPT_NAME <<'EOF'
 # Parameters
 BASE_IMAGE=${1:-"ubuntu:latest"}
 IMAGE_NAME=${2:-"custom-image"}
-CONTAINER_NAME=${3:-"${IMAGE_NAME}-container"}
 
 cat > setup_history.sh <<EOL
 #!/bin/sh
@@ -93,7 +92,7 @@ EOF
 
 # Make the generated script executable
 chmod +x $SCRIPT_NAME
-./$SCRIPT_NAME "mcr.microsoft.com/devcontainers/python:latest" python-app
+./$SCRIPT_NAME "mcr.microsoft.com/devcontainers/python:latest" "python-app"
 
 # Function to add shell history
 add_shell_history() {
