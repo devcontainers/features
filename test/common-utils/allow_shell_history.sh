@@ -79,10 +79,10 @@ CMD ["bash"]
 EOL
 
 # Build and tag the image
-docker build -t $IMAGE_NAME .
+sudo docker build -t $IMAGE_NAME .
 
 # Run the container again for attaching volume
-CONTAINER_ID=$(docker run -v devcontainers:/devcontainers -itd $IMAGE_NAME) > /dev/null
+CONTAINER_ID=$(sudo docker run -v devcontainers:/devcontainers -itd $IMAGE_NAME) > /dev/null
 
 # Output the container ID to a file
 echo "CONTAINER_ID=$CONTAINER_ID" > /tmp/container_id.txt
@@ -99,25 +99,25 @@ add_shell_history() {
     local container_id=$1
     local history_message=$2
     echo -e "\nWriting shell history: $history_message";
-    docker exec -it $container_id /bin/bash -c "echo \"$history_message\" >> ~/.bash_history"
+    sudo docker exec -it $container_id /bin/bash -c "echo \"$history_message\" >> ~/.bash_history"
 }
 
 # Function to check shell history
 check_shell_history() {
     local container_id=$1
     echo -e "\nChecking shell history from container: ";
-    docker exec -it $container_id /bin/bash -c "cat ~/.bash_history"
+    sudo docker exec -it $container_id /bin/bash -c "cat ~/.bash_history"
 }
 
 source /tmp/container_id.txt
 
 # Start the container and add shell history
-docker start $CONTAINER_ID > /dev/null
+sudo docker start $CONTAINER_ID > /dev/null
 add_shell_history $CONTAINER_ID "Shell History for First Container Created."
-docker stop $CONTAINER_ID > /dev/null
+sudo docker stop $CONTAINER_ID > /dev/null
 
 # Start the container and check shell history persistence
-docker start $CONTAINER_ID > /dev/null
+sudo docker start $CONTAINER_ID > /dev/null
 check_shell_history $CONTAINER_ID
 
 # Report result
