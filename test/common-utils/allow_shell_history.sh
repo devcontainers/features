@@ -99,14 +99,14 @@ add_shell_history() {
     local container_id=$1
     local history_message=$2
     echo -e "\nWriting shell history: $history_message";
-    sudo docker exec -it $container_id /bin/bash -c "echo \"$history_message\" >> ~/.bash_history"
+    sudo docker exec -i $container_id /bin/bash -c "echo \"$history_message\" >> ~/.bash_history"
 }
 
 # Function to check shell history
 check_shell_history() {
     local container_id=$1
     echo -e "\nChecking shell history from container: ";
-    sudo docker exec -it $container_id /bin/bash -c "cat ~/.bash_history"
+    sudo docker exec -i $container_id /bin/bash -c "cat ~/.bash_history"
 }
 
 source /tmp/container_id.txt
