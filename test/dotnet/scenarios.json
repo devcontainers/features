@@ -13,7 +13,7 @@
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "3.1"
+                "version": "8.0"
             }
         }
     },
@@ -22,7 +22,7 @@
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "5.0.3xx"
+                "version": "8.0.0xx"
             }
         }
     },
@@ -42,8 +42,7 @@
             "dotnet": {
                 "version": "8.0.100-preview.6.23330.14",
                 "additionalVersions": [
-                    "7.0",
-                    "6.0"
+                    "7.0"
                 ]
             }
         }
