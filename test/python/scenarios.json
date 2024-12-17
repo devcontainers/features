@@ -185,6 +185,14 @@
             }
         }
     },
+    "install_python_3_8": {
+        "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
+        "features": {
+            "python": {
+                "version": "3.8"
+            }
+        }
+    },    
     "install_alternate_tools": {
         "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-22.04",
         "features": {
@@ -268,5 +276,5 @@
                 "enableShared": true
             }
         }
-    }
+    }    
 }
