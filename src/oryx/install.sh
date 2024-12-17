@@ -149,6 +149,7 @@ DOTNET_BINARY=""
 
 if dotnet --version > /dev/null ; then
     DOTNET_BINARY=$(which dotnet)
+    RUNTIME_VERSIONS=$(dotnet --list-runtimes | awk '{print $2}' | sort | uniq)
 fi
 
 MAJOR_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 1)
@@ -156,20 +157,17 @@ PATCH_VERSION_ID=$(echo $(dotnet --version) | cut -d . -f 3)
 
 PINNED_SDK_VERSION=""
 # Oryx needs to be built with .NET 8
-if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] || [[ $MAJOR_VERSION_ID = "8" && ${PATCH_VERSION_ID} -ge "101" ]] ; then
+if [[ "${DOTNET_BINARY}" = "" ]] || [[ $MAJOR_VERSION_ID != "8" ]] || [[ $MAJOR_VERSION_ID = "8" && ${PATCH_VERSION_ID} -ne "202" ]] ; then
     echo "'dotnet 8' was not detected. Attempting to install .NET 8 to build oryx."
-
     # The oryx build fails with .Net 8.0.201, see https://github.com/devcontainers/images/issues/974
     # Pinning it to a working version until the upstream Oryx repo updates the dependency
     # install_dotnet_using_apt
-    PINNED_SDK_VERSION="8.0.101"
+    PINNED_SDK_VERSION="8.0.202"
     install_dotnet_with_script ${PINNED_SDK_VERSION}
-
     if ! dotnet --version > /dev/null ; then
         echo "(!) Please install Dotnet before installing Oryx"
         exit 1
     fi
-
 fi
 
 BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
@@ -192,8 +190,8 @@ echo "Building solution '$SOLUTION_FILE_NAME'..."
 cd $GIT_ORYX
 ${DOTNET_BINARY} build "$SOLUTION_FILE_NAME" -c Debug
 
-${DOTNET_BINARY} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj
-${DOTNET_BINARY} publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj
+${DOTNET_BINARY} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj --self-contained true
+${DOTNET_BINARY} publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj --self-contained true
 
 chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
@@ -236,12 +234,15 @@ fi
 if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     rm -f ${GIT_ORYX}/global.json
     rm -rf /usr/share/dotnet/sdk/$PINNED_SDK_VERSION
-
-    # Extract the major, minor version and the first digit of the patch version
-    MAJOR_MINOR_PATCH1_VERSION=${PINNED_SDK_VERSION%??}
-    rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/$MAJOR_MINOR_PATCH1_VERSION
-    rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$MAJOR_MINOR_PATCH1_VERSION
-    rm -rf /usr/share/dotnet/templates/$MAJOR_MINOR_PATCH1_VERSION
+    NEW_RUNTIME_VERSIONS=$(dotnet --list-runtimes | awk '{print $2}' | sort | uniq)
+    if [ -n "${RUNTIME_VERSIONS:-}" ]; then
+        SDK_INSTALLED_RUNTIME=$(echo "$NEW_RUNTIME_VERSIONS" | grep -vxFf <(echo "$RUNTIME_VERSIONS"))
+    else
+        SDK_INSTALLED_RUNTIME="$NEW_RUNTIME_VERSIONS"
+    fi
+    rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/$SDK_INSTALLED_RUNTIME
+    rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$SDK_INSTALLED_RUNTIME
+    rm -rf /usr/share/dotnet/templates/$SDK_INSTALLED_RUNTIME
 fi
 
 
