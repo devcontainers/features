@@ -19,7 +19,7 @@ check "Latest .NET SDK version installed" \
 is_dotnet_sdk_version_installed "$expected"
 
 check "Build and run example project" \
-dotnet run --project projects/net8.0
+dotnet run --project projects/net9.0
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.

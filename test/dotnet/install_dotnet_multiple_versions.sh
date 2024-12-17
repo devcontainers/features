@@ -19,9 +19,6 @@ is_dotnet_sdk_version_installed "8.0"
 check ".NET SDK 7.0 installed" \
 is_dotnet_sdk_version_installed "7.0"
 
-check ".NET SDK 6.0 installed" \
-is_dotnet_sdk_version_installed "6.0"
-
 check "Build example class library" \
 dotnet build projects/multitargeting
 
