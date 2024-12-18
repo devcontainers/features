@@ -941,6 +941,9 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
 
         add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.ServerApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
         add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.NotebookApp.allow_origin = '${CONFIGURE_JUPYTERLAB_ALLOW_ORIGIN}'"
+        if [ "$INSTALL_UNDER_ROOT" = true ]; then
+            add_user_jupyter_config $CONFIG_DIR $CONFIG_FILE "c.ServerApp.allow_root = True"
+        fi
     fi
 fi
 
