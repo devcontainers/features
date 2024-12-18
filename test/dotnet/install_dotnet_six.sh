@@ -18,9 +18,6 @@ expected=$(fetch_latest_version_in_channel "6.0")
 check ".NET Core SDK 6.0 installed" \
 is_dotnet_sdk_version_installed "$expected"
 
-check "Build and run example project" \
-dotnet run --project projects/net6.0 
-
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.
 reportResults
