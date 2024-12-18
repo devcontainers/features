@@ -17,12 +17,21 @@
             }
         }
     },
+    "install_dotnet_six": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "remoteUser": "vscode",
+        "features": {
+            "dotnet": {
+                "version": "6.0"
+            }
+        }
+    },    
     "install_dotnet_specific_release_and_feature_band": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "5.0.3xx"
+                "version": "8.0.100-preview.6.23330.14"
             }
         }
     },
