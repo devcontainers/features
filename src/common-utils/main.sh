@@ -406,7 +406,11 @@ elif [ "${USERNAME}" = "none" ]; then
     USER_GID=0
 fi
 # Create or update a non-root user to match UID/GID.
-group_name="${USERNAME}"
+if [ "${USER_GID}" != "automatic" ] && getent group "${USER_GID}" > /dev/null 2>&1; then
+    group_name=$(getent group "${USER_GID}" | cut -d: -f1)
+else
+    group_name="${USERNAME}"
+fi
 if id -u ${USERNAME} > /dev/null 2>&1; then
     # User exists, update if needed
     if [ "${USER_GID}" != "automatic" ] && [ "$USER_GID" != "$(id -g $USERNAME)" ]; then
@@ -421,13 +425,13 @@ else
     # Create user
     if [ "${USER_GID}" = "automatic" ]; then
         groupadd $USERNAME
-    else
+    elif ! getent group "${USER_GID}" > /dev/null 2>&1; then
         groupadd --gid $USER_GID $USERNAME
     fi
     if [ "${USER_UID}" = "automatic" ]; then
-        useradd -s /bin/bash --gid $USERNAME -m $USERNAME
+        useradd -s /bin/bash --gid "${group_name}" -m "${USERNAME}"
     else
-        useradd -s /bin/bash --uid $USER_UID --gid $USERNAME -m $USERNAME
+        useradd -s /bin/bash --uid "${USER_UID}" --gid "${group_name}" -m "${USERNAME}"
     fi
 fi
 
