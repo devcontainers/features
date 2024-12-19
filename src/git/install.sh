@@ -7,8 +7,6 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/git-from-src.md
 # Maintainer: The VS Code and Codespaces Teams
 
-set -ex
-
 GIT_VERSION=${VERSION} # 'system' checks the base image first, else installs 'latest'
 USE_PPA_IF_AVAILABLE=${PPA}
 INSTALL_SUBTREE="${INSTALLSUBTREE:-"true"}"
@@ -212,8 +210,26 @@ if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
     if type git > /dev/null 2>&1; then
         echo "Detected existing system install: $(git version)"
         if [[ $INSTALL_SUBTREE = "true" ]]; then
+
+            if ! type make > /dev/null 2>&1; then
+                check_packages make
+            fi    
+            if ! type asciidoc > /dev/null 2>&1; then
+                check_packages asciidoc
+            fi
+            if ! type xmlto > /dev/null 2>&1; then
+                check_packages xmlto
+            fi 
+            if ! type tar > /dev/null 2>&1; then
+                check_packages tar
+            fi
+            if ! type curl > /dev/null 2>&1; then
+                check_packages curl
+            fi        
             cd /usr/share/
-            git clone https://github.com/git/git.git
+            curl -sL https://github.com/git/git/tarball/master -o git-repo.tar.gz
+            mkdir git
+            tar -xzvf git-repo.tar.gz -C git --strip-components=1
             cd git/contrib/subtree
             make && make install && make install-doc && cp git-subtree ../.. 2>&1
         fi
@@ -242,17 +258,26 @@ if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
         if ! type xmlto > /dev/null 2>&1; then
             check_packages xmlto
         fi 
-        if ! type getopt > /dev/null 2>&1; then
-            check_packages getopt
-        fi                           
+        if ! type tar > /dev/null 2>&1; then
+            check_packages tar
+        fi
+        if ! type curl > /dev/null 2>&1; then
+            check_packages curl
+        fi        
+        if ! type cmp > /dev/null 2>&1; then
+            check_packages diffutils
+        fi        
         cd /usr/share/
-        git clone https://github.com/git/git.git
+        curl -sL https://github.com/git/git/tarball/master -o git-repo.tar.gz
+        mkdir git
+        tar -xzvf git-repo.tar.gz -C git --strip-components=1
         cd git/contrib/subtree
-        make && make install && make install-doc && cp git-subtree ../.. 2>&1
+        make && make install && make install-doc 2>&1
+        cp git-subtree ../..
         export PATH=$PATH:/usr/share/git
         # Persist the PATH change by adding it to .bashrc
         echo 'export PATH=$PATH:/usr/share/git' >> ~/.bashrc
-        echo $PATH
+        echo $PATH           
     fi
     # Clean up
     clean_up
