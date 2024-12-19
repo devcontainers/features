@@ -9,6 +9,7 @@
 
 GIT_VERSION=${VERSION} # 'system' checks the base image first, else installs 'latest'
 USE_PPA_IF_AVAILABLE=${PPA}
+INSTALL_SUBTREE="${INSTALLSUBTREE:-"true"}"
 
 GIT_CORE_PPA_ARCHIVE_GPG_KEY=E1DD270288B4E6030699E45FA1715D88E1DF1F24
 
@@ -208,7 +209,30 @@ export DEBIAN_FRONTEND=noninteractive
 if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
     if type git > /dev/null 2>&1; then
         echo "Detected existing system install: $(git version)"
-        # Clean up
+        if [[ $INSTALL_SUBTREE = "true" ]]; then
+
+            if ! type make > /dev/null 2>&1; then
+                check_packages make
+            fi    
+            if ! type asciidoc > /dev/null 2>&1; then
+                check_packages asciidoc
+            fi
+            if ! type xmlto > /dev/null 2>&1; then
+                check_packages xmlto
+            fi 
+            if ! type tar > /dev/null 2>&1; then
+                check_packages tar
+            fi
+            if ! type curl > /dev/null 2>&1; then
+                check_packages curl
+            fi        
+            cd /usr/share/
+            curl -sL https://github.com/git/git/tarball/master -o git-repo.tar.gz
+            mkdir git
+            tar -xzvf git-repo.tar.gz -C git --strip-components=1
+            cd git/contrib/subtree
+            make && make install && make install-doc && cp git-subtree ../.. 2>&1
+        fi
         clean_up
         exit 0
     fi
@@ -224,6 +248,37 @@ if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
         check_packages ca-certificates
     fi
     check_packages git
+    if [[ $INSTALL_SUBTREE = "true" ]]; then
+        if ! type make > /dev/null 2>&1; then
+            check_packages make
+        fi    
+        if ! type asciidoc > /dev/null 2>&1; then
+            check_packages asciidoc
+        fi
+        if ! type xmlto > /dev/null 2>&1; then
+            check_packages xmlto
+        fi 
+        if ! type tar > /dev/null 2>&1; then
+            check_packages tar
+        fi
+        if ! type curl > /dev/null 2>&1; then
+            check_packages curl
+        fi        
+        if ! type cmp > /dev/null 2>&1; then
+            check_packages diffutils
+        fi        
+        cd /usr/share/
+        curl -sL https://github.com/git/git/tarball/master -o git-repo.tar.gz
+        mkdir git
+        tar -xzvf git-repo.tar.gz -C git --strip-components=1
+        cd git/contrib/subtree
+        make && make install && make install-doc 2>&1
+        cp git-subtree ../..
+        export PATH=$PATH:/usr/share/git
+        # Persist the PATH change by adding it to .bashrc
+        echo 'export PATH=$PATH:/usr/share/git' >> ~/.bashrc
+        echo $PATH           
+    fi
     # Clean up
     clean_up
     exit 0
@@ -309,6 +364,11 @@ if [ "${ADJUSTED_ID}" = "alpine" ]; then
     git_options+=("NO_GETTEXT=YesPlease")
 fi
 make -s "${git_options[@]}" all && make -s "${git_options[@]}" install 2>&1
+if [[ $INSTALL_SUBTREE = "true" ]]; then
+    cd contrib/subtree/
+    make && make install && make install-doc && cp git-subtree ../.. 2>&1
+    cd ../../
+fi
 rm -rf /tmp/git-${GIT_VERSION}
 clean_up
 echo "Done!"
