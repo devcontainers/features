@@ -77,19 +77,6 @@
             }
         }
     },
-    "install_jupyterlab_existing_sudoers_file": {
-        "build": {
-            "dockerfile": "Dockerfile"
-        },
-        "remoteUser": "vscode",
-        "features": {
-            "python": {
-                "version": "latest",
-                "installJupyterlab": true,
-                "configureJupyterlabAllowOrigin": "*"
-            }
-        }
-    },
     "install_jupyterlab_alpine": {
         "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "remoteUser": "vscode",
