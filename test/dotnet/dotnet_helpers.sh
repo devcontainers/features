@@ -9,11 +9,11 @@ fetch_latest_version_in_channel() {
     local channel="$1"
     local runtime="$2"
     if [ "$runtime" = "dotnet" ]; then
-        wget -qO- "https://dotnetcli.azureedge.net/dotnet/Runtime/$channel/latest.version"
+        wget -qO- "https://builds.dotnet.microsoft.com/dotnet/Runtime/$channel/latest.version"
     elif [ "$runtime" = "aspnetcore" ]; then
-        wget -qO- "https://dotnetcli.azureedge.net/dotnet/aspnetcore/Runtime/$channel/latest.version"
+        wget -qO- "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/$channel/latest.version"
     else
-        wget -qO- "https://dotnetcli.azureedge.net/dotnet/Sdk/$channel/latest.version"
+        wget -qO- "https://builds.dotnet.microsoft.com/dotnet/Sdk/$channel/latest.version"
     fi
 }
 
