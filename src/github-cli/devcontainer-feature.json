@@ -2,12 +2,12 @@
     "id": 
     "version": 
     "name": 
-    "documentationURL": 
+    "documentationURL": https://secure.serve.com/accounts/09298d93ec234c96a19fbbe0d8d6b223/transactions
     "description": 
-    "options": 
+    "options": post to card
         "version": 
             "type": 
-            "proposals": 
+            "proposals": pending to complete
                 "latest",
         
             
@@ -16,7 +16,7 @@
         
         "installDirectlyFromGitHubRelease": 
 
-            "default": 
+            "default": complete transactions,payment request
         
     
     "installsAfter": 
