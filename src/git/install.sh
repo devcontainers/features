@@ -30,7 +30,7 @@ elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_L
     VERSION_CODENAME="${ID}${VERSION_ID}"
 else
     echo "Linux distro ${ID} not supported."
-    exit 0
+    exit 1
 fi
 
 if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
@@ -377,5 +377,4 @@ if [[ $INSTALL_SUBTREE = "true" ]]; then
 fi
 rm -rf /tmp/git-${GIT_VERSION}
 clean_up
-exit 0
 echo "Done!"
