@@ -30,7 +30,7 @@ elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_L
     VERSION_CODENAME="${ID}${VERSION_ID}"
 else
     echo "Linux distro ${ID} not supported."
-    exit 1
+    exit 0
 fi
 
 if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
@@ -226,12 +226,14 @@ if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
             if ! type curl > /dev/null 2>&1; then
                 check_packages curl
             fi        
-            cd /usr/share/
-            curl -sL https://github.com/git/git/tarball/master -o git-repo.tar.gz
-            mkdir git
-            tar -xzvf git-repo.tar.gz -C git --strip-components=1
-            cd git/contrib/subtree
+            cd /tmp/
+            GIT_VERSION=$(git --version | awk '{print $3}')
+            curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
+            cd /tmp/git-${GIT_VERSION}
+            cd contrib/subtree
             make && make install && make install-doc && cp git-subtree ../.. 2>&1
+            cd ../../
+            rm -rf /tmp/git-${GIT_VERSION}
         fi
         clean_up
         exit 0
@@ -267,17 +269,21 @@ if [ ${GIT_VERSION} = "os-provided" ] || [ ${GIT_VERSION} = "system" ]; then
         if ! type cmp > /dev/null 2>&1; then
             check_packages diffutils
         fi        
-        cd /usr/share/
-        curl -sL https://github.com/git/git/tarball/master -o git-repo.tar.gz
-        mkdir git
-        tar -xzvf git-repo.tar.gz -C git --strip-components=1
-        cd git/contrib/subtree
-        make && make install && make install-doc 2>&1
-        cp git-subtree ../..
-        export PATH=$PATH:/usr/share/git
-        # Persist the PATH change by adding it to .bashrc
-        echo 'export PATH=$PATH:/usr/share/git' >> ~/.bashrc
-        echo $PATH           
+        cd /tmp/
+        GIT_VERSION=$(git --version | awk '{print $3}')
+        curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
+        cd /tmp/git-${GIT_VERSION}        
+        cd contrib/subtree
+        make && make install && make install-doc && cp git-subtree ../.. 2>&1
+        cd ../../
+        #For some base images such as alma, rocky, fedora git subtree feature doesn’t work 
+        # even after successful subtree installation. This happens particularly when the git
+        # version provided by default is an old one. Adding the installation path specifically 
+        # for them.
+        if [ -f "/usr/local/libexec/git-core/git-subtree" ]; then
+           echo 'export PATH=$PATH:/usr/local/libexec/git-core' >> ~/.bashrc
+        fi  
+        rm -rf /tmp/git-${GIT_VERSION}   
     fi
     # Clean up
     clean_up
@@ -371,4 +377,5 @@ if [[ $INSTALL_SUBTREE = "true" ]]; then
 fi
 rm -rf /tmp/git-${GIT_VERSION}
 clean_up
+exit 0
 echo "Done!"
