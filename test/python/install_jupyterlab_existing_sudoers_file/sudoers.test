@@ -1,2 +1,0 @@
-# Sudoers File for testing, after install script runs the Defaults secure_path should be appended to
-Defaults secure_path=/original_content_of_sudoers_file

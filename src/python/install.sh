@@ -465,16 +465,18 @@ install_prev_vers_cpython() {
 install_cpython() {
     VERSION=$1
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
+
+    # Check if the specified Python version is already installed
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${VERSION} already exists."
-        exit 1
+    else
+        mkdir -p /tmp/python-src ${INSTALL_PATH}
+        cd /tmp/python-src
+        cpython_tgz_filename="Python-${VERSION}.tgz"
+        cpython_tgz_url="https://www.python.org/ftp/python/${VERSION}/${cpython_tgz_filename}"
+        echo "Downloading ${cpython_tgz_filename}..."
+        curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
     fi
-    mkdir -p /tmp/python-src ${INSTALL_PATH}
-    cd /tmp/python-src
-    cpython_tgz_filename="Python-${VERSION}.tgz"
-    cpython_tgz_url="https://www.python.org/ftp/python/${VERSION}/${cpython_tgz_filename}"
-    echo "Downloading ${cpython_tgz_filename}..."
-    curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
 }
 
 install_from_source() {
@@ -560,20 +562,20 @@ install_using_oryx() {
     VERSION=$1
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
 
+    # Check if the specified Python version is already installed
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${VERSION} already exists."
-        exit 1
+    else
+        # The python install root path may not exist, so create it
+        mkdir -p "${PYTHON_INSTALL_PATH}"
+        oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
+
+        ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
+        ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
+        ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
+
+        add_symlink
     fi
-
-    # The python install root path may not exist, so create it
-    mkdir -p "${PYTHON_INSTALL_PATH}"
-    oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
-
-    ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
-    ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
-    ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
-
-    add_symlink
 }
 
 sudo_if() {
@@ -910,21 +912,15 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
     install_user_package $INSTALL_UNDER_ROOT jupyterlab
     install_user_package $INSTALL_UNDER_ROOT jupyterlab-git
 
+    # Create a symlink to the JupyterLab binary for non root users
     if [ "$INSTALL_UNDER_ROOT" = false ]; then
-        # JupyterLab would have installed into /home/${USERNAME}/.local/bin
-        # Adding it to default path for Codespaces which use non-login shells
-        SUDOERS_FILE="/etc/sudoers.d/$USERNAME"
-        SEARCH_STR="Defaults secure_path="
-        REPLACE_STR="Defaults secure_path=/home/${USERNAME}/.local/bin"
-
-        if grep -qs ${SEARCH_STR} ${SUDOERS_FILE}; then
-            # string found and file is present
-            sed -i "s|${SEARCH_STR}|${REPLACE_STR}:|g" "${SUDOERS_FILE}"
-        else
-            # either string is not found, or file is not present
-            # In either case take same action, note >> places at end of file
-            echo "${REPLACE_STR}:${PATH}" >> ${SUDOERS_FILE}
+        JUPYTER_INPATH=/home/${USERNAME}/.local/bin
+        if [ ! -d "$JUPYTER_INPATH" ]; then
+            echo "Error: $JUPYTER_INPATH does not exist."
+            exit 1
         fi
+        JUPYTER_PATH=/usr/local/jupyter
+        ln -s "$JUPYTER_INPATH" "$JUPYTER_PATH"
     fi
 
     # Configure JupyterLab if needed
