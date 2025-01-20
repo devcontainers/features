@@ -379,6 +379,7 @@ if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
         gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS
     else
         echo "Skipping GPG check for Terraform."
+        curl -sSL -o terraform_SHA256SUMS https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS
     fi
 else
     echo "${TERRAFORM_SHA256} *${terraform_filename}" > terraform_SHA256SUMS
@@ -431,6 +432,8 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
                 fi
             else
                 echo "Skipping GPG check for TFLint."
+                curl -sSL -o tflint_checksums.txt https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt
+                sha256sum --ignore-missing -c tflint_checksums.txt
             fi
         fi
     fi
@@ -480,6 +483,8 @@ if [ "${INSTALL_SENTINEL}" = "true" ]; then
             shasum -a 256 --ignore-missing -c sentinel_checksums.txt
         else
             echo "Skipping GPG check for Sentinel."
+            curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
+            sha256sum --ignore-missing -c sentinel_checksums.txt
         fi
     else
         echo "${SENTINEL_SHA256} *${SENTINEL_FILENAME}" >sentinel_checksums.txt
