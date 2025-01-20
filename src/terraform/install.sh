@@ -18,6 +18,7 @@ TERRAGRUNT_VERSION="${TERRAGRUNT:-"latest"}"
 INSTALL_SENTINEL=${INSTALLSENTINEL:-false}
 INSTALL_TFSEC=${INSTALLTFSEC:-false}
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
+DISABLE_GPG_CHECK=${DISABLEGPGCHECK:-false}
 
 TERRAFORM_SHA256="${TERRAFORM_SHA256:-"automatic"}"
 TFLINT_SHA256="${TFLINT_SHA256:-"automatic"}"
@@ -371,16 +372,18 @@ if grep -q "The specified key does not exist." "${terraform_filename}"; then
     terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
 fi
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
-    if [ "${TERRAFORM_SHA256}" = "automatic" ]; then
+    if [ "${DISABLE_GPG_CHECK}" != "true" ]; then
         receive_gpg_keys TERRAFORM_GPG_KEY
         curl -sSL -o terraform_SHA256SUMS https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS 
         curl -sSL -o terraform_SHA256SUMS.sig https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
         gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS
     else
-        echo "${TERRAFORM_SHA256} *${terraform_filename}" > terraform_SHA256SUMS
+        echo "Skipping GPG check for Terraform."
     fi
-    sha256sum --ignore-missing -c terraform_SHA256SUMS
+else
+    echo "${TERRAFORM_SHA256} *${terraform_filename}" > terraform_SHA256SUMS
 fi
+sha256sum --ignore-missing -c terraform_SHA256SUMS
 unzip ${terraform_filename}
 mv -f terraform /usr/local/bin/
 
@@ -402,33 +405,32 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
             echo "${TFLINT_SHA256} *${TFLINT_FILENAME}" > tflint_checksums.txt
             sha256sum --ignore-missing -c tflint_checksums.txt
         else
-            curl -sSL -o tflint_checksums.txt https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt
+            if [ "${DISABLE_GPG_CHECK}" != "true" ]; then
+                curl -sSL -o tflint_checksums.txt https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt
 
-            set +e
-            curl -sSL -o checksums.txt.keyless.sig https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.keyless.sig
-            set -e
+                set +e
+                curl -sSL -o checksums.txt.keyless.sig https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.keyless.sig
+                set -e
 
-            # Check that checksums.txt.keyless.sig exists and is not empty
-            if [ -s checksums.txt.keyless.sig ]; then
-                # Validate checksums with cosign
-                curl -sSL -o checksums.txt.pem https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.pem
-                ensure_cosign
-                cosign verify-blob \
-                    --certificate=/tmp/tf-downloads/checksums.txt.pem \
-                    --signature=/tmp/tf-downloads/checksums.txt.keyless.sig \
-                    --certificate-identity-regexp="^https://github.com/terraform-linters/tflint"  \
-                    --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
-                    /tmp/tf-downloads/tflint_checksums.txt
-                # Ensure that checksums.txt has $TFLINT_FILENAME
-                grep ${TFLINT_FILENAME} /tmp/tf-downloads/tflint_checksums.txt
-                # Validate downloaded file
-                sha256sum --ignore-missing -c tflint_checksums.txt
+                if [ -s checksums.txt.keyless.sig ]; then
+                    curl -sSL -o checksums.txt.pem https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.pem
+                    ensure_cosign
+                    cosign verify-blob \
+                        --certificate=/tmp/tf-downloads/checksums.txt.pem \
+                        --signature=/tmp/tf-downloads/checksums.txt.keyless.sig \
+                        --certificate-identity-regexp="^https://github.com/terraform-linters/tflint"  \
+                        --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+                        /tmp/tf-downloads/tflint_checksums.txt
+                    grep ${TFLINT_FILENAME} /tmp/tf-downloads/tflint_checksums.txt
+                    sha256sum --ignore-missing -c tflint_checksums.txt
+                else
+                    curl -sSL -o tflint_checksums.txt.sig https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.sig
+                    curl -sSL -o tflint_key "${TFLINT_GPG_KEY_URI}"
+                    gpg -q --import tflint_key
+                    gpg --verify tflint_checksums.txt.sig tflint_checksums.txt
+                fi
             else
-                # Fallback to older, GPG-based verification (pre-0.47.0 of tflint)
-                curl -sSL -o tflint_checksums.txt.sig https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.sig
-                curl -sSL -o tflint_key "${TFLINT_GPG_KEY_URI}"
-                gpg -q --import tflint_key
-                gpg --verify tflint_checksums.txt.sig tflint_checksums.txt
+                echo "Skipping GPG check for TFLint."
             fi
         fi
     fi
@@ -470,18 +472,19 @@ if [ "${INSTALL_SENTINEL}" = "true" ]; then
     echo "(*) Downloading Sentinel... ${sentinel_filename}"
     curl -sSL -o /tmp/tf-downloads/${sentinel_filename} ${sentinel_releases_url}/${SENTINEL_VERSION}/${sentinel_filename}
     if [ "${SENTINEL_SHA256}" != "dev-mode" ]; then
-        if [ "${SENTINEL_SHA256}" = "automatic" ]; then
+        if [ "${DISABLE_GPG_CHECK}" != "true" ]; then
             receive_gpg_keys TERRAFORM_GPG_KEY
             curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
             curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
             gpg --verify sentinel_checksums.txt.sig sentinel_checksums.txt
-            # Verify the SHASUM matches the archive
             shasum -a 256 --ignore-missing -c sentinel_checksums.txt
         else
-            echo "${SENTINEL_SHA256} *${SENTINEL_FILENAME}" >sentinel_checksums.txt
+            echo "Skipping GPG check for Sentinel."
         fi
-        sha256sum --ignore-missing -c sentinel_checksums.txt
+    else
+        echo "${SENTINEL_SHA256} *${SENTINEL_FILENAME}" >sentinel_checksums.txt
     fi
+    sha256sum --ignore-missing -c sentinel_checksums.txt
     unzip /tmp/tf-downloads/${sentinel_filename}
     chmod a+x /tmp/tf-downloads/sentinel
     mv -f /tmp/tf-downloads/sentinel /usr/local/bin/sentinel
