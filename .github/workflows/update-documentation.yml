@@ -1,4 +1,68 @@
+You can update the `.github/workflows/update-documentation.yml` file with the following content to resolve the push rejection issue:
+
+```yaml
 name: "Update Documentation"
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    environment: documentation
+    permissions:
+      contents: write
+      pull-requests: write
+    if: "github.ref == 'refs/heads/main'"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Documentation
+        uses: devcontainers/action@v1
+        with:
+          generate-docs: "true"
+          base-path-to-features: "./src"
+
+      - name: Create a PR for Documentation
+        id: push_image_info
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+        run: |
+          set -e
+          echo "Start."
+
+          # Configure git and Pull latest changes
+          git config --global user.email github-actions@github.com
+          git config --global user.name github-actions
+          git config pull.rebase false
+
+          git pull origin main
+
+          branch=automated-documentation-update-$GITHUB_RUN_ID
+          git checkout -b $branch
+          message='Automated documentation update'
+
+          # Add / update and commit
+          git add */**/README.md
+          git commit -m 'Automated documentation update [skip ci]' || export NO_UPDATES=true
+
+          # Push
+          if [ "$NO_UPDATES" != "true" ] ; then
+              git push origin "$branch"
+              gh api \
+                --method POST \
+                -H "Accept: application/vnd.github+json" \
+                /repos/${GITHUB_REPOSITORY}/pulls \
+                -f title="$message" \
+                -f body="$message" \
+                -f head="$branch" \
+                -f base='main'
+          fi
+```
+
+This ensures the workflow pulls the latest changes from the main branch before creating a new branch and pushing the updates.name: "Update Documentation"
 on:
   push:
     branches:
