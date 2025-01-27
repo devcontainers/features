@@ -112,24 +112,21 @@ get_previous_version() {
     local variable_name=$3
     local mode=$4
     prev_version=${!variable_name}
-
     output=$(curl -s "$repo_url");
-
     check_packages jq
-
-    message=$(echo "$output" | jq -r '.message')
-    
-    if [[ $message == "API rate limit exceeded"* ]] || [[ $mode == 'mode1' ]]; then
-        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
-        echo -e "\nAttempting to find latest version using GitHub tags."
-        find_prev_version_from_git_tags prev_version "$url" "tags/v"
-        declare -g ${variable_name}="${prev_version}"
-    else 
-        echo -e "\nAttempting to find latest version using GitHub Api."
+    if echo "$output" | jq -e 'type == "object"' > /dev/null; then
+        message=$(echo "$output" | jq -r '.message')
+        if [[ $message == "API rate limit exceeded"* ]] || [[ $mode == 'mode1' ]]; then
+            echo -e "\nAn attempt to find previous to latest version using GitHub Api Failed... \nReason: ${message}"
+            echo -e "\nAttempting to find previous to latest version using GitHub tags."
+            find_prev_version_from_git_tags prev_version "$url" "tags/v"
+            declare -g ${variable_name}="${prev_version}"
+        fi
+    elif echo "$output" | jq -e 'type == "array"' > /dev/null; then
+        echo -e "\nAttempting to find previous version using GitHub Api."
         version=$(echo "$output" | jq -r '.[1].tag_name')
         declare -g ${variable_name}="${version#v}"
-    fi  
-    echo "${variable_name}=${!variable_name}"
+    fi
 }
 
 get_github_api_repo_url() {
