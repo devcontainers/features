@@ -126,7 +126,7 @@ get_previous_version() {
         declare -g ${variable_name}="${prev_version}"
     else 
         echo -e "\nAttempting to find latest version using GitHub Api."
-        version=$(echo "$output" | jq -r '.tag_name')
+        version=$(echo "$output" | jq -r '.[1].tag_name')
         declare -g ${variable_name}="${version#v}"
     fi  
     echo "${variable_name}=${!variable_name}"
