@@ -156,9 +156,9 @@ install_compose-switch_as_docker-compose() {
 echo -e "\n👉 Trying to install compose-switch as docker-compose using mode 1 ( find_prev_version_from_git_tags method )";
 install_compose-switch_as_docker-compose "mode1"
 check "installs compose-switch as docker-compose mode 1" bash -c "[[ -f /usr/local/bin/docker-compose ]]"
-check "docker-compose switch version" bash -c "docker compose-switch --version | awk '{print $NF}'"
+check "docker-compose version" bash -c "docker-compose version"
 
 echo -e "\n👉 Trying to install compose-switch as docker-compose using mode 2 ( GitHub Api )";
 install_compose-switch_as_docker-compose "mode2"
 check "installs compose-switch as docker-compose mode 2" bash -c "[[ -f /usr/local/bin/docker-compose ]]"
-check "docker-compose switch version" bash -c "docker compose-switch --version | awk '{print $NF}'"
+check "docker-compose version" bash -c "docker-compose version"
