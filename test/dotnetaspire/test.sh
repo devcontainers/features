@@ -17,6 +17,12 @@ source dotnet_env.sh
 check "dotnet is installed in DOTNET_ROOT and execute permission is granted" \
 test -x "$DOTNET_ROOT/dotnet" 
 
+check "dotnet 8.0 is installed" \
+test "$($DOTNET_ROOT/dotnet --info | grep '8.0.')"
+
+check "dotnet 9.0 is installed" \
+test "$($DOTNET_ROOT/dotnet --info | grep '9.0.')"
+
 check "dotnetaspire templates are installed" \
 test "$DOTNET_ROOT/dotnet new aspire"
 

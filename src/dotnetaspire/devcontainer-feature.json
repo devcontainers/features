@@ -17,8 +17,9 @@
         },
     },
     "dependsOn": {
-        // how to ensure the correct .NET version is installed? seems it would require using onCreateCommand
-        // to write out a temporary devcontainer.json. For now, it's fixed at 9.0
-        "ghcr.io/devcontainers/features/dotnet": "9.0"
+        "ghcr.io/devcontainers/features/dotnet": {
+            "version": "8.0",
+            "additionalVersions": "9.0"
+        }
     }
 }
