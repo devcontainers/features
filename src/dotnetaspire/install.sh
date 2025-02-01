@@ -14,7 +14,7 @@ set -e
 VERSION="${VERSION:-"latest"}"
 
 if [[ ! $VERSION =~ ^(9\.0|latest|latest-daily)$ ]]; then
-    echo "Error: VERSION must be either '9.0', '9.0.0, 'latest', or 'latest-daily' not: '$VERSION'."
+    echo "Error: VERSION must be either '9.0', '9.0.0', 'latest', or 'latest-daily' not: '$VERSION'."
     exit 1
 fi
 
