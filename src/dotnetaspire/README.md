@@ -27,7 +27,7 @@ This Feature should work on recent versions of Debian/Ubuntu-based distributions
 
 ### VS Code Extensions
 
-- `ms-dotnettools.csharp`
+- `ms-dotnettools.csdevkit`
 
 ## Configuration examples
 
