@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -13,7 +13,6 @@ source dev-container-features-test-lib
 # The 'check' command comes from the dev-container-features-test-lib. Syntax is...
 # check <LABEL> <cmd> [args...]
 source dotnet_env.sh
-source dotnet_helpers.sh
 
 check "dotnet is installed in DOTNET_ROOT and execute permission is granted" \
 test -x "$DOTNET_ROOT/dotnet" 

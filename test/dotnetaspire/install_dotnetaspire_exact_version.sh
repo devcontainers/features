@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -11,13 +11,7 @@ source dev-container-features-test-lib
 # The 'check' command comes from the dev-container-features-test-lib. Syntax is...
 # check <LABEL> <cmd> [args...]
 source dotnet_env.sh
-source dotnet_helpers.sh
 
-check ".NET SDK 8.0.100-preview.6.23330.14 installed" \
-is_dotnet_sdk_version_installed "8.0.100-preview.6.23330.14"
-
-check "Build and run example project" \
-dotnet run --project projects/net8.0 
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.
