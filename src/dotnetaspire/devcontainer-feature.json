@@ -1,0 +1,24 @@
+{
+    "id": "dotnetaspire",
+    "version": "1.0.0",
+    "name": ".NET Aspire",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnetaspire",
+    "description": "Installs .NET Aspire. See https://aka.ms/dotnetaspire",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest daily",
+                "latest", // currently 9.0, when 9.1 ships, implement both "9.1" and "latest". 
+                "9.0",
+            ],
+            "default": "9.0",
+            "description": "Select or enter a .NET Aspire version. Use 'latest' for the latest supported version, '9.0' for the 9.0 version, 'X.Y' or 'X.Y.Z' for a specific version, or 'latest-daily' for the latest unsupported build."
+        },
+    },
+    "dependsOn": {
+        // how to ensure the correct .NET version is installed? seems it would require using onCreateCommand
+        // to write out a temporary devcontainer.json. For now, it's fixed at 9.0
+        "ghcr.io/devcontainers/features/dotnet": "9.0"
+    }
+}

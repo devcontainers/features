@@ -1,0 +1,10 @@
+{
+    "install_dotnetaspire_exact_version": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "dotnetaspire": {
+                "version": "9.0"
+            }
+        }
+    }
+}
