@@ -9,7 +9,7 @@
             "type": "string",
             "proposals": [
                 "latest daily",
-                "latest", // currently 9.0, when 9.1 ships, implement both "9.1" and "latest". 
+                "latest",
                 "9.0",
             ],
             "default": "9.0",
