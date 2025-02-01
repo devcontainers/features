@@ -25,7 +25,7 @@ fi
 echo "Activating feature '.NET Aspire' version: $VERSION"
 
 # Before .NET Aspire 9.0 install required `dotnet workload`: this is no longer necessary, as Aspire is 
-# installed when restoring an Aspireprojects. It's only necessary to install the appropriate version of the templates.
+# installed when restoring Aspire projects. It's only necessary to install the appropriate version of the templates.
 
 
 if [[ $VERSION =~ ^(9\.0\.0)$ ]]; then
