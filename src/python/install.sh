@@ -788,8 +788,6 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     major_version=$(get_major_version ${PYTHON_VER})
     IFS=","
     read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-    # update-alternatives --install ${PYTHON_INSTALL_PATH}${major_version} python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER} $((${#additional_versions[@]}+1))
-    # update-alternatives --install ${PYTHON_INSTALL_PATH}/${PYTHON_VER}/bin/python${major_version} python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER} $((${#additional_versions[@]}+1))
     update-alternatives --install ${CURRENT_PATH}/bin/python${PYTHON_VERSION} python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER} $((${#additional_versions[@]}+1))
     update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER}
 
