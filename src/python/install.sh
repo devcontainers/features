@@ -766,6 +766,12 @@ esac
 
 check_packages ${REQUIRED_PKGS}
 
+# Function to get the major version from a SemVer string
+get_major_version() {
+    local version="$1"
+    echo "$version" | cut -d '.' -f 1
+}
+
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
     if ! cat /etc/group | grep -e "^python:" > /dev/null 2>&1; then
@@ -777,15 +783,28 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 
     install_python ${PYTHON_VERSION}
 
+    PYTHON_VER=${PYTHON_VERSION}
+    find_version_from_git_tags PYTHON_VER "https://github.com/python/cpython"
+    major_version=$(get_major_version ${PYTHON_VER})
+    IFS=","
+    read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+    # update-alternatives --install ${PYTHON_INSTALL_PATH}${major_version} python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER} $((${#additional_versions[@]}+1))
+    # update-alternatives --install ${PYTHON_INSTALL_PATH}/${PYTHON_VER}/bin/python${major_version} python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER} $((${#additional_versions[@]}+1))
+    update-alternatives --install ${CURRENT_PATH}/bin/python${PYTHON_VERSION} python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER} $((${#additional_versions[@]}+1))
+    update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER}
+
     # Additional python versions to be installed but not be set as default.
     if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         OLD_INSTALL_PATH="${INSTALL_PATH}"
         OLDIFS=$IFS
         IFS=","
             read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-            for version in "${additional_versions[@]}"; do
+            for i in "${!additional_versions[@]}"; do
+                version=${additional_versions[$i]}
                 OVERRIDE_DEFAULT_VERSION="false"
                 install_python $version
+                major_version=$(get_major_version ${version})
+                update-alternatives --install ${PYTHON_INSTALL_PATH}/${VERSION}/bin/python${VERSION} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
             done
         INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
