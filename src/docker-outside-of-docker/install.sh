@@ -170,7 +170,7 @@ get_previous_version() {
         version=$(echo "$output" | jq -r '.[1].tag_name')
         declare -g ${variable_name}="${version#v}"
     fi  
-    echo "${variable_name}=${!variable_name}"
+    echo "${variable_name}=${!variable_name}" 
 }
 
 get_github_api_repo_url() {
