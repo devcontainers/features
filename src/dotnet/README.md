@@ -25,7 +25,7 @@ This Feature installs the latest .NET SDK, which includes the .NET CLI and the s
 
 ### VS Code Extensions
 
-- `ms-dotnettools.csharp`
+- `ms-dotnettools.csdevkit`
 
 ## Configuration examples
 
