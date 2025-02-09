@@ -1,0 +1,8 @@
+{
+    "less_installed": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "aws-cli": {}
+        }
+    }
+}
