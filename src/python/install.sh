@@ -780,9 +780,6 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     usermod -a -G python "${USERNAME}"
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
     install_python ${PYTHON_VERSION}
-    major_version=$(get_major_version ${VERSION})
-    update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} 100
-    update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
 
     # Additional python versions to be installed but not be set as default.
     if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
@@ -790,11 +787,14 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         OLDIFS=$IFS
         IFS=","
             read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+            major_version=$(get_major_version ${VERSION})
+            update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${#additional_versions[@]}+1))
+            update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
             for i in "${!additional_versions[@]}"; do
                 version=${additional_versions[$i]}
                 OVERRIDE_DEFAULT_VERSION="false"
                 install_python $version
-                update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} 100
+                update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
             done
         INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
