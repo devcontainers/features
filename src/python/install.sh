@@ -785,11 +785,6 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
 
     PYTHON_VER=${PYTHON_VERSION}
     find_version_from_git_tags PYTHON_VER "https://github.com/python/cpython"
-    major_version=$(get_major_version ${PYTHON_VER})
-    IFS=","
-    read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-    update-alternatives --install ${CURRENT_PATH}/bin/python${PYTHON_VERSION} python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER} $((${#additional_versions[@]}+1))
-    update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER}
 
     # Additional python versions to be installed but not be set as default.
     if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
@@ -802,8 +797,10 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
                 OVERRIDE_DEFAULT_VERSION="false"
                 install_python $version
                 major_version=$(get_major_version ${version})
-                update-alternatives --install ${PYTHON_INSTALL_PATH}/${VERSION}/bin/python${VERSION} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
+                update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} 100
             done
+        update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER} 100
+        update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER}
         INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
     fi
