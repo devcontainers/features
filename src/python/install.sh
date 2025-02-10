@@ -778,13 +778,11 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         groupadd -r python
     fi
     usermod -a -G python "${USERNAME}"
-
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
-
     install_python ${PYTHON_VERSION}
-
-    PYTHON_VER=${PYTHON_VERSION}
-    find_version_from_git_tags PYTHON_VER "https://github.com/python/cpython"
+    major_version=$(get_major_version ${VERSION})
+    update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} 100
+    update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
 
     # Additional python versions to be installed but not be set as default.
     if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
@@ -796,11 +794,8 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
                 version=${additional_versions[$i]}
                 OVERRIDE_DEFAULT_VERSION="false"
                 install_python $version
-                major_version=$(get_major_version ${version})
                 update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} 100
             done
-        update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER} 100
-        update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${PYTHON_VER}
         INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
     fi
