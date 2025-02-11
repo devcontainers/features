@@ -788,13 +788,26 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         IFS=","
             read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
             major_version=$(get_major_version ${VERSION})
-            update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${#additional_versions[@]}+1))
-            update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
+            if type apt-get > /dev/null 2>&1; then
+                # Debian/Ubuntu: Use update-alternatives
+                update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${#additional_versions[@]}+1))
+                update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
+            elif type dnf > /dev/null 2>&1 || type yum > /dev/null 2>&1 || type microdnf > /dev/null 2>&1; then
+                # Fedora/RHEL/CentOS: Use alternatives
+                alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${#additional_versions[@]}+1))
+                alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
+            fi
             for i in "${!additional_versions[@]}"; do
                 version=${additional_versions[$i]}
                 OVERRIDE_DEFAULT_VERSION="false"
                 install_python $version
-                update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
+                if type apt-get > /dev/null 2>&1; then
+                    # Debian/Ubuntu: Use update-alternatives
+                    update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
+                elif type dnf > /dev/null 2>&1 || type yum > /dev/null 2>&1 || type microdnf > /dev/null 2>&1; then
+                    # Fedora/RHEL/CentOS: Use alternatives
+                    alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
+                fi
             done
         INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
