@@ -29,38 +29,54 @@ check_version_switch() {
     fi
     AVAILABLE_VERSIONS=()
     INDEX=1
-
     echo "Available Python versions:"
     if [ "${STYLE}" = "debian" ]; then
         while read -r alt && read -r pri; do
             PATH=${alt#Alternative: }   # Extract only the path
             PRIORITY=${pri#Priority: }  # Extract only the priority number
-            AVAILABLE_VERSIONS+=("${PATH}")
+            TEMP_VERSIONS+=("${PRIORITY} ${PATH}")
             echo "$INDEX) $PATH (Priority: $PRIORITY)"
             ((INDEX++))
         done <<< "${PYTHON_ALTERNATIVES}"
     elif [ "${STYLE}" = "fedora" ]; then
+        export PATH="/usr/bin:$PATH"
         # Fedora/RHEL output: one line per alternative in the format:
         while IFS= read -r line; do
             # Split using " - priority " as a delimiter.
-            PATH=$(echo "$line" | awk -F' - priority ' '{print $1}' | xargs)
-            PRIORITY_VALUE=$(echo "$line" | awk -F' - priority ' '{print $2}' | xargs)
-            AVAILABLE_VERSIONS+=("$PATH")
+            PATH=$(/usr/bin/awk -F' - priority ' '{print $1}' <<< "$line" | /usr/bin/xargs /bin/echo)
+            PRIORITY=$(/usr/bin/awk -F' - priority ' '{print $2}' <<< "$line" | /usr/bin/xargs /bin/echo)    
+            TEMP_VERSIONS+=("${PRIORITY} ${PATH}") 
             echo "$INDEX) $PATH (Priority: $PRIORITY_VALUE)"
             ((INDEX++))
         done <<< "${PYTHON_ALTERNATIVES}"
     fi
 
-    echo -e "\n Available Versions: ${#AVAILABLE_VERSIONS[@]}"
+    export PATH="/usr/bin:$PATH"   
+    # Sort by priority (numerically ascending)
+    IFS=$'\n' TEMP_VERSIONS=($(sort -n <<<"${TEMP_VERSIONS[*]}"))
+    unset IFS
 
+    # Populate AVAILABLE_VERSIONS from sorted data
+    AVAILABLE_VERSIONS=()
+    INDEX=1
+    echo -e "\nAvailable Python versions (Sorted in asc order of priority):"
+    for ENTRY in "${TEMP_VERSIONS[@]}"; do
+        PRIORITY=${ENTRY%% *}  # Extract priority (first part before space)
+        PATH=${ENTRY#* }       # Extract path (everything after first space)
+        AVAILABLE_VERSIONS+=("${PATH}")
+        echo "$INDEX) $PATH (Priority: $PRIORITY)"
+        ((INDEX++))
+    done
+
+    echo -e "\nAvailable Versions Count: ${#AVAILABLE_VERSIONS[@]}\n"
     # Ensure at least 4 alternatives exist
     if [ "${#AVAILABLE_VERSIONS[@]}" -lt 4 ]; then
         echo "Error: Less than 4 Python versions registered in update-alternatives."
         exit 1
     fi
 
-    export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
+    export PATH="/usr/bin:$PATH"
+    echo -e "\nSwitching to different versions using update-alternatives --set command...\n"
     for CHOICE in {1..4}; do
         SELECTED_VERSION="${AVAILABLE_VERSIONS[$((CHOICE - 1))]}"
         echo "Switching to: ${SELECTED_VERSION}"
@@ -72,7 +88,7 @@ check_version_switch() {
         # Verify the switch
         echo "Python version after switch:"
         /usr/local/python/current/bin/python3 --version
-        /bin/sleep 2
+        /bin/sleep 1
         echo -e "\n"
     done
     echo -e "Update-Alternatives --display: \n"
@@ -81,7 +97,6 @@ check_version_switch() {
     elif type dnf > /dev/null 2>&1 || type yum > /dev/null 2>&1 || type microdnf > /dev/null 2>&1; then
         /usr/sbin/alternatives --display python3
     fi
-    
 }
 
 check "Version Switch With Update_Alternatives" check_version_switch
