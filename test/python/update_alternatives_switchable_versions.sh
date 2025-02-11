@@ -31,28 +31,27 @@ check_version_switch() {
     INDEX=1
 
     echo "Available Python versions:"
-    if [ "$STYLE" = "debian" ]; then
+    if [ "${STYLE}" = "debian" ]; then
         while read -r alt && read -r pri; do
             PATH=${alt#Alternative: }   # Extract only the path
             PRIORITY=${pri#Priority: }  # Extract only the priority number
-            AVAILABLE_VERSIONS+=("$PATH")
+            AVAILABLE_VERSIONS+=("${PATH}")
             echo "$INDEX) $PATH (Priority: $PRIORITY)"
             ((INDEX++))
         done <<< "${PYTHON_ALTERNATIVES}"
-    elif [ "$STYLE" = "fedora" ]; then
+    elif [ "${STYLE}" = "fedora" ]; then
         # Fedora/RHEL output: one line per alternative in the format:
-        # /usr/local/python/3.11.11 - priority 4
         while IFS= read -r line; do
             # Split using " - priority " as a delimiter.
-            SELECTED_PATH=$(echo "$line" | awk -F' - priority ' '{print $1}' | xargs)
+            PATH=$(echo "$line" | awk -F' - priority ' '{print $1}' | xargs)
             PRIORITY_VALUE=$(echo "$line" | awk -F' - priority ' '{print $2}' | xargs)
-            AVAILABLE_VERSIONS+=("$SELECTED_PATH")
-            echo "$INDEX) $SELECTED_PATH (Priority: $PRIORITY_VALUE)"
+            AVAILABLE_VERSIONS+=("$PATH")
+            echo "$INDEX) $PATH (Priority: $PRIORITY_VALUE)"
             ((INDEX++))
         done <<< "${PYTHON_ALTERNATIVES}"
     fi
 
-    echo -e "\n"
+    echo -e "\n Available Versions: ${#AVAILABLE_VERSIONS[@]}"
 
     # Ensure at least 4 alternatives exist
     if [ "${#AVAILABLE_VERSIONS[@]}" -lt 4 ]; then
@@ -60,21 +59,20 @@ check_version_switch() {
         exit 1
     fi
 
+    export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
     for CHOICE in {1..4}; do
         SELECTED_VERSION="${AVAILABLE_VERSIONS[$((CHOICE - 1))]}"
         echo "Switching to: ${SELECTED_VERSION}"
-        if type apt-get > /dev/null 2>&1; then
+        if command -v apt-get > /dev/null 2>&1; then
             /usr/bin/update-alternatives --set python3 ${SELECTED_VERSION}
-        elif type dnf > /dev/null 2>&1 || type yum > /dev/null 2>&1 || type microdnf > /dev/null 2>&1; then
+        elif command -v dnf > /dev/null 2>&1 || command -v yum > /dev/null 2>&1 || command -v microdnf > /dev/null 2>&1; then
             /usr/sbin/alternatives --set python3 ${SELECTED_VERSION}
         fi
-
         # Verify the switch
         echo "Python version after switch:"
         /usr/local/python/current/bin/python3 --version
-
         /bin/sleep 2
-
         echo -e "\n"
     done
     echo -e "Update-Alternatives --display: \n"
