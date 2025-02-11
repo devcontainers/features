@@ -256,7 +256,7 @@
             }
         }
     },
-    "update-alternatives_switchable_versions": {
+    "update_alternatives_switchable_versions": {
         "image": "ubuntu:focal",
         "features": {
             "python": {
