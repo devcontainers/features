@@ -1,0 +1,26 @@
+{
+    "install_dotnetaspire_exact_version": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "dotnetaspire": {
+                "version": "9.0"
+            }
+        }
+    },
+    "install_dotnetaspire_latest_version": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "dotnetaspire": {
+                "version": "latest"
+            }
+        }
+    },
+    "install_dotnetaspire_latest_daily_version": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "dotnetaspire": {
+                "version": "latest-daily"
+            }
+        }
+    }
+}

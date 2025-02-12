@@ -1,0 +1,4 @@
+#!/bin/bash
+export DOTNET_NOLOGO=true
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
+export DOTNET_GENERATE_ASPNET_CERTIFICATE=false

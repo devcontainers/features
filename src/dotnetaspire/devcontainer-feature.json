@@ -1,0 +1,42 @@
+{
+    "id": "dotnetaspire",
+    "version": "1.0.0",
+    "name": ".NET Aspire",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnetaspire",
+    "description": "Installs .NET Aspire. See https://aka.ms/dotnetaspire",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest daily",
+                "latest",
+                "9.0",
+            ],
+            "default": "9.0",
+            "description": "Select or enter a .NET Aspire version. Use 'latest' for the latest supported version, '9.0' for the 9.0 version, 'X.Y' or 'X.Y.Z' for a specific version, or 'latest-daily' for the latest unsupported build."
+        },
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csdevkit",
+                "ms-azuretools.vscode-bicep",
+                "GitHub.copilot-chat",
+                "GitHub.copilot"
+            ],
+            "settings": {
+                "remote.autoForwardPorts": true,
+                "remote.autoForwardPortsSource": "hybrid",
+                "remote.otherPortsAttributes": {
+                    "onAutoForward": "ignore"
+                }
+            }
+        }
+    },
+    "dependsOn": {
+        "ghcr.io/devcontainers/features/dotnet": {
+            "version": "8.0",
+            "additionalVersions": "9.0"
+        }
+    }
+}
