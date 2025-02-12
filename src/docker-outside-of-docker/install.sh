@@ -156,25 +156,26 @@ get_previous_version() {
     output=$(curl -s "$repo_url");
 
     check_packages jq
-
-    message=$(echo "$output" | jq -r '.message')
     
-    if [[ $message == "API rate limit exceeded"* ]]; then
-        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
-        echo -e "\nAttempting to find latest version using GitHub tags."
-        find_prev_version_from_git_tags prev_version "$url" "tags/v"
-        declare -g ${variable_name}="${prev_version}"
-    else 
-        echo -e "\nAttempting to find latest version using GitHub Api."
-        version=$(echo "$output" | jq -r '.tag_name')
+    if echo "$output" | jq -e 'type == "object"' > /dev/null; then
+        message=$(echo "$output" | jq -r '.message')
+        if [[ $message == "API rate limit exceeded"* ]]; then
+            echo -e "\nAn attempt to find previous to latest version using GitHub Api Failed... \nReason: ${message}"
+            echo -e "\nAttempting to find previous to latest version using GitHub tags."
+            find_prev_version_from_git_tags prev_version "$url" "tags/v"
+            declare -g ${variable_name}="${prev_version}"
+        fi
+    elif echo "$output" | jq -e 'type == "array"' > /dev/null; then
+        echo -e "\nAttempting to find previous version using GitHub Api."
+        version=$(echo "$output" | jq -r '.[1].tag_name')
         declare -g ${variable_name}="${version#v}"
     fi  
-    echo "${variable_name}=${!variable_name}"
+    echo "${variable_name}=${!variable_name}" 
 }
 
 get_github_api_repo_url() {
     local url=$1
-    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases"
 }
 
 install_compose_switch_fallback() {
