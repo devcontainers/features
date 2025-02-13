@@ -35,8 +35,8 @@
             }
         }
     },
-    "install_go_centos-9": {
-        "image": "quay.io/centos/centos:stream9",
+    "install_go_centos-7": {
+        "image": "centos:centos7",
         "features": {
             "go": {
                 "version": "latest",
