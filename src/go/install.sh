@@ -278,8 +278,10 @@ if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version 2>/dev/null)" != *
     fi
     curl -fsSL -o /tmp/go.tar.gz.asc "https://golang.org/dl/go${TARGET_GO_VERSION}.linux-${architecture}.tar.gz.asc"
     gpg --verify /tmp/go.tar.gz.asc /tmp/go.tar.gz
-    echo "Removing existing Go ${TARGET_GOROOT}..."
-    rm -rf "${TARGET_GOROOT:?}/"*
+    if [ -n "${TARGET_GOROOT}" ] && [ -d "${TARGET_GOROOT}" ]; then
+       echo "Removing existing Go installation at ${TARGET_GOROOT}..."
+       rm -rf "${TARGET_GOROOT}/"*
+    fi
     echo "Extracting Go ${TARGET_GO_VERSION}..."
     tar -xzf /tmp/go.tar.gz -C "${TARGET_GOROOT}" --strip-components=1
     rm -rf /tmp/go.tar.gz /tmp/go.tar.gz.asc /tmp/tmp-gnupg
