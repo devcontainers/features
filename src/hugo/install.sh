@@ -89,7 +89,7 @@ if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
 fi
 
 # Install Hugo if it's missing or not requested version
-if [ `hugo version | awk '{ print $2 }'| awk -F- '{ print $1 }'` != $VERSION ] ; then
+if ! hugo version &> /dev/null || [ "$(hugo version | awk '{ print $2 }' | awk -F- '{ print $1 }')" != "$VERSION" ]; then 
     if ! cat /etc/group | grep -e "^hugo:" > /dev/null 2>&1; then
         groupadd -r hugo
     fi
