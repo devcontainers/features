@@ -74,7 +74,7 @@ if [ "$CUDNN_VERSION" = "automatic" ]; then
     if [[ "$CUDA_VERSION" < "12.3" ]]; then
         CUDNN_VERSION=$(apt-cache policy libcudnn8 | grep "$CUDA_VERSION" | grep -Eo '^[^-1+]*' | sort -V | tail -n1 | xargs)
     else
-        CUDNN_VERSION=$(apt-cache policy libcudnn9-cuda-$major_cuda_version | grep "Candidate" | awk '{print $2}' | grep -Eo '^[^-1+]*')
+        CUDNN_VERSION=$(apt-cache policy libcudnn9-cuda-$major_cuda_version | grep "Candidate" | awk '{print $2}' | grep -Eo '^[^-+]*')
     fi
 fi
 major_cudnn_version=$(echo "${CUDNN_VERSION}" | cut -d '.' -f 1)
