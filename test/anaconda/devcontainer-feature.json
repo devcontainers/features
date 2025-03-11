@@ -12,22 +12,22 @@
             "default": "latest",
             "description": "Select or enter an anaconda version."
         },
-        "useCondaForge": {
+        "USE_CONDA_FORGE": {
             "type": "boolean",
             "default": true,
             "description": "Set conda-forge as the default channel for better package compatibility"
         },
-        "installMamba": {
+        "INSTALL_MAMBA": {
             "type": "boolean",
             "default": true,
             "description": "Install mamba for faster package management"
         },
-        "useSystemPackages": {
+        "USE_SYSTEM_PACKAGES": {
             "type": "boolean",
             "default": true,
             "description": "Use system package manager on Debian/Ubuntu systems to install Conda"
         },
-        "installFullAnaconda": {
+        "INSTALL_FULL_ANACONDA": {
             "type": "boolean",
             "default": false,
             "description": "Install full Anaconda distribution instead of minimal Miniconda"
