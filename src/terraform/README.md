@@ -28,9 +28,6 @@ Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects la
 ### VS Code Extensions
 
 - `HashiCorp.terraform`
-- `ms-azuretools.vscode-azureterraform`
-
-
 
 ## Licensing
 
