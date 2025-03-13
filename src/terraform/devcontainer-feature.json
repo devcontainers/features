@@ -59,15 +59,13 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "HashiCorp.terraform",
-                "ms-azuretools.vscode-azureterraform"
+                "HashiCorp.terraform"
             ],
             "settings": {
                 "terraform.languageServer.enable": true,
                 "terraform.languageServer.args": [
                     "serve"
-                ],
-                "azureTerraform.terminal": "integrated"
+                ]
             }
         }
     },
