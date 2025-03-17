@@ -27,6 +27,7 @@ set -e
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
+apt clean
 
 # Setup STDERR.
 err() {
@@ -427,6 +428,7 @@ if [ -f "/usr/local/share/docker-init.sh" ]; then
     echo "/usr/local/share/docker-init.sh already exists, so exiting."
     # Clean up
     rm -rf /var/lib/apt/lists/*
+    apt clean
     exit 0
 fi
 echo "docker-init doesn't exist, adding..."
@@ -640,5 +642,6 @@ chown ${USERNAME}:root /usr/local/share/docker-init.sh
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
+apt clean
 
 echo 'docker-in-docker-debian script has completed!'
