@@ -170,7 +170,7 @@ get_previous_version() {
        fi
     elif echo "$output" | jq -e 'type == "array"' > /dev/null; then 
         echo -e "\nAttempting to find latest version using GitHub Api."
-        version=$(echo "$output" | jq -r '.[0].tag_name')
+        version=$(echo "$output" | jq -r '.[1].tag_name')
         declare -g ${variable_name}="${version#v}"
     fi  
     echo "${variable_name}=${!variable_name}"
