@@ -11,7 +11,7 @@
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" #v1, v2 or none
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v2"}" #v1, v2 or none
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -371,8 +371,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
     else
         compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
         docker_compose_url="https://github.com/docker/compose"
-        # find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
-        compose_version=2.35.0
+        find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
         echo "(*) Installing docker-compose ${compose_version}..."
         curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
             if [[ $DOCKER_DASH_COMPOSE_VERSION == "latest" ]]; then 
