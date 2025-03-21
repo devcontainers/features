@@ -146,8 +146,8 @@ apt_get_update()
         for package in "$@"; do
             if ! dpkg -s "$package" > /dev/null 2>&1; then
                 echo "Package $package not installed. Installing using apt-get..."
-                sudo apt-get update
-                sudo apt-get install -y --no-install-recommends "$package"
+                apt-get update
+                apt-get install -y --no-install-recommends "$package"
             else
                 echo "Package $package is already installed (APT)."
             fi
