@@ -294,7 +294,7 @@ install_using_github() {
     fi
     if [ "${architecture}" = "amd64" ]; then
         architecture="amd64"
-        elif [ "${architecture}" = "x86_64"]; then 
+        elif [ "${architecture}" = "x86_64" ]; then 
         architecture="x86_64"
         else
         architecture="x64"
