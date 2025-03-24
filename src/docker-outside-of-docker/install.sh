@@ -364,7 +364,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
             install_compose_fallback "$docker_compose_url" "$compose_version" "$target_compose_arch" "$docker_compose_path"
             if [ $? -ne 0 ]; then
-                 echo -e "Error: "Failed to install docker-compose v${compose_version}"
+                 echo -e "Error: Failed to install docker-compose v${compose_version}"
             fi
         }
         chmod +x ${docker_compose_path}
