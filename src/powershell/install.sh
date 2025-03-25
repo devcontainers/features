@@ -21,6 +21,9 @@ MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 POWERSHELL_ARCHIVE_ARCHITECTURES_UBUNTU="amd64"
 POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX="x86_64"
 POWERSHELL_ARCHIVE_VERSION_CODENAMES="stretch buster bionic focal bullseye jammy bookworm noble"
+
+#These key servers are used to verify the authenticity of packages and repositories.
+#keyservers for ubuntu and almalinux are different so we need to specify both
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkp://keyserver.ubuntu.com:80
 keyserver hkps://keys.openpgp.org
@@ -292,13 +295,10 @@ install_using_github() {
     if ! type git > /dev/null 2>&1; then
         check_packages git
     fi
-    if [ "${architecture}" = "amd64" ]; then
+    if [ "${architecture}" = "x86_64" ]; then
         architecture="amd64"
-        elif [ "${architecture}" = "x86_64" ]; then 
-        architecture="x86_64"
         else
-        architecture="x64"
-        
+        architecture="x64"   
     fi
     pwsh_url="https://github.com/PowerShell/PowerShell"
     find_version_from_git_tags POWERSHELL_VERSION $pwsh_url
@@ -306,9 +306,7 @@ install_using_github() {
     if grep -q "Not Found" "${powershell_filename}"; then 
         install_prev_pwsh $pwsh_url
     fi
-
-    # Ugly - but only way to get sha256 is to parse release HTML. Remove newlines and tags, then look for filename followed by 64 hex characters.
-    #curl -sSL -o "release.html" "https://github.com/PowerShell/PowerShell/releases/tag/v${POWERSHELL_VERSION}" 
+    
     wget https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}
     mkdir ~/powershell
     tar -xvf powershell-${POWERSHELL_VERSION}-linux-x64.tar.gz -C ~/powershell
