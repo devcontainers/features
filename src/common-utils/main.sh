@@ -166,7 +166,7 @@ install_redhat_packages() {
     elif type tdnf > /dev/null 2>&1; then
        install_cmd=tdnf
     elif type dnf > /dev/null 2>&1; then
-       install_cmd=dnf
+       install_cmd=tdnf
     elif type yum > /dev/null 2>&1; then
        install_cmd=yum
     else
