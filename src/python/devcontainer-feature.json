@@ -1,6 +1,6 @@
 {
   "id": "python",
-  "version": "1.6.4",
+  "version": "1.7.0",
   "name": "Python",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python",
   "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab is conditionally installed with the python feature. Note: May require source code compilation.",
@@ -67,7 +67,7 @@
     "PYTHON_PATH": "/usr/local/python/current",
     "PIPX_HOME": "/usr/local/py-utils",
     "PIPX_BIN_DIR": "/usr/local/py-utils/bin",
-    "PATH": "/usr/local/python/current/bin:/usr/local/py-utils/bin:${PATH}"
+    "PATH": "/usr/local/python/current/bin:/usr/local/py-utils/bin:/usr/local/jupyter:${PATH}"
   },
   "customizations": {
     "vscode": {
@@ -78,9 +78,9 @@
       ],
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
-	      "[python]": {
-	        "editor.defaultFormatter": "ms-python.autopep8"
-	      }
+        "[python]": {
+          "editor.defaultFormatter": "ms-python.autopep8"
+        }
       }
     }
   },

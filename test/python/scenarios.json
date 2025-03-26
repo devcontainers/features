@@ -68,19 +68,6 @@
             }
         }
     },
-    "install_jupyterlab_existing_sudoers_file": {
-        "build": {
-            "dockerfile": "Dockerfile"
-        },
-        "remoteUser": "vscode",
-        "features": {
-            "python": {
-                "version": "latest",
-                "installJupyterlab": true,
-                "configureJupyterlabAllowOrigin": "*"
-            }
-        }
-    },
     "install_jupyterlab_rhel_family": {
         "image": "almalinux:8",
         "remoteUser": "vscode",
@@ -266,6 +253,26 @@
             "python": {
                 "version": "3.11",
                 "enableShared": true
+            }
+        }
+    },
+    "update_alternatives_switchable_versions": {
+        "image": "ubuntu:focal",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "installTools": true,
+                "additionalVersions": "3.8,3.9.13,3.10.5"
+            }
+        }
+    },
+    "alternatives_switchable_versions": {
+        "image": "fedora",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "installTools": true,
+                "additionalVersions": "3.8,3.9.13,3.10.5"
             }
         }
     }
