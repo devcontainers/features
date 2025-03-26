@@ -162,11 +162,11 @@ install_redhat_packages() {
     local remove_epel="false"
     local install_cmd=microdnf
     if type microdnf > /dev/null 2>&1; then
-       install_cmd=dnf
+       install_cmd=microdnf
     elif type tdnf > /dev/null 2>&1; then
        install_cmd=tdnf
     elif type dnf > /dev/null 2>&1; then
-       install_cmd=tdnf
+       install_cmd=dnf
     elif type yum > /dev/null 2>&1; then
        install_cmd=yum
     else
