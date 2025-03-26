@@ -155,20 +155,21 @@ apt_get_update()
                 echo "Package $package is already installed (APT)."
             fi
         done
-    elif command -v rpm > /dev/null 2>&1 && command -v dnf > /dev/null 2>&1; then
-        # If rpm and dnf exist, assume DNF-based system (RHEL/AlmaLinux)
-        for package in "$@"; do
-            if ! rpm -q "$package" > /dev/null 2>&1; then
-                echo "Package $package not installed. Installing using dnf..."
-                 dnf install -y "$package"
-            else
-                echo "Package $package is already installed (DNF)."
-            fi
-        done
-    else
-        echo "Unsupported package manager. Neither APT nor DNF found."
-        return 1
-    fi
+        elif command -v dnf > /dev/null 2>&1; then
+    for package in "$@"; do
+        if ! dnf list installed "$package" > /dev/null 2>&1; then
+            echo "Package $package not installed. Installing using dnf..."
+            dnf install -y "$package"
+        else
+            echo "Package $package is already installed (DNF)."
+        fi
+    done
+else
+    echo "Unsupported package manager. Neither APT nor DNF found."
+    return 1
+fi
+
+   
 }
 
 install_using_apt() {
@@ -307,6 +308,7 @@ install_using_github() {
         install_prev_pwsh $pwsh_url
     fi
     
+    # downlaod the latest version of powershell and extracting the file to powershell directory
     wget https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}
     mkdir ~/powershell
     tar -xvf powershell-${POWERSHELL_VERSION}-linux-x64.tar.gz -C ~/powershell
