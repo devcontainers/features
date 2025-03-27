@@ -1,6 +1,6 @@
 {
     "id": "git",
-    "version": "1.3.2",
+    "version": "1.3.3",
     "name": "Git (from source)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/git",
     "description": "Install an up-to-date version of Git, built from source as needed. Useful for when you want the latest and greatest features. Auto-detects latest stable version and installs needed dependencies.",
@@ -19,7 +19,12 @@
             "type": "boolean",
             "default": true,
             "description": "Install from PPA if available (only supported for Ubuntu distributions)"
-        }
+        },
+        "installSubtree": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install git/contrib/subtree"
+        }        
     },
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"
