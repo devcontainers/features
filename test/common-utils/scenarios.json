@@ -292,5 +292,11 @@
         "features": {
             "common-utils": {}
         }
+    },
+    "Azure-linux-CU": {
+        "image": "mcr.microsoft.com/dotnet/sdk:8.0-azurelinux3.0",
+        "features": {
+            "common-utils": {}
+        }
     }
 }
