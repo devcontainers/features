@@ -77,6 +77,11 @@
         "ms-python.autopep8"
       ],
       "settings": {
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes `python3` and `pip3` pre-installed and available on the `PATH`, along with the Python language extensions for Python development."
+          }
+        ],
         "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
         "[python]": {
           "editor.defaultFormatter": "ms-python.autopep8"
