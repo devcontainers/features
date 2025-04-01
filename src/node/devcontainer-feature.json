@@ -59,6 +59,13 @@
     },
     "customizations": {
         "vscode": {
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes `node`, `npm` and `eslint` pre-installed and available on the `PATH` for Node.js and JavaScript development."
+                    }
+                ]
+            },
             "extensions": [
                 "dbaeumer.vscode-eslint"
             ]
