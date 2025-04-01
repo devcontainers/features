@@ -51,7 +51,14 @@
         "vscode": {
             "extensions": [
                 "ms-azuretools.vscode-docker"
-            ]
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes the Docker CLI (`docker`) pre-installed and available on the `PATH` for running and managing containers using the Docker daemon on the host machine."
+                    }
+                ]
+            }
         }
     },
     "mounts": [
