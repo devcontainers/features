@@ -1,6 +1,6 @@
 {
     "id": "docker-in-docker",
-    "version": "2.12.1",
+    "version": "2.12.2",
     "name": "Docker (Docker-in-Docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
     "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -71,7 +71,14 @@
         "vscode": {
             "extensions": [
                 "ms-azuretools.vscode-docker"
-            ]
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes the Docker CLI (`docker`) pre-installed and available on the `PATH` for running and managing containers using a dedicated Docker daemon running inside the dev container."
+                    }
+                ]
+            }
         }
     },
     "mounts": [
