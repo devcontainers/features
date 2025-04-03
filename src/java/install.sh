@@ -213,14 +213,8 @@ find_version_list() {
         major_version=$(echo "$java_ver" | cut -d '.' -f 1)
     fi
     
-    # Remove this hardcoded fallback as this fails for latest version released ex: 24
+    # Remove the hardcoded fallback as this fails for new jdk latest version released ex: 24
     # Related Issue: https://github.com/devcontainers/features/issues/1308
-    # if [ "${JDK_DISTRO}" = "ms" ]; then
-    #     if [ "${major_version}" = "8" ] || [ "${major_version}" = "18" ] || [ "${major_version}" = "22" ] || [ "${major_version}" = "23" ] || [ "${major_version}" = "24" ];then
-    #         JDK_DISTRO="tem"
-    #     fi
-    # fi
-
     if [ "${JDK_DISTRO}" = "ms" ]; then
         # Check if the requested version is available in the 'ms' distribution
         echo "Check if OpenJDK is available for version ${major_version} for ${JDK_DISTRO} Distro"
