@@ -25,8 +25,8 @@ is_dotnet_sdk_version_installed "7.0"
 check ".NET SDK 6.0 installed" \
 is_dotnet_sdk_version_installed "6.0"
 
-check ".NET SDK 5.0 installed" \
-is_dotnet_sdk_version_installed "5.0"
+check ".NET SDK 10.0 installed" \
+is_dotnet_sdk_version_installed "10.0"
 
 check ".NET Core SDK 3.1 installed" \
 is_dotnet_sdk_version_installed "3.1"
@@ -46,8 +46,8 @@ dotnet run --project projects/net7.0
 check "Build and run .NET 6.0 project" \
 dotnet run --project projects/net6.0
 
-check "Build and run .NET 5.0 project" \
-dotnet run --project projects/net5.0
+check "Build and run .NET 10.0 project" \
+dotnet run --project projects/net10.0
 
 check "Build and run .NET Core 3.1 project" \
 dotnet run --project projects/netcoreapp3.1
