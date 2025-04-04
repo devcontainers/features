@@ -214,7 +214,7 @@ find_version_list() {
     fi
     
     if [ "${JDK_DISTRO}" = "ms" ]; then
-        if [ "${major_version}" = "8" ] || [ "${major_version}" = "18" ] || [ "${major_version}" = "22" ] || [ "${major_version}" = "23" ]; then
+        if [ "${major_version}" = "8" ] || [ "${major_version}" = "18" ] || [ "${major_version}" -ge 22 ]; then
             JDK_DISTRO="tem"
         fi
     fi
