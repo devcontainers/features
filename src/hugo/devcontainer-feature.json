@@ -23,16 +23,16 @@
     "PATH": "/usr/local/hugo/bin:${PATH}"
   },
   "customizations": {
-        "vscode": {
-            "settings": {
-                "github.copilot.chat.codeGeneration.instructions": [
-                    {
-                        "text": "This dev container includes Hugo, a popular open-source static site generator written in Go, pre-installed and available on the `PATH`."
-                    }
-                ]
-            }
-        }
-    },
+    "vscode": {
+      "settings": {
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes Hugo, a popular open-source static site generator written in Go, pre-installed and available on the `PATH`."
+          }
+        ]
+      }
+    }
+  },
   "installsAfter": [
       "ghcr.io/devcontainers/features/common-utils"
   ]

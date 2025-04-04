@@ -43,11 +43,11 @@
         "ms-vscode.azurecli"
       ],
       "settings": {
-                "github.copilot.chat.codeGeneration.instructions": [
-                    {
-                        "text": "This dev container includes the Azure CLI along with needed dependencies pre-installed and available on the `PATH`, along with the Azure CLI extension for Azure development."
-                    }
-                ]
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes the Azure CLI along with needed dependencies pre-installed and available on the `PATH`, along with the Azure CLI extension for Azure development."
+          }
+        ]
       }
     }
   },
