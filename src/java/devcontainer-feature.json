@@ -1,6 +1,6 @@
 {
   "id": "java",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "name": "Java (via SDKMAN!)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/java",
   "description": "Installs Java, SDKMAN! (if not installed), and needed dependencies.",
@@ -104,7 +104,12 @@
         "vscjava.vscode-java-pack"
       ],
       "settings": {
-        "java.import.gradle.java.home": "/usr/local/sdkman/candidates/java/current"
+        "java.import.gradle.java.home": "/usr/local/sdkman/candidates/java/current",
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes Java, SDKMAN! and needed dependencies pre-installed and available on the `PATH`, along with the Java language extension pack for Java development."
+          }
+        ]
       }
     }
   },
