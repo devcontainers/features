@@ -1,6 +1,6 @@
 {
   "id": "hugo",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "name": "Hugo",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/hugo",
   "options": {
@@ -21,6 +21,17 @@
   "containerEnv": {
     "HUGO_DIR": "/usr/local/hugo",
     "PATH": "/usr/local/hugo/bin:${PATH}"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes Hugo, a popular open-source static site generator written in Go, pre-installed and available on the `PATH`."
+          }
+        ]
+      }
+    }
   },
   "installsAfter": [
       "ghcr.io/devcontainers/features/common-utils"

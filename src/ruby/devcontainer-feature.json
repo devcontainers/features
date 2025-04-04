@@ -1,6 +1,6 @@
 {
     "id": "ruby",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "name": "Ruby (via rvm)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/ruby",
     "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
@@ -22,7 +22,14 @@
         "vscode": {
             "extensions": [
                 "shopify.ruby-lsp"
-            ]
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies pre-installed and available on the `PATH`, along with the Ruby language extension for Ruby development."
+                    }
+                ]
+            }
         }
     },
     "containerEnv": {
