@@ -248,7 +248,7 @@ get_github_api_repo_url() {
 # Figure out correct version of a three part version number is not passed
 ruby_url="https://github.com/ruby/ruby"
 
-RUBY_VERSION="3.1.xyz"
+RUBY_VERSION="3.4.xyz"
 
 set_rvm_install_args() {
     RUBY_VERSION=$1
