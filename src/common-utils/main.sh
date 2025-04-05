@@ -161,12 +161,18 @@ install_redhat_packages() {
     local package_list=""
     local remove_epel="false"
     local install_cmd=microdnf
-    if ! type microdnf > /dev/null 2>&1; then
-        install_cmd=dnf
-        if ! type dnf > /dev/null 2>&1; then
-            install_cmd=yum
-        fi
-    fi
+    if type microdnf > /dev/null 2>&1; then
+       install_cmd=microdnf
+    elif type tdnf > /dev/null 2>&1; then
+       install_cmd=tdnf
+    elif type dnf > /dev/null 2>&1; then
+       install_cmd=dnf
+    elif type yum > /dev/null 2>&1; then
+       install_cmd=yum
+    else
+       echo "Unable to find 'tdnf', 'dnf', or 'yum' package manager. Exiting."
+       exit 1
+fi
 
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         package_list="${package_list} \
@@ -344,7 +350,7 @@ chmod +x /etc/profile.d/00-restore-env.sh
 # Get an adjusted ID independent of distro variants
 if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
-elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "azurelinux" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     VERSION_CODENAME="${ID}${VERSION_ID}"
 elif [ "${ID}" = "alpine" ]; then
