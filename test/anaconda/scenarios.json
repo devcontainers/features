@@ -1,0 +1,86 @@
+{
+    "specific_version": {
+        "image": "ubuntu:focal",
+        "features": {
+            "anaconda": {
+                "version": "24.5.0"
+            }
+        }
+    },
+    "with_conda_forge": {
+        "image": "ubuntu:focal",
+        "features": {
+            "anaconda": {
+                "useCondaForge": "true"
+            }
+        }
+    },
+    "without_conda_forge": {
+        "image": "ubuntu:focal",
+        "features": {
+            "anaconda": {
+                "useCondaForge": "false"
+            }
+        }
+    },
+    "with_mamba": {
+        "image": "ubuntu:focal",
+        "features": {
+            "anaconda": {
+                "installMamba": "true"
+            }
+        }
+    },
+    "without_mamba": {
+        "image": "ubuntu:focal",
+        "features": {
+            "anaconda": {
+                "installMamba": "false"
+            }
+        }
+    },
+    "with_libmamba_solver": {
+        "image": "ubuntu:focal",
+        "features": {
+            "anaconda": {
+                "installMamba": "true"
+            }
+        }
+    },
+    "full_anaconda": {
+        "image": "ubuntu:focal",
+        "features": {
+            "anaconda": {
+                "installFullAnaconda": "true"
+            }
+        }
+    },
+    "miniconda_only": {
+        "image": "ubuntu:focal",
+        "features": {
+            "anaconda": {
+                "installFullAnaconda": "false"
+            }
+        }
+    },
+    "no_system_packages": {
+        "image": "ubuntu:focal",
+        "features": {
+            "anaconda": {
+                "useSystemPackages": "false"
+            }
+        }
+    },
+    "debian_based": {
+        "image": "debian:bullseye",
+        "features": {
+            "anaconda": {}
+        }
+    },
+    "non_debian_based": {
+        "image": "fedora:latest",
+        "features": {
+            "anaconda": {}
+        }
+    }
+}
