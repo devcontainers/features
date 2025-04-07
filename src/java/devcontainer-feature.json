@@ -10,6 +10,7 @@
       "proposals": [
         "latest",
         "none",
+        "21",
         "17",
         "11",
         "8"
