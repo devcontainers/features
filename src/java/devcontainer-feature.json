@@ -105,7 +105,12 @@
         "vscjava.vscode-java-pack"
       ],
       "settings": {
-        "java.import.gradle.java.home": "/usr/local/sdkman/candidates/java/current"
+        "java.import.gradle.java.home": "/usr/local/sdkman/candidates/java/current",
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes Java, SDKMAN! and needed dependencies pre-installed and available on the `PATH`, along with the Java language extension pack for Java development."
+          }
+        ]
       }
     }
   },
