@@ -328,5 +328,25 @@
                 "enableShared": true
             }
         }
+    },
+    "update_alternatives_switchable_versions": {
+        "image": "ubuntu:focal",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "installTools": true,
+                "additionalVersions": "3.8,3.9.13,3.10.5"
+            }
+        }
+    },
+    "alternatives_switchable_versions": {
+        "image": "fedora",
+        "features": {
+            "python": {
+                "version": "3.11",
+                "installTools": true,
+                "additionalVersions": "3.8,3.9.13,3.10.5"
+            }
+        }
     }
 }

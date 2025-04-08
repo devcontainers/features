@@ -852,15 +852,19 @@ esac
 clean_up
 check_packages ${REQUIRED_PKGS}
 
+# Function to get the major version from a SemVer string
+get_major_version() {
+    local version="$1"
+    echo "$version" | cut -d '.' -f 1
+}
+
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
     if ! cat /etc/group | grep -e "^python:" > /dev/null 2>&1; then
         add_system_group python
     fi
     add_user_to_group "${USERNAME}" python
-
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
-
     install_python ${PYTHON_VERSION}
 
     # Additional python versions to be installed but not be set as default.
@@ -869,9 +873,27 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         OLDIFS=$IFS
         IFS=","
             read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-            for version in "${additional_versions[@]}"; do
+            major_version=$(get_major_version ${VERSION})
+            if type apt-get > /dev/null 2>&1; then
+                # Debian/Ubuntu: Use update-alternatives
+                update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${#additional_versions[@]}+1))
+                update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
+            elif type dnf > /dev/null 2>&1 || type yum > /dev/null 2>&1 || type microdnf > /dev/null 2>&1; then
+                # Fedora/RHEL/CentOS: Use alternatives
+                alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${#additional_versions[@]}+1))
+                alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
+            fi
+            for i in "${!additional_versions[@]}"; do
+                version=${additional_versions[$i]}
                 OVERRIDE_DEFAULT_VERSION="false"
                 install_python $version
+                if type apt-get > /dev/null 2>&1; then
+                    # Debian/Ubuntu: Use update-alternatives
+                    update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
+                elif type dnf > /dev/null 2>&1 || type yum > /dev/null 2>&1 || type microdnf > /dev/null 2>&1; then
+                    # Fedora/RHEL/CentOS: Use alternatives
+                    alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
+                fi
             done
         INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
