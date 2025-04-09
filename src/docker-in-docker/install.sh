@@ -11,7 +11,7 @@
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" #latest, v2 or none
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v2"}" #v1, v2 or none
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -157,18 +157,20 @@ get_previous_version() {
     local repo_url=$2
     local variable_name=$3
     prev_version=${!variable_name}
-    
+
     output=$(curl -s "$repo_url");
-    message=$(echo "$output" | jq -r '.message')
-    
-    if [[ $message == "API rate limit exceeded"* ]]; then
-        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
-        echo -e "\nAttempting to find latest version using GitHub tags."
-        find_prev_version_from_git_tags prev_version "$url" "tags/v"
-        declare -g ${variable_name}="${prev_version}"
-    else 
+    if echo "$output" | jq -e 'type == "object"' > /dev/null; then
+      message=$(echo "$output" | jq -r '.message')
+      
+      if [[ $message == "API rate limit exceeded"* ]]; then
+            echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
+            echo -e "\nAttempting to find latest version using GitHub tags."
+            find_prev_version_from_git_tags prev_version "$url" "tags/v"
+            declare -g ${variable_name}="${prev_version}"
+       fi
+    elif echo "$output" | jq -e 'type == "array"' > /dev/null; then 
         echo -e "\nAttempting to find latest version using GitHub Api."
-        version=$(echo "$output" | jq -r '.tag_name')
+        version=$(echo "$output" | jq -r '.[1].tag_name')
         declare -g ${variable_name}="${version#v}"
     fi  
     echo "${variable_name}=${!variable_name}"
@@ -176,7 +178,7 @@ get_previous_version() {
 
 get_github_api_repo_url() {
     local url=$1
-    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases"
 }
 
 ###########################################
@@ -372,11 +374,8 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
         echo "(*) Installing docker-compose ${compose_version}..."
         curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
-            if [[ $DOCKER_DASH_COMPOSE_VERSION == "latest" ]]; then 
-                fallback_compose "$docker_compose_url"
-            else
-                echo -e "Error: Failed to install docker-compose v${compose_version}" 
-            fi
+                 echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..." 
+                 fallback_compose "$docker_compose_url"
         }
 
         chmod +x ${docker_compose_path}

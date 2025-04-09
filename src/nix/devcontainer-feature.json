@@ -1,6 +1,6 @@
 {
     "id": "nix",
-    "version": "1.3.0",
+    "version": "1.3.1",
     "name": "Nix Package Manager",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/nix",
     "description": "Installs the Nix package manager and optionally a set of packages.",
@@ -38,6 +38,17 @@
             "type": "string",
             "default": "",
             "description": "Optional comma separated list of extra lines to add to /etc/nix/nix.conf."
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes the Nix package manager pre-installed and available on the `PATH`. Currently `flakeUri` works best with a remote URI (e.g., `github:nixos/nixpkgs/nixpkgs-unstable#hello`) as local files need to be in the image. The dev container supports two installation models for Nix: multi-user and single user. Multi-user is the default."
+                    }
+                ]
+            }
         }
     },
     "installsAfter": [
