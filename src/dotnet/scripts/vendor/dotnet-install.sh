@@ -1396,7 +1396,9 @@ get_feeds_to_use()
 {
     feeds=(
     "https://builds.dotnet.microsoft.com/dotnet"
+    "https://dotnetcli.azureedge.net/dotnet"
     "https://ci.dot.net/public"
+    "https://dotnetbuilds.azureedge.net/public"
     )
 
     if [[ -n "$azure_feed" ]]; then
