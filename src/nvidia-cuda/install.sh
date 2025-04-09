@@ -76,6 +76,9 @@ nvtx_pkg="cuda-nvtx-${CUDA_VERSION/./-}"
 toolkit_pkg="cuda-toolkit-${CUDA_VERSION/./-}"
 if ! apt-cache show "$cuda_pkg"; then
     echo "The requested version of CUDA is not available: CUDA $CUDA_VERSION"
+    if [ "$NVIDIA_ARCH" = "arm64" ]; then
+        echo "Note: arm64 supports limited CUDA versions (11.8, 12.0, 12.1, 12.2)"
+    fi
     exit 1
 fi
 
@@ -107,6 +110,9 @@ if [ "$INSTALL_CUDNN" = "true" ]; then
 
     if ! apt-cache show "$cudnn_pkg_version"; then
         echo "The requested version of cuDNN is not available: cuDNN $CUDNN_VERSION for CUDA $CUDA_VERSION"
+        if [ "$NVIDIA_ARCH" = "arm64" ]; then
+            echo "Note: arm64 has limited cuDNN package availability"
+        fi
         exit 1
     fi
 
@@ -126,6 +132,9 @@ if [ "$INSTALL_CUDNNDEV" = "true" ]; then
     fi
     if ! apt-cache show "$cudnn_dev_pkg_version"; then
         echo "The requested version of cuDNN development package is not available: cuDNN $CUDNN_VERSION for CUDA $CUDA_VERSION"
+        if [ "$NVIDIA_ARCH" = "arm64" ]; then
+            echo "Note: arm64 has limited cuDNN development package availability"
+        fi
         exit 1
     fi
 
