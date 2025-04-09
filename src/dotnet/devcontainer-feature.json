@@ -50,7 +50,7 @@
         "vscode": {
             "extensions": [
                 "ms-dotnettools.csharp"
-            ]            
+            ]
         }
     },
     "installsAfter": [
