@@ -11,7 +11,7 @@
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v2"}" #v1, v2 or none
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" #v1, v2 or none
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -62,19 +62,37 @@ fi
 
 apt_get_update()
 {
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
+     . /etc/os-release
+    if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
+       if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
         echo "Running apt-get update..."
         apt-get update -y
+        apt-get install -y gnupg curl
+        apt-get -y install --no-install-recommends "$@"
+       fi
     fi
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
+    
+    if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ] || ["$ID_LIKE" = "debian"]; then
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
         apt-get -y install --no-install-recommends "$@"
     fi
+elif [ "$ID" = "fedora" ] || [ "$ID" = "centos" ] || [ "$ID_LIKE" == "rhel" ]; then
+    if ! dnf list installed "$@" > /dev/null 2>&1; then
+        dnf -y install "$@"
+    fi
+fi
+
 }
+# Install dependencies for fedora
+if ! command -v git wget which&> /dev/null; then
+    echo "packages not found. Installing..."
+    dnf install -y git wget which curl jq
+fi
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -191,8 +209,21 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Source /etc/os-release to get OS info
 . /etc/os-release
-# Fetch host/container arch.
-architecture="$(dpkg --print-architecture)"
+# Fetch host/container architecture
+if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
+    architecture="$(dpkg --print-architecture)"
+elif [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; then
+    architecture="$(uname -m)"
+    case "$architecture" in
+        x86_64) architecture="amd64" ;;
+        aarch64) architecture="arm64" ;;
+        *) echo "Unsupported architecture: $architecture"; exit 1 ;;
+    esac
+else
+    echo "Unsupported operating system: $ID"
+    exit 1
+fi
+
 
 # Check if distro is supported
 if [ "${USE_MOBY}" = "true" ]; then
@@ -217,15 +248,16 @@ if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
 
+
+
 # Swap to legacy iptables for compatibility
 if type iptables-legacy > /dev/null 2>&1; then
     update-alternatives --set iptables /usr/sbin/iptables-legacy
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 fi
 
-
-
 # Set up the necessary apt repos (either Microsoft's or Docker's)
+if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
 if [ "${USE_MOBY}" = "true" ]; then
 
     # Name of open source engine/cli
@@ -247,7 +279,7 @@ fi
 
 # Refresh apt lists
 apt-get update
-
+fi
 # Soft version matching
 if [ "${DOCKER_VERSION}" = "latest" ] || [ "${DOCKER_VERSION}" = "lts" ] || [ "${DOCKER_VERSION}" = "stable" ]; then
     # Empty, meaning grab whatever "latest" is in apt repo
@@ -293,33 +325,93 @@ if [ "${USE_MOBY}" = "true" ]; then
     fi
 fi
 
+install_docker_or_moby() {
+    # Check for the OS type
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+    fi
+
+    # Set Fedora version for repository URL
+    RELEASE_VER=$(sed 's/\..*//' /etc/fedora-release)
+
+    # Check if the user wants to use Moby (open-source version of Docker)
+    if [ "${USE_MOBY}" == "true" ]; then
+        echo "Setting up Moby repository for Fedora..."
+        # Add Moby repository (Microsoft)
+        echo "[microsoft]" > /etc/yum.repos.d/microsoft.repo
+        echo "name=Microsoft Packages" >> /etc/yum.repos.d/microsoft.repo
+        echo "baseurl=https://packages.microsoft.com/yumrepos/microsoft-fedora$RELEASE_VER" >> /etc/yum.repos.d/microsoft.repo
+        echo "enabled=1" >> /etc/yum.repos.d/microsoft.repo
+        echo "gpgcheck=1" >> /etc/yum.repos.d/microsoft.repo
+        echo "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> /etc/yum.repos.d/microsoft.repo
+        
+        # Install Moby Engine and CLI
+        echo "Installing Moby packages..."
+        sudo dnf install -y moby-engine moby-cli moby-buildx --skip-unavailable
+        
+    else
+        echo "Setting up Docker repository for Fedora..."
+        # Add Docker repository (Docker CE)
+        echo "[docker-ce-stable]" > /etc/yum.repos.d/docker.repo
+        echo "name=Docker CE Stable - Fedora $RELEASE_VER" >> /etc/yum.repos.d/docker.repo
+        echo "baseurl=https://download.docker.com/linux/fedora/$RELEASE_VER/stable/\$basearch" >> /etc/yum.repos.d/docker.repo
+        echo "enabled=1" >> /etc/yum.repos.d/docker.repo
+        echo "gpgcheck=1" >> /etc/yum.repos.d/docker.repo
+        echo "gpgkey=https://download.docker.com/linux/fedora/gpg" >> /etc/yum.repos.d/docker.repo
+        
+        # Install Docker CE
+        echo "Installing Docker CE..."
+        dnf install -y docker-ce docker-ce-cli containerd.io
+    fi
+
+    # Enable and start Docker/Moby
+    echo "Enabling and starting Docker/Moby service..."
+    systemctl enable docker
+
+    # Add the current user to the docker group
+    echo "Adding user to Docker group..."
+    usermod -aG docker ${USERNAME}
+
+    # Clean up DNF cache
+    echo "Cleaning up DNF cache..."
+    dnf clean all
+
+    # Final message
+    echo "Docker/Moby installation completed successfully!"
+    echo "Please log out and log back in to apply group changes."
+}
 # Install Docker / Moby CLI if not already installed
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
 else
-    if [ "${USE_MOBY}" = "true" ]; then
+    if [ "${USE_MOBY}" = "true" ]  && ([ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]); then
         # Install engine
         set +e # Handle error gracefully
             apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
             exit_code=$?
         set -e    
-        
-        if [ ${exit_code} -ne 0 ]; then
+
+         if [ ${exit_code} -ne 0 ]; then
             err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-20.04')."
             exit 1
         fi
 
         # Install compose
         apt-get -y install --no-install-recommends moby-compose || err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+     elif [ "${USE_MOBY}" = "true" ] && ([ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]); then
+       install_docker_or_moby
+        
+       
     else
         apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}
         # Install compose
         apt-mark hold docker-ce docker-ce-cli
         apt-get -y install --no-install-recommends docker-compose-plugin || echo "(*) Package docker-compose-plugin (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
     fi
-fi
+
 
 echo "Finished installing docker / moby!"
+fi
 
 docker_home="/usr/libexec/docker"
 cli_plugins_dir="${docker_home}/cli-plugins"
@@ -369,11 +461,11 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
             pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
         fi
     else
-        compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
+        compose_version="2.34.0"
         docker_compose_url="https://github.com/docker/compose"
         find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
         echo "(*) Installing docker-compose ${compose_version}..."
-        curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
+        curl -fsSL "https://github.com/docker/compose/releases/download/2.34.0/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
                  echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..." 
                  fallback_compose "$docker_compose_url"
         }
@@ -404,7 +496,7 @@ fallback_compose-switch() {
 if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /dev/null 2>&1; then
     if type docker-compose > /dev/null 2>&1; then
         echo "(*) Installing compose-switch..."
-        current_compose_path="$(which docker-compose)"
+        current_compose_path="$(command -v docker-compose)"
         target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
         compose_switch_version="latest"
         compose_switch_url="https://github.com/docker/compose-switch"
