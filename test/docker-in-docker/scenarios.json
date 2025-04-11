@@ -166,5 +166,16 @@
         },
         "remoteUser": "vscode",
         "onCreateCommand": "docker ps && sleep 5s && docker ps"
+    },
+    "fedora_kernel": {
+        "image": "fedora:41",
+        "features": {
+            "docker-in-docker": {
+                "iptables": "true",
+                "moby": "true",
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "latest"
+            }
+        }
     }
 }
