@@ -13,8 +13,7 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-# Changing it as the dotnet SDK CDN url is not showing the right version for LTS
-expected=$(resolve_version_from_aka_ms "LTS" | cut -d' ' -f3)
+expected=$(fetch_latest_version_in_channel "LTS")
 
 check "Latest LTS version installed" \
 is_dotnet_sdk_version_installed "$expected"
