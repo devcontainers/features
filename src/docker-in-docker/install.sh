@@ -76,7 +76,7 @@ apt_get_update()
 # Checks if packages are installed and installs them if not
 check_packages() {
     
-    if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ] || ["$ID_LIKE" = "debian"]; then
+    if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ] || ["$ID_LIKE" = "debian" ]; then
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
         apt-get -y install --no-install-recommends "$@"
