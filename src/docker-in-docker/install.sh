@@ -461,11 +461,11 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
             pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
         fi
     else
-        compose_version="2.34.0"
+        compose_version="${DOCKER_DASH_COMPOSE_VERSION#v}"
         docker_compose_url="https://github.com/docker/compose"
         find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
         echo "(*) Installing docker-compose ${compose_version}..."
-        curl -fsSL "https://github.com/docker/compose/releases/download/2.34.0/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
+        curl -fsSL "https://github.com/docker/compose/releases/download/compose_version/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
                  echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..." 
                  fallback_compose "$docker_compose_url"
         }
@@ -496,7 +496,7 @@ fallback_compose-switch() {
 if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /dev/null 2>&1; then
     if type docker-compose > /dev/null 2>&1; then
         echo "(*) Installing compose-switch..."
-        current_compose_path="$(command -v docker-compose)"
+        current_compose_path="$(which docker-compose)"
         target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
         compose_switch_version="latest"
         compose_switch_url="https://github.com/docker/compose-switch"
