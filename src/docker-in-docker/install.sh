@@ -11,7 +11,7 @@
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" #v1, v2 or none
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v2"}" #v1, v2 or none
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -76,7 +76,7 @@ apt_get_update()
 # Checks if packages are installed and installs them if not
 check_packages() {
     
-    if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ] || ["$ID_LIKE" = "debian" ]; then
+    if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ] || [ "$ID_LIKE" = "debian" ]; then
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
         apt-get -y install --no-install-recommends "$@"
