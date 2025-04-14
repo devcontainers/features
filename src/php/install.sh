@@ -86,9 +86,11 @@ check_packages() {
 
 # Installs extension tools for PHP
 install_php_docker_tools() {
+    curl -o /usr/local/bin/docker-php-source https://raw.githubusercontent.com/docker-library/php/refs/heads/master/docker-php-source
     curl -o /usr/local/bin/docker-php-ext-install https://raw.githubusercontent.com/docker-library/php/master/docker-php-ext-runtime/docker-php-ext-install
+    curl -o /usr/local/bin/docker-php-ext-configure https://raw.githubusercontent.com/docker-library/php/refs/heads/master/docker-php-ext-configure
     curl -o /usr/local/bin/docker-php-ext-enable https://raw.githubusercontent.com/docker-library/php/refs/heads/master/docker-php-ext-enable
-    chmod +x /usr/local/bin/docker-php-ext-install /usr/local/bin/docker-php-ext-enable
+    chmod +x /usr/local/bin/docker-php-source /usr/local/bin/docker-php-ext-install /usr/local/bin/docker-php-ext-configure /usr/local/bin/docker-php-ext-enable
 }
 
 # Figure out correct version of a three part version number is not passed
