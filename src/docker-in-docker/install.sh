@@ -67,9 +67,7 @@ apt_get_update()
        if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
         echo "Running apt-get update..."
         apt-get update -y
-        apt-get install -y gnupg curl
-        apt-get -y install --no-install-recommends "$@"
-       fi
+    fi
     fi
 }
 
@@ -80,6 +78,7 @@ check_packages() {
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
         apt-get -y install --no-install-recommends "$@"
+        apt-get install -y gnupg curl
     fi
 elif [ "$ID" = "fedora" ] || [ "$ID" = "centos" ] || [ "$ID_LIKE" == "rhel" ]; then
     if ! dnf list installed "$@" > /dev/null 2>&1; then
@@ -88,10 +87,13 @@ elif [ "$ID" = "fedora" ] || [ "$ID" = "centos" ] || [ "$ID_LIKE" == "rhel" ]; t
 fi
 
 }
-# Install dependencies for fedora
-if ! command -v git wget which&> /dev/null; then
-    echo "packages not found. Installing..."
-    dnf install -y git wget which curl jq
+# Install dependencies for both fedora and ubuntu
+missing=0; for cmd in git wget which; do command -v $cmd &>/dev/null || { echo "$cmd not found"; missing=1; }; done; \
+if [ $missing -eq 1 ]; then \
+    echo "Installing missing packages..."; \
+    if command -v dnf &>/dev/null; then dnf install -y git wget which curl jq; \
+    elif command -v apt &>/dev/null; then apt-get update && apt-get install -y git wget curl jq; \
+    else echo "Unsupported package manager"; exit 1; fi; \
 fi
 
 # Figure out correct version of a three part version number is not passed
@@ -258,27 +260,27 @@ fi
 
 # Set up the necessary apt repos (either Microsoft's or Docker's)
 if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
-if [ "${USE_MOBY}" = "true" ]; then
+    if [ "${USE_MOBY}" = "true" ]; then
+    
+      # Name of open source engine/cli
+      engine_package_name="moby-engine"
+      cli_package_name="moby-cli"
 
-    # Name of open source engine/cli
-    engine_package_name="moby-engine"
-    cli_package_name="moby-cli"
+      # Import key safely and import Microsoft apt repo
+      curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
+      echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+    else
+      # Name of licensed engine/cli
+      engine_package_name="docker-ce"
+      cli_package_name="docker-ce-cli"
 
-    # Import key safely and import Microsoft apt repo
-    curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
-    echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
-else
-    # Name of licensed engine/cli
-    engine_package_name="docker-ce"
-    cli_package_name="docker-ce-cli"
+      # Import key safely and import Docker apt repo
+      curl -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
+    fi
 
-    # Import key safely and import Docker apt repo
-    curl -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
-fi
-
-# Refresh apt lists
-apt-get update
+   # Refresh apt lists
+   apt-get update
 fi
 # Soft version matching
 if [ "${DOCKER_VERSION}" = "latest" ] || [ "${DOCKER_VERSION}" = "lts" ] || [ "${DOCKER_VERSION}" = "stable" ]; then
