@@ -22,8 +22,8 @@ check "jupyterlab_git" grep jupyterlab_git <<< "$packages"
 # Check for correct JupyterLab configuration
 check "config" grep ".*.allow_origin = '*'" /home/vscode/.jupyter/jupyter_server_config.py
 
-# Check for PATH modification
-check "default path has jupyterlab" sudo grep "/home/${user}/.local/bin" /etc/sudoers.d/$user
+#check "default path has jupyterlab symlink"
+check "default path has jupyterlab" test -L "/usr/local/jupyter"
 
 # Report result
 reportResults

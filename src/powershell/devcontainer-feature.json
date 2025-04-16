@@ -1,6 +1,6 @@
 {
     "id": "powershell",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "name": "PowerShell",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/powershell",
     "description": "Installs PowerShell along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
@@ -33,7 +33,14 @@
             "extensions": [
                 "ms-vscode.powershell"
             ]
-        }
+        },
+        "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes PowerShell along with needed dependencies pre-installed and available on the `PATH`, along with the PowerShell extension."
+                    }
+                ]
+            }
     },
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"

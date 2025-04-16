@@ -15,6 +15,7 @@ rm -rf /var/lib/apt/lists/*
 AZ_VERSION=${VERSION:-"latest"}
 AZ_EXTENSIONS=${EXTENSIONS}
 AZ_INSTALLBICEP=${INSTALLBICEP:-false}
+AZ_BICEPVERSION=${BICEPVERSION:-latest}
 INSTALL_USING_PYTHON=${INSTALLUSINGPYTHON:-false}
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64 arm64"
@@ -229,10 +230,16 @@ if [ "${AZ_INSTALLBICEP}" = "true" ]; then
     # The `az bicep install --target-platform` could be a solution; however, linux-arm64 is not an allowed value for this argument yet
     # Manually installing Bicep and moving to the appropriate directory where az expects it to be
     
+    if [ "${AZ_BICEPVERSION}" = "latest" ]; then
+        bicep_download_path="https://github.com/Azure/bicep/releases/latest/download"
+    else
+        bicep_download_path="https://github.com/Azure/bicep/releases/download/${AZ_BICEPVERSION}"
+    fi
+
     if [ "${architecture}" = "arm64" ]; then
-        curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-arm64
+        curl -Lo bicep ${bicep_download_path}/bicep-linux-arm64
     else 
-        curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+        curl -Lo bicep ${bicep_download_path}/bicep-linux-x64
     fi
     
     chmod +x ./bicep
