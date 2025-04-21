@@ -13,11 +13,11 @@ USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="${UPDATE_RC:-"true"}"
 CONDA_DIR="${CONDA_DIR:-"/usr/local/conda"}"
 
-set -eux
+set -exo pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 # Clean up
-rm -rf /var/lib/apt/lists/*
+rm -rf /var/lib/apt/lists/* 
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -47,7 +47,12 @@ elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
 fi
 
 architecture="$(uname -m)"
-if [ "${architecture}" != "x86_64" ]; then
+# Normalize arm64 to aarch64 for consistency
+if [ "${architecture}" = "arm64" ]; then
+    architecture="aarch64"
+fi
+
+if [ "${architecture}" != "x86_64" ] && [ "${architecture}" != "aarch64" ]; then
     echo "(!) Architecture $architecture unsupported"
     exit 1
 fi
@@ -75,6 +80,20 @@ check_packages() {
     fi
 }
 
+sudo_if() {
+    COMMAND="$*"
+    if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
+        su - "$USERNAME" -c "$COMMAND"
+    else
+        $COMMAND
+    fi
+}
+
+install_user_package() {
+    PACKAGE="$1"
+    sudo_if "${CONDA_DIR}/bin/python3" -m pip install --user --upgrade "$PACKAGE"
+}
+
 # Install Conda if it's missing
 if ! conda --version &> /dev/null ; then
     if ! cat /etc/group | grep -e "^conda:" > /dev/null 2>&1; then
@@ -83,30 +102,51 @@ if ! conda --version &> /dev/null ; then
     usermod -a -G conda "${USERNAME}"
 
     # Install dependencies
-    check_packages wget ca-certificates
+    check_packages wget ca-certificates libgtk-3-0  
 
     mkdir -p $CONDA_DIR
+
     chown -R "${USERNAME}:conda" "${CONDA_DIR}"
-    chmod -R g+r+w "${CONDA_DIR}"
-    
-    find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
+    chmod -R g+r+w "${CONDA_DIR}"    
+
     echo "Installing Anaconda..."
 
     CONDA_VERSION=$VERSION
     if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
-        CONDA_VERSION="2021.11"
+        CONDA_VERSION="2024.10-1"
     fi
 
-    su --login -c "export http_proxy=${http_proxy:-} && export https_proxy=${https_proxy:-} \
-        && wget -q https://repo.anaconda.com/archive/Anaconda3-${CONDA_VERSION}-Linux-x86_64.sh -O /tmp/anaconda-install.sh \
-        && /bin/bash /tmp/anaconda-install.sh -u -b -p ${CONDA_DIR}" ${USERNAME} 2>&1 
+    if [ "${architecture}" = "x86_64" ]; then
+        su --login -c "export http_proxy=${http_proxy:-} && export https_proxy=${https_proxy:-} \
+            && wget -q https://repo.anaconda.com/archive/Anaconda3-${CONDA_VERSION}-Linux-x86_64.sh -O /tmp/anaconda-install.sh \
+            && /bin/bash /tmp/anaconda-install.sh -u -b -p ${CONDA_DIR}" ${USERNAME} 2>&1 
+    elif [ "${architecture}" = "aarch64" ]; then
+        su --login -c "export http_proxy=${http_proxy:-} && export https_proxy=${https_proxy:-} \
+            && wget -q https://repo.anaconda.com/archive/Anaconda3-${CONDA_VERSION}-Linux-aarch64.sh -O /tmp/anaconda-install.sh \
+            && /bin/bash /tmp/anaconda-install.sh -u -b -p ${CONDA_DIR}" ${USERNAME} 2>&1
+    fi
     
     if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
         PATH=$PATH:${CONDA_DIR}/bin
         conda update -y conda
     fi
 
-    rm /tmp/anaconda-install.sh 
+    chown -R "${USERNAME}:conda" "${CONDA_DIR}"
+    chmod -R g+r+w "${CONDA_DIR}"
+
+    find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
+
+    # Temporary fixes
+    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23491
+    install_user_package certifi
+    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-0286 and https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-23931
+    install_user_package pyopenssl
+    install_user_package cryptography
+    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-40897
+    install_user_package setuptools
+    install_user_package tornado
+
+    rm /tmp/anaconda-install.sh    
     updaterc "export CONDA_DIR=${CONDA_DIR}/bin"
 fi
 
@@ -136,6 +176,7 @@ if [ -f "/etc/bash.bashrc" ]; then
 fi
 
 # Clean up
+apt-get -y clean
 rm -rf /var/lib/apt/lists/*
 
 echo "Done!"
