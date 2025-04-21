@@ -17,44 +17,6 @@ fetch_latest_version_in_channel() {
     fi
 }
 
-# Function to resolve the actual version from an aka.ms URL
-resolve_version_from_aka_ms() {
-    local normalized_channel="${1:-LTS}"  # defaulting to LTS channel
-    local normalized_product="dotnet-sdk"
-    local normalized_os="linux"
-
-    # Dynamically determine the architecture
-    local normalized_architecture
-    normalized_architecture=$(uname -m)
-    case "$normalized_architecture" in
-        x86_64) normalized_architecture="x64" ;;
-        aarch64) normalized_architecture="arm64" ;;
-        arm*) normalized_architecture="arm" ;;
-        *) 
-            echo "Unsupported architecture: $normalized_architecture"
-            return 1
-            ;;
-    esac
-
-    # Construct the aka.ms link
-    local aka_ms_link="https://aka.ms/dotnet/$normalized_channel/$normalized_product-$normalized_os-$normalized_architecture.tar.gz"
-    echo "Constructed aka.ms link: $aka_ms_link"
-
-    # Resolve the redirect URL using curl
-    local resolved_url
-    resolved_url=$(curl -s -L -o /dev/null -w "%{url_effective}" "$aka_ms_link")
-    echo "Resolved URL: $resolved_url"
-
-    # Extract the version from the resolved URL
-    IFS='/'
-    read -ra pathElems <<< "$resolved_url"
-    local count=${#pathElems[@]}
-    local specific_version="${pathElems[count-2]}"
-    unset IFS
-
-    echo "Extracted version: $specific_version"
-}
-
 # Prints the latest dotnet version
 # Usage: fetch_latest_version [<runtime>]
 # Example: fetch_latest_version
