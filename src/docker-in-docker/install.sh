@@ -6,7 +6,10 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker-in-docker.md
 # Maintainer: The Dev Container spec maintainers
-
+if [ -z "$BASH_VERSION" ]; then
+  echo "❌ This script must be run with bash, not sh."
+  exit 1
+fi
 
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
@@ -23,7 +26,7 @@ DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal
 DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
 
 # Default: Exit on any failure.
-set -e
+set -ex
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
@@ -67,7 +70,7 @@ apt_get_update()
        if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
         echo "Running apt-get update..."
         apt-get update -y
-    fi
+        fi
     fi
 }
 
@@ -75,11 +78,11 @@ apt_get_update()
 check_packages() {
     
     if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ] || [ "$ID_LIKE" = "debian" ]; then
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
-        apt-get install -y gnupg curl
-    fi
+        if ! dpkg -s "$@" > /dev/null 2>&1; then
+            apt_get_update
+            apt-get -y install --no-install-recommends "$@"
+            apt-get install -y gnupg curl
+        fi
 elif [ "$ID" = "fedora" ] || [ "$ID" = "centos" ] || [ "$ID_LIKE" == "rhel" ]; then
     if ! dnf list installed "$@" > /dev/null 2>&1; then
         dnf -y install "$@"
@@ -101,10 +104,10 @@ find_version_from_git_tags() {
     local variable_name=$1
     local requested_version=${!variable_name}
     if [ "${requested_version}" = "none" ]; then return; fi
-    local repository=$2
-    local prefix=${3:-"tags/v"}
-    local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}
+        local repository=$2
+        local prefix=${3:-"tags/v"}
+        local separator=${4:-"."}
+        local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -249,15 +252,11 @@ check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dir
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
-
-
-
 # Swap to legacy iptables for compatibility
 if type iptables-legacy > /dev/null 2>&1; then
     update-alternatives --set iptables /usr/sbin/iptables-legacy
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 fi
-
 # Set up the necessary apt repos (either Microsoft's or Docker's)
 if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
     if [ "${USE_MOBY}" = "true" ]; then
@@ -350,69 +349,101 @@ install_docker_or_moby() {
         # Install Moby Engine and CLI
         echo "Installing Moby packages..."
         sudo dnf install -y moby-engine moby-cli moby-buildx --skip-unavailable
-        
-    else
-        echo "Setting up Docker repository for Fedora..."
-        # Add Docker repository (Docker CE)
-        echo "[docker-ce-stable]" > /etc/yum.repos.d/docker.repo
-        echo "name=Docker CE Stable - Fedora $RELEASE_VER" >> /etc/yum.repos.d/docker.repo
-        echo "baseurl=https://download.docker.com/linux/fedora/$RELEASE_VER/stable/\$basearch" >> /etc/yum.repos.d/docker.repo
-        echo "enabled=1" >> /etc/yum.repos.d/docker.repo
-        echo "gpgcheck=1" >> /etc/yum.repos.d/docker.repo
-        echo "gpgkey=https://download.docker.com/linux/fedora/gpg" >> /etc/yum.repos.d/docker.repo
-        
-        # Install Docker CE
-        echo "Installing Docker CE..."
-        dnf install -y docker-ce docker-ce-cli containerd.io
     fi
-
-    # Enable and start Docker/Moby
-    echo "Enabling and starting Docker/Moby service..."
-    systemctl enable docker
-
-    # Add the current user to the docker group
-    echo "Adding user to Docker group..."
-    usermod -aG docker ${USERNAME}
-
-    # Clean up DNF cache
-    echo "Cleaning up DNF cache..."
-    dnf clean all
-
     # Final message
     echo "Docker/Moby installation completed successfully!"
     echo "Please log out and log back in to apply group changes."
 }
-# Install Docker / Moby CLI if not already installed
+
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
 else
-    if [ "${USE_MOBY}" = "true" ]  && ([ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]); then
+    if [ "${USE_MOBY}" = "true" ] && { [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; }; then
         # Install engine
         set +e # Handle error gracefully
-            apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
-            exit_code=$?
-        set -e    
+        apt-get -y install --no-install-recommends \
+            moby-cli${cli_version_suffix} \
+            moby-buildx${buildx_version_suffix} \
+            moby-engine${engine_version_suffix}
+        exit_code=$?
+        set -e
 
-         if [ ${exit_code} -ne 0 ]; then
-            err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-20.04')."
+        if [ ${exit_code} -ne 0 ]; then
+            err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (e.g., 'ubuntu-20.04')."
             exit 1
         fi
 
         # Install compose
-        apt-get -y install --no-install-recommends moby-compose || err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
-     elif [ "${USE_MOBY}" = "true" ] && ([ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]); then
-       install_docker_or_moby
-        
-       
-    else
-        apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}
-        # Install compose
-        apt-mark hold docker-ce docker-ce-cli
-        apt-get -y install --no-install-recommends docker-compose-plugin || echo "(*) Package docker-compose-plugin (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+        apt-get -y install --no-install-recommends moby-compose || \
+            err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+
+    elif [ "${USE_MOBY}" = "true" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
+        install_docker_or_moby
+    elif [ "${USE_MOBY}" = "false" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
+    
+        #kmod package is required for modprobe
+        dnf install -y kmod iptables procps-ng
+        # https://github.com/devcontainers/features/issues/1235
+        if uname -r | grep -q '\.fc'; then
+            sudo update-alternatives --set iptables /usr/sbin/iptables-nft
+        fi
+
+        # Get Fedora release version (e.g. 38, 39)
+        FEDORA_VERSION=$(rpm -E %fedora)
+
+        echo "Detected Fedora version: $FEDORA_VERSION"
+
+        echo "Installing dnf-plugins-core..."
+        if ! dnf install -y dnf-plugins-core; then
+            echo "⚠️ Failed to install dnf-plugins-core. Falling back to Moby."
+            install_docker_or_moby
+            exit 0
+        fi  
+    echo "Setting up Docker CE repo..."
+    if ! dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo; then
+        echo "⚠️ Failed to add Docker CE repo. Falling back to Moby."
+        install_docker_or_moby
+        exit 0
     fi
 
+    # Try installing Docker CE with fallback to Moby
+    echo "Attempting to install Docker CE..."
 
-echo "Finished installing docker / moby!"
+    set +e
+    dnf install -y docker-ce docker-ce-cli containerd.io 
+    DOCKER_INSTALL_EXIT_CODE=$?
+    set -e
+
+    if [ $DOCKER_INSTALL_EXIT_CODE -ne 0 ] || ! command -v docker >/dev/null || ! command -v dockerd >/dev/null; then
+        echo "⚠️ Docker CE installation appears incomplete or failed — falling back to Moby.
+
+        install_docker_or_moby
+
+        # Optional: symlink to match docker-ce command names
+        ln -sf /usr/bin/moby-engine /usr/bin/dockerd || true
+    else
+        echo "✅ Docker CE installed successfully!"
+    fi
+
+    # Create docker group if missing
+    if ! getent group docker > /dev/null; then
+        echo "Creating 'docker' group..."
+        groupadd docker
+    fi
+
+    # Add user to docker group
+    USERNAME=${USERNAME:-vscode}
+    echo "Adding user '$USERNAME' to docker group..."
+    usermod -aG docker "$USERNAME"
+
+    # Final message
+    echo "✅ Docker or Moby installed and user configured."
+else
+    echo "❌ Unsupported OS or configuration. Exiting."
+        exit 1
+fi
+
+    echo "Finished installing Docker / Moby!"
 fi
 
 docker_home="/usr/libexec/docker"
@@ -422,8 +453,8 @@ cli_plugins_dir="${docker_home}/cli-plugins"
 fallback_compose(){
     local url=$1
     local repo_url=$(get_github_api_repo_url "$url")
-    echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
-    get_previous_version "${url}" "${repo_url}" compose_version
+    echo -e "\n Failed to fetch the latest artifacts for docker-compose v${compose_version}"
+get_previous_version "${url}" "${repo_url}" compose_version
     echo -e "\nAttempting to install v${compose_version}"
     curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
 }
@@ -434,7 +465,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         amd64) target_compose_arch=x86_64 ;;
         arm64) target_compose_arch=aarch64 ;;
         *)
-            echo "(!) Docker in docker does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
+            echo " Docker in docker does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
             exit 1
     esac
 
@@ -534,7 +565,7 @@ usermod -aG docker ${USERNAME}
 fallback_buildx() {
     local url=$1
     local repo_url=$(get_github_api_repo_url "$url")
-    echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
+    echo -e "\nFailed to fetch the latest artifacts for docker buildx v${buildx_version}..."
     get_previous_version "$url" "$repo_url" buildx_version
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     echo -e "\nAttempting to install v${buildx_version}"
@@ -545,7 +576,8 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
     docker_buildx_url="https://github.com/docker/buildx"
     find_version_from_git_tags buildx_version "$docker_buildx_url" "refs/tags/v"
-    echo "(*) Installing buildx ${buildx_version}..."
+    echo '(*) Installing buildx ${buildx_version}...'
+    architecture=$(uname -m)
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
     
     cd /tmp
@@ -554,9 +586,9 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"
 
-    mkdir -p ${cli_plugins_dir}
-    mv ${buildx_file_name} ${cli_plugins_dir}/docker-buildx
-    chmod +x ${cli_plugins_dir}/docker-buildx
+    mkdir -p "${cli_plugins_dir}"
+    mv "${buildx_file_name}" "${cli_plugins_dir}/docker-buildx"
+    chmod +x "${cli_plugins_dir}/docker-buildx"
 
     chown -R "${USERNAME}:docker" "${docker_home}"
     chmod -R g+r+w "${docker_home}"
@@ -568,15 +600,15 @@ if [ "$DISABLE_IP6_TABLES" == true ]; then
     requested_version=""
     # checking whether the version requested either is in semver format or just a number denoting the major version
     # and, extracting the major version number out of the two scenarios
-    semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$"
+    semver_regex='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
     if echo "$DOCKER_VERSION" | grep -Eq $semver_regex; then
         requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
     elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
         requested_version=$DOCKER_VERSION
     fi
-    if [ "$DOCKER_VERSION" = "latest" ] || [[ -n "$requested_version" && "$requested_version" -ge 27 ]] ; then
+    if [ "$DOCKER_VERSION" = "latest" ] || [[ -n "$requested_version" && "$requested_version" -ge 27 ]]; then
         DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
-        echo "(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}'"
+        echo '(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}' '
     fi
 fi
 
@@ -597,29 +629,15 @@ EOF
 
 tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
-dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES} $(cat << 'INNEREOF'
-    # explicitly remove dockerd and containerd PID file to ensure that it can start properly if it was stopped uncleanly
-    find /run /var/run -iname 'docker*.pid' -delete || :
-    find /run /var/run -iname 'container*.pid' -delete || :
+cat << 'INNEREOF' > /usr/local/bin/start-dockerd-inner.sh
+#!/bin/bash
 
-    # -- Start: dind wrapper script --
-    # Maintained: https://github.com/moby/moby/blob/master/hack/dind
+# Clean up old PIDs
+find /run /var/run -iname 'docker*.pid' -delete || :
+find /run /var/run -iname 'container*.pid' -delete || :
 
-    export container=docker
-
-    if [ -d /sys/kernel/security ] && ! mountpoint -q /sys/kernel/security; then
-        mount -t securityfs none /sys/kernel/security || {
-            echo >&2 'Could not mount /sys/kernel/security.'
-            echo >&2 'AppArmor detection and --privileged mode might break.'
-        }
-    fi
-
-    # Mount /tmp (conditionally)
-    if ! mountpoint -q /tmp; then
-        mount -t tmpfs none /tmp
-    fi
-
-    set_cgroup_nesting()
+# Set up cgroup nesting
+  set_cgroup_nesting()
     {
         # cgroup v2: enable nesting
         if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
@@ -643,7 +661,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
             set_cgroup_nesting
 
             if [ $? -ne 0 ]; then
-                echo "(*) cgroup v2: Failed to enable nesting, retrying..."
+                echo '(*) cgroup v2: Failed to enable nesting, retrying...'
             else
                 break
             fi
@@ -654,30 +672,48 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 
     # -- End: dind wrapper script --
 
-    # Handle DNS
-    set +e
-        cat /etc/resolv.conf | grep -i 'internal.cloudapp.net' > /dev/null 2>&1
-        if [ $? -eq 0 ] && [ "${AZURE_DNS_AUTO_DETECTION}" = "true" ]
-        then
-            echo "Setting dockerd Azure DNS."
-            CUSTOMDNS="--dns 168.63.129.16"
-        else
-            echo "Not setting dockerd DNS manually."
-            CUSTOMDNS=""
-        fi
-    set -e
+# DNS setup
+if grep -i 'internal.cloudapp.net' /etc/resolv.conf > /dev/null 2>&1 && [ "${AZURE_DNS_AUTO_DETECTION}" = "true" ]; then
+    echo "Setting dockerd Azure DNS."
+    CUSTOMDNS="--dns 168.63.129.16"
+else
+    CUSTOMDNS=""
+fi
 
-    if [ -z "$DOCKER_DEFAULT_ADDRESS_POOL" ]
-    then
-        DEFAULT_ADDRESS_POOL=""
-    else
-        DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
+# Default address pool
+if [ -z "$DOCKER_DEFAULT_ADDRESS_POOL" ]; then
+    DEFAULT_ADDRESS_POOL=""
+else
+    DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
+fi
+
+# Start Docker engine
+dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DOCKER_DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 &
+INNEREOF
+
+chmod +x /usr/local/bin/start-dockerd-inner.sh
+dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} \
+DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} \
+DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES} \
+/usr/local/bin/start-dockerd-inner.sh"
+
+
+    # -- Start: dind wrapper script --
+    # Maintained: https://github.com/moby/moby/blob/master/hack/dind
+
+    export container=docker
+
+    if [ -d /sys/kernel/security ] && ! mountpoint -q /sys/kernel/security; then
+        mount -t securityfs none /sys/kernel/security || {
+            echo >&2 'Could not mount /sys/kernel/security.'
+            echo >&2 'AppArmor detection and --privileged mode might break.'
+        }
     fi
 
-    # Start docker/moby engine
-    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DOCKER_DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
-INNEREOF
-)"
+    # Mount /tmp (conditionally)
+    if ! mountpoint -q /tmp; then
+        mount -t tmpfs none /tmp
+    fi
 
 sudo_if() {
     COMMAND="$*"
@@ -713,7 +749,7 @@ do
     done
 
     if [ "${docker_ok}" != "true" ] && [ "${retry_docker_start_count}" != "4" ]; then
-        echo "(*) Failed to start docker, retrying..."
+        echo '(*) Failed to start docker, retrying...'
         set +e
             sudo_if pkill dockerd
             sudo_if pkill containerd
@@ -735,3 +771,4 @@ chown ${USERNAME}:root /usr/local/share/docker-init.sh
 rm -rf /var/lib/apt/lists/*
 
 echo 'docker-in-docker-debian script has completed!'
+
