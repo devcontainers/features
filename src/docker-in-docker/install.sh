@@ -661,7 +661,7 @@ find /run /var/run -iname 'container*.pid' -delete || :
             set_cgroup_nesting
 
             if [ $? -ne 0 ]; then
-                echo '(*) cgroup v2: Failed to enable nesting, retrying...'
+                echo "(*) cgroup v2: Failed to enable nesting, retrying..."
             else
                 break
             fi
@@ -749,7 +749,7 @@ do
     done
 
     if [ "${docker_ok}" != "true" ] && [ "${retry_docker_start_count}" != "4" ]; then
-        echo '(*) Failed to start docker, retrying...'
+        echo "(*) Failed to start docker, retrying..."
         set +e
             sudo_if pkill dockerd
             sudo_if pkill containerd
@@ -761,6 +761,7 @@ done
 
 # Execute whatever commands were passed in (if any). This allows us
 # to set this script to ENTRYPOINT while still executing the default CMD.
+# shellcheck disable=all
 exec "$@"
 EOF
 
@@ -771,4 +772,3 @@ chown ${USERNAME}:root /usr/local/share/docker-init.sh
 rm -rf /var/lib/apt/lists/*
 
 echo 'docker-in-docker-debian script has completed!'
-
