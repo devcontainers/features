@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/bash
+#shellcheck disable=all
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
@@ -10,7 +11,6 @@ if [ -z "$BASH_VERSION" ]; then
   echo "❌ This script must be run with bash, not sh."
   exit 1
 fi
-
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
@@ -81,7 +81,6 @@ check_packages() {
         if ! dpkg -s "$@" > /dev/null 2>&1; then
             apt_get_update
             apt-get -y install --no-install-recommends "$@"
-            apt-get install -y gnupg curl
         fi
 elif [ "$ID" = "fedora" ] || [ "$ID" = "centos" ] || [ "$ID_LIKE" == "rhel" ]; then
     if ! dnf list installed "$@" > /dev/null 2>&1; then
@@ -90,14 +89,26 @@ elif [ "$ID" = "fedora" ] || [ "$ID" = "centos" ] || [ "$ID_LIKE" == "rhel" ]; t
 fi
 
 }
-# Install dependencies for both fedora and ubuntu
-missing=0; for cmd in git wget which; do command -v $cmd &>/dev/null || { echo "$cmd not found"; missing=1; }; done; \
-if [ $missing -eq 1 ]; then \
-    echo "Installing missing packages..."; \
-    if command -v dnf &>/dev/null; then dnf install -y git wget which curl jq; \
-    elif command -v apt &>/dev/null; then apt-get update && apt-get install -y git wget curl jq; \
-    else echo "Unsupported package manager"; exit 1; fi; \
+missing=0
+for cmd in git wget which; do
+    command -v $cmd &>/dev/null || {
+        echo "$cmd not found"
+        missing=1
+    }
+done
+
+if [ $missing -eq 1 ]; then
+    echo "Installing missing packages..."
+    if command -v dnf &>/dev/null; then
+        dnf install -y git wget which curl jq
+    elif command -v apt &>/dev/null; then
+        apt-get update && apt-get install -y git wget curl jq
+    else
+        echo "Unsupported package manager"
+        exit 1
+    fi
 fi
+
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -241,7 +252,7 @@ if [ "${USE_MOBY}" = "true" ]; then
 else
     if [[ "${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
         err "Unsupported distribution version '${VERSION_CODENAME}'. To resolve, please choose a compatible OS distribution"
-        err "Support distributions include:  ${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}"
+        err "Support distributions include:  '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
         exit 1
     fi
     echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
@@ -257,6 +268,11 @@ if type iptables-legacy > /dev/null 2>&1; then
     update-alternatives --set iptables /usr/sbin/iptables-legacy
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 fi
+ # https://github.com/devcontainers/features/issues/1235
+if uname -r | grep -q '\.fc'; then
+    sudo update-alternatives --set iptables /usr/sbin/iptables-nft
+fi
+
 # Set up the necessary apt repos (either Microsoft's or Docker's)
 if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
     if [ "${USE_MOBY}" = "true" ]; then
@@ -358,7 +374,8 @@ install_docker_or_moby() {
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
 else
-    if [ "${USE_MOBY}" = "true" ] && { [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; }; then
+    if [ "${USE_MOBY}" = "true" ];then
+        if { [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; }; then
         # Install engine
         set +e # Handle error gracefully
         apt-get -y install --no-install-recommends \
@@ -377,12 +394,21 @@ else
         apt-get -y install --no-install-recommends moby-compose || \
             err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
 
-    elif [ "${USE_MOBY}" = "true" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
-        install_docker_or_moby
-    elif [ "${USE_MOBY}" = "false" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
+        elif [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; then
+            install_docker_or_moby
+        fi
+elif [ "${USE_MOBY}" = "false" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
     
         #kmod package is required for modprobe
         dnf install -y kmod iptables procps-ng
+        # Load iptable_nat module for docker-in-docker.
+        # See:
+        #   - https://github.com/ublue-os/bluefin/issues/2365
+        #   - https://github.com/devcontainers/features/issues/1235
+mkdir -p /etc/modules-load.d && cat >>/etc/modules-load.d/ip_tables.conf <<EOF
+iptable_nat
+EOF
+        
         # https://github.com/devcontainers/features/issues/1235
         if uname -r | grep -q '\.fc'; then
             sudo update-alternatives --set iptables /usr/sbin/iptables-nft
@@ -410,15 +436,15 @@ else
     echo "Attempting to install Docker CE..."
 
     set +e
-    dnf install -y docker-ce docker-ce-cli containerd.io 
+    dnf install -y docker docker-ce docker-ce-cli containerd.io 
     DOCKER_INSTALL_EXIT_CODE=$?
     set -e
 
     if [ $DOCKER_INSTALL_EXIT_CODE -ne 0 ] || ! command -v docker >/dev/null || ! command -v dockerd >/dev/null; then
-        echo "⚠️ Docker CE installation appears incomplete or failed — falling back to Moby.
+        echo "⚠️ Docker CE installation appears incomplete or failed — falling back to Moby."
 
-        install_docker_or_moby
-
+                    install_docker_or_moby
+                    
         # Optional: symlink to match docker-ce command names
         ln -sf /usr/bin/moby-engine /usr/bin/dockerd || true
     else
@@ -436,15 +462,16 @@ else
     echo "Adding user '$USERNAME' to docker group..."
     usermod -aG docker "$USERNAME"
 
-    # Final message
+# Final message
     echo "✅ Docker or Moby installed and user configured."
 else
     echo "❌ Unsupported OS or configuration. Exiting."
         exit 1
 fi
 
-    echo "Finished installing Docker / Moby!"
+    echo "Finished installing Docker / Moby!"  
 fi
+    
 
 docker_home="/usr/libexec/docker"
 cli_plugins_dir="${docker_home}/cli-plugins"
@@ -567,7 +594,7 @@ fallback_buildx() {
     local repo_url=$(get_github_api_repo_url "$url")
     echo -e "\nFailed to fetch the latest artifacts for docker buildx v${buildx_version}..."
     get_previous_version "$url" "$repo_url" buildx_version
-    buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
+    buildx_file_name="buildx-v${buildx_version}.linux-amd64"
     echo -e "\nAttempting to install v${buildx_version}"
     wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
 }
@@ -608,12 +635,12 @@ if [ "$DISABLE_IP6_TABLES" == true ]; then
     fi
     if [ "$DOCKER_VERSION" = "latest" ] || [[ -n "$requested_version" && "$requested_version" -ge 27 ]]; then
         DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
-        echo '(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}' '
+        echo "! As requested, passing ${DOCKER_DEFAULT_IP6_TABLES}"
     fi
 fi
 
 tee /usr/local/share/docker-init.sh > /dev/null \
-<< EOF
+<< 'EOF'
 #!/bin/sh
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -661,7 +688,7 @@ find /run /var/run -iname 'container*.pid' -delete || :
             set_cgroup_nesting
 
             if [ $? -ne 0 ]; then
-                echo "(*) cgroup v2: Failed to enable nesting, retrying..."
+                echo "* cgroup v2: Failed to enable nesting, retrying..."
             else
                 break
             fi
@@ -726,7 +753,7 @@ sudo_if() {
 }
 
 retry_docker_start_count=0
-docker_ok="false"
+docker_ok="true"
 
 until [ "${docker_ok}" = "true"  ] || [ "${retry_docker_start_count}" -eq "5" ];
 do
@@ -743,6 +770,8 @@ do
         sleep 1s
         set +e
             docker info > /dev/null 2>&1 && docker_ok="true"
+            sudo_if pkill dockerd
+            sudo_if pkill containerd
         set -e
 
         retry_count=`expr $retry_count + 1`
@@ -761,7 +790,6 @@ done
 
 # Execute whatever commands were passed in (if any). This allows us
 # to set this script to ENTRYPOINT while still executing the default CMD.
-# shellcheck disable=all
 exec "$@"
 EOF
 
@@ -771,4 +799,4 @@ chown ${USERNAME}:root /usr/local/share/docker-init.sh
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
-echo 'docker-in-docker-debian script has completed!'
+echo "docker-in-docker-debian script has completed!"
