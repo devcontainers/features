@@ -1,5 +1,4 @@
 #!/bin/bash
-#shellcheck disable=all
 # shellcheck disable=all
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
