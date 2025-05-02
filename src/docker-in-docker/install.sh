@@ -1,5 +1,4 @@
-#!/bin/bash
-# shellcheck disable=all
+#!//usr/bin/env bash
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
@@ -371,9 +370,7 @@ echo "Please log out and log back in to apply group changes."
 
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
-else
-    if [ "${USE_MOBY}" = "true" ];then
-        if { [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; }; then
+    elif [ "${USE_MOBY}" = "true" ] && { [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; }; then
             # Install engine
             set +e # Handle error gracefully
             apt-get -y install --no-install-recommends \
@@ -391,10 +388,17 @@ else
             # Install compose
             apt-get -y install --no-install-recommends moby-compose || \
             err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+            else 
+                if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
+                apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}
+                # Install compose
+                apt-mark hold docker-ce docker-ce-cli
+                apt-get -y install --no-install-recommends docker-compose-plugin || echo "(*) Package docker-compose-plugin (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
 
-        elif [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; then
-            install_docker_or_moby
-        fi
+
+    elif [ "${USE_MOBY}" = "true" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
+               install_docker_or_moby
+
     elif [ "${USE_MOBY}" = "false" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
 
         #kmod package is required for modprobe
