@@ -370,104 +370,105 @@ echo "Please log out and log back in to apply group changes."
 }
 
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
-echo "Docker / Moby CLI and Engine already installed."
+    echo "Docker / Moby CLI and Engine already installed."
 else
-if [ "${USE_MOBY}" = "true" ];then
-if { [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; }; then
-# Install engine
-set +e # Handle error gracefully
-apt-get -y install --no-install-recommends \
-moby-cli${cli_version_suffix} \
-moby-buildx${buildx_version_suffix} \
-moby-engine${engine_version_suffix}
-exit_code=$?
-set -e
+    if [ "${USE_MOBY}" = "true" ];then
+        if { [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; }; then
+            # Install engine
+            set +e # Handle error gracefully
+            apt-get -y install --no-install-recommends \
+            moby-cli${cli_version_suffix} \
+            moby-buildx${buildx_version_suffix} \
+            moby-engine${engine_version_suffix}
+            exit_code=$?
+            set -e
 
-if [ ${exit_code} -ne 0 ]; then
-err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (e.g., 'ubuntu-20.04')."
-exit 1
-fi
+        if [ ${exit_code} -ne 0 ]; then
+        err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (e.g., 'ubuntu-20.04')."
+        exit 1
+        fi
 
-# Install compose
-apt-get -y install --no-install-recommends moby-compose || \
-err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+            # Install compose
+            apt-get -y install --no-install-recommends moby-compose || \
+            err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
 
-elif [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; then
-install_docker_or_moby
-fi
-elif [ "${USE_MOBY}" = "false" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
+        elif [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; then
+            install_docker_or_moby
+        fi
+    elif [ "${USE_MOBY}" = "false" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
 
-#kmod package is required for modprobe
-dnf install -y kmod iptables procps-ng
-# Load iptable_nat module for docker-in-docker.
-# See:
-#   - https://github.com/ublue-os/bluefin/issues/2365
-#   - https://github.com/devcontainers/features/issues/1235
-mkdir -p /etc/modules-load.d && cat >>/etc/modules-load.d/ip_tables.conf <<EOF
-iptable_nat
+        #kmod package is required for modprobe
+        dnf install -y kmod iptables procps-ng
+        # Load iptable_nat module for docker-in-docker.
+        # See:
+        #   - https://github.com/ublue-os/bluefin/issues/2365
+        #   - https://github.com/devcontainers/features/issues/1235
+        mkdir -p /etc/modules-load.d && cat >>/etc/modules-load.d/ip_tables.conf << 'EOF'
+        iptable_nat
 EOF
 
-# https://github.com/devcontainers/features/issues/1235
-if uname -r | grep -q '\.fc'; then
-sudo update-alternatives --set iptables /usr/sbin/iptables-nft
-fi
+        # https://github.com/devcontainers/features/issues/1235
+        if uname -r | grep -q '\.fc'; then
+        sudo update-alternatives --set iptables /usr/sbin/iptables-nft
+        fi
 
-# Get Fedora release version (e.g. 38, 39)
-FEDORA_VERSION=$(rpm -E %fedora)
+        # Get Fedora release version (e.g. 38, 39)
+        FEDORA_VERSION=$(rpm -E %fedora)
 
-echo "Detected Fedora version: $FEDORA_VERSION"
+        echo "Detected Fedora version: $FEDORA_VERSION"
 
-echo "Installing dnf-plugins-core..."
-if ! dnf install -y dnf-plugins-core; then
-echo "⚠️ Failed to install dnf-plugins-core. Falling back to Moby."
-install_docker_or_moby
-exit 0
-fi  
-echo "Setting up Docker CE repo..."
-if ! dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo; then
-echo "⚠️ Failed to add Docker CE repo. Falling back to Moby."
-install_docker_or_moby
-exit 0
-fi
+        echo "Installing dnf-plugins-core..."
+        if ! dnf install -y dnf-plugins-core; then
+        echo "⚠️ Failed to install dnf-plugins-core. Falling back to Moby."
+        install_docker_or_moby
+        exit 0
+        fi  
+        echo "Setting up Docker CE repo..."
+        if ! dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo; then
+        echo "⚠️ Failed to add Docker CE repo. Falling back to Moby."
+        install_docker_or_moby
+        exit 0
+        fi
 
-# Try installing Docker CE with fallback to Moby
-echo "Attempting to install Docker CE..."
+        # Try installing Docker CE with fallback to Moby
+        echo "Attempting to install Docker CE..."
 
-set +e
-dnf install -y docker docker-ce docker-ce-cli containerd.io 
-DOCKER_INSTALL_EXIT_CODE=$?
-set -e
+        set +e
+        dnf install -y docker docker-ce docker-ce-cli containerd.io 
+        DOCKER_INSTALL_EXIT_CODE=$?
+        set -e
 
-if [ $DOCKER_INSTALL_EXIT_CODE -ne 0 ] || ! command -v docker >/dev/null || ! command -v dockerd >/dev/null; then
-echo "⚠️ Docker CE installation appears incomplete or failed — falling back to Moby."
+        if [ $DOCKER_INSTALL_EXIT_CODE -ne 0 ] || ! command -v docker >/dev/null || ! command -v dockerd >/dev/null; then
+        echo "⚠️ Docker CE installation appears incomplete or failed — falling back to Moby."
 
-install_docker_or_moby
+        install_docker_or_moby
 
-# Optional: symlink to match docker-ce command names
-ln -sf /usr/bin/moby-engine /usr/bin/dockerd || true
-else
-echo "✅ Docker CE installed successfully!"
-fi
+        # Optional: symlink to match docker-ce command names
+        ln -sf /usr/bin/moby-engine /usr/bin/dockerd || true
+        else
+        echo "✅ Docker CE installed successfully!"
+        fi
 
-# Create docker group if missing
-if ! getent group docker > /dev/null; then
-echo "Creating 'docker' group..."
-groupadd docker
-fi
+        # Create docker group if missing
+        if ! getent group docker > /dev/null; then
+        echo "Creating 'docker' group..."
+        groupadd docker
+        fi
 
-# Add user to docker group
-USERNAME=${USERNAME:-vscode}
-echo "Adding user '$USERNAME' to docker group..."
-usermod -aG docker "$USERNAME"
+        # Add user to docker group
+        USERNAME=${USERNAME:-vscode}
+        echo "Adding user '$USERNAME' to docker group..."
+        usermod -aG docker "$USERNAME"
 
-# Final message
-echo "✅ Docker or Moby installed and user configured."
-else
-echo "❌ Unsupported OS or configuration. Exiting."
-exit 1
-fi
-
-echo "Finished installing Docker / Moby!"  
+        # Final message
+        echo "✅ Docker or Moby installed and user configured."
+        else
+            if { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
+                echo "❌ Unsupported OS or configuration. Exiting."
+                exit 1
+        fi
+    fi
+            echo "Finished installing Docker / Moby!"  
 fi
 
 
