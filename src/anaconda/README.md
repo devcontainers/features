@@ -7,7 +7,7 @@
 
 ```json
 "features": {
-    "ghcr.io/ran-dall/devcontainer-features/anaconda:1": {}
+    "ghcr.io/devcontainers/features/anaconda:1": {}
 }
 ```
 
