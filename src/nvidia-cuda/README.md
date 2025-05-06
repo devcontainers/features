@@ -20,7 +20,7 @@ Installs shared libraries for NVIDIA CUDA.
 | installNvtx | Additionally install NVIDIA Tools Extension (NVTX) | boolean | false |
 | installToolkit | Additionally install NVIDIA CUDA Toolkit | boolean | false |
 | cudaVersion | Version of CUDA to install | string | 11.8 |
-| cudnnVersion | Version of cuDNN to install | string | 8.6.0.163 |
+| cudnnVersion | Version of cuDNN to install | string | automatic |
 
 ## Compatibility
 
