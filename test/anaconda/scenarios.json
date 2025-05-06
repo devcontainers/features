@@ -1,0 +1,47 @@
+{
+   "install_anaconda_noble": {
+   "image": "mcr.microsoft.com/devcontainers/base:noble",
+   "user": "vscode",
+   "features": {
+     "anaconda": {
+       "version": "latest"
+     }
+   }
+  },
+  "install_anaconda_jammy": {
+    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "user": "vscode",
+    "features": {
+      "anaconda": {
+        "version": "latest"
+      }
+    }
+   },
+   "install_anaconda_bookworm": {
+    "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+    "user": "vscode",
+    "features": {
+      "anaconda": {
+        "version": "latest"
+      }
+    }
+   },
+   "install_anaconda_bullseye": {
+    "image": "mcr.microsoft.com/devcontainers/base:bullseye",
+    "user": "vscode",
+    "features": {
+      "anaconda": {
+        "version": "latest"
+      }
+    }
+  },
+  "install_anaconda_noble_without_user": {
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
+    "features": {
+      "anaconda": {
+        "version": "latest"
+      }
+    }
+   }        
+}
+
