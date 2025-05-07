@@ -12,7 +12,6 @@ set -eux
 # Feature options
 MISE_VERSION="${VERSION}"
 INSTALL_PLUGINS="${INSTALLPLUGINS:-""}"
-UPDATE_RC="${UPDATE_RC:-"true"}"
 
 # Install dependencies based on OS
 . /etc/os-release
