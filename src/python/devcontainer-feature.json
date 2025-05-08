@@ -1,6 +1,6 @@
 {
   "id": "python",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "name": "Python",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/python",
   "description": "Installs the provided version of Python, as well as PIPX, and other common Python utilities.  JupyterLab is conditionally installed with the python feature. Note: May require source code compilation.",
@@ -74,6 +74,11 @@
         "ms-python.autopep8"
       ],
       "settings": {
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes `python3` and `pip3` pre-installed and available on the `PATH`, along with the Python language extensions for Python development."
+          }
+        ],
         "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
         "[python]": {
           "editor.defaultFormatter": "ms-python.autopep8"
