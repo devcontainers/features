@@ -29,7 +29,7 @@ Create child containers *inside* a container, independent from the host's docker
 
 ### VS Code Extensions
 
-- `ms-azuretools.vscode-docker`
+- `ms-azuretools.vscode-containers`
 
 ## Limitations
 
