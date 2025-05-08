@@ -12,8 +12,7 @@
                 "lts",
                 "none",
                 "8.0",
-                "7.0",
-                "6.0"
+                "7.0"
             ],
             "default": "latest",
             "description": "Select or enter a .NET SDK version. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
