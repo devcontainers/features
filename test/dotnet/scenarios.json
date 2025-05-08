@@ -1,4 +1,4 @@
-{   
+{
     "install_dotnet_lts": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "remoteUser": "vscode",
@@ -16,7 +16,7 @@
                 "version": "3.1"
             }
         }
-    },     
+    },
     "install_dotnet_specific_release_and_feature_band": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "remoteUser": "vscode",
@@ -40,10 +40,13 @@
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "8.0.100-preview.6.23330.14",
+                "version": "9.0",
                 "additionalVersions": [
+                    "8.0",
                     "7.0",
-                    "6.0"
+                    "6.0",
+                    "5.0",
+                    "3.1"
                 ]
             }
         }
@@ -91,5 +94,5 @@
                 "workloads": "aspire, wasm-tools"
             }
         }
-    }    
+    }
 }
