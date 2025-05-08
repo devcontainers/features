@@ -50,7 +50,7 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-azuretools.vscode-docker"
+                "ms-azuretools.vscode-containers"
             ],
             "settings": {
                 "github.copilot.chat.codeGeneration.instructions": [
