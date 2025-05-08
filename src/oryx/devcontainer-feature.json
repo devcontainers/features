@@ -1,6 +1,6 @@
 {
     "id": "oryx",
-    "version": "1.3.7",
+    "version": "1.4.1",
     "name": "Oryx",
     "description": "Installs the oryx CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/oryx",
@@ -12,6 +12,17 @@
         "ORYX_DIR": "/usr/local/oryx",
         "DEBIAN_FLAVOR": "focal-scm",
         "PATH": "/usr/local/oryx:${PATH}"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes the oryx CLI pre-installed and available on the `PATH`."
+                    }
+                ]
+            }
+        }
     },
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils",

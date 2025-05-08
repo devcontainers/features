@@ -1,6 +1,6 @@
 {
     "id": "aws-cli",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "name": "AWS CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/aws-cli",
     "description": "Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
@@ -18,7 +18,14 @@
         "vscode": {
             "extensions": [
                 "AmazonWebServices.aws-toolkit-vscode"
-            ]
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes the AWS CLI along with needed dependencies pre-installed and available on the `PATH`, along with the AWS Toolkit extensions for AWS development."
+                    }
+                ]
+            }
         }
     },
     "installsAfter": [
