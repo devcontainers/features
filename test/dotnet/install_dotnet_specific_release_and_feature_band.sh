@@ -13,11 +13,11 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-#check ".NET SDK 5.0.3xx installed" \
-#is_dotnet_sdk_version_installed "5.0.3"
+#check ".NET SDK 8.0.1xx installed" \
+is_dotnet_sdk_version_installed "8.0.1"
 
 #check "Build and run example project" \
-#dotnet run --project projects/net5.0 
+dotnet run --project projects/net8.0 
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.
