@@ -213,11 +213,20 @@ find_version_list() {
         major_version=$(echo "$java_ver" | cut -d '.' -f 1)
     fi
     
+    # Remove the hardcoded fallback as this fails for new jdk latest version released ex: 24
+    # Related Issue: https://github.com/devcontainers/features/issues/1308
     if [ "${JDK_DISTRO}" = "ms" ]; then
-        if [ "${major_version}" = "8" ] || [ "${major_version}" = "18" ] || [ "${major_version}" = "22" ] || [ "${major_version}" = "23" ]; then
+        # Check if the requested version is available in the 'ms' distribution
+        echo "Check if OpenJDK is available for version ${major_version} for ${JDK_DISTRO} Distro"
+        available_versions=$(su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} | grep ${JDK_DISTRO} | grep -oE '[0-9]+(\.[0-9]+(\.[0-9]+)?)?' | sort -u")
+        if echo "${available_versions}" | grep -q "^${major_version}"; then
+            echo "JDK version ${major_version} is available in ${JDK_DISTRO}..."
+        else
+            echo "JDK version ${major_version} not available in  ${JDK_DISTRO}.... Switching to (tem)."
             JDK_DISTRO="tem"
         fi
     fi
+    echo "JDK_DISTRO: ${JDK_DISTRO}"
     if [ "${install_type}" != "java" ]; then
         regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
     else
