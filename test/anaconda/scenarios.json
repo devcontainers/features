@@ -1,6 +1,6 @@
 {
     "specific_version": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:jammy",
         "features": {
             "anaconda": {
                 "version": "24.5.0"
@@ -8,7 +8,7 @@
         }
     },
     "with_conda_forge": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:jammy",
         "features": {
             "anaconda": {
                 "useCondaForge": "true"
@@ -16,7 +16,7 @@
         }
     },
     "without_conda_forge": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:jammy",
         "features": {
             "anaconda": {
                 "useCondaForge": "false"
@@ -24,7 +24,7 @@
         }
     },
     "with_mamba": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:jammy",
         "features": {
             "anaconda": {
                 "installMamba": "true"
@@ -32,7 +32,7 @@
         }
     },
     "without_mamba": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:jammy",
         "features": {
             "anaconda": {
                 "installMamba": "false"
@@ -40,7 +40,7 @@
         }
     },
     "with_libmamba_solver": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:jammy",
         "features": {
             "anaconda": {
                 "installMamba": "true"
@@ -48,7 +48,7 @@
         }
     },
     "full_anaconda": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:jammy",
         "features": {
             "anaconda": {
                 "installFullAnaconda": "true"
@@ -56,7 +56,7 @@
         }
     },
     "miniconda_only": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:jammy",
         "features": {
             "anaconda": {
                 "installFullAnaconda": "false"
@@ -64,7 +64,7 @@
         }
     },
     "no_system_packages": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:jammy",
         "features": {
             "anaconda": {
                 "useSystemPackages": "false"
