@@ -202,8 +202,19 @@ if [ "${UPDATE_RUST}" = "true" ]; then
     echo "Updating Rust..."
     rustup update 2>&1
 fi
-echo "Installing common Rust dependencies..."
-rustup component add rls rust-analysis rust-src rustfmt clippy 2>&1
+echo "Installing common Rust dependencies based on versions..."
+should_install_rls_and_analysis=true
+RUST_VERSION_NUMBER=$(rustc --version 2>/dev/null | awk '{print $2}')
+if [ -n "$RUST_VERSION_NUMBER" ]; then
+    if [ "$(printf '%s\n' "1.86.0" "$RUST_VERSION_NUMBER" | sort -V | head -n1)" = "1.86.0" ] && [ "$RUST_VERSION_NUMBER" != "1.86.0" ]; then
+        should_install_rls_and_analysis=false
+    fi
+fi
+if [ "$should_install_rls_and_analysis" = true ]; then
+    rustup component add rls rust-analysis rust-src rustfmt clippy 2>&1
+else
+    rustup component add rust-src rustfmt clippy 2>&1
+fi
 
 if [ -n "${RUSTUP_TARGETS}" ]; then
     IFS=',' read -ra targets <<< "${RUSTUP_TARGETS}"
