@@ -9,7 +9,6 @@ The `customDownloadServer` option allows you to specify an alternative server fo
 When using this option:
 - Provide the complete URL including protocol (e.g., `https://my-mirror.example.com`)
 - The server should mirror the HashiCorp releases structure
-- For Sentinel with custom servers, specifying an exact version is recommended instead of "latest"
 
 Example:
 ```json
@@ -19,6 +18,20 @@ Example:
     }
 }
 ```
+
+### Security Considerations
+
+When using a custom download server, be aware of the following security implications:
+
+- **Server Verification**: Always verify that the custom server is trustworthy and maintained by your organization or a trusted entity. Using an untrusted or compromised server could lead to downloading malicious software.
+  
+- **Supply Chain Risks**: Malicious actors may attempt to distribute compromised versions of Terraform that contain backdoors, cryptominers, or other harmful code.
+  
+- **Integrity Checks**: The feature performs SHA256 checks when available, but these are only as trustworthy as the source of the checksums. If both the binaries and checksums come from a compromised server, the integrity check may pass despite the software being malicious.
+  
+- **Organizational Policy**: Ensure your custom download server adheres to your organization's security policies and implements proper access controls.
+
+Always use the official HashiCorp download server (https://releases.hashicorp.com) unless you have a specific need for an alternative source.
 
 ## OS Support
 
