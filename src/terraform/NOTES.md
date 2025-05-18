@@ -19,7 +19,7 @@ Example:
 }
 ```
 
-### Security Considerations
+### ⚠️ Security Considerations
 
 When using a custom download server, be aware of the following security implications:
 
