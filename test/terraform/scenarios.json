@@ -70,5 +70,24 @@
                 "tflint": "0.40.0"
             }
         }
+    },
+    "custom_download_server": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "version": "1.6.5",
+                "customDownloadServer": "releases.hashicorp.com"
+            }
+        }
+    },
+    "custom_download_server_with_sentinel": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "version": "1.6.5",
+                "installSentinel": true,
+                "customDownloadServer": "releases.hashicorp.com"
+            }
+        }
     }
 }

@@ -1,4 +1,3 @@
-
 # Terraform, tflint, and TFGrunt (terraform)
 
 Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects latest version and installs needed dependencies.
@@ -22,6 +21,7 @@ Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects la
 | installTFsec | Install tfsec, a tool to spot potential misconfigurations for your terraform code | boolean | false |
 | installTerraformDocs | Install terraform-docs, a utility to generate documentation from Terraform modules | boolean | false |
 | httpProxy | Connect to a keyserver using a proxy by configuring this option | string | - |
+| customDownloadServer | Custom server URL for downloading Terraform and Sentinel packages (default is releases.hashicorp.com) | string | - |
 
 ## Customizations
 

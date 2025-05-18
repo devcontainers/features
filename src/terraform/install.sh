@@ -18,6 +18,7 @@ TERRAGRUNT_VERSION="${TERRAGRUNT:-"latest"}"
 INSTALL_SENTINEL=${INSTALLSENTINEL:-false}
 INSTALL_TFSEC=${INSTALLTFSEC:-false}
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
+CUSTOM_DOWNLOAD_SERVER="${CUSTOMDOWNLOADSERVER:-""}"
 
 TERRAFORM_SHA256="${TERRAFORM_SHA256:-"automatic"}"
 TFLINT_SHA256="${TFLINT_SHA256:-"automatic"}"
@@ -25,6 +26,13 @@ TERRAGRUNT_SHA256="${TERRAGRUNT_SHA256:-"automatic"}"
 SENTINEL_SHA256="${SENTINEL_SHA256:-"automatic"}"
 TFSEC_SHA256="${TFSEC_SHA256:-"automatic"}"
 TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
+
+# Set the default HashiCorp download server
+HASHICORP_RELEASES_URL="releases.hashicorp.com"
+# Use custom download server if provided
+if [ -n "${CUSTOM_DOWNLOAD_SERVER}" ]; then
+    HASHICORP_RELEASES_URL="${CUSTOM_DOWNLOAD_SERVER}"
+fi
 
 TERRAFORM_GPG_KEY="72D7468F"
 TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/v0.46.1/8CE69160EB3F2FE9.key"
@@ -357,7 +365,7 @@ find_version_from_git_tags TERRAGRUNT_VERSION "$terragrunt_url"
 install_terraform() {
     local TERRAFORM_VERSION=$1
     terraform_filename="terraform_${TERRAFORM_VERSION}_linux_${architecture}.zip"
-    curl -sSL -o ${terraform_filename} "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/${terraform_filename}"
+    curl -sSL -o ${terraform_filename} "https://${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/${terraform_filename}"
 }
 
 mkdir -p /tmp/tf-downloads
@@ -373,8 +381,8 @@ fi
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
     if [ "${TERRAFORM_SHA256}" = "automatic" ]; then
         receive_gpg_keys TERRAFORM_GPG_KEY
-        curl -sSL -o terraform_SHA256SUMS https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS 
-        curl -sSL -o terraform_SHA256SUMS.sig https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
+        curl -sSL -o terraform_SHA256SUMS "https://${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" 
+        curl -sSL -o terraform_SHA256SUMS.sig "https://${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
         gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS
     else
         echo "${TERRAFORM_SHA256} *${terraform_filename}" > terraform_SHA256SUMS
@@ -464,7 +472,7 @@ fi
 
 if [ "${INSTALL_SENTINEL}" = "true" ]; then
     SENTINEL_VERSION="latest"
-    sentinel_releases_url='https://releases.hashicorp.com/sentinel'
+    sentinel_releases_url="https://${HASHICORP_RELEASES_URL}/sentinel"
     find_sentinel_version_from_url SENTINEL_VERSION ${sentinel_releases_url}
     sentinel_filename="sentinel_${SENTINEL_VERSION}_linux_${architecture}.zip"
     echo "(*) Downloading Sentinel... ${sentinel_filename}"
