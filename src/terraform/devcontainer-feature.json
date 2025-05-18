@@ -58,7 +58,7 @@
         "customDownloadServer": {
             "type": "string",
             "default": "",
-            "description": "Custom server URL for downloading Terraform and Sentinel packages (default is releases.hashicorp.com)"
+            "description": "Custom server URL for downloading Terraform and Sentinel packages, including protocol (e.g., https://releases.hashicorp.com). If not provided, the default HashiCorp download server (https://releases.hashicorp.com) will be used."
         }
     },
     "customizations": {

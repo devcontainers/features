@@ -76,7 +76,7 @@
         "features": {
             "terraform": {
                 "version": "1.6.5",
-                "customDownloadServer": "releases.hashicorp.com"
+                "customDownloadServer": "https://releases.hashicorp.com"
             }
         }
     },
@@ -86,7 +86,7 @@
             "terraform": {
                 "version": "1.6.5",
                 "installSentinel": true,
-                "customDownloadServer": "releases.hashicorp.com"
+                "customDownloadServer": "https://releases.hashicorp.com"
             }
         }
     }
