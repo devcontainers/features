@@ -54,6 +54,11 @@
             "type": "string",
             "default": "",
             "description": "Connect to a keyserver using a proxy by configuring this option"
+        },
+        "disableGpgCheck": {
+            "type": "boolean",
+            "description": "Optionally disable GPG check for Terraform installation",
+            "default": false
         }
     },
     "customizations": {
