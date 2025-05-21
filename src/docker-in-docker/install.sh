@@ -56,10 +56,10 @@ break
 fi
 done
 if [ "${USERNAME}" = "" ]; then
-USERNAME=root
+    USERNAME=root
 fi
 elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
-USERNAME=root
+    USERNAME=root
 fi
 
 apt_get_update()
@@ -397,7 +397,7 @@ if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
 
 
     elif [ "${USE_MOBY}" = "true" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
-               install_docker_or_moby
+            install_docker_or_moby
 
     elif [ "${USE_MOBY}" = "false" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
 
@@ -491,97 +491,96 @@ curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_versi
 
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
-case "${architecture}" in
-amd64) target_compose_arch=x86_64 ;;
-arm64) target_compose_arch=aarch64 ;;
-*)
-echo " Docker in docker does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
-exit 1
-esac
+    case "${architecture}" in
+    amd64) target_compose_arch=x86_64 ;;
+    arm64) target_compose_arch=aarch64 ;;
+    *)
+    echo " Docker in docker does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
+    exit 1
+    esac
 
-docker_compose_path="/usr/local/bin/docker-compose"
-if [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
-err "The final Compose V1 release, version 1.29.2, was May 10, 2021. These packages haven't received any security updates since then. Use at your own risk."
-INSTALL_DOCKER_COMPOSE_SWITCH="false"
+    docker_compose_path="/usr/local/bin/docker-compose"
+    if [ "${DOCKER_DASH_COMPOSE_VERSION}" = "v1" ]; then
+        err "The final Compose V1 release, version 1.29.2, was May 10, 2021. These packages haven't received any security updates since then. Use at your own risk."
+        INSTALL_DOCKER_COMPOSE_SWITCH="false"
 
-if [ "${target_compose_arch}" = "x86_64" ]; then
-echo "(*) Installing docker compose v1..."
-curl -fsSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64" -o ${docker_compose_path}
-chmod +x ${docker_compose_path}
+        if [ "${target_compose_arch}" = "x86_64" ]; then
+            echo "(*) Installing docker compose v1..."
+            curl -fsSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64" -o ${docker_compose_path}
+            chmod +x ${docker_compose_path}
 
-# Download the SHA256 checksum
-DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64.sha256" | awk '{print $1}')"
-echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
-sha256sum -c docker-compose.sha256sum --ignore-missing
-elif [ "${VERSION_CODENAME}" = "bookworm" ]; then
-err "Docker compose v1 is unavailable for 'bookworm' on Arm64. Kindly switch to use v2"
-exit 1
-else
-# Use pip to get a version that runs on this architecture
-check_packages python3-minimal python3-pip libffi-dev python3-venv
-echo "(*) Installing docker compose v1 via pip..."
-export PYTHONUSERBASE=/usr/local
-pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
-fi
-else
-compose_version="${DOCKER_DASH_COMPOSE_VERSION#v}"
-docker_compose_url="https://github.com/docker/compose"
-find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
-echo "(*) Installing docker-compose ${compose_version}..."
-curl -fsSL "https://github.com/docker/compose/releases/download/compose_version/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
-echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..." 
-fallback_compose "$docker_compose_url"
-}
+            # Download the SHA256 checksum
+            DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64.sha256" | awk '{print $1}')"
+            echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
+            sha256sum -c docker-compose.sha256sum --ignore-missing
+        elif [ "${VERSION_CODENAME}" = "bookworm" ]; then
+            err "Docker compose v1 is unavailable for 'bookworm' on Arm64. Kindly switch to use v2"
+            exit 1
+        else
+            # Use pip to get a version that runs on this architecture
+            check_packages python3-minimal python3-pip libffi-dev python3-venv
+            echo "(*) Installing docker compose v1 via pip..."
+            export PYTHONUSERBASE=/usr/local
+            pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
+        fi
+    else
+        compose_version="${DOCKER_DASH_COMPOSE_VERSION#v}"
+        docker_compose_url="https://github.com/docker/compose"
+        find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
+        echo "(*) Installing docker-compose ${compose_version}..."
+        curl -fsSL "https://github.com/docker/compose/releases/download/compose_version/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
+        echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..." 
+        fallback_compose "$docker_compose_url"
+        }
+        chmod +x ${docker_compose_path}
 
-chmod +x ${docker_compose_path}
+        # Download the SHA256 checksum
+        DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}.sha256" | awk '{print $1}')"
+        echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
+        sha256sum -c docker-compose.sha256sum --ignore-missing
 
-# Download the SHA256 checksum
-DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}.sha256" | awk '{print $1}')"
-echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
-sha256sum -c docker-compose.sha256sum --ignore-missing
-
-mkdir -p ${cli_plugins_dir}
-cp ${docker_compose_path} ${cli_plugins_dir}
-fi
+        mkdir -p ${cli_plugins_dir}
+        cp ${docker_compose_path} ${cli_plugins_dir}
+    fi
 fi
 
 # fallback method for compose-switch
 fallback_compose-switch() {
-local url=$1
-local repo_url=$(get_github_api_repo_url "$url")
-echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
-get_previous_version "$url" "$repo_url" compose_switch_version
-echo -e "\nAttempting to install v${compose_switch_version}"
-curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
+    local url=$1
+    local repo_url=$(get_github_api_repo_url "$url")
+    echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
+    get_previous_version "$url" "$repo_url" compose_switch_version
+    echo -e "\nAttempting to install v${compose_switch_version}"
+    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch
 }
 
 # Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
 if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /dev/null 2>&1; then
-if type docker-compose > /dev/null 2>&1; then
-echo "(*) Installing compose-switch..."
-current_compose_path="$(which docker-compose)"
-target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
-compose_switch_version="latest"
-compose_switch_url="https://github.com/docker/compose-switch"
-find_version_from_git_tags compose_switch_version "$compose_switch_url"
-curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || fallback_compose-switch "$compose_switch_url"
-chmod +x /usr/local/bin/compose-switch
-# TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
-# Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
-mv "${current_compose_path}" "${target_compose_path}"
-update-alternatives --install ${docker_compose_path} docker-compose /usr/local/bin/compose-switch 99
-update-alternatives --install ${docker_compose_path} docker-compose "${target_compose_path}" 1
-else
-err "Skipping installation of compose-switch as docker compose is unavailable..."
-fi
+    if type docker-compose > /dev/null 2>&1; then
+        echo "(*) Installing compose-switch..."
+        current_compose_path="$(which docker-compose)"
+        target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
+        compose_switch_version="latest"
+        compose_switch_url="https://github.com/docker/compose-switch"
+        find_version_from_git_tags compose_switch_version "$compose_switch_url"
+        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || fallback_compose-switch "$compose_switch_url"
+        chmod +x /usr/local/bin/compose-switch
+        # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
+        # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
+        mv "${current_compose_path}" "${target_compose_path}"
+        update-alternatives --install ${docker_compose_path} docker-compose /usr/local/bin/compose-switch 99
+        update-alternatives --install ${docker_compose_path} docker-compose "${target_compose_path}" 1
+    else
+        err "Skipping installation of compose-switch as docker compose is unavailable..."
+    fi
 fi
 
 # If init file already exists, exit
 if [ -f "/usr/local/share/docker-init.sh" ]; then
-echo "/usr/local/share/docker-init.sh already exists, so exiting."
-# Clean up
-rm -rf /var/lib/apt/lists/*
-exit 0
+    echo "/usr/local/share/docker-init.sh already exists, so exiting."
+    # Clean up
+    rm -rf /var/lib/apt/lists/*
+    exit 0
 fi
 echo "docker-init doesn't exist, adding..."
 
@@ -593,52 +592,52 @@ usermod -aG docker ${USERNAME}
 
 # fallback for docker/buildx
 fallback_buildx() {
-local url=$1
-local repo_url=$(get_github_api_repo_url "$url")
-echo -e "\nFailed to fetch the latest artifacts for docker buildx v${buildx_version}..."
-get_previous_version "$url" "$repo_url" buildx_version
-buildx_file_name="buildx-v${buildx_version}.linux-amd64"
-echo -e "\nAttempting to install v${buildx_version}"
-wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
+    local url=$1
+    local repo_url=$(get_github_api_repo_url "$url")
+    echo -e "\nFailed to fetch the latest artifacts for docker buildx v${buildx_version}..."
+    get_previous_version "$url" "$repo_url" buildx_version
+    buildx_file_name="buildx-v${buildx_version}.linux-amd64"
+    echo -e "\nAttempting to install v${buildx_version}"
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
 }
 
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
-buildx_version="latest"
-docker_buildx_url="https://github.com/docker/buildx"
-find_version_from_git_tags buildx_version "$docker_buildx_url" "refs/tags/v"
-echo '(*) Installing buildx ${buildx_version}...'
-buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
+    buildx_version="latest"
+    docker_buildx_url="https://github.com/docker/buildx"
+    find_version_from_git_tags buildx_version "$docker_buildx_url" "refs/tags/v"
+    echo '(*) Installing buildx ${buildx_version}...'
+    buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
 
-cd /tmp
-wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || fallback_buildx "$docker_buildx_url"
+    cd /tmp
+    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || fallback_buildx "$docker_buildx_url"
 
-docker_home="/usr/libexec/docker"
-cli_plugins_dir="${docker_home}/cli-plugins"
+    docker_home="/usr/libexec/docker"
+    cli_plugins_dir="${docker_home}/cli-plugins"
 
-mkdir -p "${cli_plugins_dir}"
-mv "${buildx_file_name}" "${cli_plugins_dir}/docker-buildx"
-chmod +x "${cli_plugins_dir}/docker-buildx"
+    mkdir -p "${cli_plugins_dir}"
+    mv "${buildx_file_name}" "${cli_plugins_dir}/docker-buildx"
+    chmod +x "${cli_plugins_dir}/docker-buildx"
 
-chown -R "${USERNAME}:docker" "${docker_home}"
-chmod -R g+r+w "${docker_home}"
-find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
+    chown -R "${USERNAME}:docker" "${docker_home}"
+    chmod -R g+r+w "${docker_home}"
+    find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
 
 DOCKER_DEFAULT_IP6_TABLES=""
 if [ "$DISABLE_IP6_TABLES" == true ]; then
-requested_version=""
-# checking whether the version requested either is in semver format or just a number denoting the major version
-# and, extracting the major version number out of the two scenarios
-semver_regex='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
-if echo "$DOCKER_VERSION" | grep -Eq $semver_regex; then
-requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
-elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
-requested_version=$DOCKER_VERSION
-fi
-if [ "$DOCKER_VERSION" = "latest" ] || [[ -n "$requested_version" && "$requested_version" -ge 27 ]]; then
-DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
-echo "! As requested, passing ${DOCKER_DEFAULT_IP6_TABLES}"
-fi
+    requested_version=""
+    # checking whether the version requested either is in semver format or just a number denoting the major version
+    # and, extracting the major version number out of the two scenarios
+    semver_regex='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+    if echo "$DOCKER_VERSION" | grep -Eq $semver_regex; then
+        requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
+    elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
+        requested_version=$DOCKER_VERSION
+    fi
+    if [ "$DOCKER_VERSION" = "latest" ] || [[ -n "$requested_version" && "$requested_version" -ge 27 ]]; then
+        DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
+        echo "! As requested, passing ${DOCKER_DEFAULT_IP6_TABLES}"
+    fi
 fi
 
 tee /usr/local/share/docker-init.sh > /dev/null \
@@ -742,7 +741,7 @@ INNEREOF
 
 
 sudo_if() {
-   COMMAND="$*"
+    COMMAND="$*"
 
     if [ "$(id -u)" -ne 0 ]; then
         sudo $COMMAND
