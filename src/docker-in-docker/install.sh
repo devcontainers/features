@@ -242,17 +242,17 @@ fi
 
 # Check if distro is supported
 if [ "${USE_MOBY}" = "true" ]; then
-if [[ "${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
-err "Unsupported  distribution version '${VERSION_CODENAME}'. To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS distribution"
-err "Support distributions include:  ${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}"
-exit 1
-fi
-echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}'"
+    if [[ "${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
+        err "Unsupported  distribution version '${VERSION_CODENAME}'. To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS distribution"
+        err "Support distributions include:  ${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}"
+        exit 1
+    fi
+    echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}'"
 else
 if [[ "${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
-err "Unsupported distribution version '${VERSION_CODENAME}'. To resolve, please choose a compatible OS distribution"
-err "Support distributions include:  '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
-exit 1
+    err "Unsupported distribution version '${VERSION_CODENAME}'. To resolve, please choose a compatible OS distribution"
+    err "Support distributions include:  '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
+    exit 1
 fi
 echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
 fi
@@ -260,85 +260,85 @@ fi
 # Install dependencies
 check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget jq
 if ! type git > /dev/null 2>&1; then
-check_packages git
+    check_packages git
 fi
 # Swap to legacy iptables for compatibility
 if type iptables-legacy > /dev/null 2>&1; then
-update-alternatives --set iptables /usr/sbin/iptables-legacy
-update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+    update-alternatives --set iptables /usr/sbin/iptables-legacy
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 fi
 # https://github.com/devcontainers/features/issues/1235
 if uname -r | grep -q '\.fc'; then
-sudo update-alternatives --set iptables /usr/sbin/iptables-nft
+    sudo update-alternatives --set iptables /usr/sbin/iptables-nft
 fi
 
 # Set up the necessary apt repos (either Microsoft's or Docker's)
 if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
-if [ "${USE_MOBY}" = "true" ]; then
+    if [ "${USE_MOBY}" = "true" ]; then
 
-# Name of open source engine/cli
-engine_package_name="moby-engine"
-cli_package_name="moby-cli"
+        # Name of open source engine/cli
+        engine_package_name="moby-engine"
+        cli_package_name="moby-cli"
 
-# Import key safely and import Microsoft apt repo
-curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
-echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
-else
-# Name of licensed engine/cli
-engine_package_name="docker-ce"
-cli_package_name="docker-ce-cli"
+        # Import key safely and import Microsoft apt repo
+        curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
+        echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+    else
+        # Name of licensed engine/cli
+        engine_package_name="docker-ce"
+        cli_package_name="docker-ce-cli"
 
-# Import key safely and import Docker apt repo
-curl -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
-fi
+        # Import key safely and import Docker apt repo
+        curl -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
+    fi
 
 # Refresh apt lists
 apt-get update
 fi
 # Soft version matching
 if [ "${DOCKER_VERSION}" = "latest" ] || [ "${DOCKER_VERSION}" = "lts" ] || [ "${DOCKER_VERSION}" = "stable" ]; then
-# Empty, meaning grab whatever "latest" is in apt repo
-engine_version_suffix=""
-cli_version_suffix=""
-else
-# Fetch a valid version from the apt-cache (eg: the Microsoft repo appends +azure, breakfix, etc...)
-docker_version_dot_escaped="${DOCKER_VERSION//./\\.}"
-docker_version_dot_plus_escaped="${docker_version_dot_escaped//+/\\+}"
-# Regex needs to handle debian package version number format: https://www.systutorials.com/docs/linux/man/5-deb-version/
-docker_version_regex="^(.+:)?${docker_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
-set +e # Don't exit if finding version fails - will handle gracefully
-cli_version_suffix="=$(apt-cache madison ${cli_package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${docker_version_regex}")"
-engine_version_suffix="=$(apt-cache madison ${engine_package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${docker_version_regex}")"
-set -e
-if [ -z "${engine_version_suffix}" ] || [ "${engine_version_suffix}" = "=" ] || [ -z "${cli_version_suffix}" ] || [ "${cli_version_suffix}" = "=" ] ; then
-err "No full or partial Docker / Moby version match found for \"${DOCKER_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
-apt-cache madison ${cli_package_name} | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
-exit 1
-fi
-echo "engine_version_suffix ${engine_version_suffix}"
-echo "cli_version_suffix ${cli_version_suffix}"
+    # Empty, meaning grab whatever "latest" is in apt repo
+    engine_version_suffix=""
+    cli_version_suffix=""
+    else
+        # Fetch a valid version from the apt-cache (eg: the Microsoft repo appends +azure, breakfix, etc...)
+        docker_version_dot_escaped="${DOCKER_VERSION//./\\.}"
+        docker_version_dot_plus_escaped="${docker_version_dot_escaped//+/\\+}"
+        # Regex needs to handle debian package version number format: https://www.systutorials.com/docs/linux/man/5-deb-version/
+        docker_version_regex="^(.+:)?${docker_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
+        set +e # Don't exit if finding version fails - will handle gracefully
+        cli_version_suffix="=$(apt-cache madison ${cli_package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${docker_version_regex}")"
+        engine_version_suffix="=$(apt-cache madison ${engine_package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${docker_version_regex}")"
+        set -e
+    if [ -z "${engine_version_suffix}" ] || [ "${engine_version_suffix}" = "=" ] || [ -z "${cli_version_suffix}" ] || [ "${cli_version_suffix}" = "=" ] ; then
+        err "No full or partial Docker / Moby version match found for \"${DOCKER_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
+        apt-cache madison ${cli_package_name} | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
+        exit 1
+    fi
+    echo "engine_version_suffix ${engine_version_suffix}"
+    echo "cli_version_suffix ${cli_version_suffix}"
 fi
 
 # Version matching for moby-buildx
 if [ "${USE_MOBY}" = "true" ]; then
-if [ "${MOBY_BUILDX_VERSION}" = "latest" ]; then
-# Empty, meaning grab whatever "latest" is in apt repo
-buildx_version_suffix=""
-else
-buildx_version_dot_escaped="${MOBY_BUILDX_VERSION//./\\.}"
-buildx_version_dot_plus_escaped="${buildx_version_dot_escaped//+/\\+}"
-buildx_version_regex="^(.+:)?${buildx_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
-set +e
-buildx_version_suffix="=$(apt-cache madison moby-buildx | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${buildx_version_regex}")"
-set -e
-if [ -z "${buildx_version_suffix}" ] || [ "${buildx_version_suffix}" = "=" ]; then
-err "No full or partial moby-buildx version match found for \"${MOBY_BUILDX_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
-apt-cache madison moby-buildx | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
-exit 1
-fi
-echo "buildx_version_suffix ${buildx_version_suffix}"
-fi
+    if [ "${MOBY_BUILDX_VERSION}" = "latest" ]; then
+        # Empty, meaning grab whatever "latest" is in apt repo
+        buildx_version_suffix=""
+    else
+        buildx_version_dot_escaped="${MOBY_BUILDX_VERSION//./\\.}"
+        buildx_version_dot_plus_escaped="${buildx_version_dot_escaped//+/\\+}"
+        buildx_version_regex="^(.+:)?${buildx_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
+        set +e
+        buildx_version_suffix="=$(apt-cache madison moby-buildx | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${buildx_version_regex}")"
+        set -e
+        if [ -z "${buildx_version_suffix}" ] || [ "${buildx_version_suffix}" = "=" ]; then
+            err "No full or partial moby-buildx version match found for \"${MOBY_BUILDX_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
+            apt-cache madison moby-buildx | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
+            exit 1
+        fi
+    echo "buildx_version_suffix ${buildx_version_suffix}"
+    fi
 fi
 
 install_docker_or_moby() {
@@ -385,15 +385,14 @@ if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
         exit 1
         fi
 
-            # Install compose
-            apt-get -y install --no-install-recommends moby-compose || \
-            err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
-            else 
-                if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
-                apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}
-                # Install compose
-                apt-mark hold docker-ce docker-ce-cli
-                apt-get -y install --no-install-recommends docker-compose-plugin || echo "(*) Package docker-compose-plugin (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+        # Install compose
+        apt-get -y install --no-install-recommends moby-compose || \
+        err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+    elif [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
+        apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}
+        # Install compose
+        apt-mark hold docker-ce docker-ce-cli
+        apt-get -y install --no-install-recommends docker-compose-plugin || echo "(*) Package docker-compose-plugin (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
 
 
     elif [ "${USE_MOBY}" = "true" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
@@ -443,20 +442,20 @@ EOF
         set -e
 
         if [ $DOCKER_INSTALL_EXIT_CODE -ne 0 ] || ! command -v docker >/dev/null || ! command -v dockerd >/dev/null; then
-        echo "⚠️ Docker CE installation appears incomplete or failed — falling back to Moby."
+            echo "⚠️ Docker CE installation appears incomplete or failed — falling back to Moby."
 
-        install_docker_or_moby
+            install_docker_or_moby
 
-        # Optional: symlink to match docker-ce command names
-        ln -sf /usr/bin/moby-engine /usr/bin/dockerd || true
+            # Optional: symlink to match docker-ce command names
+            ln -sf /usr/bin/moby-engine /usr/bin/dockerd || true
         else
-        echo "✅ Docker CE installed successfully!"
+            echo "✅ Docker CE installed successfully!"
         fi
 
         # Create docker group if missing
         if ! getent group docker > /dev/null; then
-        echo "Creating 'docker' group..."
-        groupadd docker
+            echo "Creating 'docker' group..."
+            groupadd docker
         fi
 
         # Add user to docker group
@@ -466,15 +465,13 @@ EOF
 
         # Final message
         echo "✅ Docker or Moby installed and user configured."
-        else
-            if { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
-                echo "❌ Unsupported OS or configuration. Exiting."
-                exit 1
+    else
+        if { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
+            echo "❌ Unsupported OS or configuration. Exiting."
+            exit 1
         fi
-    fi
-            echo "Finished installing Docker / Moby!"  
+    echo "Finished installing Docker / Moby!"  
 fi
-
 
 docker_home="/usr/libexec/docker"
 cli_plugins_dir="${docker_home}/cli-plugins"
