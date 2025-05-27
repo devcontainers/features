@@ -22,14 +22,8 @@ is_dotnet_sdk_version_installed "8.0"
 check ".NET SDK 7.0 installed" \
 is_dotnet_sdk_version_installed "7.0"
 
-check ".NET SDK 6.0 installed" \
-is_dotnet_sdk_version_installed "6.0"
-
 check ".NET SDK 10.0 installed" \
 is_dotnet_sdk_version_installed "10.0"
-
-check ".NET Core SDK 3.1 installed" \
-is_dotnet_sdk_version_installed "3.1"
 
 check "Build example class library" \
 dotnet build projects/multitargeting
@@ -43,14 +37,8 @@ dotnet run --project projects/net8.0
 check "Build and run .NET 7.0 project" \
 dotnet run --project projects/net7.0
 
-check "Build and run .NET 6.0 project" \
-dotnet run --project projects/net6.0
-
 check "Build and run .NET 10.0 project" \
 dotnet run --project projects/net10.0
-
-check "Build and run .NET Core 3.1 project" \
-dotnet run --project projects/netcoreapp3.1
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.

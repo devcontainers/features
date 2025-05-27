@@ -11,6 +11,7 @@
                 "latest",
                 "lts",
                 "none",
+                // This below dotnet 10 is the dotnet 10.0-preview version. Please check the readme file for more details. 
                 "10.0",
                 "8.0",
                 "7.0",

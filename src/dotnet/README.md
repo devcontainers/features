@@ -21,6 +21,8 @@ This Feature installs the latest .NET SDK, which includes the .NET CLI and the s
 | aspNetCoreRuntimeVersions | Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
 | workloads | Enter additional .NET SDK workloads, separated by commas. Use 'dotnet workload search' to learn what workloads are available to install. | string | - |
 
+The dotnet '10.0' version provided as option is only the dotnet '10.0-preview' version. The dotnet '10.0' stable version is expected to be released by end of 2025. The preview version is still under development and is generally not supported for production use.
+
 ## Customizations
 
 ### VS Code Extensions
