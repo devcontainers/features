@@ -9,20 +9,20 @@
         }
     },
     "install_dotnet_specific_release": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "8.0"
+                "version": "3.1"
             }
         }
     },
     "install_dotnet_specific_release_and_feature_band": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "8.0.3xx"
+                "version": "5.0.3xx"
             }
         }
     },
@@ -43,7 +43,10 @@
                 "version": "9.0",
                 "additionalVersions": [
                     "8.0",
-                    "7.0"
+                    "7.0",
+                    "6.0",
+                    "5.0",
+                    "3.1"
                 ]
             }
         }
