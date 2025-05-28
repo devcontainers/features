@@ -177,7 +177,11 @@ GIT_ORYX=/opt/tmp/oryx-repo
 mkdir -p ${BUILD_SCRIPT_GENERATOR}
 mkdir -p ${ORYX}
 
-git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
+# https://github.com/microsoft/Oryx/commit/aa205b50896b2174c0d0d8be1c9e94684aab1e9a is breaking the `oryx` tool
+# Pinning to a previous working commit until the upstream issue is fixed.
+git clone https://github.com/microsoft/Oryx $GIT_ORYX
+cd $GIT_ORYX
+git reset --hard cada9e85564f034d18420f8b5b38b3cf2259f321
 
 if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     cd $GIT_ORYX
