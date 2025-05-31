@@ -12,4 +12,5 @@ check "terraform version matches" terraform --version | grep "1.6.5"
 # Check if sentinel was installed correctly
 check "sentinel installed" sentinel --version
 
-# Report results 
+# Report results
+reportResults

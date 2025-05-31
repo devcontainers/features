@@ -10,4 +10,4 @@ check "terraform installed" terraform --version
 check "terraform version matches" terraform --version | grep "1.6.5"
 
 # Report results
-reportResults 
+reportResults
