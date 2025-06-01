@@ -82,7 +82,7 @@
         "features": {
             "node": {
                 "version": "16",
-                "pnpmVersion":"8.8.0"
+                "pnpmVersion": "8.8.0"
             }
         }
     },
@@ -200,13 +200,33 @@
             }
         }
     },
-    "test_node_project": {
+    "test_node_project_nvmrc": {
         "build": {
             "dockerfile": "DockerFile"
         },
         "features": {
             "node": {
-                "findProjectNodeVersion": false
+                "findProjectNodeVersion": true
+            }
+        }
+    },
+    "test_node_project_nodev": {
+        "build": {
+            "dockerfile": "DockerFile"
+        },
+        "features": {
+            "node": {
+                "findProjectNodeVersion": true
+            }
+        }
+    },
+    "test_node_project_nvm_nodev": {
+        "build": {
+            "dockerfile": "DockerFile"
+        },
+        "features": {
+            "node": {
+                "findProjectNodeVersion": true
             }
         }
     }
