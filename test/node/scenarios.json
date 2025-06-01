@@ -199,5 +199,15 @@
                 "installYarnUsingApt": false
             }
         }
+    },
+    "test_node_project": {
+        "build": {
+            "dockerfile": "DockerFile"
+        },
+        "features": {
+            "node": {
+                "findProjectNodeVersion": false
+            }
+        }
     }
 }

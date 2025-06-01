@@ -13,7 +13,7 @@ export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-true}"  # only concerns Debian-based systems
-
+export FIND_PROJECT_NODE_VERSION="${FINDPROJECTNODEVERSION:-true}"
 # Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
@@ -285,6 +285,24 @@ esac
 
 if ! type git > /dev/null 2>&1; then
     check_packages git
+fi
+
+# Use the nvmrc file is it exists to determine the node version
+echo "FIND_PROJECT_NODE_VERSION: ${FIND_PROJECT_NODE_VERSION}"
+if [[ "${FIND_PROJECT_NODE_VERSION}" == "true" ]]; then
+    echo "Finding Node version from .nvmrc file..."
+    NVMRC_PATH=$(find . -type f -name ".nvmrc" | head -n 1)
+    if [ -n "$NVMRC_PATH" ]; then
+        NODE_VERSION_NVMRC=$(<"$NVMRC_PATH" xargs)
+        if [ -n "$NODE_VERSION_NVMRC" ]; then
+            echo "Using Node version from .nvmrc file in $NVMRC_PATH: $NODE_VERSION_NVMRC"
+            NODE_VERSION="${NODE_VERSION_NVMRC}"
+        else
+            echo "$NVMRC_PATH file is empty. No Node version specified. Using the default: ${NODE_VERSION}."
+        fi
+    else
+        echo "No .nvmrc file found. Using the default Node version: ${NODE_VERSION}."
+    fi
 fi
 
 # Adjust node version if required
