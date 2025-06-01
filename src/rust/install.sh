@@ -203,7 +203,7 @@ if [ "${UPDATE_RUST}" = "true" ]; then
     rustup update 2>&1
 fi
 echo "Installing common Rust dependencies..."
-rustup component add rls rust-analysis rust-src rustfmt clippy 2>&1
+rustup component add rust-analyzer rust-src rustfmt clippy 2>&1
 
 if [ -n "${RUSTUP_TARGETS}" ]; then
     IFS=',' read -ra targets <<< "${RUSTUP_TARGETS}"

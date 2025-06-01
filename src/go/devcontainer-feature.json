@@ -10,8 +10,8 @@
             "proposals": [
                 "latest",
                 "none",
-                "1.23",
-                "1.22"
+                "1.24",
+                "1.23"
             ],
             "default": "latest",
             "description": "Select or enter a Go version to install"
