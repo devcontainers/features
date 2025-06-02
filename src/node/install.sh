@@ -289,7 +289,7 @@ fi
 
 # Determine the Node.js version using the .nvmrc or .node-version file if present.
 echo "FIND_PROJECT_NODE_VERSION: ${FIND_PROJECT_NODE_VERSION}"
-if [[ "${FIND_PROJECT_NODE_VERSION}" == "true" ]]; then
+if [[ "${FIND_PROJECT_NODE_VERSION}" == "true" && "${NODE_VERSION}" != "none" ]]; then
     echo "Finding Node version from .nvmrc or .node-version file..."
     NODE_VERSION_PATH=$(find . -type f -name ".node-version" | head -n 1)
     NVMRC_PATH=$(find . -type f -name ".nvmrc" | head -n 1)
