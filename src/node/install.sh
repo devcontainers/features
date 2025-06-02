@@ -13,7 +13,7 @@ export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-true}"  # only concerns Debian-based systems
-export FIND_PROJECT_NODE_VERSION="${FINDPROJECTNODEVERSION:-true}"
+export FIND_PROJECT_NODE_VERSION="${FINDPROJECTNODEVERSION:-false}"  # if true, will look for .nvmrc or .node-version files in the project root to determine the Node.js version
 # Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
