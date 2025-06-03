@@ -13,7 +13,8 @@
                 "none",
                 "18",
                 "16",
-                "14"
+                "14",
+                "project-file" // This will read the Node version from .node-version or .nvmrc in the project
             ],
             "default": "lts",
             "description": "Select or enter a Node.js version to install"
@@ -55,11 +56,6 @@
             "type": "boolean",
             "default": true,
             "description": "On Debian and Ubuntu systems, you have the option to install Yarn globally via APT. If you choose not to use this option, Yarn will be set up using Corepack instead. This choice is specific to Debian and Ubuntu; for other Linux distributions, Yarn is always installed using Corepack, with a fallback to installation via NPM if an error occurs."
-        },
-        "findProjectNodeVersion":{
-            "type": "boolean",
-            "default": false,
-            "description": "To get the Node version values from project root"
         }
     },
     "customizations": {

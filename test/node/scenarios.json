@@ -206,7 +206,7 @@
         },
         "features": {
             "node": {
-                "findProjectNodeVersion": true
+                "version": "project-file"
             }
         }
     },
@@ -216,7 +216,7 @@
         },
         "features": {
             "node": {
-                "findProjectNodeVersion": true
+                "version": "project-file"
             }
         }
     },
@@ -226,7 +226,7 @@
         },
         "features": {
             "node": {
-                "findProjectNodeVersion": true
+                "version": "project-file"
             }
         }
     }

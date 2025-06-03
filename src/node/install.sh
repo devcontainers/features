@@ -13,7 +13,6 @@ export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-true}"  # only concerns Debian-based systems
-export FIND_PROJECT_NODE_VERSION="${FINDPROJECTNODEVERSION:-false}"  # if true, will look for .nvmrc or .node-version files in the project root to determine the Node.js version
 # Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
@@ -288,11 +287,12 @@ if ! type git > /dev/null 2>&1; then
 fi
 
 # Determine the Node.js version using the .nvmrc or .node-version file if present.
-echo "FIND_PROJECT_NODE_VERSION: ${FIND_PROJECT_NODE_VERSION}"
-if [[ "${FIND_PROJECT_NODE_VERSION}" == "true" && "${NODE_VERSION}" != "none" ]]; then
+if [[ "${NODE_VERSION}" == "project-file" ]]; then
     echo "Finding Node version from .nvmrc or .node-version file..."
     NODE_VERSION_PATH=$(find . -type f -name ".node-version" | head -n 1)
     NVMRC_PATH=$(find . -type f -name ".nvmrc" | head -n 1)
+    # Used as the default when no file exists or if the file is empty
+    NODE_VERSION="lts"
     if [ -n "$NODE_VERSION_PATH" ]; then
         NODE_VERSION_NODE_VERSION_FILE=$(<"$NODE_VERSION_PATH" xargs)
         if [ -n "$NODE_VERSION_NODE_VERSION_FILE" ]; then
