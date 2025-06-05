@@ -20,8 +20,6 @@ UPDATE_RUST="${UPDATE_RUST:-"false"}"
 set -e
 
 # Detect the Linux distribution and package manager
-DISTRO=""
-DISTRO_FAMILY=""
 PKG_MANAGER=""
 
 # Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
