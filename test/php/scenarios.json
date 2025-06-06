@@ -1,15 +1,15 @@
 {
     "install_additional_php": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "php": {
-                "version": "8.1.4",
-                "additionalVersions": "8.0.17,8.0.3"
+                "version": "8.4.2",
+                "additionalVersions": "8.3.14,8.2.27"
             }
         }
     },
     "install_php_8": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "php": {
                 "version": "8"
@@ -17,7 +17,7 @@
         }
     },
     "install_php_8_2": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "php": {
                 "version": "8.2"
@@ -34,7 +34,7 @@
         }
     },
     "test_php_fallback": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "php": {
                 "version": "latest"
