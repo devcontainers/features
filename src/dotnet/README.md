@@ -21,8 +21,6 @@ This Feature installs the latest .NET SDK, which includes the .NET CLI and the s
 | aspNetCoreRuntimeVersions | Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
 | workloads | Enter additional .NET SDK workloads, separated by commas. Use 'dotnet workload search' to learn what workloads are available to install. | string | - |
 
-
-
 ## Customizations
 
 ### VS Code Extensions
