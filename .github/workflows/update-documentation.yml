@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - arausell/gh-token
   workflow_dispatch:
 
 jobs:
@@ -13,7 +12,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    # if: "github.ref == 'refs/heads/main'"
+    if: "github.ref == 'refs/heads/main'"
     steps:
       - uses: actions/checkout@v4
 
