@@ -6,13 +6,13 @@
                 "version": "lts"
             }
         }
-    },
+    },    
     "install_additional_node": {
         "image": "debian:11",
         "features": {
             "node": {
                 "version": "lts",
-                "additionalVersions": "v17.9.1,v14.19.3",
+                "additionalVersions": "v20.19.1,v19.9.0",
                 "pnpmVersion": "8.8.0"
             }
         }
@@ -22,7 +22,7 @@
         "features": {
             "node": {
                 "version": "lts",
-                "additionalVersions": "v17.9.1,v14.19.3",
+                "additionalVersions": "v20.19.1,v19.9.0",
                 "pnpmVersion": "6.16.0"
             }
         }
@@ -77,11 +77,11 @@
             }
         }
     },
-    "install_node_16_on_bionic": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-18.04",
+    "install_node_22_on_jammy": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
         "features": {
             "node": {
-                "version": "16",
+                "version": "22",
                 "pnpmVersion":"8.8.0"
             }
         }
