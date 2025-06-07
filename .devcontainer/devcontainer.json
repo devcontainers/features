@@ -1,17 +1,36 @@
 {
-    "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18",
-    "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/prulloac/devcontainer-features/pre-commit:1": {}
+  },
+  "postCreateCommand": "npm install -g @devcontainers/cli && pre-commit install-hooks",
+  "hostRequirements": {
+    "cpus": 4
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "mads-hartmann.bash-ide-vscode",
+        "streetsidesoftware.code-spell-checker",
+        "usernamehw.errorlens",
+        "SonarSource.sonarlint-vscode"
+      ]
     },
-    "postCreateCommand": "npm install -g @devcontainers/cli",
-    "hostRequirements": {
-        "cpus": 4
-    },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "mads-hartmann.bash-ide-vscode"
-            ]
-        }
+    "settings": {
+      "editor.trimAutoWhitespace": true,
+      "files.autoSave": "afterDelay",
+      "files.eol": "\n",
+      "files.exclude": {
+        "**/.vscode": true
+      },
+      "search.exclude": {
+        "**/*.code-search": true,
+        "**/*.git": true,
+        "**/*.vscode-server": true,
+        "**/bower_components": true,
+        "**/node_modules": true
+      }
     }
+  }
 }
