@@ -1,3 +1,4 @@
 FROM debian:11
 
-COPY sample-node /tmp/dev-container-features/node_0/sample-node
+COPY .nvmrc .node-version /tmp/dev-container-features/node_0/
+

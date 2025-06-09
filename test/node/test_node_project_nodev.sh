@@ -5,7 +5,7 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-cd test_node_project_nodev/sample-node
+cd test_node_project_nodev
 
 # Check that .nvmrc exists
 if [ ! -f .node-version ]; then

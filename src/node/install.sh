@@ -289,28 +289,23 @@ fi
 # Determine the Node.js version using the .nvmrc or .node-version file if present.
 if [[ "${NODE_VERSION}" == "project-file" ]]; then
     echo "Finding Node version from .nvmrc or .node-version file..."
-    NODE_VERSION_PATH=$(find . -type f -name ".node-version" | head -n 1)
-    NVMRC_PATH=$(find . -type f -name ".nvmrc" | head -n 1)
-    # Used as the default when no file exists or if the file is empty
-    NODE_VERSION="lts"
-    if [ -n "$NODE_VERSION_PATH" ]; then
-        NODE_VERSION_NODE_VERSION_FILE=$(<"$NODE_VERSION_PATH" xargs)
-        if [ -n "$NODE_VERSION_NODE_VERSION_FILE" ]; then
-            echo "Using Node version from .node-version file in $NODE_VERSION_PATH: $NODE_VERSION_NODE_VERSION_FILE"
-            NODE_VERSION="${NODE_VERSION_NODE_VERSION_FILE}"
-        else
-            echo "$NODE_VERSION_PATH file is empty. No Node version specified. Using the default: ${NODE_VERSION}."
+    NODE_VERSION_FOUND=""
+    for version_file in ".node-version" ".nvmrc"; do  
+        if [[ -f "$version_file" && -s "$version_file" ]]; then  
+            file_version=$(tr -d '[:space:]' < "$version_file")  
+            if [[ -n "$file_version" ]]; then  
+                echo "Using Node version from $version_file: $file_version"  
+                NODE_VERSION="$file_version"  
+                NODE_VERSION_FOUND="yes"
+                break  
+            else  
+                echo "$version_file exists but contains only whitespace. Continuing search..."  
+            fi  
         fi
-    elif [ -n "$NVMRC_PATH" ]; then
-        NODE_VERSION_NVMRC=$(<"$NVMRC_PATH" xargs)
-        if [ -n "$NODE_VERSION_NVMRC" ]; then
-            echo "Using Node version from .nvmrc file in $NVMRC_PATH: $NODE_VERSION_NVMRC"
-            NODE_VERSION="${NODE_VERSION_NVMRC}"
-        else
-            echo "$NVMRC_PATH file is empty. No Node version specified. Using the default: ${NODE_VERSION}."
-        fi
-    else
-        echo "No .node-version or .nvmrc file found. Using the default Node version: ${NODE_VERSION}."
+    done 
+    if [[ -z "$NODE_VERSION_FOUND" ]]; then
+        NODE_VERSION="lts"
+        echo "No Node version found in .nvmrc or .node-version. Using default: lts"
     fi
 fi
 
