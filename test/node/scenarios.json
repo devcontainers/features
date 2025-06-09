@@ -82,7 +82,7 @@
         "features": {
             "node": {
                 "version": "16",
-                "pnpmVersion":"8.8.0"
+                "pnpmVersion": "8.8.0"
             }
         }
     },
@@ -197,6 +197,36 @@
         "features": {
             "node": {
                 "installYarnUsingApt": false
+            }
+        }
+    },
+    "test_node_project_nvmrc": {
+        "build": {
+            "dockerfile": "DockerFile"
+        },
+        "features": {
+            "node": {
+                "version": "project-file"
+            }
+        }
+    },
+    "test_node_project_nodev": {
+        "build": {
+            "dockerfile": "DockerFile"
+        },
+        "features": {
+            "node": {
+                "version": "project-file"
+            }
+        }
+    },
+    "test_node_project_nvm_nodev": {
+        "build": {
+            "dockerfile": "DockerFile"
+        },
+        "features": {
+            "node": {
+                "version": "project-file"
             }
         }
     }

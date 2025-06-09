@@ -1,0 +1,3 @@
+FROM debian:11
+
+COPY .nvmrc /tmp/dev-container-features/node_0/.nvmrc

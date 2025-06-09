@@ -13,7 +13,6 @@ export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-true}"  # only concerns Debian-based systems
-
 # Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
 ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
@@ -285,6 +284,29 @@ esac
 
 if ! type git > /dev/null 2>&1; then
     check_packages git
+fi
+
+# Determine the Node.js version using the .nvmrc or .node-version file if present.
+if [[ "${NODE_VERSION}" == "project-file" ]]; then
+    echo "Finding Node version from .nvmrc or .node-version file..."
+    NODE_VERSION_FOUND=""
+    for version_file in ".node-version" ".nvmrc"; do  
+        if [[ -f "$version_file" && -s "$version_file" ]]; then  
+            file_version=$(tr -d '[:space:]' < "$version_file")  
+            if [[ -n "$file_version" ]]; then  
+                echo "Using Node version from $version_file: $file_version"  
+                NODE_VERSION="$file_version"  
+                NODE_VERSION_FOUND="yes"
+                break  
+            else  
+                echo "$version_file exists but contains only whitespace. Continuing search..."  
+            fi  
+        fi
+    done 
+    if [[ -z "$NODE_VERSION_FOUND" ]]; then
+        NODE_VERSION="lts"
+        echo "No Node version found in .nvmrc or .node-version. Using default: lts"
+    fi
 fi
 
 # Adjust node version if required
