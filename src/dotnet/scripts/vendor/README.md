@@ -23,5 +23,6 @@ dotnet-install.sh [--version latest] --channel 6.0 [--quality GA]
 dotnet-install.sh [--version latest] --channel 6.0.4xx [--quality GA]
 dotnet-install.sh [--version latest] --channel 8.0 --quality preview
 dotnet-install.sh [--version latest] --channel 8.0 --quality daily
+dotnet-install.sh [--version latest] --channel 10.0 --quality preview
 dotnet-install.sh --version 6.0.413
 ```
