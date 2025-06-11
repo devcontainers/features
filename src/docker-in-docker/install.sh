@@ -341,7 +341,6 @@ if [ "${USE_MOBY}" = "true" ]; then
     fi
 fi
 
-#function is used to install docker or moby for fedora if moby is true and docker is not available in a specific versions of fedora
 install_docker_or_moby() {
 # Check for the OS type
 if [ -f /etc/os-release ]; then
