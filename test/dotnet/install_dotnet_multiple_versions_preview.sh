@@ -43,3 +43,5 @@ dotnet run --project projects/net10.0
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.
 reportResults
+
+
