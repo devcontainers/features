@@ -1,6 +1,6 @@
 {
     "rust_at_pinned_version": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "rust": {
                 "version": "1.64.0"
@@ -8,7 +8,7 @@
         }
     },
     "rust_with_target": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "rust": {
                 "version": "latest",
