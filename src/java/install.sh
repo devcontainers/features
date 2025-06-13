@@ -9,6 +9,8 @@
 #
 # Syntax: ./java-debian.sh [JDK version] [SDKMAN_DIR] [non-root user] [Add to rc files flag]
 
+set -x
+
 JAVA_VERSION="${VERSION:-"latest"}"
 INSTALL_GRADLE="${INSTALLGRADLE:-"false"}"
 GRADLE_VERSION="${GRADLEVERSION:-"latest"}"
@@ -340,7 +342,22 @@ fi
 
 # Install Maven
 if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null 2>&1; then
-    sdk_install maven ${MAVEN_VERSION}
+    if [ "${MAVEN_VERSION}" = "3.9.9" ] || [ "${MAVEN_VERSION}" = "latest" ]; then
+        echo "Manually installing Maven 3.9.9..."
+        curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.9/apache-maven-3.9.9-bin.zip -o /tmp/apache-maven-3.9.9-bin.zip
+        unzip -q /tmp/apache-maven-3.9.9-bin.zip -d /opt
+        ln -sfn /opt/apache-maven-3.9.9 /opt/maven
+        chown -R ${USERNAME}: /opt/apache-maven-3.9.9 /opt/maven
+        # Set up environment variables
+        echo "export MAVEN_HOME=/opt/maven" >> /etc/profile.d/maven.sh
+        echo "export PATH=\$MAVEN_HOME/bin:\$PATH" >> /etc/profile.d/maven.sh
+        chmod +x /etc/profile.d/maven.sh
+        # Source for current shell
+        export MAVEN_HOME=/opt/maven
+        export PATH=$MAVEN_HOME/bin:$PATH
+    else
+        sdk_install maven ${MAVEN_VERSION}
+    fi
 fi
 
 # Install Groovy
