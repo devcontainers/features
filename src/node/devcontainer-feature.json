@@ -11,9 +11,8 @@
                 "lts",
                 "latest",
                 "none",
-                "18",
-                "16",
-                "14"
+                "22",
+                "20"
             ],
             "default": "lts",
             "description": "Select or enter a Node.js version to install"
