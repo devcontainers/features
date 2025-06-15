@@ -108,7 +108,9 @@ done
 check_packages wget ca-certificates icu-devtools
 
 for version in "${versions[@]}"; do
-    install_sdk "$version"
+    # Remove '-preview' from version if suffixed with the version label
+    clean_version="$(echo "$version" | sed 's/-preview$//')"
+    install_sdk "$clean_version"
 done
 
 for version in "${dotnetRuntimeVersions[@]}"; do
