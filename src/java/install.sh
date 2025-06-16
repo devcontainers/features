@@ -342,22 +342,17 @@ fi
 
 # Install Maven
 if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null 2>&1; then
-    if [ "${MAVEN_VERSION}" = "3.9.9" ] || [ "${MAVEN_VERSION}" = "latest" ]; then
-        echo "Manually installing Maven 3.9.9..."
-        curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.9/apache-maven-3.9.9-bin.zip -o /tmp/apache-maven-3.9.9-bin.zip
-        unzip -q /tmp/apache-maven-3.9.9-bin.zip -d /opt
-        ln -sfn /opt/apache-maven-3.9.9 /opt/maven
-        chown -R ${USERNAME}: /opt/apache-maven-3.9.9 /opt/maven
-        # Set up environment variables
-        echo "export MAVEN_HOME=/opt/maven" >> /etc/profile.d/maven.sh
-        echo "export PATH=\$MAVEN_HOME/bin:\$PATH" >> /etc/profile.d/maven.sh
-        chmod +x /etc/profile.d/maven.sh
-        # Source for current shell
-        export MAVEN_HOME=/opt/maven
-        export PATH=$MAVEN_HOME/bin:$PATH
-    else
-        sdk_install maven ${MAVEN_VERSION}
+    MAVEN_VERSION_TO_INSTALL="${MAVEN_VERSION}"
+    if [ "${MAVEN_VERSION}" = "latest" ]; then
+        # Get the latest stable Maven version from sdk list
+        MAVEN_VERSION_TO_INSTALL=$(
+            su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && \
+            sdk list maven | grep -E '^[[:space:]]*[0-9]+(\.[0-9]+)*[[:space:]]' | grep -v -- '-' | head -n 1 | awk '{print \$1}'"
+        )
+        echo "Resolved latest stable Maven version: ${MAVEN_VERSION_TO_INSTALL}"
     fi
+
+    sdk_install maven "${MAVEN_VERSION_TO_INSTALL}"
 fi
 
 # Install Groovy
