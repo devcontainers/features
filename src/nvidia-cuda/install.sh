@@ -46,7 +46,7 @@ check_packages wget ca-certificates
 
 # Add NVIDIA's package repository to apt so that we can download packages
 # Always use the ubuntu2004 repo because the other repos (e.g., debian11) are missing packages
-# Updating the repo to ubuntu2204 as ubuntu 20.04 is going out of support 
+# Updating the repo to ubuntu2204 as ubuntu 20.04 is going out of support. 
 NVIDIA_REPO_URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64"
 KEYRING_PACKAGE="cuda-keyring_1.0-1_all.deb"
 KEYRING_PACKAGE_URL="$NVIDIA_REPO_URL/$KEYRING_PACKAGE"
