@@ -270,7 +270,7 @@ if ! git lfs ls-files > /dev/null 2>&1; then
     echo "(!) Skipping automatic 'git lfs pull' because no git lfs files were detected"
     exit 0
 fi
-
+git lfs install
 git lfs pull
 EOF
 
