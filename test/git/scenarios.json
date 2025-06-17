@@ -116,15 +116,6 @@
             }
         }
     },
-    "install_git_from_src_mariner": {
-        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
-        "features": {
-            "git": {
-                "version": "latest",
-                "ppa": "false"
-            }
-        }
-    },
     "install_git_from_system_alpine": {
         "image": "mcr.microsoft.com/devcontainers/base:alpine",
         "features": {
@@ -181,15 +172,6 @@
     },
     "install_git_from_system_fedora": {
         "image": "fedora",
-        "features": {
-            "git": {
-                "version": "system",
-                "ppa": "true"
-            }
-        }
-    },
-    "install_git_from_system_mariner": {
-        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
         "features": {
             "git": {
                 "version": "system",
