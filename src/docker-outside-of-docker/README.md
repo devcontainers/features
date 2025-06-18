@@ -28,7 +28,7 @@ Reuse the host docker socket, adding the Docker CLI to a container. Feature invo
 
 ### VS Code Extensions
 
-- `ms-azuretools.vscode-docker`
+- `ms-azuretools.vscode-containers`
 
 ## Limitations
 
