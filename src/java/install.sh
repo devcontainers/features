@@ -9,6 +9,8 @@
 #
 # Syntax: ./java-debian.sh [JDK version] [SDKMAN_DIR] [non-root user] [Add to rc files flag]
 
+set -x
+
 JAVA_VERSION="${VERSION:-"latest"}"
 INSTALL_GRADLE="${INSTALLGRADLE:-"false"}"
 GRADLE_VERSION="${GRADLEVERSION:-"latest"}"
@@ -340,7 +342,17 @@ fi
 
 # Install Maven
 if [[ "${INSTALL_MAVEN}" = "true" ]] && ! mvn --version > /dev/null 2>&1; then
-    sdk_install maven ${MAVEN_VERSION}
+    MAVEN_VERSION_TO_INSTALL="${MAVEN_VERSION}"
+    if [ "${MAVEN_VERSION}" = "latest" ]; then
+        # Get the latest stable Maven version from sdk list
+        MAVEN_VERSION_TO_INSTALL=$(
+            su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && \
+            sdk list maven | grep -E '^[[:space:]]*[0-9]+(\.[0-9]+)*[[:space:]]' | grep -v -- '-' | head -n 1 | awk '{print \$1}'"
+        )
+        echo "Resolved latest stable Maven version: ${MAVEN_VERSION_TO_INSTALL}"
+    fi
+
+    sdk_install maven "${MAVEN_VERSION_TO_INSTALL}"
 fi
 
 # Install Groovy
