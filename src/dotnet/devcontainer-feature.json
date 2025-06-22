@@ -1,6 +1,6 @@
 {
     "id": "dotnet",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
     "description": "This Feature installs the latest .NET SDK, which includes the .NET CLI and the shared runtime. Options are provided to choose a different version or additional versions.",
