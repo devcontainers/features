@@ -10,7 +10,7 @@
 GIT_VERSION=${VERSION} # 'system' checks the base image first, else installs 'latest'
 USE_PPA_IF_AVAILABLE=${PPA}
 
-GIT_CORE_PPA_ARCHIVE_GPG_KEY=E1DD270288B4E6030699E45FA1715D88E1DF1F24
+GIT_CORE_PPA_ARCHIVE_GPG_KEY=F911AB184317630C59970973E363C90F8F1B6217
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
