@@ -68,7 +68,7 @@ check_packages() {
 
 export DEBIAN_FRONTEND=noninteractive
 
-check_packages curl ca-certificates gnupg2 dirmngr unzip bash-completion less
+check_packages curl ca-certificates gpg dirmngr unzip bash-completion less
 
 verify_aws_cli_gpg_signature() {
     local filePath=$1
