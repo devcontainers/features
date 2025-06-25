@@ -403,7 +403,7 @@ if [ -d "/usr/local/novnc" ]; then
             log "noVNC started with launch.sh."
         fi
     else
-        log "noVNC is already."
+        log "noVNC is already running."
     fi
 else
     log "noVNC is not installed."
