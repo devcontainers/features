@@ -394,9 +394,8 @@ fi
 
 # Spin up noVNC if installed and not running.
 if [ -d "/usr/local/novnc" ]; then
-    NOVNC_VERSION_INSTALLED=\$(ls /usr/local/novnc | grep -oP 'noVNC-\K[0-9.]+' | head -n1)
     if [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/launch.sh | grep -v grep)" = "" ] && [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/novnc_proxy | grep -v grep)" = "" ]; then
-        if version_gt "\$NOVNC_VERSION_INSTALLED" "1.2.0"; then
+        if version_gt "${NOVNC_VERSION}" "1.2.0"; then
             keepRunningInBackground "noVNC" sudoIf "/usr/local/novnc/noVNC*/utils/novnc_proxy --listen ${NOVNC_PORT} --vnc localhost:${VNC_PORT}"
             log "noVNC started with novnc_proxy."
         else
@@ -404,7 +403,7 @@ if [ -d "/usr/local/novnc" ]; then
             log "noVNC started with launch.sh."
         fi
     else
-        log "noVNC is already running or not installed."
+        log "noVNC is already."
     fi
 else
     log "noVNC is not installed."
