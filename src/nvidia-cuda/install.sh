@@ -77,7 +77,7 @@ toolkit_pkg="cuda-toolkit-${CUDA_VERSION/./-}"
 if ! apt-cache show "$cuda_pkg"; then
     echo "The requested version of CUDA is not available: CUDA $CUDA_VERSION"
     if [ "$NVIDIA_ARCH" = "arm64" ]; then
-        echo "Note: arm64 supports limited CUDA versions (11.8, 12.0, 12.1, 12.2)"
+        echo "Note: arm64 supports limited CUDA versions (12.4, 12.5, 12.6, 12.8, 12.9)"
     fi
     exit 1
 fi
