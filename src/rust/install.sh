@@ -10,6 +10,8 @@
 RUST_VERSION="${VERSION:-"latest"}"
 RUSTUP_PROFILE="${PROFILE:-"minimal"}"
 RUSTUP_TARGETS="${TARGETS:-""}"
+CUSTOM_COMPONENTS="${CUSTOMCOMPONENTS:-"false"}"
+RUST_COMPONENTS="${COMPONENTS:-""}"
 
 export CARGO_HOME="${CARGO_HOME:-"/usr/local/cargo"}"
 export RUSTUP_HOME="${RUSTUP_HOME:-"/usr/local/rustup"}"
@@ -188,7 +190,7 @@ else
     mkdir -p /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/
     curl -sSL --proto '=https' --tlsv1.2 "https://static.rust-lang.org/rustup/dist/${download_architecture}-unknown-linux-gnu/rustup-init" -o /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/rustup-init
     curl -sSL --proto '=https' --tlsv1.2 "https://static.rust-lang.org/rustup/dist/${download_architecture}-unknown-linux-gnu/rustup-init.sha256" -o /tmp/rustup/rustup-init.sha256
-    cd /tmp/rustup
+    cd /tmp/rustup  
     cp /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/rustup-init  /tmp/rustup/rustup-init
     sha256sum -c rustup-init.sha256
     chmod +x target/${download_architecture}-unknown-linux-gnu/release/rustup-init
@@ -202,8 +204,24 @@ if [ "${UPDATE_RUST}" = "true" ]; then
     echo "Updating Rust..."
     rustup update 2>&1
 fi
-echo "Installing common Rust dependencies..."
-rustup component add rust-analyzer rust-src rustfmt clippy 2>&1
+# Install Rust components based on flag
+if [ "${CUSTOM_COMPONENTS}" = "true" ] && [ -n "${RUST_COMPONENTS}" ]; then
+    echo "Installing custom Rust components..."
+    IFS=',' read -ra components <<< "${RUST_COMPONENTS}"
+    for component in "${components[@]}"; do
+        # Trim whitespace
+        component=$(echo "${component}" | xargs)
+        if [ -n "${component}" ]; then
+            echo "Installing Rust component: ${component}"
+            if ! rustup component add "${component}" 2>&1; then
+                echo "Warning: Failed to install component '${component}'. It may not be available for this toolchain." >&2
+            fi
+        fi
+    done
+else
+    echo "Installing common Rust dependencies..."
+    rustup component add rust-analyzer rust-src rustfmt clippy 2>&1
+fi
 
 if [ -n "${RUSTUP_TARGETS}" ]; then
     IFS=',' read -ra targets <<< "${RUSTUP_TARGETS}"

@@ -57,7 +57,23 @@
                 "armv7-unknown-linux-gnueabihf",
                 "x86_64-unknown-redox,x86_64-unknown-uefi"
             ]
-        }
+        },
+        "customComponents": {
+            "type": "boolean",
+            "default": false,
+            "description": "Use custom components list instead of default components (rust-analyzer, rust-src, rustfmt, clippy)."
+        },
+        "components": {
+            "type": "string",
+            "default": "",
+            "description": "Optional comma separated list of Rust components to install when customComponents is true.",
+            "proposals": [
+                "rust-analyzer,rust-src,rustfmt,clippy",
+                "rust-analyzer,rust-src",
+                "rustfmt,clippy,rust-docs",
+                "llvm-tools-preview,rust-src,rustfmt"
+            ]
+        }        
     },
     "customizations": {
         "vscode": {
