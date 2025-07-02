@@ -401,8 +401,8 @@ if [ "${CUSTOM_COMPONENTS}" = "true" ] && [ -n "${RUST_COMPONENTS}" ]; then
     echo "Installing custom Rust components..."
     IFS=',' read -ra components <<< "${RUST_COMPONENTS}"
     for component in "${components[@]}"; do
-        # Trim whitespace
-        component=$(echo "${component}" | xargs)
+        # Trim leading and trailing whitespace
+        component="${component#"${component%%[![:space:]]*}"}" && component="${component%"${component##*[![:space:]]}"}"
         if [ -n "${component}" ]; then
             echo "Installing Rust component: ${component}"
             if ! rustup component add "${component}" 2>&1; then

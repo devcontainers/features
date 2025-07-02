@@ -28,6 +28,7 @@ check_component_not_installed() {
 # Definition specific tests
 check "cargo version" cargo --version
 check "rustc version" rustc --version
+check "correct rust version" rustup target list | grep aarch64-unknown-linux-gnu
 
 # Check that no additional components are installed when empty list is provided
 # Only the basic rust toolchain should be available

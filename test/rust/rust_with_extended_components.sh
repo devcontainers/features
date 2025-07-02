@@ -18,6 +18,7 @@ check_component_installed() {
 # Definition specific tests
 check "cargo version" cargo --version
 check "rustc version" rustc --version
+check "correct rust version" rustup target list | grep aarch64-unknown-linux-gnu
 
 # Check that all specified extended components are installed
 check "rust-analyzer is installed" check_component_installed "rust-analyzer"

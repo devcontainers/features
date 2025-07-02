@@ -21,6 +21,7 @@
         "features": {
             "rust": {
                 "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu",
                 "customComponents": false
             }
         }
@@ -30,6 +31,7 @@
         "features": {
             "rust": {
                 "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu",
                 "customComponents": true,
                 "components": "rust-analyzer,rust-src,rustfmt"
             }
@@ -40,6 +42,7 @@
         "features": {
             "rust": {
                 "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu",
                 "customComponents": true,
                 "components": "rust-analyzer,rust-src"
             }
@@ -50,6 +53,7 @@
         "features": {
             "rust": {
                 "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu",
                 "customComponents": true,
                 "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"
             }
@@ -60,6 +64,7 @@
         "features": {
             "rust": {
                 "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu",
                 "customComponents": true,
                 "components": ""
             }
@@ -70,7 +75,9 @@
         "features": {
             "rust": {
                 "version": "latest",
-                "targets": "aarch64-unknown-linux-gnu"
+                "targets": "aarch64-unknown-linux-gnu",
+                "customComponents": true,
+                "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"                
             }
         }
     },
@@ -79,7 +86,9 @@
         "features": {
             "rust": {
                 "version": "latest",
-                "targets": "aarch64-unknown-linux-gnu"
+                "targets": "aarch64-unknown-linux-gnu",
+                "customComponents": true,
+                "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"                
             }
         }
     },
@@ -88,7 +97,9 @@
         "features": {
             "rust": {
                 "version": "latest",
-                "targets": "aarch64-unknown-linux-gnu"
+                "targets": "aarch64-unknown-linux-gnu",
+                "customComponents": true,
+                "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"                
             }
         }
     },
@@ -97,7 +108,9 @@
         "features": {
             "rust": {
                 "version": "latest",
-                "targets": "aarch64-unknown-linux-gnu"
+                "targets": "aarch64-unknown-linux-gnu",
+                "customComponents": true,
+                "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"                
             }
         }
     },
@@ -106,7 +119,9 @@
         "features": {
             "rust": {
                 "version": "latest",
-                "targets": "aarch64-unknown-linux-gnu"
+                "targets": "aarch64-unknown-linux-gnu",
+                "customComponents": true,
+                "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"                
             }
         }
     },
@@ -115,7 +130,9 @@
         "features": {
             "rust": {
                 "version": "latest",
-                "targets": "aarch64-unknown-linux-gnu"
+                "targets": "aarch64-unknown-linux-gnu",
+                "customComponents": true,
+                "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"                
             }
         }
     },
@@ -124,7 +141,9 @@
         "features": {
             "rust": {
                 "version": "latest",
-                "targets": "aarch64-unknown-linux-gnu"
+                "targets": "aarch64-unknown-linux-gnu",
+                "customComponents": true,
+                "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"                
             }
         }
     }                                                                
