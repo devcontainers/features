@@ -16,6 +16,55 @@
             }
         }
     },
+    "rust_with_default_components": {
+        "image": "ubuntu:noble",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "customComponents": false
+            }
+        }
+    },
+    "rust_with_custom_components": {
+        "image": "ubuntu:noble",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "customComponents": true,
+                "components": "rust-analyzer,rust-src,rustfmt"
+            }
+        }
+    },
+    "rust_with_minimal_components": {
+        "image": "ubuntu:noble",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "customComponents": true,
+                "components": "rust-analyzer,rust-src"
+            }
+        }
+    },
+    "rust_with_extended_components": {
+        "image": "ubuntu:noble",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "customComponents": true,
+                "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"
+            }
+        }
+    },
+    "rust_with_empty_components": {
+        "image": "ubuntu:noble",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "customComponents": true,
+                "components": ""
+            }
+        }
+    },    
     "rust_with_centos": {
         "image": "centos:centos7",
         "features": {
