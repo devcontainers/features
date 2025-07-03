@@ -77,7 +77,8 @@ toolkit_pkg="cuda-toolkit-${CUDA_VERSION/./-}"
 if ! apt-cache show "$cuda_pkg"; then
     echo "The requested version of CUDA is not available: CUDA $CUDA_VERSION"
     if [ "$NVIDIA_ARCH" = "arm64" ]; then
-        echo "Note: arm64 supports limited CUDA versions (12.4, 12.5, 12.6, 12.8, 12.9)"
+        echo "Note: arm64 supports limited CUDA versions. Please check available versions:"
+        echo "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64"
     fi
     exit 1
 fi
