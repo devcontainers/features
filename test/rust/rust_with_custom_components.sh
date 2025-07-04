@@ -15,17 +15,28 @@ check_component_installed() {
     fi
 }
 
+# Helper function to check component is NOT installed
+check_component_not_installed() {
+    local component=$1
+    if rustup component list | grep -q "${component}.*installed"; then
+        return 1  # Component is installed (failure)
+    else
+        return 0  # Component is not installed (success)
+    fi
+}
+
 # Definition specific tests
-check "cargo version" cargo  --version
-check "rustc version" rustc  --version
+check "cargo version" cargo --version
+check "rustc version" rustc --version
 check "correct rust version" rustup target list | grep aarch64-unknown-linux-gnu
 
-# Check that all specified extended components are installed
+# Check that specified custom components are installed
 check "rust-analyzer is installed" check_component_installed "rust-analyzer"
 check "rust-src is installed" check_component_installed "rust-src"
 check "rustfmt is installed" check_component_installed "rustfmt"
-check "clippy is installed" check_component_installed "clippy"
-check "rust-docs is installed" check_component_installed "rust-docs"
+
+# Check that clippy NOT installed
+check "clippy not installed" check_component_not_installed "clippy"
 
 # Report result
 reportResults
