@@ -10,7 +10,7 @@
 RUST_VERSION="${VERSION:-"latest"}"
 RUSTUP_PROFILE="${PROFILE:-"minimal"}"
 RUSTUP_TARGETS="${TARGETS:-""}"
-RUST_COMPONENTS="${COMPONENTS:-"rust-analyzer,rust-src,rustfmt,clippy"}"
+IFS=',' read -ra components <<< "${COMPONENTS:-rust-analyzer,rust-src,rustfmt,clippy}"
 
 export CARGO_HOME="${CARGO_HOME:-"/usr/local/cargo"}"
 export RUSTUP_HOME="${RUSTUP_HOME:-"/usr/local/rustup"}"
@@ -397,7 +397,6 @@ if [ "${UPDATE_RUST}" = "true" ]; then
 fi
 # Install Rust components based on flag
 echo "Installing Rust components..."
-IFS=',' read -ra components <<< "${RUST_COMPONENTS}"
 for component in "${components[@]}"; do
     # Trim leading and trailing whitespace
     component="${component#"${component%%[![:space:]]*}"}" && component="${component%"${component##*[![:space:]]}"}"
