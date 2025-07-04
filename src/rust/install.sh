@@ -10,8 +10,7 @@
 RUST_VERSION="${VERSION:-"latest"}"
 RUSTUP_PROFILE="${PROFILE:-"minimal"}"
 RUSTUP_TARGETS="${TARGETS:-""}"
-CUSTOM_COMPONENTS="${CUSTOMCOMPONENTS:-"false"}"
-RUST_COMPONENTS="${COMPONENTS:-""}"
+RUST_COMPONENTS="${COMPONENTS:-"rust-analyzer,rust-src,rustfmt,clippy"}"
 
 export CARGO_HOME="${CARGO_HOME:-"/usr/local/cargo"}"
 export RUSTUP_HOME="${RUSTUP_HOME:-"/usr/local/rustup"}"
@@ -397,24 +396,19 @@ if [ "${UPDATE_RUST}" = "true" ]; then
     rustup update 2>&1
 fi
 # Install Rust components based on flag
-if [ "${CUSTOM_COMPONENTS}" = "true" ] && [ -n "${RUST_COMPONENTS}" ]; then
-    echo "Installing custom Rust components..."
-    IFS=',' read -ra components <<< "${RUST_COMPONENTS}"
-    for component in "${components[@]}"; do
-        # Trim leading and trailing whitespace
-        component="${component#"${component%%[![:space:]]*}"}" && component="${component%"${component##*[![:space:]]}"}"
-        if [ -n "${component}" ]; then
-            echo "Installing Rust component: ${component}"
-            if ! rustup component add "${component}" 2>&1; then
-                echo "Warning: Failed to install component '${component}'. It may not be available for this toolchain." >&2
-                exit 1
-            fi
+echo "Installing Rust components..."
+IFS=',' read -ra components <<< "${RUST_COMPONENTS}"
+for component in "${components[@]}"; do
+    # Trim leading and trailing whitespace
+    component="${component#"${component%%[![:space:]]*}"}" && component="${component%"${component##*[![:space:]]}"}"
+    if [ -n "${component}" ]; then
+        echo "Installing Rust component: ${component}"
+        if ! rustup component add "${component}" 2>&1; then
+            echo "Warning: Failed to install component '${component}'. It may not be available for this toolchain." >&2
+            exit 1
         fi
-    done
-else
-    echo "Installing common Rust dependencies..."
-    rustup component add rust-analyzer rust-src rustfmt clippy 2>&1
-fi
+    fi
+done
 
 if [ -n "${RUSTUP_TARGETS}" ]; then
     IFS=',' read -ra targets <<< "${RUSTUP_TARGETS}"
