@@ -395,7 +395,7 @@ if [ "${UPDATE_RUST}" = "true" ]; then
     echo "Updating Rust..."
     rustup update 2>&1
 fi
-# Install Rust components based on flag
+# Install Rust components
 echo "Installing Rust components..."
 for component in "${components[@]}"; do
     # Trim leading and trailing whitespace
