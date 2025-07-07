@@ -1,6 +1,6 @@
 {
     "install_conda": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "conda": {
                 "version": "4.12.0",
