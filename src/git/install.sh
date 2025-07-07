@@ -270,6 +270,12 @@ elif [ "${ADJUSTED_ID}" = "rhel" ]; then
     if ! type curl > /dev/null 2>&1; then
         check_packages curl
     fi
+    if ! type cmp > /dev/null 2>&1; then
+        check_packages diffutils
+    fi
+    if ! type awk > /dev/null 2>&1; then
+        check_packages gawk
+    fi        
     if [ $ID = "mariner" ]; then
         check_packages glibc-devel kernel-headers binutils
     fi
