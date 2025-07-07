@@ -1,6 +1,6 @@
 {
     "rust_at_pinned_version": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "rust": {
                 "version": "1.64.0"
@@ -8,12 +8,75 @@
         }
     },
     "rust_with_target": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "rust": {
                 "version": "latest",
                 "targets": "aarch64-unknown-linux-gnu"
             }
         }
-    }
+    },
+    "rust_with_centos": {
+        "image": "centos:centos7",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu"
+            }
+        }
+    },
+    "rust_with_almalinux_8": {
+        "image": "almalinux:8",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu"
+            }
+        }
+    },
+    "rust_with_almalinux_9": {
+        "image": "almalinux:9",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu"
+            }
+        }
+    },
+    "rust_with_rockylinux_8": {
+        "image": "rockylinux:8",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu"
+            }
+        }
+    },
+    "rust_with_rockylinux_9": {
+        "image": "rockylinux:9",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu"
+            }
+        }
+    },
+    "rust_with_fedora": {
+        "image": "fedora",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu"
+            }
+        }
+    },
+    "rust_with_mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu"
+            }
+        }
+    }                                                                
 }
