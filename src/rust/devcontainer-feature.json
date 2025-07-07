@@ -61,7 +61,7 @@
         "components": {
             "type": "string",
             "default": "rust-analyzer,rust-src,rustfmt,clippy",
-            "description": "Optional, comma separated list of Rust components to be installed.",
+            "description": "Optional, comma separated list of Rust components to be installed",
             "proposals": [
                 "rust-analyzer,rust-src,rustfmt,clippy",
                 "rust-analyzer,rust-src",
