@@ -10,6 +10,7 @@
 RUST_VERSION="${VERSION:-"latest"}"
 RUSTUP_PROFILE="${PROFILE:-"minimal"}"
 RUSTUP_TARGETS="${TARGETS:-""}"
+IFS=',' read -ra components <<< "${COMPONENTS:-rust-analyzer,rust-src,rustfmt,clippy}"
 
 export CARGO_HOME="${CARGO_HOME:-"/usr/local/cargo"}"
 export RUSTUP_HOME="${RUSTUP_HOME:-"/usr/local/rustup"}"
@@ -394,8 +395,19 @@ if [ "${UPDATE_RUST}" = "true" ]; then
     echo "Updating Rust..."
     rustup update 2>&1
 fi
-echo "Installing common Rust dependencies..."
-rustup component add rust-analyzer rust-src rustfmt clippy 2>&1
+# Install Rust components
+echo "Installing Rust components..."
+for component in "${components[@]}"; do
+    # Trim leading and trailing whitespace
+    component="${component#"${component%%[![:space:]]*}"}" && component="${component%"${component##*[![:space:]]}"}"
+    if [ -n "${component}" ]; then
+        echo "Installing Rust component: ${component}"
+        if ! rustup component add "${component}" 2>&1; then
+            echo "Warning: Failed to install component '${component}'. It may not be available for this toolchain." >&2
+            exit 1
+        fi
+    fi
+done
 
 if [ -n "${RUSTUP_TARGETS}" ]; then
     IFS=',' read -ra targets <<< "${RUSTUP_TARGETS}"
