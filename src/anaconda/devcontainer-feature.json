@@ -1,6 +1,6 @@
 {
     "id": "anaconda",
-    "version": "1.0.13",
+    "version": "1.1.0",
     "name": "Anaconda",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/anaconda",
     "options": {
@@ -11,11 +11,31 @@
             ],
             "default": "latest",
             "description": "Select or enter an anaconda version."
+        },
+        "useCondaForge": {
+            "type": "boolean",
+            "default": true,
+            "description": "Set conda-forge as the default channel for better package compatibility"
+        },
+        "installMamba": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install mamba for faster package management"
+        },
+        "useSystemPackages": {
+            "type": "boolean",
+            "default": true,
+            "description": "Use system package manager on Debian/Ubuntu systems to install Conda"
+        },
+        "installFullAnaconda": {
+            "type": "boolean",
+            "default": false,
+            "description": "Install full Anaconda distribution instead of minimal Miniconda"
         }
     },
     "containerEnv": {
         "CONDA_DIR": "/usr/local/conda",
-        "PATH": "/usr/local/conda/bin:${PATH}"
+        "PATH": "/usr/local/conda/bin:/opt/conda/bin:${PATH}"
     },
     "customizations": {
         "vscode": {
