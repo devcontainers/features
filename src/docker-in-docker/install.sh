@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!//usr/bin/env bash
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
@@ -6,8 +6,10 @@
 #
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/docker-in-docker.md
 # Maintainer: The Dev Container spec maintainers
-
-
+if [ -z "$BASH_VERSION" ]; then
+    echo "❌ This script must be run with bash, not sh."
+    exit 1
+fi
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
@@ -23,14 +25,14 @@ DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal
 DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
 
 # Default: Exit on any failure.
-set -e
+set -ex
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
 # Setup STDERR.
 err() {
-    echo "(!) $*" >&2
+echo "(!) $*" >&2
 }
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -48,33 +50,64 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
     USERNAME=""
     POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
     for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
-            break
-        fi
-    done
-    if [ "${USERNAME}" = "" ]; then
-        USERNAME=root
-    fi
+if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+    USERNAME=${CURRENT_USER}
+    break
+fi
+done
+if [ "${USERNAME}" = "" ]; then
+    USERNAME=root
+fi
 elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
     USERNAME=root
 fi
 
 apt_get_update()
 {
+. /etc/os-release
+if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
         echo "Running apt-get update..."
         apt-get update -y
     fi
+fi
 }
 
 # Checks if packages are installed and installs them if not
 check_packages() {
+
+if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ] || [ "$ID_LIKE" = "debian" ]; then
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
         apt-get -y install --no-install-recommends "$@"
     fi
+elif [ "$ID" = "fedora" ] || [ "$ID" = "centos" ] || [ "$ID_LIKE" == "rhel" ]; then
+    if ! dnf list installed "$@" > /dev/null 2>&1; then
+        dnf -y install "$@"
+    fi
+fi
+
 }
+missing=0
+for cmd in git wget which; do
+    command -v $cmd &>/dev/null || {
+    echo "$cmd not found"
+    missing=1
+    }
+done
+
+if [ $missing -eq 1 ]; then
+    echo "Installing missing packages..."
+    if command -v dnf &>/dev/null; then
+        dnf install -y git wget which curl jq
+        elif command -v apt &>/dev/null; then
+            apt-get update && apt-get install -y git wget curl jq
+            else
+                echo "Unsupported package manager"
+                exit 1
+    fi
+fi
+
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -99,7 +132,7 @@ find_version_from_git_tags() {
             declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
         else
             set +e
-                declare -g ${variable_name}="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
+            declare -g ${variable_name}="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|$)")"
             set -e
         fi
     fi
@@ -125,29 +158,29 @@ find_prev_version_from_git_tags() {
     local version_suffix_regex=$6
     # Try one break fix version number less if we get a failure. Use "set +e" since "set -e" can cause failures in valid scenarios.
     set +e
-        major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
-        minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
-        breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
+    major="$(echo "${current_version}" | grep -oE '^[0-9]+' || echo '')"
+    minor="$(echo "${current_version}" | grep -oP '^[0-9]+\.\K[0-9]+' || echo '')"
+    breakfix="$(echo "${current_version}" | grep -oP '^[0-9]+\.[0-9]+\.\K[0-9]+' 2>/dev/null || echo '')"
 
-        if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
-            ((major=major-1))
-            declare -g ${variable_name}="${major}"
-            # Look for latest version from previous major release
-            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+    if [ "${minor}" = "0" ] && [ "${breakfix}" = "0" ]; then
+        ((major=major-1))
+        declare -g ${variable_name}="${major}"
+        # Look for latest version from previous major release
+        find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
         # Handle situations like Go's odd version pattern where "0" releases omit the last part
-        elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
-            ((minor=minor-1))
+    elif [ "${breakfix}" = "" ] || [ "${breakfix}" = "0" ]; then
+        ((minor=minor-1))
+        declare -g ${variable_name}="${major}.${minor}"
+        # Look for latest version from previous minor release
+        find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
+    else
+        ((breakfix=breakfix-1))
+        if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
             declare -g ${variable_name}="${major}.${minor}"
-            # Look for latest version from previous minor release
-            find_version_from_git_tags "${variable_name}" "${repository}" "${prefix}" "${separator}" "${last_part_optional}"
-        else
-            ((breakfix=breakfix-1))
-            if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
-                declare -g ${variable_name}="${major}.${minor}"
-            else 
-                declare -g ${variable_name}="${major}.${minor}.${breakfix}"
-            fi
+        else 
+            declare -g ${variable_name}="${major}.${minor}.${breakfix}"
         fi
+    fi
     set -e
 }
 
@@ -157,28 +190,27 @@ get_previous_version() {
     local repo_url=$2
     local variable_name=$3
     prev_version=${!variable_name}
-
     output=$(curl -s "$repo_url");
-    if echo "$output" | jq -e 'type == "object"' > /dev/null; then
-      message=$(echo "$output" | jq -r '.message')
-      
-      if [[ $message == "API rate limit exceeded"* ]]; then
-            echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
-            echo -e "\nAttempting to find latest version using GitHub tags."
-            find_prev_version_from_git_tags prev_version "$url" "tags/v"
-            declare -g ${variable_name}="${prev_version}"
-       fi
-    elif echo "$output" | jq -e 'type == "array"' > /dev/null; then 
-        echo -e "\nAttempting to find latest version using GitHub Api."
-        version=$(echo "$output" | jq -r '.[1].tag_name')
-        declare -g ${variable_name}="${version#v}"
-    fi  
-    echo "${variable_name}=${!variable_name}"
+if echo "$output" | jq -e 'type == "object"' > /dev/null; then
+    message=$(echo "$output" | jq -r '.message')
+
+if [[ $message == "API rate limit exceeded"* ]]; then
+    echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
+    echo -e "\nAttempting to find latest version using GitHub tags."
+    find_prev_version_from_git_tags prev_version "$url" "tags/v"
+    declare -g ${variable_name}="${prev_version}"
+fi
+elif echo "$output" | jq -e 'type == "array"' > /dev/null; then 
+    echo -e "\nAttempting to find latest version using GitHub Api."
+    version=$(echo "$output" | jq -r '.[1].tag_name')
+    declare -g ${variable_name}="${version#v}"
+fi  
+echo "${variable_name}=${!variable_name}"
 }
 
 get_github_api_repo_url() {
-    local url=$1
-    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases"
+local url=$1
+echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases"
 }
 
 ###########################################
@@ -191,8 +223,20 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Source /etc/os-release to get OS info
 . /etc/os-release
-# Fetch host/container arch.
-architecture="$(dpkg --print-architecture)"
+# Fetch host/container architecture
+if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
+    architecture="$(dpkg --print-architecture)"
+elif [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; then
+    architecture="$(uname -m)"
+    case "$architecture" in
+    x86_64) architecture="amd64" ;;
+    aarch64) architecture="arm64" ;;
+    *) echo "Unsupported architecture: $architecture"; exit 1 ;;
+    esac
+else
+    echo "Unsupported operating system: $ID"
+    exit 1
+fi
 
 # Check if distro is supported
 if [ "${USE_MOBY}" = "true" ]; then
@@ -203,12 +247,12 @@ if [ "${USE_MOBY}" = "true" ]; then
     fi
     echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}'"
 else
-    if [[ "${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
-        err "Unsupported distribution version '${VERSION_CODENAME}'. To resolve, please choose a compatible OS distribution"
-        err "Support distributions include:  ${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}"
-        exit 1
-    fi
-    echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
+if [[ "${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
+    err "Unsupported distribution version '${VERSION_CODENAME}'. To resolve, please choose a compatible OS distribution"
+    err "Support distributions include:  '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
+    exit 1
+fi
+echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
 fi
 
 # Install dependencies
@@ -216,53 +260,55 @@ check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dir
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
-
 # Swap to legacy iptables for compatibility
 if type iptables-legacy > /dev/null 2>&1; then
     update-alternatives --set iptables /usr/sbin/iptables-legacy
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 fi
-
-
+# https://github.com/devcontainers/features/issues/1235
+if uname -r | grep -q '\.fc'; then
+    sudo update-alternatives --set iptables /usr/sbin/iptables-nft
+fi
 
 # Set up the necessary apt repos (either Microsoft's or Docker's)
-if [ "${USE_MOBY}" = "true" ]; then
+if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
+    if [ "${USE_MOBY}" = "true" ]; then
 
-    # Name of open source engine/cli
-    engine_package_name="moby-engine"
-    cli_package_name="moby-cli"
+        # Name of open source engine/cli
+        engine_package_name="moby-engine"
+        cli_package_name="moby-cli"
 
-    # Import key safely and import Microsoft apt repo
-    curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
-    echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
-else
-    # Name of licensed engine/cli
-    engine_package_name="docker-ce"
-    cli_package_name="docker-ce-cli"
+        # Import key safely and import Microsoft apt repo
+        curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
+        echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+    else
+        # Name of licensed engine/cli
+        engine_package_name="docker-ce"
+        cli_package_name="docker-ce-cli"
 
-    # Import key safely and import Docker apt repo
-    curl -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
-fi
+        # Import key safely and import Docker apt repo
+        curl -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
+    fi
 
 # Refresh apt lists
 apt-get update
-
+fi
 # Soft version matching
 if [ "${DOCKER_VERSION}" = "latest" ] || [ "${DOCKER_VERSION}" = "lts" ] || [ "${DOCKER_VERSION}" = "stable" ]; then
     # Empty, meaning grab whatever "latest" is in apt repo
     engine_version_suffix=""
     cli_version_suffix=""
-else
-    # Fetch a valid version from the apt-cache (eg: the Microsoft repo appends +azure, breakfix, etc...)
-    docker_version_dot_escaped="${DOCKER_VERSION//./\\.}"
-    docker_version_dot_plus_escaped="${docker_version_dot_escaped//+/\\+}"
-    # Regex needs to handle debian package version number format: https://www.systutorials.com/docs/linux/man/5-deb-version/
-    docker_version_regex="^(.+:)?${docker_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
-    set +e # Don't exit if finding version fails - will handle gracefully
+    else
+        # Fetch a valid version from the apt-cache (eg: the Microsoft repo appends +azure, breakfix, etc...)
+        docker_version_dot_escaped="${DOCKER_VERSION//./\\.}"
+        docker_version_dot_plus_escaped="${docker_version_dot_escaped//+/\\+}"
+        # Regex needs to handle debian package version number format: https://www.systutorials.com/docs/linux/man/5-deb-version/
+        docker_version_regex="^(.+:)?${docker_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
+        set +e # Don't exit if finding version fails - will handle gracefully
         cli_version_suffix="=$(apt-cache madison ${cli_package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${docker_version_regex}")"
         engine_version_suffix="=$(apt-cache madison ${engine_package_name} | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${docker_version_regex}")"
-    set -e
+        set -e
     if [ -z "${engine_version_suffix}" ] || [ "${engine_version_suffix}" = "=" ] || [ -z "${cli_version_suffix}" ] || [ "${cli_version_suffix}" = "=" ] ; then
         err "No full or partial Docker / Moby version match found for \"${DOCKER_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
         apt-cache madison ${cli_package_name} | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
@@ -282,66 +328,170 @@ if [ "${USE_MOBY}" = "true" ]; then
         buildx_version_dot_plus_escaped="${buildx_version_dot_escaped//+/\\+}"
         buildx_version_regex="^(.+:)?${buildx_version_dot_plus_escaped}([\\.\\+ ~:-]|$)"
         set +e
-            buildx_version_suffix="=$(apt-cache madison moby-buildx | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${buildx_version_regex}")"
+        buildx_version_suffix="=$(apt-cache madison moby-buildx | awk -F"|" '{print $2}' | sed -e 's/^[ \t]*//' | grep -E -m 1 "${buildx_version_regex}")"
         set -e
         if [ -z "${buildx_version_suffix}" ] || [ "${buildx_version_suffix}" = "=" ]; then
             err "No full or partial moby-buildx version match found for \"${MOBY_BUILDX_VERSION}\" on OS ${ID} ${VERSION_CODENAME} (${architecture}). Available versions:"
             apt-cache madison moby-buildx | awk -F"|" '{print $2}' | grep -oP '^(.+:)?\K.+'
             exit 1
         fi
-        echo "buildx_version_suffix ${buildx_version_suffix}"
+    echo "buildx_version_suffix ${buildx_version_suffix}"
     fi
 fi
 
-# Install Docker / Moby CLI if not already installed
+install_docker_or_moby() {
+# Check for the OS type
+if [ -f /etc/os-release ]; then
+. /etc/os-release
+fi
+
+# Set Fedora version for repository URL
+RELEASE_VER=$(sed 's/\..*//' /etc/fedora-release)
+
+# Check if the user wants to use Moby (open-source version of Docker)
+echo "Setting up Moby repository for Fedora..."
+# Add Moby repository (Microsoft)
+echo "[microsoft]" > /etc/yum.repos.d/microsoft.repo
+echo "name=Microsoft Packages" >> /etc/yum.repos.d/microsoft.repo
+echo "baseurl=https://packages.microsoft.com/yumrepos/microsoft-fedora$RELEASE_VER" >> /etc/yum.repos.d/microsoft.repo
+echo "enabled=1" >> /etc/yum.repos.d/microsoft.repo
+echo "gpgcheck=1" >> /etc/yum.repos.d/microsoft.repo
+echo "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> /etc/yum.repos.d/microsoft.repo
+
+# Install Moby Engine and CLI
+echo "Installing Moby packages..."
+sudo dnf install -y moby-engine moby-cli moby-buildx --skip-unavailable
+# Final message
+echo "Docker/Moby installation completed successfully!"
+echo "Please log out and log back in to apply group changes."
+}
+
 if type docker > /dev/null 2>&1 && type dockerd > /dev/null 2>&1; then
     echo "Docker / Moby CLI and Engine already installed."
-else
-    if [ "${USE_MOBY}" = "true" ]; then
-        # Install engine
-        set +e # Handle error gracefully
-            apt-get -y install --no-install-recommends moby-cli${cli_version_suffix} moby-buildx${buildx_version_suffix} moby-engine${engine_version_suffix}
+    elif [ "${USE_MOBY}" = "true" ] && { [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; }; then
+            # Install engine
+            set +e # Handle error gracefully
+            apt-get -y install --no-install-recommends \
+            moby-cli${cli_version_suffix} \
+            moby-buildx${buildx_version_suffix} \
+            moby-engine${engine_version_suffix}
             exit_code=$?
-        set -e    
-        
+            set -e
+
         if [ ${exit_code} -ne 0 ]; then
-            err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-20.04')."
-            exit 1
+        err "Packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (e.g., 'ubuntu-20.04')."
+        exit 1
         fi
 
         # Install compose
-        apt-get -y install --no-install-recommends moby-compose || err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
-    else
+        apt-get -y install --no-install-recommends moby-compose || \
+        err "Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+    elif [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
         apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}
         # Install compose
         apt-mark hold docker-ce docker-ce-cli
         apt-get -y install --no-install-recommends docker-compose-plugin || echo "(*) Package docker-compose-plugin (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
-    fi
-fi
 
-echo "Finished installing docker / moby!"
+
+    elif [ "${USE_MOBY}" = "true" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
+            install_docker_or_moby
+
+    elif [ "${USE_MOBY}" = "false" ] && { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
+
+        #kmod package is required for modprobe
+        dnf install -y kmod iptables procps-ng
+        # Load iptable_nat module for docker-in-docker.
+        # See:
+        #   - https://github.com/ublue-os/bluefin/issues/2365
+        #   - https://github.com/devcontainers/features/issues/1235
+        mkdir -p /etc/modules-load.d && cat >>/etc/modules-load.d/ip_tables.conf << 'EOF'
+        iptable_nat
+EOF
+
+        # https://github.com/devcontainers/features/issues/1235
+        if uname -r | grep -q '\.fc'; then
+        sudo update-alternatives --set iptables /usr/sbin/iptables-nft
+        fi
+
+        # Get Fedora release version (e.g. 38, 39)
+        FEDORA_VERSION=$(rpm -E %fedora)
+
+        echo "Detected Fedora version: $FEDORA_VERSION"
+
+        echo "Installing dnf-plugins-core..."
+        if ! dnf install -y dnf-plugins-core; then
+        echo "⚠️ Failed to install dnf-plugins-core. Falling back to Moby."
+        install_docker_or_moby
+        exit 0
+        fi  
+        echo "Setting up Docker CE repo..."
+        if ! dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo; then
+        echo "⚠️ Failed to add Docker CE repo. Falling back to Moby."
+        install_docker_or_moby
+        exit 0
+        fi
+
+        # Try installing Docker CE with fallback to Moby
+        echo "Attempting to install Docker CE..."
+
+        set +e
+        dnf install -y docker docker-ce docker-ce-cli containerd.io 
+        DOCKER_INSTALL_EXIT_CODE=$?
+        set -e
+
+        if [ $DOCKER_INSTALL_EXIT_CODE -ne 0 ] || ! command -v docker >/dev/null || ! command -v dockerd >/dev/null; then
+            echo "⚠️ Docker CE installation appears incomplete or failed — falling back to Moby."
+
+            install_docker_or_moby
+
+            # Optional: symlink to match docker-ce command names
+            ln -sf /usr/bin/moby-engine /usr/bin/dockerd || true
+        else
+            echo "✅ Docker CE installed successfully!"
+        fi
+
+        # Create docker group if missing
+        if ! getent group docker > /dev/null; then
+            echo "Creating 'docker' group..."
+            groupadd docker
+        fi
+
+        # Add user to docker group
+        USERNAME=${USERNAME:-vscode}
+        echo "Adding user '$USERNAME' to docker group..."
+        usermod -aG docker "$USERNAME"
+
+        # Final message
+        echo "✅ Docker or Moby installed and user configured."
+    else
+        if { [ "$ID" = "fedora" ] || [ "$ID_LIKE" = "rhel" ]; }; then
+            echo "❌ Unsupported OS or configuration. Exiting."
+            exit 1
+        fi
+    echo "Finished installing Docker / Moby!"  
+fi
 
 docker_home="/usr/libexec/docker"
 cli_plugins_dir="${docker_home}/cli-plugins"
 
 # fallback for docker-compose
 fallback_compose(){
-    local url=$1
-    local repo_url=$(get_github_api_repo_url "$url")
-    echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
-    get_previous_version "${url}" "${repo_url}" compose_version
-    echo -e "\nAttempting to install v${compose_version}"
-    curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
+local url=$1
+local repo_url=$(get_github_api_repo_url "$url")
+echo -e "\n Failed to fetch the latest artifacts for docker-compose v${compose_version}"
+get_previous_version "${url}" "${repo_url}" compose_version
+echo -e "\nAttempting to install v${compose_version}"
+curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
 }
 
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
     case "${architecture}" in
-        amd64) target_compose_arch=x86_64 ;;
-        arm64) target_compose_arch=aarch64 ;;
-        *)
-            echo "(!) Docker in docker does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
-            exit 1
+    amd64) target_compose_arch=x86_64 ;;
+    arm64) target_compose_arch=aarch64 ;;
+    *)
+    echo " Docker in docker does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
+    exit 1
     esac
 
     docker_compose_path="/usr/local/bin/docker-compose"
@@ -369,15 +519,14 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
             pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
         fi
     else
-        compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
+        compose_version="${DOCKER_DASH_COMPOSE_VERSION#v}"
         docker_compose_url="https://github.com/docker/compose"
         find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
         echo "(*) Installing docker-compose ${compose_version}..."
-        curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
-                 echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..." 
-                 fallback_compose "$docker_compose_url"
+        curl -fsSL "https://github.com/docker/compose/releases/download/compose_version/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
+        echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..." 
+        fallback_compose "$docker_compose_url"
         }
-
         chmod +x ${docker_compose_path}
 
         # Download the SHA256 checksum
@@ -431,7 +580,7 @@ fi
 echo "docker-init doesn't exist, adding..."
 
 if ! cat /etc/group | grep -e "^docker:" > /dev/null 2>&1; then
-        groupadd -r docker
+groupadd -r docker
 fi
 
 usermod -aG docker ${USERNAME}
@@ -440,29 +589,29 @@ usermod -aG docker ${USERNAME}
 fallback_buildx() {
     local url=$1
     local repo_url=$(get_github_api_repo_url "$url")
-    echo -e "\n(!) Failed to fetch the latest artifacts for docker buildx v${buildx_version}..."
+    echo -e "\nFailed to fetch the latest artifacts for docker buildx v${buildx_version}..."
     get_previous_version "$url" "$repo_url" buildx_version
-    buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
+    buildx_file_name="buildx-v${buildx_version}.linux-amd64"
     echo -e "\nAttempting to install v${buildx_version}"
     wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
 }
- 
+
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
     docker_buildx_url="https://github.com/docker/buildx"
     find_version_from_git_tags buildx_version "$docker_buildx_url" "refs/tags/v"
-    echo "(*) Installing buildx ${buildx_version}..."
+    echo '(*) Installing buildx ${buildx_version}...'
     buildx_file_name="buildx-v${buildx_version}.linux-${architecture}"
-    
+
     cd /tmp
     wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || fallback_buildx "$docker_buildx_url"
-    
+
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"
 
-    mkdir -p ${cli_plugins_dir}
-    mv ${buildx_file_name} ${cli_plugins_dir}/docker-buildx
-    chmod +x ${cli_plugins_dir}/docker-buildx
+    mkdir -p "${cli_plugins_dir}"
+    mv "${buildx_file_name}" "${cli_plugins_dir}/docker-buildx"
+    chmod +x "${cli_plugins_dir}/docker-buildx"
 
     chown -R "${USERNAME}:docker" "${docker_home}"
     chmod -R g+r+w "${docker_home}"
@@ -474,15 +623,15 @@ if [ "$DISABLE_IP6_TABLES" == true ]; then
     requested_version=""
     # checking whether the version requested either is in semver format or just a number denoting the major version
     # and, extracting the major version number out of the two scenarios
-    semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$"
+    semver_regex='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
     if echo "$DOCKER_VERSION" | grep -Eq $semver_regex; then
         requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
     elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
         requested_version=$DOCKER_VERSION
     fi
-    if [ "$DOCKER_VERSION" = "latest" ] || [[ -n "$requested_version" && "$requested_version" -ge 27 ]] ; then
+    if [ "$DOCKER_VERSION" = "latest" ] || [[ -n "$requested_version" && "$requested_version" -ge 27 ]]; then
         DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
-        echo "(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}'"
+        echo "! As requested, passing ${DOCKER_DEFAULT_IP6_TABLES}"
     fi
 fi
 
@@ -585,6 +734,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
 INNEREOF
 )"
 
+
 sudo_if() {
     COMMAND="$*"
 
@@ -607,6 +757,7 @@ do
         eval "${dockerd_start}"
     fi
 
+    # Wait up to 10 seconds for Docker to respond
     retry_count=0
     until [ "${docker_ok}" = "true"  ] || [ "${retry_count}" -eq "5" ];
     do
