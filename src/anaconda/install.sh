@@ -257,10 +257,15 @@ if ! conda --version &> /dev/null ; then
     chown -R "${USERNAME}:conda" "${CONDA_DIR}"
     chmod -R g+r+w "${CONDA_DIR}"    
 
-    # Only set permissions if CONDA_DIR exists and is a directory
-    if [ -d "${CONDA_DIR}" ]; then
-        chmod g+s "${CONDA_DIR}"  
-        set_directory_permissions "${CONDA_DIR}"
+    # Set setgid bit on all directories - use find+xargs if available, fallback to recursive function
+    if command -v find > /dev/null && command -v xargs > /dev/null; then
+        find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
+    else
+        # Fallback for systems without find or xargs
+        if [ -d "${CONDA_DIR}" ]; then
+            chmod g+s "${CONDA_DIR}"  
+            set_directory_permissions "${CONDA_DIR}"
+        fi
     fi
 
     # Temporary fixes
