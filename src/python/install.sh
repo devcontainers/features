@@ -869,6 +869,12 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
     fi
     for util in "${DEFAULT_UTILS[@]}"; do
         if ! type ${util} > /dev/null 2>&1; then
+            # If python version is < 3.9 skip install uv util
+            # See Pull-Request discussion: https://github.com/devcontainers/features/pull/1324
+            if [[ ${util} = "uv" ]] && [[ $(${PYTHON_SRC} -c "import sys; print(sys.version_info < (3, 9))") == "True" ]]; then
+                echo "Skipping ${util} installation for Python version < 3.9"
+                continue
+            fi
             "${PIPX_DIR}pipx" install --system-site-packages --pip-args '--no-cache-dir --force-reinstall' ${util}
         else
             echo "${util} already installed. Skipping."
