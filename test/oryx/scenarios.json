@@ -1,6 +1,6 @@
 {
     "install_dotnet_and_oryx": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "dotnet": {
                 "version": "8.0",
@@ -11,7 +11,7 @@
         }
     },
     "install_older_dotnet_and_oryx": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "dotnet": {
                 "version": "7.0"
@@ -20,7 +20,7 @@
         }
     },
     "install_prev_dotnet_and_oryx": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "dotnet": {
                 "version": "6.0"
@@ -29,7 +29,7 @@
         }
     },
     "test_python_project": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "python": {
                 "version": "3.10.4",

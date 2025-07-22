@@ -18,6 +18,7 @@ Installs Rust, common Rust utilities, and their required dependencies
 | version | Select or enter a version of Rust to install. | string | latest |
 | profile | Select a rustup install profile. | string | minimal |
 | targets | Optional comma separated list of additional Rust targets to install. | string | - |
+| components | Optional comma separeated list of rust components to be installed based on input. | string | rust-analyzer,rust-src,rustfmt,clippy |
 
 ## Customizations
 
@@ -31,7 +32,12 @@ Installs Rust, common Rust utilities, and their required dependencies
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, RockyLinux 
+and Mariner distributions with the `apt`, `yum`, `dnf`, `microdnf` and `tdnf` package manager installed.
+
+
+**Note:** Alpine is not supported because the rustup-init binary requires glibc to run, but Alpine Linux does not include `glibc` 
+by default. Instead, it uses musl libc, which is not binary-compatible with glibc.
 
 `bash` is required to execute the `install.sh` script.
 
