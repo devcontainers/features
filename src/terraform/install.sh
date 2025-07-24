@@ -50,6 +50,25 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+import_hashicorp_gpg_key_noble() {
+    unset GNUPGHOME
+    curl -fsSL https://keybase.io/hashicorp/pgp_keys.asc | gpg --import
+    if ! gpg --list-keys "${TERRAFORM_GPG_KEY}" > /dev/null 2>&1; then
+        gpg --list-keys
+        echo "(!) HashiCorp GPG key not found in keyring after import. Aborting."
+        exit 1
+    fi
+}
+
+# Detect Ubuntu Noble and use new repo setup, else use legacy GPG logic
+IS_NOBLE=0
+if grep -qi 'ubuntu' /etc/os-release; then
+    . /etc/os-release
+    if [[ "$VERSION_CODENAME" == "noble" ]]; then
+        IS_NOBLE=1
+    fi
+fi
+
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
     declare -A keyservers_curl_map=(
@@ -366,6 +385,13 @@ install_terraform() {
     curl -sSL -o ${terraform_filename} "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/${terraform_filename}"
 }
 
+verify_terraform_sig() {
+    receive_gpg_keys TERRAFORM_GPG_KEY
+    curl -sSL -o terraform_SHA256SUMS "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" 
+    curl -sSL -o terraform_SHA256SUMS.sig "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
+    gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS    
+}
+
 mkdir -p /tmp/tf-downloads
 cd /tmp/tf-downloads
 # Install Terraform, tflint, Terragrunt
@@ -378,10 +404,18 @@ if grep -q "The specified key does not exist." "${terraform_filename}"; then
 fi
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
     if [ "${TERRAFORM_SHA256}" = "automatic" ]; then
-        receive_gpg_keys TERRAFORM_GPG_KEY
-        curl -sSL -o terraform_SHA256SUMS "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" 
-        curl -sSL -o terraform_SHA256SUMS.sig "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
-        gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS
+        if [ "$IS_NOBLE" -eq 1 ]; then
+            import_hashicorp_gpg_key_noble
+            curl -sSL -o terraform_SHA256SUMS "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS"
+            curl -sSL -o terraform_SHA256SUMS.sig "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
+            gpg --list-keys
+            if ! gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS; then
+                echo "Primary GPG verification failed, attempting fallback verification..."
+                verify_terraform_sig
+            fi
+        else
+            verify_terraform_sig
+        fi
     else
         echo "${TERRAFORM_SHA256} *${terraform_filename}" > terraform_SHA256SUMS
     fi
@@ -443,6 +477,13 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
     mv -f tflint /usr/local/bin/
 fi
 
+verify_sentinel_sig() {
+    receive_gpg_keys TERRAFORM_GPG_KEY
+    curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
+    curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
+    gpg --verify sentinel_checksums.txt.sig sentinel_checksums.txt
+}
+
 install_terragrunt() {
     TERRAGRUNT_VERSION=$1
     curl -sSL -o /tmp/tf-downloads/${terragrunt_filename} https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/${terragrunt_filename}
@@ -477,12 +518,21 @@ if [ "${INSTALL_SENTINEL}" = "true" ]; then
     curl -sSL -o /tmp/tf-downloads/${sentinel_filename} ${sentinel_releases_url}/${SENTINEL_VERSION}/${sentinel_filename}
     if [ "${SENTINEL_SHA256}" != "dev-mode" ]; then
         if [ "${SENTINEL_SHA256}" = "automatic" ]; then
-            receive_gpg_keys TERRAFORM_GPG_KEY
-            curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
-            curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
-            gpg --verify sentinel_checksums.txt.sig sentinel_checksums.txt
-            # Verify the SHASUM matches the archive
-            shasum -a 256 --ignore-missing -c sentinel_checksums.txt
+            if [ "$IS_NOBLE" -eq 1 ]; then
+                import_hashicorp_gpg_key_noble
+                curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
+                curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
+                if ! gpg --verify sentinel_checksums.txt.sig sentinel_checksums.txt; then
+                    echo "Primary GPG verification failed, attempting fallback verification..."
+                    verify_sentinel_sig
+                fi
+                # Verify the SHASUM matches the archive
+                shasum -a 256 --ignore-missing -c sentinel_checksums.txt
+            else
+                verify_sentinel_sig
+                # Verify the SHASUM matches the archive
+                shasum -a 256 --ignore-missing -c sentinel_checksums.txt                
+            fi        
         else
             echo "${SENTINEL_SHA256} *${SENTINEL_FILENAME}" >sentinel_checksums.txt
         fi
