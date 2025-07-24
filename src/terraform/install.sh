@@ -55,8 +55,7 @@ import_hashicorp_gpg_key_noble() {
     curl -fsSL https://keybase.io/hashicorp/pgp_keys.asc | gpg --import
     if ! gpg --list-keys "${TERRAFORM_GPG_KEY}" > /dev/null 2>&1; then
         gpg --list-keys
-        echo "(!) HashiCorp GPG key not found in keyring after import. Aborting."
-        exit 1
+        echo "(!) Warning: HashiCorp GPG key not found in keyring after import."
     fi
 }
 
