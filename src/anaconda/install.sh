@@ -126,7 +126,7 @@ check_packages() {
     for pkg in "$@"; do
         if [ "$PKG_MANAGER" = "apt-get" ]; then
             if ! dpkg -s "$pkg" > /dev/null 2>&1; then
-                if [ -d "$PKG_LISTS" ] && [ "$(find "$PKG_LISTS" | wc -l)" = "0" ]; then
+                if [ "$(find "$PKG_LISTS" | wc -l)" = "0" ]; then
                     echo "Running $PKG_UPDATE..."
                     eval "$PKG_UPDATE"
                 fi
