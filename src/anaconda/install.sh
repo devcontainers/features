@@ -278,7 +278,7 @@ if ! conda --version &> /dev/null ; then
     install_user_package setuptools
     install_user_package tornado
 
-    rm /tmp/anaconda-install.sh    
+    rm /tmp/anaconda-install.sh
     updaterc "export CONDA_DIR=${CONDA_DIR}/bin"
 fi
 
