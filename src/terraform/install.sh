@@ -55,7 +55,10 @@ import_hashicorp_gpg_key_noble() {
     curl -fsSL https://keybase.io/hashicorp/pgp_keys.asc | gpg --import
     if ! gpg --list-keys "${TERRAFORM_GPG_KEY}" > /dev/null 2>&1; then
         gpg --list-keys
-        echo "(!) Warning: HashiCorp GPG key not found in keyring after import."
+        echo "(!) Error: HashiCorp GPG key not found in keyring after import."
+        echo "    Please check your network connection and ensure that the keyserver is reachable."  
+        echo "    Alternatively, you can Ubuntu jammy(22.04) or debian bookworm(12) as the base image."  
+        exit 1
     fi
 }
 
@@ -400,7 +403,7 @@ verify_signature() {
 verify_terraform_sig() {
     local sha256sums_url="${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS"
     local sig_url="${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
-    verify_signature "$TERRAFORM_GPG_KEY" "$sha256sums_url" "$sig_url" "terraform_SHA256SUMS" "terraform_SHA256SUMS.sig"
+    verify_signature TERRAFORM_GPG_KEY "$sha256sums_url" "$sig_url" "terraform_SHA256SUMS" "terraform_SHA256SUMS.sig"
 }
 
 mkdir -p /tmp/tf-downloads
@@ -489,10 +492,9 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
 fi
 
 verify_sentinel_sig() {
-    receive_gpg_keys TERRAFORM_GPG_KEY
-    curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
-    curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
-    gpg --verify sentinel_checksums.txt.sig sentinel_checksums.txt
+    local sha256sums_url="${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS"
+    local sig_url="${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
+    verify_signature TERRAFORM_GPG_KEY "$sha256sums_url" "$sig_url" "sentinel_checksums.txt" "sentinel_checksums.txt.sig"
 }
 
 install_terragrunt() {
