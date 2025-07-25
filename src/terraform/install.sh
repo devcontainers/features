@@ -57,7 +57,7 @@ import_hashicorp_gpg_key_noble() {
         gpg --list-keys
         echo "(!) Error: HashiCorp GPG key not found in keyring after import."
         echo "    Please check your network connection and ensure that the keyserver is reachable."  
-        echo "    Alternatively, you can Ubuntu jammy(22.04) or debian bookworm(12) as the base image."  
+        echo "    Alternatively, you can use Ubuntu jammy(22.04) or debian bookworm(12) as the base image."  
         exit 1
     fi
 }
