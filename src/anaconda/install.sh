@@ -255,7 +255,7 @@ if ! conda --version &> /dev/null ; then
     fi
 
     chown -R "${USERNAME}:conda" "${CONDA_DIR}"
-    chmod -R g+r+w "${CONDA_DIR}"    
+    chmod -R g+r+w "${CONDA_DIR}"
 
     # Set setgid bit on all directories - use find+xargs if available, fallback to recursive function
     if command -v find > /dev/null && command -v xargs > /dev/null; then
