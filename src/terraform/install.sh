@@ -530,7 +530,7 @@ if [ "${INSTALL_SENTINEL}" = "true" ]; then
             else
                 verify_sentinel_sig
                 # Verify the SHASUM matches the archive
-                shasum -a 256 --ignore-missing -c sentinel_checksums.txt                
+                shasum -a 256 --ignore-missing -c sentinel_checksums.txt
             fi        
         else
             echo "${SENTINEL_SHA256} *${SENTINEL_FILENAME}" >sentinel_checksums.txt

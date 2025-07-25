@@ -14,7 +14,7 @@
                 "installSentinel": true
             }
         }
-    },        
+    },
     "install_sentinel": {
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
