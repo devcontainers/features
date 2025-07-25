@@ -406,6 +406,30 @@ verify_terraform_sig() {
     verify_signature TERRAFORM_GPG_KEY "$sha256sums_url" "$sig_url" "terraform_SHA256SUMS" "terraform_SHA256SUMS.sig"
 }
 
+verify_with_fallback() {
+    # $1: import_gpg_key_fn
+    # $2: sha256sums_url
+    # $3: sig_url
+    # $4: fallback_verify_fn
+    # $5: sha256sums_file
+    # $6: sig_file
+    local import_gpg_key_fn="$1"
+    local sha256sums_url="$2"
+    local sig_url="$3"
+    local fallback_verify_fn="$4"
+    local sha256sums_file="$5"
+    local sig_file="$6"
+
+    $import_gpg_key_fn
+    curl -sSL -o "$sha256sums_file" "$sha256sums_url"
+    curl -sSL -o "$sig_file" "$sig_url"
+    if ! gpg --verify "$sig_file" "$sha256sums_file"; then
+        echo "Primary GPG verification failed, attempting fallback verification..."
+        $fallback_verify_fn
+    fi
+}
+
+
 mkdir -p /tmp/tf-downloads
 cd /tmp/tf-downloads
 # Install Terraform, tflint, Terragrunt
@@ -419,14 +443,13 @@ fi
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
     if [ "${TERRAFORM_SHA256}" = "automatic" ]; then
         if [ "$IS_NOBLE" -eq 1 ]; then
-            import_hashicorp_gpg_key_noble
-            curl -sSL -o terraform_SHA256SUMS "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS"
-            curl -sSL -o terraform_SHA256SUMS.sig "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
-            gpg --list-keys
-            if ! gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS; then
-                echo "Primary GPG verification failed, attempting fallback verification..."
-                verify_terraform_sig
-            fi
+            verify_with_fallback \
+                import_hashicorp_gpg_key_noble \
+                "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" \
+                "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig" \
+                verify_terraform_sig \
+                terraform_SHA256SUMS \
+                terraform_SHA256SUMS.sig
         else
             verify_terraform_sig
         fi
@@ -532,20 +555,18 @@ if [ "${INSTALL_SENTINEL}" = "true" ]; then
     if [ "${SENTINEL_SHA256}" != "dev-mode" ]; then
         if [ "${SENTINEL_SHA256}" = "automatic" ]; then
             if [ "$IS_NOBLE" -eq 1 ]; then
-                import_hashicorp_gpg_key_noble
-                curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
-                curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
-                if ! gpg --verify sentinel_checksums.txt.sig sentinel_checksums.txt; then
-                    echo "Primary GPG verification failed, attempting fallback verification..."
-                    verify_sentinel_sig
-                fi
-                # Verify the SHASUM matches the archive
-                shasum -a 256 --ignore-missing -c sentinel_checksums.txt
+            verify_with_fallback \
+                import_hashicorp_gpg_key_noble \
+                "${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS" \
+                "${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig" \
+                verify_sentinel_sig \
+                sentinel_checksums.txt \
+                sentinel_checksums.txt.sig
             else
                 verify_sentinel_sig
-                # Verify the SHASUM matches the archive
-                shasum -a 256 --ignore-missing -c sentinel_checksums.txt
             fi
+            # Verify the SHASUM matches the archive
+            shasum -a 256 --ignore-missing -c sentinel_checksums.txt            
         else
             echo "${SENTINEL_SHA256} *${SENTINEL_FILENAME}" >sentinel_checksums.txt
         fi
