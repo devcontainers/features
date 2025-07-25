@@ -69,7 +69,7 @@ detect_package_manager() {
 detect_package_manager
 
 # Clean up
-rm -rf $PKG_LISTS 
+rm -rf $PKG_LISTS
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
