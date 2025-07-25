@@ -384,11 +384,23 @@ install_terraform() {
     curl -sSL -o ${terraform_filename} "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/${terraform_filename}"
 }
 
+verify_signature() {
+    local gpg_key=$1
+    local sha256sums_url=$2
+    local sig_url=$3
+    local sha256sums_file=$4
+    local sig_file=$5
+
+    receive_gpg_keys "$gpg_key"
+    curl -sSL -o "$sha256sums_file" "$sha256sums_url"
+    curl -sSL -o "$sig_file" "$sig_url"
+    gpg --verify "$sig_file" "$sha256sums_file"
+}
+
 verify_terraform_sig() {
-    receive_gpg_keys TERRAFORM_GPG_KEY
-    curl -sSL -o terraform_SHA256SUMS "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" 
-    curl -sSL -o terraform_SHA256SUMS.sig "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
-    gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS    
+    local sha256sums_url="${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS"
+    local sig_url="${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
+    verify_signature "$TERRAFORM_GPG_KEY" "$sha256sums_url" "$sig_url" "terraform_SHA256SUMS" "terraform_SHA256SUMS.sig"
 }
 
 mkdir -p /tmp/tf-downloads
