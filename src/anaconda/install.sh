@@ -13,7 +13,7 @@ USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="${UPDATE_RC:-"true"}"
 CONDA_DIR="${CONDA_DIR:-"/usr/local/conda"}"
 
-set -exo pipefail
+set -euxo pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 # Detect package manager and set install command
@@ -69,7 +69,7 @@ detect_package_manager() {
 detect_package_manager
 
 # Clean up
-rm -rf $PKG_LISTS
+rm -rf "$PKG_LISTS"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -126,7 +126,7 @@ check_packages() {
     for pkg in "$@"; do
         if [ "$PKG_MANAGER" = "apt-get" ]; then
             if ! dpkg -s "$pkg" > /dev/null 2>&1; then
-                if [ "$(find $PKG_LISTS | wc -l)" = "0" ]; then
+                if [ "$(find "$PKG_LISTS" | wc -l)" = "0" ]; then
                     echo "Running $PKG_UPDATE..."
                     eval "$PKG_UPDATE"
                 fi
@@ -309,6 +309,6 @@ fi
 
 # Final clean up
 eval "$PKG_CLEAN"
-rm -rf $PKG_LISTS
+rm -rf "$PKG_LISTS"
 
 echo "Done!"
