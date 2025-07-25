@@ -263,7 +263,7 @@ if ! conda --version &> /dev/null ; then
     else
         # Fallback for systems without find or xargs
         if [ -d "${CONDA_DIR}" ]; then
-            chmod g+s "${CONDA_DIR}"  
+            chmod g+s "${CONDA_DIR}"
             set_directory_permissions "${CONDA_DIR}"
         fi
     fi
