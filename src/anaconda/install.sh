@@ -225,7 +225,7 @@ if ! conda --version &> /dev/null ; then
         check_packages wget ca-certificates gtk+3.0
     else
         check_packages wget ca-certificates gtk3
-    fi  
+    fi
 
     mkdir -p $CONDA_DIR
 
