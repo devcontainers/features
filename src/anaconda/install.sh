@@ -13,7 +13,7 @@ USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="${UPDATE_RC:-"true"}"
 CONDA_DIR="${CONDA_DIR:-"/usr/local/conda"}"
 
-set -euxo pipefail
+set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 # Detect package manager and set install command
@@ -126,7 +126,7 @@ check_packages() {
     for pkg in "$@"; do
         if [ "$PKG_MANAGER" = "apt-get" ]; then
             if ! dpkg -s "$pkg" > /dev/null 2>&1; then
-                if [ "$(find "$PKG_LISTS" | wc -l)" = "0" ]; then
+                if [ -d "$PKG_LISTS" ] && [ "$(find "$PKG_LISTS" | wc -l)" = "0" ]; then
                     echo "Running $PKG_UPDATE..."
                     eval "$PKG_UPDATE"
                 fi
@@ -169,7 +169,12 @@ sudo_if() {
 
 install_user_package() {
     PACKAGE="$1"
-    sudo_if "${CONDA_DIR}/bin/python3" -m pip install --user --upgrade "$PACKAGE"
+    PYTHON_EXECUTABLE="${CONDA_DIR}/bin/python3"
+    if [ ! -x "$PYTHON_EXECUTABLE" ]; then
+        echo "Warning: ${PYTHON_EXECUTABLE} not found. Falling back to 'python3' from PATH."
+        PYTHON_EXECUTABLE="python3"
+    fi
+    sudo_if "$PYTHON_EXECUTABLE" -m pip install --user --upgrade "$PACKAGE"
 }
 
 run_as_user() {
@@ -204,9 +209,11 @@ run_as_user() {
 set_directory_permissions() {
     local dir="$1"
     for item in "$dir"/*; do
-        if [ -d "$item" ]; then
-            chmod g+s "$item"
-            set_directory_permissions "$item"
+        if [ -e "$item" ]; then
+            if [ -d "$item" ]; then
+                chmod g+s "$item"
+                set_directory_permissions "$item"
+            fi
         fi
     done
 }
