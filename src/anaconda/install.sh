@@ -69,7 +69,7 @@ detect_package_manager() {
 detect_package_manager
 
 # Clean up
-rm -rf "$PKG_LISTS"
+eval "$PKG_CLEAN"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -124,26 +124,26 @@ updaterc() {
 # Checks if packages are installed and installs them if not
 check_packages() {
     for pkg in "$@"; do
-        if [ "$PKG_MANAGER" = "apt-get" ]; then
-            if ! dpkg -s "$pkg" > /dev/null 2>&1; then
+        # Use PKG_QUERY variable to check if package is installed
+        if ! eval "$PKG_QUERY $pkg" > /dev/null 2>&1; then
+            # Package not installed, check if we need to update package lists
+            if [ "$PKG_MANAGER" = "apt-get" ]; then
+                # For apt-get, check if package lists are empty
                 if [ "$(find "$PKG_LISTS" | wc -l)" = "0" ]; then
                     echo "Running $PKG_UPDATE..."
                     eval "$PKG_UPDATE"
                 fi
-                eval "$PKG_INSTALL $pkg"
-            fi
-        elif [ "$PKG_MANAGER" = "apk" ]; then
-            if ! apk info -e "$pkg" > /dev/null 2>&1; then
+            else
+                # For other package managers, always update before installing
                 echo "Running $PKG_UPDATE..."
                 eval "$PKG_UPDATE"
-                eval "$PKG_INSTALL $pkg"
             fi
+            
+            # Install the package
+            echo "Installing package: $pkg"
+            eval "$PKG_INSTALL $pkg"
         else
-            if ! rpm -q "$pkg" > /dev/null 2>&1; then
-                echo "Running $PKG_UPDATE..."
-                eval "$PKG_UPDATE"
-                eval "$PKG_INSTALL $pkg"
-            fi
+            echo "Package $pkg is already installed"
         fi
     done
 }
@@ -205,18 +205,6 @@ run_as_user() {
         eval "$cmd"
     fi
 }
-# Set permissions for directories recursively
-set_directory_permissions() {
-    local dir="$1"
-    for item in "$dir"/*; do
-        if [ -e "$item" ]; then
-            if [ -d "$item" ]; then
-                chmod g+s "$item"
-                set_directory_permissions "$item"
-            fi
-        fi
-    done
-}
 
 # Install Conda if it's missing
 if ! conda --version &> /dev/null ; then
@@ -264,16 +252,6 @@ if ! conda --version &> /dev/null ; then
     chown -R "${USERNAME}:conda" "${CONDA_DIR}"
     chmod -R g+r+w "${CONDA_DIR}"
 
-    # Set setgid bit on all directories - use find+xargs if available, fallback to recursive function
-    if command -v find > /dev/null && command -v xargs > /dev/null; then
-        find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
-    else
-        # Fallback for systems without find or xargs
-        if [ -d "${CONDA_DIR}" ]; then
-            chmod g+s "${CONDA_DIR}"
-            set_directory_permissions "${CONDA_DIR}"
-        fi
-    fi
 
     # Temporary fixes
     # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23491
@@ -316,6 +294,4 @@ fi
 
 # Final clean up
 eval "$PKG_CLEAN"
-rm -rf "$PKG_LISTS"
-
 echo "Done!"
