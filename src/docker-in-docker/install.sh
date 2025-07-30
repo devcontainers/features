@@ -218,7 +218,7 @@ if ! type git > /dev/null 2>&1; then
 fi
 
 # Swap to legacy iptables for compatibility
-if type iptables-legacy > /dev/null 2>&1; then
+if type iptables-legacy > /dev/null 2>&1 && iptables-legacy -L > /dev/null 2>&1; then
     update-alternatives --set iptables /usr/sbin/iptables-legacy
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 fi
