@@ -17,4 +17,7 @@ conda install python=3.7
 
 This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
 
+Also RHEL based linux distributions such as almalinux, rockylinux, fedora are supported now.
+Please do note that Alpine and cbl-mariner aren't supported due system level restrictions with the anaconda installer.
+
 `bash` is required to execute the `install.sh` script.
