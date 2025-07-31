@@ -167,16 +167,6 @@ sudo_if() {
     fi
 }
 
-install_user_package() {
-    PACKAGE="$1"
-    PYTHON_EXECUTABLE="${CONDA_DIR}/bin/python3"
-    if [ ! -x "$PYTHON_EXECUTABLE" ]; then
-        echo "Warning: ${PYTHON_EXECUTABLE} not found. Falling back to 'python3' from PATH."
-        PYTHON_EXECUTABLE="python3"
-    fi
-    sudo_if "$PYTHON_EXECUTABLE" -m pip install --user --upgrade "$PACKAGE"
-}
-
 run_as_user() {
     local user="$1"
     shift
@@ -252,16 +242,6 @@ if ! conda --version &> /dev/null ; then
     chown -R "${USERNAME}:conda" "${CONDA_DIR}"
     chmod -R g+r+w "${CONDA_DIR}"
 
-
-    # Temporary fixes
-    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23491
-    install_user_package certifi
-    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-0286 and https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-23931
-    install_user_package pyopenssl
-    install_user_package cryptography
-    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-40897
-    install_user_package setuptools
-    install_user_package tornado
 
     rm /tmp/anaconda-install.sh
     updaterc "export CONDA_DIR=${CONDA_DIR}/bin"
