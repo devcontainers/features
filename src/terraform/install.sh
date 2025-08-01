@@ -396,15 +396,20 @@ verify_signature() {
     local sig_url=$3
     local sha256sums_file=$4
     local sig_file=$5
+    local verify_result=0
 
     receive_gpg_keys "$gpg_key"
+    verify_result=$?
+    if [ $verify_result -ne 0 ] && [ "$IS_NOBLE" -eq 1 ]; then
+        echo "Skipping the gpg key validation for ubuntu noble as unable to import the key."
+        return 1
+    fi
     curl -sSL -o "$sha256sums_file" "$sha256sums_url"
     curl -sSL -o "$sig_file" "$sig_url"
 
     # Try GPG verification, but don't fail on Noble
     gpg --verify "$sig_file" "$sha256sums_file"
-    local verify_result=$?
-    
+    verify_result=$?
     if [ $verify_result -ne 0 ] && [ "$IS_NOBLE" -eq 1 ]; then
         echo "(*) Warning: GPG verification failed on Ubuntu Noble. Continuing installation anyway."
         echo "    This is expected behavior due to known keyserver issues on Ubuntu Noble."
