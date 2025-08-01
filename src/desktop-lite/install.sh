@@ -198,7 +198,7 @@ else
     package_list="${package_list} tilix"
 fi
 
-# If we want to install Fluxbox, then add it to the list of pacakges
+# If we want to install Fluxbox, then add it to the list of packages
 if [ "${INSTALL_FLUXBOX}" = "true" ]; then
     package_list="${package_list} fluxbox"
 fi
