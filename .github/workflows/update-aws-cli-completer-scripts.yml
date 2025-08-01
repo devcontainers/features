@@ -1,0 +1,58 @@
+name: "Updates vendor 'aws_bash_completer' and 'aws_zsh_completer.sh' scripts"
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: '0 0 * * 0'  # Runs every Sunday at midnight UTC (adjust as needed)
+
+jobs:
+  fetch-latest-aws-completer-scripts:
+    runs-on: ubuntu-latest
+    environment: documentation # grants access to secrets.PAT, for creating pull requests
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run fetch-latest-completer-scripts.sh
+        run: src/aws-cli/scripts/fetch-latest-completer-scripts.sh
+
+      - name: Create a PR for completer scripts
+        id: push_image_info
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+        run: |
+          set -e
+          echo "Start."
+
+          # Configure git and Push updates
+          git config --global user.email github-actions@github.com
+          git config --global user.name github-actions
+          git config pull.rebase false
+
+          branch=automated-script-update-$GITHUB_RUN_ID
+          git checkout -b $branch
+          message='[Updates] Automated vendor 'aws-cli' completer scripts'
+
+          # Add / update and commit
+          git add src/aws-cli/scripts/vendor/aws_bash_completer
+          git add src/aws-cli/scripts/vendor/aws_zsh_completer.sh
+
+          git commit -m 'Automated completer scripts update' || export NO_UPDATES=true
+
+          # Bump version and push
+          if [ "$NO_UPDATES" != "true" ] ; then
+              echo "$(jq --indent 4 '.version = (.version | split(".") | map(tonumber) | .[2] += 1 | join("."))' src/aws-cli/devcontainer-feature.json)"  > src/aws-cli/devcontainer-feature.json
+              git add src/aws-cli/devcontainer-feature.json
+
+              git commit -m 'Bump version'
+              git push origin "$branch"
+              gh api \
+                --method POST \
+                -H "Accept: application/vnd.github+json" \
+                /repos/${GITHUB_REPOSITORY}/pulls \
+                -f title="$message" \
+              -f body="$message" \
+              -f head="$branch" \
+              -f base="$GITHUB_REF_NAME"
+          fi

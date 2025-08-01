@@ -11,7 +11,7 @@
 DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should match in version
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" #latest, v2 or none
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v2"}" #v1, v2 or none
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -20,6 +20,7 @@ INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy noble"
+DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
 
 # Default: Exit on any failure.
 set -e
@@ -156,18 +157,20 @@ get_previous_version() {
     local repo_url=$2
     local variable_name=$3
     prev_version=${!variable_name}
-    
+
     output=$(curl -s "$repo_url");
-    message=$(echo "$output" | jq -r '.message')
-    
-    if [[ $message == "API rate limit exceeded"* ]]; then
-        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
-        echo -e "\nAttempting to find latest version using GitHub tags."
-        find_prev_version_from_git_tags prev_version "$url" "tags/v"
-        declare -g ${variable_name}="${prev_version}"
-    else 
+    if echo "$output" | jq -e 'type == "object"' > /dev/null; then
+      message=$(echo "$output" | jq -r '.message')
+      
+      if [[ $message == "API rate limit exceeded"* ]]; then
+            echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
+            echo -e "\nAttempting to find latest version using GitHub tags."
+            find_prev_version_from_git_tags prev_version "$url" "tags/v"
+            declare -g ${variable_name}="${prev_version}"
+       fi
+    elif echo "$output" | jq -e 'type == "array"' > /dev/null; then 
         echo -e "\nAttempting to find latest version using GitHub Api."
-        version=$(echo "$output" | jq -r '.tag_name')
+        version=$(echo "$output" | jq -r '.[1].tag_name')
         declare -g ${variable_name}="${version#v}"
     fi  
     echo "${variable_name}=${!variable_name}"
@@ -175,7 +178,7 @@ get_previous_version() {
 
 get_github_api_repo_url() {
     local url=$1
-    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases"
 }
 
 ###########################################
@@ -311,6 +314,7 @@ else
     else
         apt-get -y install --no-install-recommends docker-ce-cli${cli_version_suffix} docker-ce${engine_version_suffix}
         # Install compose
+        apt-mark hold docker-ce docker-ce-cli
         apt-get -y install --no-install-recommends docker-compose-plugin || echo "(*) Package docker-compose-plugin (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
     fi
 fi
@@ -370,11 +374,8 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
         echo "(*) Installing docker-compose ${compose_version}..."
         curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
-            if [[ $DOCKER_DASH_COMPOSE_VERSION == "latest" ]]; then 
-                fallback_compose "$docker_compose_url"
-            else
-                echo -e "Error: Failed to install docker-compose v${compose_version}" 
-            fi
+                 echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..." 
+                 fallback_compose "$docker_compose_url"
         }
 
         chmod +x ${docker_compose_path}
@@ -468,6 +469,23 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     find "${docker_home}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
 
+DOCKER_DEFAULT_IP6_TABLES=""
+if [ "$DISABLE_IP6_TABLES" == true ]; then
+    requested_version=""
+    # checking whether the version requested either is in semver format or just a number denoting the major version
+    # and, extracting the major version number out of the two scenarios
+    semver_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$"
+    if echo "$DOCKER_VERSION" | grep -Eq $semver_regex; then
+        requested_version=$(echo $DOCKER_VERSION | cut -d. -f1)
+    elif echo "$DOCKER_VERSION" | grep -Eq "^[1-9][0-9]*$"; then
+        requested_version=$DOCKER_VERSION
+    fi
+    if [ "$DOCKER_VERSION" = "latest" ] || [[ -n "$requested_version" && "$requested_version" -ge 27 ]] ; then
+        DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
+        echo "(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}'"
+    fi
+fi
+
 tee /usr/local/share/docker-init.sh > /dev/null \
 << EOF
 #!/bin/sh
@@ -480,11 +498,12 @@ set -e
 
 AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION}
 DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL}
+DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES}
 EOF
 
 tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
-dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} $(cat << 'INNEREOF'
+dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL} DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES} $(cat << 'INNEREOF'
     # explicitly remove dockerd and containerd PID file to ensure that it can start properly if it was stopped uncleanly
     find /run /var/run -iname 'docker*.pid' -delete || :
     find /run /var/run -iname 'container*.pid' -delete || :
@@ -562,7 +581,7 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     fi
 
     # Start docker/moby engine
-    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL > /tmp/dockerd.log 2>&1 ) &
+    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DOCKER_DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
 )"
 

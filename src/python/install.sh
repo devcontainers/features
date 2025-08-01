@@ -60,6 +60,14 @@ else
     exit 1
 fi
 
+if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
+    # As of 1 July 2024, mirrorlist.centos.org no longer exists.
+    # Update the repo files to reference vault.centos.org.
+    sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+fi
+
 # To find some devel packages, some rhel need to enable specific extra repos, but not on RedHat ubi images...
 INSTALL_CMD_ADDL_REPO=""
 if [ ${ADJUSTED_ID} = "rhel" ] && [ ${ID} != "rhel" ]; then
@@ -457,16 +465,18 @@ install_prev_vers_cpython() {
 install_cpython() {
     VERSION=$1
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
+
+    # Check if the specified Python version is already installed
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${VERSION} already exists."
-        exit 1
+    else
+        mkdir -p /tmp/python-src ${INSTALL_PATH}
+        cd /tmp/python-src
+        cpython_tgz_filename="Python-${VERSION}.tgz"
+        cpython_tgz_url="https://www.python.org/ftp/python/${VERSION}/${cpython_tgz_filename}"
+        echo "Downloading ${cpython_tgz_filename}..."
+        curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
     fi
-    mkdir -p /tmp/python-src ${INSTALL_PATH}
-    cd /tmp/python-src
-    cpython_tgz_filename="Python-${VERSION}.tgz"
-    cpython_tgz_url="https://www.python.org/ftp/python/${VERSION}/${cpython_tgz_filename}"
-    echo "Downloading ${cpython_tgz_filename}..."
-    curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
 }
 
 install_from_source() {
@@ -552,20 +562,20 @@ install_using_oryx() {
     VERSION=$1
     INSTALL_PATH="${PYTHON_INSTALL_PATH}/${VERSION}"
 
+    # Check if the specified Python version is already installed
     if [ -d "${INSTALL_PATH}" ]; then
         echo "(!) Python version ${VERSION} already exists."
-        exit 1
+    else
+        # The python install root path may not exist, so create it
+        mkdir -p "${PYTHON_INSTALL_PATH}"
+        oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
+
+        ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
+        ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
+        ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
+
+        add_symlink
     fi
-
-    # The python install root path may not exist, so create it
-    mkdir -p "${PYTHON_INSTALL_PATH}"
-    oryx_install "python" "${VERSION}" "${INSTALL_PATH}" "lib" || return 1
-
-    ln -s "${INSTALL_PATH}/bin/idle3" "${INSTALL_PATH}/bin/idle"
-    ln -s "${INSTALL_PATH}/bin/pydoc3" "${INSTALL_PATH}/bin/pydoc"
-    ln -s "${INSTALL_PATH}/bin/python3-config" "${INSTALL_PATH}/bin/python-config"
-
-    add_symlink
 }
 
 sudo_if() {
@@ -756,15 +766,19 @@ esac
 
 check_packages ${REQUIRED_PKGS}
 
+# Function to get the major version from a SemVer string
+get_major_version() {
+    local version="$1"
+    echo "$version" | cut -d '.' -f 1
+}
+
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
     if ! cat /etc/group | grep -e "^python:" > /dev/null 2>&1; then
         groupadd -r python
     fi
     usermod -a -G python "${USERNAME}"
-
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
-
     install_python ${PYTHON_VERSION}
 
     # Additional python versions to be installed but not be set as default.
@@ -773,9 +787,27 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         OLDIFS=$IFS
         IFS=","
             read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-            for version in "${additional_versions[@]}"; do
+            major_version=$(get_major_version ${VERSION})
+            if type apt-get > /dev/null 2>&1; then
+                # Debian/Ubuntu: Use update-alternatives
+                update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${#additional_versions[@]}+1))
+                update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
+            elif type dnf > /dev/null 2>&1 || type yum > /dev/null 2>&1 || type microdnf > /dev/null 2>&1; then
+                # Fedora/RHEL/CentOS: Use alternatives
+                alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${#additional_versions[@]}+1))
+                alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
+            fi
+            for i in "${!additional_versions[@]}"; do
+                version=${additional_versions[$i]}
                 OVERRIDE_DEFAULT_VERSION="false"
                 install_python $version
+                if type apt-get > /dev/null 2>&1; then
+                    # Debian/Ubuntu: Use update-alternatives
+                    update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
+                elif type dnf > /dev/null 2>&1 || type yum > /dev/null 2>&1 || type microdnf > /dev/null 2>&1; then
+                    # Fedora/RHEL/CentOS: Use alternatives
+                    alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
+                fi
             done
         INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
@@ -902,21 +934,15 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
     install_user_package $INSTALL_UNDER_ROOT jupyterlab
     install_user_package $INSTALL_UNDER_ROOT jupyterlab-git
 
+    # Create a symlink to the JupyterLab binary for non root users
     if [ "$INSTALL_UNDER_ROOT" = false ]; then
-        # JupyterLab would have installed into /home/${USERNAME}/.local/bin
-        # Adding it to default path for Codespaces which use non-login shells
-        SUDOERS_FILE="/etc/sudoers.d/$USERNAME"
-        SEARCH_STR="Defaults secure_path="
-        REPLACE_STR="Defaults secure_path=/home/${USERNAME}/.local/bin"
-
-        if grep -qs ${SEARCH_STR} ${SUDOERS_FILE}; then
-            # string found and file is present
-            sed -i "s|${SEARCH_STR}|${REPLACE_STR}:|g" "${SUDOERS_FILE}"
-        else
-            # either string is not found, or file is not present
-            # In either case take same action, note >> places at end of file
-            echo "${REPLACE_STR}:${PATH}" >> ${SUDOERS_FILE}
+        JUPYTER_INPATH=/home/${USERNAME}/.local/bin
+        if [ ! -d "$JUPYTER_INPATH" ]; then
+            echo "Error: $JUPYTER_INPATH does not exist."
+            exit 1
         fi
+        JUPYTER_PATH=/usr/local/jupyter
+        ln -s "$JUPYTER_INPATH" "$JUPYTER_PATH"
     fi
 
     # Configure JupyterLab if needed

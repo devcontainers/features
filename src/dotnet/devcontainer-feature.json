@@ -1,6 +1,6 @@
 {
     "id": "dotnet",
-    "version": "2.1.2",
+    "version": "2.3.0",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
     "description": "This Feature installs the latest .NET SDK, which includes the .NET CLI and the shared runtime. Options are provided to choose a different version or additional versions.",
@@ -11,6 +11,7 @@
                 "latest",
                 "lts",
                 "none",
+                "10.0-preview",
                 "8.0",
                 "7.0",
                 "6.0"
@@ -49,7 +50,14 @@
         "vscode": {
             "extensions": [
                 "ms-dotnettools.csharp"
-            ]
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes the .NET SDK, which includes the .NET CLI and the shared runtime, pre-installed and available on the `PATH`, along with the C# language extension for .NET development."
+                    }
+                ]
+            }
         }
     },
     "installsAfter": [

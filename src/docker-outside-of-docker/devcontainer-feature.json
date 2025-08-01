@@ -1,6 +1,6 @@
 {
     "id": "docker-outside-of-docker",
-    "version": "1.5.0",
+    "version": "1.6.3",
     "name": "Docker (docker-outside-of-docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-outside-of-docker",
     "description": "Re-use the host docker socket, adding the Docker CLI to a container. Feature invokes a script to enable using a forwarded Docker socket within a container to run Docker commands.",
@@ -39,14 +39,26 @@
             "type": "boolean",
             "default": true,
             "description": "Install Docker Buildx"
+        },
+        "installDockerComposeSwitch": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter."
         }
     },
     "entrypoint": "/usr/local/share/docker-init.sh",
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-azuretools.vscode-docker"
-            ]
+                "ms-azuretools.vscode-containers"
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes the Docker CLI (`docker`) pre-installed and available on the `PATH` for running and managing containers using the Docker daemon on the host machine."
+                    }
+                ]
+            }
         }
     },
     "mounts": [
@@ -55,6 +67,9 @@
             "target": "/var/run/docker-host.sock",
             "type": "bind"
         }
+    ],
+    "securityOpt": [
+        "label=disable"
     ],
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"

@@ -1,6 +1,6 @@
 {
     "install_from_non_default_distro": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "java": {
                 "version": "21",
@@ -8,8 +8,16 @@
             }
         }
     },
+    "install_latest_version": {
+        "image": "ubuntu:noble",
+        "features": {
+            "java": {
+                "version": "latest"
+            }
+        }
+    },
     "install_lts_version": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "java": {
                 "version": "lts"
@@ -17,7 +25,7 @@
         }
     },
     "install_additional_java": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "java": {
                 "version": "11",
@@ -26,7 +34,7 @@
         }
     },
     "install_ant_and_gradle_and_maven_and_groovy_for_user": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "remoteUser": "vscode",
         "features": {
             "common-utils": {
@@ -42,7 +50,7 @@
         }
     },
     "install_ant_and_gradle_and_maven_and_groovy": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "java": {
                 "version": "latest",
@@ -54,7 +62,7 @@
         }
     },
     "install_ant_and_gradle_and_maven_and_groovy_with_specific_version": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "java": {
                 "version": "latest",
@@ -70,7 +78,7 @@
         }
     },
     "install_non_conventional_version": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "java": {
                 "version": "21",

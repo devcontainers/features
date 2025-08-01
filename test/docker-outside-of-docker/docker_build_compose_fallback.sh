@@ -112,35 +112,26 @@ get_previous_version() {
     local variable_name=$3
     local mode=$4
     prev_version=${!variable_name}
-    
     output=$(curl -s "$repo_url");
-
     check_packages jq
-
-    message=$(echo "$output" | jq -r '.message')
-
-    if [[ $mode == 'mode1' ]]; then
-        message="API rate limit exceeded"
-    else 
-        message=""
-    fi
-    
-    if [[ $message == "API rate limit exceeded"* ]]; then
-        echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
-        echo -e "\nAttempting to find latest version using GitHub tags."
-        find_prev_version_from_git_tags prev_version "$url" "tags/v"
-        declare -g ${variable_name}="${prev_version}"
-    else 
-        echo -e "\nAttempting to find latest version using GitHub Api."
-        version=$(echo "$output" | jq -r '.tag_name')
+    if echo "$output" | jq -e 'type == "object"' > /dev/null; then
+        message=$(echo "$output" | jq -r '.message')
+        if [[ $message == "API rate limit exceeded"* ]] || [[ $mode == 'mode1' ]]; then
+            echo -e "\nAn attempt to find previous to latest version using GitHub Api Failed... \nReason: ${message}"
+            echo -e "\nAttempting to find previous to latest version using GitHub tags."
+            find_prev_version_from_git_tags prev_version "$url" "tags/v"
+            declare -g ${variable_name}="${prev_version}"
+        fi
+    elif echo "$output" | jq -e 'type == "array"' > /dev/null; then
+        echo -e "\nAttempting to find previous version using GitHub Api."
+        version=$(echo "$output" | jq -r '.[1].tag_name')
         declare -g ${variable_name}="${version#v}"
-    fi  
-    echo "${variable_name}=${!variable_name}"
+    fi
 }
 
 get_github_api_repo_url() {
     local url=$1
-    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
+    echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases"
 }
 
 install_compose_switch_fallback() {
@@ -165,7 +156,9 @@ install_compose-switch_as_docker-compose() {
 echo -e "\n👉 Trying to install compose-switch as docker-compose using mode 1 ( find_prev_version_from_git_tags method )";
 install_compose-switch_as_docker-compose "mode1"
 check "installs compose-switch as docker-compose mode 1" bash -c "[[ -f /usr/local/bin/docker-compose ]]"
+check "docker-compose version" bash -c "docker-compose version"
 
 echo -e "\n👉 Trying to install compose-switch as docker-compose using mode 2 ( GitHub Api )";
 install_compose-switch_as_docker-compose "mode2"
 check "installs compose-switch as docker-compose mode 2" bash -c "[[ -f /usr/local/bin/docker-compose ]]"
+check "docker-compose version" bash -c "docker-compose version"

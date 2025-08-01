@@ -1,6 +1,6 @@
 {
   "install_modules": {
-    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
     "features": {
       "powershell": {
         "modules": "az.resources, az.storage",
@@ -9,7 +9,7 @@
     }
   },
   "install_powershell_fallback_test": {
-    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
     "features": {
       "powershell": {
         "modules": "az.resources, az.storage",
@@ -18,11 +18,23 @@
     }
   },
   "install_modules_version": {
-    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
     "features": {
       "powershell": {
         "modules": "az.resources==2.5.0, az.storage==4.3.0"
       }
+    }
+  },
+  "validate_powershell_installation": {
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
+    "features": {
+      "powershell": {}
+    }
+  },
+  "powershell_alma_linux": {
+    "image": "almalinux:9",
+    "features": {
+      "powershell": {} 
     }
   }
 }

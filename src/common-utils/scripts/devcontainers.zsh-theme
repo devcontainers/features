@@ -1,7 +1,7 @@
 # Oh My Zsh! theme - partly inspired by https://github.com/ohmyzsh/ohmyzsh/blob/master/themes/robbyrussell.zsh-theme
 __zsh_prompt() {
     local prompt_username
-    if [ ! -z "${GITHUB_USER}" ]; then 
+    if [ ! -z "${GITHUB_USER}" ]; then
         prompt_username="@${GITHUB_USER}"
     else
         prompt_username="%n"
@@ -24,3 +24,22 @@ __zsh_prompt() {
     unset -f __zsh_prompt
 }
 __zsh_prompt
+
+# Check if the terminal is xterm
+if [[ "$TERM" == "xterm" ]]; then
+    # Function to set the terminal title to the current command
+    preexec() {
+        local cmd=${1}
+        echo -ne "\033]0;${USER}@${HOSTNAME}: ${cmd}\007"
+    }
+
+    # Function to reset the terminal title to the shell type after the command is executed
+    precmd() {
+        echo -ne "\033]0;${USER}@${HOSTNAME}: ${SHELL}\007"
+    }
+
+    # Add the preexec and precmd functions to the corresponding hooks
+    autoload -Uz add-zsh-hook
+    add-zsh-hook preexec preexec
+    add-zsh-hook precmd precmd
+fi

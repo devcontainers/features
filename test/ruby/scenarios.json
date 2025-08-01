@@ -1,10 +1,10 @@
 {
     "install_additional_ruby": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "ruby": {
-                "version": "3.1.2",
-                "additionalVersions": "2.5,3.0.4"
+                "version": "3.4.2",
+                "additionalVersions": "3.2,3.3.2"
             }
         }
     },

@@ -18,6 +18,7 @@ Installs the Azure CLI along with needed dependencies. Useful for base Dockerfil
 | version | Select or enter an Azure CLI version. (Available versions may vary by Linux distribution.) | string | latest |
 | extensions | Optional comma separated list of Azure CLI extensions to install in profile. | string | - |
 | installBicep | Optionally install Azure Bicep | boolean | false |
+| bicepVersion | Select or enter a Bicep version. ('latest' or a specic version such as 'v0.31.92') | string | latest |
 | installUsingPython | Install Azure CLI using Python instead of pipx | boolean | false |
 
 ## Customizations

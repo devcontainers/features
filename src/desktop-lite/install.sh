@@ -7,7 +7,7 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/desktop-lite.md
 # Maintainer: The VS Code and Codespaces Teams
 
-NOVNC_VERSION="${NOVNCVERSION:-"1.2.0"}" # TODO: Add in a 'latest' auto-detect and swap name to 'version'
+NOVNC_VERSION="${NOVNCVERSION:-"1.6.0"}" # TODO: Add in a 'latest' auto-detect and swap name to 'version'
 VNC_PASSWORD=${PASSWORD:-"vscode"}
 if [ "$VNC_PASSWORD" = "noPassword" ]; then
     unset VNC_PASSWORD
@@ -306,11 +306,11 @@ user_name="${USERNAME}"
 group_name="$(id -gn ${USERNAME})"
 LOG=/tmp/container-init.log
 
-export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-"autolaunch:"}"
-export DISPLAY="${DISPLAY:-:1}"
-export VNC_RESOLUTION="${VNC_RESOLUTION:-1440x768x16}" 
-export LANG="${LANG:-"en_US.UTF-8"}"
-export LANGUAGE="${LANGUAGE:-"en_US.UTF-8"}"
+export DBUS_SESSION_BUS_ADDRESS="\${DBUS_SESSION_BUS_ADDRESS:-"autolaunch:"}"
+export DISPLAY="\${DISPLAY:-:1}"
+export VNC_RESOLUTION="\${VNC_RESOLUTION:-1440x768x16}" 
+export LANG="\${LANG:-"en_US.UTF-8"}"
+export LANGUAGE="\${LANGUAGE:-"en_US.UTF-8"}"
 
 # Execute the command it not already running
 startInBackgroundIfNotRunning()
@@ -361,6 +361,13 @@ log()
     echo -e "[\$(date)] \$@" | sudoIf tee -a \$LOG > /dev/null
 }
 
+# Function to compare versions
+version_gt() {
+    # returns 0 if \$1 > \$2
+    [ "\$(printf '%s\n' "\$2" "\$1" | sort -V | head -n1)" != "\$1" ]
+}
+
+
 log "** SCRIPT START **"
 
 # Start dbus.
@@ -392,16 +399,29 @@ else
 fi
 
 # Spin up noVNC if installed and not running.
-if [ -d "/usr/local/novnc" ] && [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/launch.sh | grep -v grep)" = "" ]; then
-    keepRunningInBackground "noVNC" sudoIf "/usr/local/novnc/noVNC*/utils/launch.sh --listen ${NOVNC_PORT} --vnc localhost:${VNC_PORT}"
-    log "noVNC started."
+if [ -d "/usr/local/novnc" ]; then
+    if [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/launch.sh | grep -v grep)" = "" ] && [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/novnc_proxy | grep -v grep)" = "" ]; then
+        if version_gt "${NOVNC_VERSION}" "1.2.0"; then
+            keepRunningInBackground "noVNC" sudoIf "/usr/local/novnc/noVNC*/utils/novnc_proxy --listen ${NOVNC_PORT} --vnc localhost:${VNC_PORT}"
+            log "noVNC started with novnc_proxy."
+        else
+            keepRunningInBackground "noVNC" sudoIf "/usr/local/novnc/noVNC*/utils/launch.sh --listen ${NOVNC_PORT} --vnc localhost:${VNC_PORT}"
+            log "noVNC started with launch.sh."
+        fi
+    else
+        log "noVNC is already running."
+    fi
 else
-    log "noVNC is already running or not installed."
+    log "noVNC is not installed."
 fi
 
 # Run whatever was passed in
-log "Executing \"\$@\"."
-exec "$@"
+if [ -n "$1" ]; then
+    log "Executing \"\$@\"."
+    exec "$@"
+else
+    log "No command provided to execute."
+fi
 log "** SCRIPT EXIT **"
 EOF
 

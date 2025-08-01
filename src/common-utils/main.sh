@@ -161,12 +161,18 @@ install_redhat_packages() {
     local package_list=""
     local remove_epel="false"
     local install_cmd=microdnf
-    if ! type microdnf > /dev/null 2>&1; then
-        install_cmd=dnf
-        if ! type dnf > /dev/null 2>&1; then
-            install_cmd=yum
-        fi
-    fi
+    if type microdnf > /dev/null 2>&1; then
+       install_cmd=microdnf
+    elif type tdnf > /dev/null 2>&1; then
+       install_cmd=tdnf
+    elif type dnf > /dev/null 2>&1; then
+       install_cmd=dnf
+    elif type yum > /dev/null 2>&1; then
+       install_cmd=yum
+    else
+       echo "Unable to find 'tdnf', 'dnf', or 'yum' package manager. Exiting."
+       exit 1
+fi
 
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         package_list="${package_list} \
@@ -344,7 +350,7 @@ chmod +x /etc/profile.d/00-restore-env.sh
 # Get an adjusted ID independent of distro variants
 if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
-elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "azurelinux" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     VERSION_CODENAME="${ID}${VERSION_ID}"
 elif [ "${ID}" = "alpine" ]; then
@@ -352,6 +358,14 @@ elif [ "${ID}" = "alpine" ]; then
 else
     echo "Linux distro ${ID} not supported."
     exit 1
+fi
+
+if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
+    # As of 1 July 2024, mirrorlist.centos.org no longer exists.
+    # Update the repo files to reference vault.centos.org.
+    sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
 fi
 
 if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
@@ -491,6 +505,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         echo 'source $HOME/.profile' >> "${user_home}/.zprofile" # TODO: Reconsider adding '.profile' to '.zprofile'
         chown ${USERNAME}:${group_name} "${user_home}/.zprofile"
     fi
+
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
         if [ "${ADJUSTED_ID}" = "rhel" ]; then
              global_rc_path="/etc/zshrc"
@@ -542,8 +557,9 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
 
         # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
-            template_code="$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true"
-            echo -e "$([ -f "${user_rc_file}" ] && cat "${user_rc_file}")\n${template_code}" > "${user_rc_file}"
+            if ! [ -f "${template_path}" ] || ! grep -qF "$(head -n 1 "${template_path}")" "${user_rc_file}"; then
+                echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
+            fi
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
 
