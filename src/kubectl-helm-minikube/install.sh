@@ -126,30 +126,99 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
-apt_get_update()
-{
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update -y
+# Debian / Ubuntu packages
+install_debian_packages() {
+    # Ensure apt is in non-interactive to avoid prompts
+    export DEBIAN_FRONTEND=noninteractive
+
+    local package_list=""
+    if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
+        package_list="${package_list} \
+        bash-completion \
+        gnupg2 \
+        dirmngr \
+        curl \
+        ca-certificates \
+        coreutils"
+
+        # Include git if not already installed (may be more recent than distro version)
+        if ! type git > /dev/null 2>&1; then
+            package_list="${package_list} git"
+        fi
     fi
+
+    # Install the list of packages
+    echo "Packages to verify are installed: ${package_list}"
+    rm -rf /var/lib/apt/lists/*
+    apt-get update -y
+    apt-get -y install --no-install-recommends ${package_list} 2> >( grep -v 'debconf: delaying package configuration, since apt-utils is not installed' >&2 )
+
+    PACKAGES_ALREADY_INSTALLED="true"
+
+    # Clean up
+    apt-get -y clean
+    rm -rf /var/lib/apt/lists/*
 }
 
-# Checks if packages are installed and installs them if not
-check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
+# RedHat / RockyLinux / CentOS / Fedora packages
+install_redhat_packages() {
+    local package_list=""
+    local install_cmd=microdnf
+    if ! type microdnf > /dev/null 2>&1; then
+        install_cmd=dnf
+        if ! type dnf > /dev/null 2>&1; then
+            install_cmd=yum
+        fi
     fi
+
+    if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
+        package_list="${package_list} \
+            bash-completion \
+            openssh-clients \
+            gnupg2 \
+            curl \
+            procps \
+            lsof \
+            net-tools \
+            psmisc \
+            wget \
+            ca-certificates"
+
+        # Install git if not already installed (may be more recent than distro version)
+        if ! type git > /dev/null 2>&1; then
+            package_list="${package_list} git"
+        fi
+    fi
+
+    PACKAGES_ALREADY_INSTALLED="true"
 }
 
-# Ensure apt is in non-interactive to avoid prompts
-export DEBIAN_FRONTEND=noninteractive
-
-# Install dependencies
-check_packages curl ca-certificates coreutils gnupg2 dirmngr bash-completion
-if ! type git > /dev/null 2>&1; then
-    check_packages git
+# Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
+. /etc/os-release
+# Get an adjusted ID independent of distro variants
+if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+    ADJUSTED_ID="debian"
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+    ADJUSTED_ID="rhel"
+elif [ "${ID}" = "alpine" ]; then
+    ADJUSTED_ID="alpine"
+else
+    echo "Linux distro ${ID} not supported."
+    exit 1
 fi
+
+# Install packages for appropriate OS
+case "${ADJUSTED_ID}" in
+    "debian")
+        install_debian_packages
+        ;;
+    "rhel")
+        install_redhat_packages
+        ;;
+    "alpine")
+        install_debian_packages
+        ;;
+esac
 
 architecture="$(uname -m)"
 case $architecture in
