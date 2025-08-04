@@ -145,6 +145,16 @@
             "common-utils": {}
         }
     },
+    "group-already-exists": {
+        "image": "alpine",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {
+                "userUid": "1000",
+                "userGid": "4"
+            }
+        }
+    },
     "already-run": {
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
