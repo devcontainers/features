@@ -113,7 +113,7 @@ receive_gpg_keys() {
     
     # Special handling for HashiCorp GPG key on Ubuntu Noble
     if [ "$IS_NOBLE" -eq 1 ] && [ "$keys" = "$TERRAFORM_GPG_KEY" ]; then
-        echo "(*) Ubuntu Noble detected, using Keybase for HashiCorp GPG key import..."
+        echo "(*) Ubuntu Noble detected, using Keybase for HashiCorp GPG key import...."
         curl -fsSL https://keybase.io/hashicorp/pgp_keys.asc | gpg --import
         if ! gpg --list-keys "${TERRAFORM_GPG_KEY}" > /dev/null 2>&1; then
             gpg --list-keys
