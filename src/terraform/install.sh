@@ -410,14 +410,10 @@ verify_signature() {
     # Try GPG verification, but don't fail on Noble
     gpg --verify "$sig_file" "$sha256sums_file"
     verify_result=$?
-    if [ $verify_result -ne 0 ] && [ "$IS_NOBLE" -eq 1 ]; then
-        echo "(*) Warning: GPG verification failed on Ubuntu Noble. Continuing installation anyway."
-        echo "    This is expected behavior due to known keyserver issues on Ubuntu Noble."
-        return 1
-    elif [ $verify_result -ne 0 ]; then
+    if [ $verify_result -ne 0 ]; then
         echo "(!) GPG verification failed."
         exit 1
-    fi    
+    fi
 }
 
 mkdir -p /tmp/tf-downloads
