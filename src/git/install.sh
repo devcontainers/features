@@ -288,7 +288,16 @@ fi
 # Partial version matching
 if [ "$(echo "${GIT_VERSION}" | grep -o '\.' | wc -l)" != "2" ]; then
     requested_version="${GIT_VERSION}"
-    version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | grep -oP '"name":\s*"v\K[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"' | sort -rV )"
+    response_output_file=$(mktemp)
+    trap 'rm "$response_output_file"' EXIT
+
+    http_code=$(curl --silent --output $response_output_file --write-out "%{http_code}" -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags")
+    version_content=$(cat "$response_output_file")
+    if [[ ${http_code} -lt 200 || ${http_code} -gt 299 ]] ; then
+        echo "$version_content" >&2
+        exit 1
+    fi
+    version_list="$(echo "$version_content" | grep -oP '"name":\s*"v\K[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"' | sort -rV )"
     if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "current" ]; then
         GIT_VERSION="$(echo "${version_list}" | head -n 1)"
     else
