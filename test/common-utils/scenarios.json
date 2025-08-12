@@ -13,13 +13,6 @@
             "common-utils": {}
         }
     },    
-    "buster": {
-        "image": "debian:buster",
-        "remoteUser": "devcontainer",
-        "features": {
-            "common-utils": {}
-        }
-    },
     "bullseye": {
         "image": "debian:bullseye",
         "remoteUser": "devcontainer",
