@@ -81,8 +81,13 @@ install_debian_packages() {
         fi
 
         # Include libssl3 if available
-        if [[ ! -z $(apt-cache --names-only search ^libssl3$) ]]; then
-            package_list="${package_list} libssl3"
+        if [[ ! -z $(apt-cache --names-only search ^libssl3) ]]; then
+            # Test if the t64 package is available, prefer that to the non-64 bit package
+            if [[ ! -z $(apt-cache --names-only search ^libssl3t64$) ]]; then
+                package_list="${package_list} libssl3t64"
+            elif [[ ! -z $(apt-cache --names-only search ^libssl3$) ]]; then
+                package_list="${package_list} libssl3"
+            fi
         fi
 
         # Include appropriate version of libssl1.0.x if available

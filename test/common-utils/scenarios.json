@@ -36,6 +36,13 @@
             }
         }
     },
+    "sid": {
+        "image": "debian:sid",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
+    },
     "centos-7": {
         "image": "centos:7",
         "remoteUser": "devcontainer",
