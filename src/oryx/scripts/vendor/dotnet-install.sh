@@ -477,7 +477,7 @@ get_normalized_quality() {
     local quality="$(to_lowercase "$1")"
     if [ ! -z "$quality" ]; then
         case "$quality" in
-            daily | signed | validated | preview)
+            daily | preview)
                 echo "$quality"
                 return 0
                 ;;
@@ -486,7 +486,7 @@ get_normalized_quality() {
                 return 0
                 ;;
             *)
-                say_err "'$quality' is not a supported value for --quality option. Supported values are: daily, signed, validated, preview, ga. If you think this is a bug, report it at https://github.com/dotnet/install-scripts/issues."
+                say_err "'$quality' is not a supported value for --quality option. Supported values are: daily, preview, ga. If you think this is a bug, report it at https://github.com/dotnet/install-scripts/issues."
                 return 1
                 ;;
         esac
@@ -1198,13 +1198,19 @@ downloadcurl() {
     local curl_options="--retry 20 --retry-delay 2 --connect-timeout 15 -sSL -f --create-dirs "
     local curl_exit_code=0;
     if [ -z "$out_path" ]; then
-        curl $curl_options "$remote_path_with_credential" 2>&1
+        curl_output=$(curl $curl_options "$remote_path_with_credential" 2>&1)
         curl_exit_code=$?
+        echo "$curl_output"
     else
-        curl $curl_options -o "$out_path" "$remote_path_with_credential" 2>&1
+        curl_output=$(curl $curl_options -o "$out_path" "$remote_path_with_credential" 2>&1)
         curl_exit_code=$?
     fi
-    
+
+    # Regression in curl causes curl with --retry to return a 0 exit code even when it fails to download a file - https://github.com/curl/curl/issues/17554
+    if [ $curl_exit_code -eq 0 ] && echo "$curl_output" | grep -q "^curl: ([0-9]*) "; then
+        curl_exit_code=$(echo "$curl_output" | sed 's/curl: (\([0-9]*\)).*/\1/')
+    fi
+
     if [ $curl_exit_code -gt 0 ]; then
         download_error_msg="Unable to download $remote_path."
         # Check for curl timeout codes
@@ -1272,61 +1278,6 @@ downloadwget() {
     return 0
 }
 
-extract_stem() {
-    local url="$1"
-    # extract the protocol
-    proto="$(echo $1 | grep :// | sed -e's,^\(.*://\).*,\1,g')"
-    # remove the protocol
-    url="${1/$proto/}"
-    # extract the path (if any) - since we know all of our feeds have a first path segment, we can skip the first one. otherwise we'd use -f2- to get the full path
-    full_path="$(echo $url | grep / | cut -d/ -f2-)"
-    path="$(echo $full_path | cut -d/ -f2-)"
-    echo $path
-}
-
-check_url_exists() {
-    eval $invocation
-    local url="$1"
-
-    local code=""
-    if machine_has "curl"
-    then
-        code=$(curl --head -o /dev/null -w "%{http_code}" -s --fail "$url");
-    elif machine_has "wget"
-    then
-        # get the http response, grab the status code
-        server_response=$(wget -qO- --method=HEAD --server-response "$url" 2>&1)
-        code=$(echo "$server_response" | grep "HTTP/" | awk '{print $2}')
-    fi
-    if [ $code = "200" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-sanitize_redirect_url() {
-    eval $invocation
-
-    local url_stem
-    url_stem=$(extract_stem "$1")
-    say_verbose "Checking configured feeds for the asset at ${yellow:-}$url_stem${normal:-}"
-
-    for feed in "${feeds[@]}"
-    do
-        local trial_url="$feed/$url_stem"
-        say_verbose "Checking ${yellow:-}$trial_url${normal:-}"
-        if check_url_exists "$trial_url"; then
-            say_verbose "Found a match at ${yellow:-}$trial_url${normal:-}"
-            echo "$trial_url"
-            return 0
-        else
-            say_verbose "No match at ${yellow:-}$trial_url${normal:-}"
-        fi
-    done
-    return 1
-}
-
 get_download_link_from_aka_ms() {
     eval $invocation
 
@@ -1379,11 +1330,6 @@ get_download_link_from_aka_ms() {
             return 1
         fi
 
-        sanitized_redirect_url=$(sanitize_redirect_url "$aka_ms_download_link")
-        if [[ -n "$sanitized_redirect_url" ]]; then
-            aka_ms_download_link="$sanitized_redirect_url"
-        fi
-
         say_verbose "The redirect location retrieved: '$aka_ms_download_link'."
         return 0
     else
@@ -1396,24 +1342,15 @@ get_feeds_to_use()
 {
     feeds=(
     "https://builds.dotnet.microsoft.com/dotnet"
-    "https://dotnetcli.azureedge.net/dotnet"
     "https://ci.dot.net/public"
-    "https://dotnetbuilds.azureedge.net/public"
     )
 
     if [[ -n "$azure_feed" ]]; then
         feeds=("$azure_feed")
     fi
 
-    if [[ "$no_cdn" == "true" ]]; then
-        feeds=(
-        "https://dotnetcli.blob.core.windows.net/dotnet"
-        "https://dotnetbuilds.blob.core.windows.net/public"
-        )
-
-        if [[ -n "$uncached_feed" ]]; then
-            feeds=("$uncached_feed")
-        fi
+    if [[ -n "$uncached_feed" ]]; then
+        feeds=("$uncached_feed")
     fi
 }
 
@@ -1545,7 +1482,7 @@ generate_regular_links() {
         link_types+=("legacy")
     else
         legacy_download_link=""
-        say_verbose "Cound not construct a legacy_download_link; omitting..."
+        say_verbose "Could not construct a legacy_download_link; omitting..."
     fi
 
     #  Check if the SDK version is already installed.
@@ -1648,7 +1585,7 @@ install_dotnet() {
                 say "The resource at $link_type link '$download_link' is not available."
                 ;;
             *)
-                say "Failed to download $link_type link '$download_link': $download_error_msg"
+                say "Failed to download $link_type link '$download_link': $http_code $download_error_msg"
                 ;;
             esac
             rm -f "$zip_path" 2>&1 && say_verbose "Temporary archive file $zip_path was removed"
@@ -1709,7 +1646,6 @@ install_dir="<auto>"
 architecture="<auto>"
 dry_run=false
 no_path=false
-no_cdn=false
 azure_feed=""
 uncached_feed=""
 feed_credential=""
@@ -1780,10 +1716,6 @@ do
             ;;
         --verbose|-[Vv]erbose)
             verbose=true
-            non_dynamic_parameters+=" $name"
-            ;;
-        --no-cdn|-[Nn]o[Cc]dn)
-            no_cdn=true
             non_dynamic_parameters+=" $name"
             ;;
         --azure-feed|-[Aa]zure[Ff]eed)
@@ -1862,7 +1794,7 @@ do
             echo "              examples: 2.0.0-preview2-006120; 1.1.0"
             echo "  -q,--quality <quality>         Download the latest build of specified quality in the channel."
             echo "      -Quality"
-            echo "          The possible values are: daily, signed, validated, preview, GA."
+            echo "          The possible values are: daily, preview, GA."
             echo "          Works only in combination with channel. Not applicable for STS and LTS channels and will be ignored if those channels are used." 
             echo "          For SDK use channel in A.B.Cxx format. Using quality for SDK together with channel in A.B format is not supported." 
             echo "          Supported since 5.0 release." 
@@ -1890,13 +1822,10 @@ do
             echo "  --verbose,-Verbose                 Display diagnostics information."
             echo "  --azure-feed,-AzureFeed            For internal use only."
             echo "                                     Allows using a different storage to download SDK archives from."
-            echo "                                     This parameter is only used if --no-cdn is false."
             echo "  --uncached-feed,-UncachedFeed      For internal use only."
             echo "                                     Allows using a different storage to download SDK archives from."
-            echo "                                     This parameter is only used if --no-cdn is true."
             echo "  --skip-non-versioned-files         Skips non-versioned files if they already exist, such as the dotnet executable."
             echo "      -SkipNonVersionedFiles"
-            echo "  --no-cdn,-NoCdn                    Disable downloading from the Azure CDN, and use the uncached feed directly."
             echo "  --jsonfile <JSONFILE>              Determines the SDK version from a user specified global.json file."
             echo "                                     Note: global.json must have a value for 'SDK:Version'"
             echo "  --keep-zip,-KeepZip                If set, downloaded file is kept."
