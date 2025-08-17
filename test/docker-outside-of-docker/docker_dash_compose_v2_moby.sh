@@ -1,1 +1,0 @@
-./docker_dash_compose_v2.sh
