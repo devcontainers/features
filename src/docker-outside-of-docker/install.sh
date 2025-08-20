@@ -18,8 +18,8 @@ TARGET_SOCKET="${TARGET_SOCKET:-"/var/run/docker.sock"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
-
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
+MICROSOFT_GPG_KEYS_ROLLING_URI="https://packages.microsoft.com/keys/microsoft-rolling.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble plucky"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble plucky"
 
@@ -224,7 +224,10 @@ if [ "${USE_MOBY}" = "true" ]; then
     cli_package_name="moby-cli"
 
     # Import key safely and import Microsoft apt repo
-    curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
+    {
+        curl -sSL ${MICROSOFT_GPG_KEYS_URI}
+        curl -sSL ${MICROSOFT_GPG_KEYS_ROLLING_URI}
+    } | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
     echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
 else
     # Name of proprietary engine package
