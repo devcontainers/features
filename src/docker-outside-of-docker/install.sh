@@ -18,10 +18,10 @@ TARGET_SOCKET="${TARGET_SOCKET:-"/var/run/docker.sock"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"true"}"
-
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
-DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal jammy noble plucky"
-DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="bookworm buster bullseye bionic focal hirsute impish jammy noble plucky"
+MICROSOFT_GPG_KEYS_ROLLING_URI="https://packages.microsoft.com/keys/microsoft-rolling.asc"
+DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble plucky"
+DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble plucky"
 
 set -e
 
@@ -205,14 +205,14 @@ architecture="$(dpkg --print-architecture)"
 if [ "${USE_MOBY}" = "true" ]; then
     if [[ "${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
         err "Unsupported  distribution version '${VERSION_CODENAME}'. To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS distribution"
-        err "Support distributions include:  ${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}"
+        err "Supported distributions include:  ${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}"
         exit 1
     fi
     echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}'"
 else
     if [[ "${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}" != *"${VERSION_CODENAME}"* ]]; then
         err "Unsupported distribution version '${VERSION_CODENAME}'. To resolve, please choose a compatible OS distribution"
-        err "Support distributions include:  ${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}"
+        err "Supported distributions include:  ${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}"
         exit 1
     fi
     echo "Distro codename  '${VERSION_CODENAME}'  matched filter  '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
@@ -224,7 +224,10 @@ if [ "${USE_MOBY}" = "true" ]; then
     cli_package_name="moby-cli"
 
     # Import key safely and import Microsoft apt repo
-    curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
+    {
+        curl -sSL ${MICROSOFT_GPG_KEYS_URI}
+        curl -sSL ${MICROSOFT_GPG_KEYS_ROLLING_URI}
+    } | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
     echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
 else
     # Name of proprietary engine package
@@ -302,7 +305,7 @@ else
         if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
             buildx=(moby-buildx${buildx_version_suffix})
         fi
-        apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}"
+        apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}" || { err "It seems packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-24.04')." ; exit 1 ; }
         apt-get -y install --no-install-recommends moby-compose || echo "(*) Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
     else
         buildx=()
