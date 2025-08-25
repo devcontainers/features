@@ -31,7 +31,6 @@ package_list="
     fbautostart \
     at-spi2-core \
     xterm \
-    eterm \
     nautilus\
     mousepad \
     seahorse \
@@ -203,10 +202,10 @@ check_packages ${package_list}
 # if Ubuntu-24.04, noble(numbat) found, then will install libasound2-dev instead of libasound2.
 # this change is temporary, https://packages.ubuntu.com/noble/libasound2 will switch to libasound2 once it is available for Ubuntu-24.04, noble(numbat)
 . /etc/os-release
-if [ "${ID}" = "ubuntu" ] && [ "${VERSION_CODENAME}" = "noble" ]; then
-    echo "Ubuntu 24.04, Noble(Numbat) detected. Installing libasound2-dev package..."
+if { [ "{ID}" = "ubuntu" ] && [ "{VERSION_CODENAME}" = "noble" ]; } || { [ "{ID}" = "debian" ] && [ "{VERSION_CODENAME}" = "trixie" ]; }; then
+    echo "Detected Noble (Ubuntu 24.04) or Trixie (Debian). Installing libasound2-dev package..."
     check_packages "libasound2-dev"
-else 
+else
     check_packages "libasound2"
 fi
 
