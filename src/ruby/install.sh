@@ -240,11 +240,26 @@ if [ "${architecture}" != "amd64" ] && [ "${architecture}" != "x86_64" ] && [ "$
 fi
 
 # Install dependencies
-check_packages curl ca-certificates software-properties-common build-essential gnupg2 libreadline-dev \
+check_packages curl ca-certificates build-essential gnupg2 libreadline-dev \
     procps dirmngr gawk autoconf automake bison libffi-dev libgdbm-dev libncurses5-dev \
     libsqlite3-dev libtool libyaml-dev pkg-config sqlite3 zlib1g-dev libgmp-dev libssl-dev
 if ! type git > /dev/null 2>&1; then
     check_packages git
+fi
+
+# Conditionally install software-properties-common (skip on Debian Trixie)
+if type apt-get >/dev/null 2>&1; then
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        if [ "${ID}" = "debian" ] && [ "${VERSION_CODENAME}" = "trixie" ]; then
+            echo "Skipping software-properties-common on Debian Trixie."
+        else
+            check_packages software-properties-common
+        fi
+    else
+        # Fallback for apt-based systems without /etc/os-release
+        check_packages software-properties-common
+    fi
 fi
 
 # Function to fetch the version released prior to the latest version
