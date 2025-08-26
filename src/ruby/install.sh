@@ -240,6 +240,7 @@ if [ "${architecture}" != "amd64" ] && [ "${architecture}" != "x86_64" ] && [ "$
 fi
 
 # Install dependencies
+# Removed software-properties-common package from here as it has been removed for debian trixie(13)
 check_packages curl ca-certificates build-essential gnupg2 libreadline-dev \
     procps dirmngr gawk autoconf automake bison libffi-dev libgdbm-dev libncurses5-dev \
     libsqlite3-dev libtool libyaml-dev pkg-config sqlite3 zlib1g-dev libgmp-dev libssl-dev
