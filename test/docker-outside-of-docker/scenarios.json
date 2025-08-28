@@ -180,13 +180,5 @@
                 "moby": false
             }
         }
-    },
-    "install_moby_on_debian_trixie": {
-        "image": "debian:trixie",
-        "features": {
-            "docker-outside-of-docker": {
-                "moby": true
-            }
-        }
     }
 }
