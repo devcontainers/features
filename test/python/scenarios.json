@@ -40,7 +40,7 @@
         }
     },
     "install_additional_python": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "python": {
                 "version": "3.11",
@@ -67,7 +67,7 @@
         }
     },
     "install_jupyterlab": {
-        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
         "remoteUser": "vscode",
         "features": {
             "python": {
@@ -106,7 +106,7 @@
         }
     },
     "install_additional_jupyterlab": {
-        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
         "remoteUser": "vscode",
         "features": {
             "python": {
@@ -199,7 +199,7 @@
         }
     },
     "install_jupyterlab_ubuntu": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "python": {
                 "version": "3.11",
@@ -303,7 +303,7 @@
         }
     },
     "install_python_shared_lib_deb": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "python": {
                 "version": "3.11",
@@ -330,7 +330,7 @@
         }
     },
     "update_alternatives_switchable_versions": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "python": {
                 "version": "3.11",

@@ -1,18 +1,4 @@
 {
-    "bionic": {
-        "image": "ubuntu:bionic",
-        "remoteUser": "devcontainer",
-        "features": {
-            "common-utils": {}
-        }
-    },
-    "focal": {
-        "image": "ubuntu:focal",
-        "remoteUser": "devcontainer",
-        "features": {
-            "common-utils": {}
-        }
-    },
     "jammy": {
         "image": "ubuntu:jammy",
         "remoteUser": "devcontainer",
@@ -20,13 +6,13 @@
             "common-utils": {}
         }
     },
-    "buster": {
-        "image": "debian:buster",
+    "noble": {
+        "image": "ubuntu:noble",
         "remoteUser": "devcontainer",
         "features": {
             "common-utils": {}
         }
-    },
+    },    
     "bullseye": {
         "image": "debian:bullseye",
         "remoteUser": "devcontainer",

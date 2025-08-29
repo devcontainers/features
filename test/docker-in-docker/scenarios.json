@@ -1,6 +1,6 @@
 {
     "docker_build_fallback_compose": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "docker-in-docker": {
                 "version": "latest",
@@ -9,7 +9,7 @@
         }
     },
     "dockerIp6tablesDisabledTest": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "docker-in-docker": {
                 "version": "27.0.3",
@@ -56,7 +56,7 @@
         "remoteUser": "node"
     },
     "docker_build_2": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "docker-in-docker": {
                 "version": "latest",
@@ -106,7 +106,7 @@
         }
     },
     "docker_compose_v1": {
-        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
             "docker-in-docker": {
                 "moby": true,
@@ -116,7 +116,7 @@
         }
     },
     "docker_compose_v2": {
-        "image": "mcr.microsoft.com/devcontainers/base:focal",
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
             "docker-in-docker": {
                 "moby": true,
@@ -126,7 +126,7 @@
         }
     },
     "docker_build_fallback_buildx": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "docker-in-docker": {
                 "version": "latest",
@@ -134,11 +134,19 @@
             }
         }
     },
-    "docker_specific_moby_buildx": {
-        "image": "ubuntu:focal",
+    "install_on_debian_trixie": {
+        "image": "debian:trixie",
         "features": {
             "docker-in-docker": {
-                "mobyBuildxVersion": "0.12.0"
+                "moby": false
+            }
+        }
+    },
+    "docker_specific_moby_buildx": {
+        "image": "ubuntu:noble",
+        "features": {
+            "docker-in-docker": {
+                "mobyBuildxVersion": "0.14.0"
             }
         }
     },
