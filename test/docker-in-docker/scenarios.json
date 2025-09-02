@@ -166,6 +166,24 @@
             }
         }
     },
+    "docker_without_iptables": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
+    },
+    "docker_with_iptables": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },
     // DO NOT REMOVE: This scenario is used by the docker-in-docker-stress-test workflow
     "docker_with_on_create_command": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
