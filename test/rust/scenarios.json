@@ -136,7 +136,7 @@
         }
     },
     "rust_with_alpine": {
-        "image": "mcr.microsoft.com/devcontainers/base:alpine-3.21",
+        "image": "mcr.microsoft.com/devcontainers/base:alpine-3.22",
         "features": {
             "rust": {
                 "version": "latest",
