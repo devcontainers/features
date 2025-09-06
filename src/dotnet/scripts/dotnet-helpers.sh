@@ -50,7 +50,7 @@ fetch_latest_version() {
 # Example: install_sdk "10.0" "preview"
 install_sdk() {
     local inputVersion="$1" # Could be 'latest', 'lts', 'X.Y', 'X.Y.Z', 'X.Y.4xx', or base channel when paired with quality
-    local quality="$2"      # Optional quality: preview, daily (empty implies GA)
+    local quality="$2"      # Optional quality: GA, preview, daily (empty implies GA)
     local version=""
     local channel=""
     if [[ "$inputVersion" == "latest" ]]; then
@@ -76,7 +76,10 @@ install_sdk() {
         version="$inputVersion"
     fi
     
-    local cmd=("$DOTNET_INSTALL_SCRIPT" "--version" "$version" "--channel" "$channel" "--install-dir" "$DOTNET_ROOT")
+    local cmd=("$DOTNET_INSTALL_SCRIPT" "--version" "$version" "--install-dir" "$DOTNET_ROOT")
+    if [ -n "$channel" ]; then
+        cmd+=("--channel" "$channel")
+    fi
     if [ -n "$quality" ]; then
         cmd+=("--quality" "$quality")
     fi
@@ -91,7 +94,7 @@ install_sdk() {
 install_runtime() {
     local runtime="$1"
     local inputVersion="$2" # Could be 'latest', 'lts', 'X.Y', 'X.Y.Z'
-    local quality="$3"      # Optional quality: preview, daily (empty implies GA)
+    local quality="$3"      # Optional quality: GA, preview, daily (empty implies GA)
     local version=""
     local channel=""
     if [[ "$inputVersion" == "latest" ]]; then
@@ -112,7 +115,10 @@ install_runtime() {
         version="$inputVersion"
     fi
 
-    local cmd=("$DOTNET_INSTALL_SCRIPT" "--runtime" "$runtime" "--version" "$version" "--channel" "$channel" "--install-dir" "$DOTNET_ROOT" "--no-path")
+    local cmd=("$DOTNET_INSTALL_SCRIPT" "--runtime" "$runtime" "--version" "$version" "--install-dir" "$DOTNET_ROOT" "--no-path")
+    if [ -n "$channel" ]; then
+        cmd+=("--channel" "$channel")
+    fi
     if [ -n "$quality" ]; then
         cmd+=("--quality" "$quality")
     fi
@@ -141,7 +147,10 @@ install_workloads() {
 #   A.B-daily
 #   A.B.Cxx-preview
 #   A.B.Cxx-daily
-# Output (stdout): "<clean_version> <quality>" where quality is one of GA|preview|daily
+# Output (stdout): "<clean_version> <quality>"
+#   - For channel specs (A.B or A.B.Cxx) without suffix -> quality is GA
+#   - For channel specs with -preview/-daily suffix -> quality is preview/daily
+#   - For exact version specs (contain a third numeric segment or prerelease labels beyond channel patterns, e.g. 8.0.100-rc.2.23502.2) -> quality is empty
 # Examples:
 #   parse_version_and_quality "10.0-preview"    => "10.0 preview"
 #   parse_version_and_quality "10.0-daily"      => "10.0 daily"
@@ -151,14 +160,28 @@ install_workloads() {
 #   parse_version_and_quality "6.0.4xx-daily"   => "6.0.4xx daily"
 parse_version_and_quality() {
     local input="$1"
-    local quality="GA"
+    local quality=""
     local clean_version="$input"
+    # Match feature band with quality
     if [[ "$input" =~ ^([0-9]+\.[0-9]+\.[0-9]xx)-(preview|daily)$ ]]; then
         clean_version="${BASH_REMATCH[1]}"
         quality="${BASH_REMATCH[2]}"
+    # Match simple channel with quality
     elif [[ "$input" =~ ^([0-9]+\.[0-9]+)-(preview|daily)$ ]]; then
         clean_version="${BASH_REMATCH[1]}"
         quality="${BASH_REMATCH[2]}"
+    # Match plain feature band channel (defaults to GA)
+    elif [[ "$input" =~ ^[0-9]+\.[0-9]+\.[0-9]xx$ ]]; then
+        clean_version="$input"
+        quality="GA"
+    # Match simple channel (defaults to GA)
+    elif [[ "$input" =~ ^[0-9]+\.[0-9]+$ ]]; then
+        clean_version="$input"
+        quality="GA"
+    else
+        # Exact version (leave quality empty)
+        clean_version="$input"
+        quality=""
     fi
     echo "$clean_version" "$quality"
 }
