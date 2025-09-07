@@ -80,7 +80,7 @@ Installing prerelease builds. Supports `preview` and `daily` suffixes.
         "version": "10.0-preview",
         "additionalVersions": "10.0.1xx-daily",
         "dotnetRuntimeVersions": "10.0-daily",
-        "aspnetCoreRuntimeVersions": "10-daily"
+        "aspnetCoreRuntimeVersions": "10.0-daily"
     }
 }
 ```
