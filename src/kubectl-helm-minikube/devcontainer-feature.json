@@ -1,6 +1,6 @@
 {
     "id": "kubectl-helm-minikube",
-    "version": "1.2.0",
+    "version": "1.2.2",
     "name": "Kubectl, Helm, and Minikube",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/kubectl-helm-minikube",
     "description": "Installs latest version of kubectl, Helm, and optionally minikube. Auto-detects latest versions and installs needed dependencies.",
@@ -44,6 +44,17 @@
             "type": "volume"
         }
     ],
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes kubectl, Helm, optionally minikube, and needed dependencies pre-installed and available on the `PATH`. When configuring Ingress for your Kubernetes cluster, note that by default Kubernetes will bind to a specific interface's IP rather than localhost or all interfaces. This is why you need to use the Kubernetes Node's IP when connecting - even if there's only one Node as in the case of Minikube."
+                    }
+                ]
+            }
+        }
+    },
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"
     ]

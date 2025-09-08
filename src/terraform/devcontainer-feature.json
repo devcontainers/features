@@ -1,6 +1,6 @@
 {
     "id": "terraform",
-    "version": "1.3.8",
+    "version": "1.4.1",
     "name": "Terraform, tflint, and TFGrunt",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/terraform",
     "description": "Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects latest version and installs needed dependencies.",
@@ -54,20 +54,28 @@
             "type": "string",
             "default": "",
             "description": "Connect to a keyserver using a proxy by configuring this option"
+        },
+        "customDownloadServer": {
+            "type": "string",
+            "default": "",
+            "description": "Custom server URL for downloading Terraform and Sentinel packages, including protocol (e.g., https://releases.hashicorp.com). If not provided, the default HashiCorp download server (https://releases.hashicorp.com) will be used."
         }
     },
     "customizations": {
         "vscode": {
             "extensions": [
-                "HashiCorp.terraform",
-                "ms-azuretools.vscode-azureterraform"
+                "HashiCorp.terraform"
             ],
             "settings": {
                 "terraform.languageServer.enable": true,
                 "terraform.languageServer.args": [
                     "serve"
                 ],
-                "azureTerraform.terminal": "integrated"
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes the Terraform CLI and optionally TFLint and Terragrunt pre-installed and available on the `PATH`, along with the Terraform extension for Terraform development."
+                    }
+                ]
             }
         }
     },

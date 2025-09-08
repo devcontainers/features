@@ -162,12 +162,18 @@ install_redhat_packages() {
     local package_list=""
     local remove_epel="false"
     local install_cmd=microdnf
-    if ! type microdnf > /dev/null 2>&1; then
-        install_cmd=dnf
-        if ! type dnf > /dev/null 2>&1; then
-            install_cmd=yum
-        fi
-    fi
+    if type microdnf > /dev/null 2>&1; then
+       install_cmd=microdnf
+    elif type tdnf > /dev/null 2>&1; then
+       install_cmd=tdnf
+    elif type dnf > /dev/null 2>&1; then
+       install_cmd=dnf
+    elif type yum > /dev/null 2>&1; then
+       install_cmd=yum
+    else
+       echo "Unable to find 'tdnf', 'dnf', or 'yum' package manager. Exiting."
+       exit 1
+fi
 
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         package_list="${package_list} \
@@ -345,7 +351,7 @@ chmod +x /etc/profile.d/00-restore-env.sh
 # Get an adjusted ID independent of distro variants
 if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
-elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "azurelinux" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     VERSION_CODENAME="${ID}${VERSION_ID}"
 elif [ "${ID}" = "alpine" ]; then
@@ -553,7 +559,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
             if ! [ -f "${template_path}" ] || ! grep -qF "$(head -n 1 "${template_path}")" "${user_rc_file}"; then
-                echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
+                echo -e "$(cat "${template_path}")\nzstyle ':omz:update' mode disabled" > ${user_rc_file}
             fi
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi

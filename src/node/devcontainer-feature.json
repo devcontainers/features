@@ -1,6 +1,6 @@
 {
     "id": "node",
-    "version": "1.6.1",
+    "version": "1.6.3",
     "name": "Node.js (via nvm), yarn and pnpm",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/node",
     "description": "Installs Node.js, nvm, yarn, pnpm, and needed dependencies.",
@@ -11,9 +11,8 @@
                 "lts",
                 "latest",
                 "none",
-                "18",
-                "16",
-                "14"
+                "22",
+                "20"
             ],
             "default": "lts",
             "description": "Select or enter a Node.js version to install"
@@ -61,7 +60,14 @@
         "vscode": {
             "extensions": [
                 "dbaeumer.vscode-eslint"
-            ]
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes `node`, `npm` and `eslint` pre-installed and available on the `PATH` for Node.js and JavaScript development."
+                    }
+                ]
+            }
         }
     },
     "containerEnv": {
