@@ -1,4 +1,20 @@
 {
+    "install_in_ubuntu_noble": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "terraform": {
+                "version": "latest"
+            }
+        }
+    },
+    "install_in_ubuntu_noble_sentinel": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "terraform": {
+                "installSentinel": true
+            }
+        }
+    },
     "install_sentinel": {
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
