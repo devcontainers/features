@@ -134,6 +134,14 @@
             }
         }
     },
+    "install_on_debian_trixie": {
+        "image": "debian:trixie",
+        "features": {
+            "docker-in-docker": {
+                "moby": false
+            }
+        }
+    },
     "docker_specific_moby_buildx": {
         "image": "ubuntu:noble",
         "features": {
