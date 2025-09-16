@@ -154,7 +154,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
             "docker-in-docker": {
-                "version": "26.1.4",
+                "version": "28.4.0",
                 "moby": "false",
                 "mobyBuildxVersion": "latest",
                 "dockerDashComposeVersion": "none",
@@ -170,7 +170,10 @@
     "docker_with_on_create_command": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
-            "docker-in-docker": {}
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "false"
+            }
         },
         "remoteUser": "vscode",
         "onCreateCommand": "docker ps && sleep 5s && docker ps"
