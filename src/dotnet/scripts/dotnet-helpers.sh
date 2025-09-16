@@ -45,9 +45,12 @@ fetch_latest_version() {
 }
 
 # Installs a version of the .NET SDK
-# Usage: install_sdk <version>
+# Usage: install_sdk <version> [<quality>]
+# Example: install_sdk "9.0"
+# Example: install_sdk "10.0" "preview"
 install_sdk() {
-    local inputVersion="$1"
+    local inputVersion="$1" # Could be 'latest', 'lts', 'X.Y', 'X.Y.Z', 'X.Y.4xx', or base channel when paired with quality
+    local quality="$2"      # Optional quality: GA, preview, daily (empty implies GA)
     local version=""
     local channel=""
     if [[ "$inputVersion" == "latest" ]]; then
@@ -73,19 +76,25 @@ install_sdk() {
         version="$inputVersion"
     fi
     
-    # Currently this script does not make it possible to qualify the version, 'GA' is always implied
-    echo "Executing $DOTNET_INSTALL_SCRIPT --version $version --channel $channel --install-dir $DOTNET_ROOT"
-    "$DOTNET_INSTALL_SCRIPT" \
-        --version "$version" \
-        --channel "$channel" \
-        --install-dir "$DOTNET_ROOT"
+    local cmd=("$DOTNET_INSTALL_SCRIPT" "--version" "$version" "--install-dir" "$DOTNET_ROOT")
+    if [ -n "$channel" ]; then
+        cmd+=("--channel" "$channel")
+    fi
+    if [ -n "$quality" ]; then
+        cmd+=("--quality" "$quality")
+    fi
+    echo "Executing ${cmd[*]}"
+    "${cmd[@]}"
 }
 
 # Installs a version of the .NET Runtime
-# Usage: install_runtime <runtime> <version>
+# Usage: install_runtime <runtime> <version> [<quality>]
+# Example: install_runtime "dotnet" "9.0"
+# Example: install_runtime "aspnetcore" "10.0" "preview"
 install_runtime() {
     local runtime="$1"
-    local inputVersion="$2"
+    local inputVersion="$2" # Could be 'latest', 'lts', 'X.Y', 'X.Y.Z'
+    local quality="$3"      # Optional quality: GA, preview, daily (empty implies GA)
     local version=""
     local channel=""
     if [[ "$inputVersion" == "latest" ]]; then
@@ -105,14 +114,16 @@ install_runtime() {
         # Assume version is an exact version string like '6.0.21' or '8.0.0-preview.7.23375.6'
         version="$inputVersion"
     fi
-    
-    echo "Executing $DOTNET_INSTALL_SCRIPT --runtime $runtime --version $version --channel $channel --install-dir $DOTNET_ROOT --no-path"
-    "$DOTNET_INSTALL_SCRIPT" \
-        --runtime "$runtime" \
-        --version "$version" \
-        --channel "$channel" \
-        --install-dir "$DOTNET_ROOT" \
-        --no-path
+
+    local cmd=("$DOTNET_INSTALL_SCRIPT" "--runtime" "$runtime" "--version" "$version" "--install-dir" "$DOTNET_ROOT" "--no-path")
+    if [ -n "$channel" ]; then
+        cmd+=("--channel" "$channel")
+    fi
+    if [ -n "$quality" ]; then
+        cmd+=("--quality" "$quality")
+    fi
+    echo "Executing ${cmd[*]}"
+    "${cmd[@]}"
 }
 
 # Installs one or more .NET workloads
@@ -126,4 +137,51 @@ install_workloads() {
 
     # Clean up
     rm -r /tmp/dotnet-workload-temp-dir
+}
+
+# Input: version spec possibly containing -preview or -daily
+# Supports channels in the forms:
+#   A.B            (e.g. 10.0)
+#   A.B.Cxx        (feature band e.g. 6.0.4xx)
+#   A.B-preview    (adds quality)
+#   A.B-daily
+#   A.B.Cxx-preview
+#   A.B.Cxx-daily
+# Output (stdout): "<clean_version> <quality>"
+#   - For channel specs (A.B or A.B.Cxx) without suffix -> quality is GA
+#   - For channel specs with -preview/-daily suffix -> quality is preview/daily
+#   - For exact version specs (contain a third numeric segment or prerelease labels beyond channel patterns, e.g. 8.0.100-rc.2.23502.2) -> quality is empty
+# Examples:
+#   parse_version_and_quality "10.0-preview"    => "10.0 preview"
+#   parse_version_and_quality "10.0-daily"      => "10.0 daily"
+#   parse_version_and_quality "10.0"            => "10.0 GA"
+#   parse_version_and_quality "6.0.4xx"         => "6.0.4xx GA"
+#   parse_version_and_quality "6.0.4xx-preview" => "6.0.4xx preview"
+#   parse_version_and_quality "6.0.4xx-daily"   => "6.0.4xx daily"
+parse_version_and_quality() {
+    local input="$1"
+    local quality=""
+    local clean_version="$input"
+    # Match feature band with quality
+    if [[ "$input" =~ ^([0-9]+\.[0-9]+\.[0-9]xx)-(preview|daily)$ ]]; then
+        clean_version="${BASH_REMATCH[1]}"
+        quality="${BASH_REMATCH[2]}"
+    # Match simple channel with quality
+    elif [[ "$input" =~ ^([0-9]+\.[0-9]+)-(preview|daily)$ ]]; then
+        clean_version="${BASH_REMATCH[1]}"
+        quality="${BASH_REMATCH[2]}"
+    # Match plain feature band channel (defaults to GA)
+    elif [[ "$input" =~ ^[0-9]+\.[0-9]+\.[0-9]xx$ ]]; then
+        clean_version="$input"
+        quality="GA"
+    # Match simple channel (defaults to GA)
+    elif [[ "$input" =~ ^[0-9]+\.[0-9]+$ ]]; then
+        clean_version="$input"
+        quality="GA"
+    else
+        # Exact version (leave quality empty)
+        clean_version="$input"
+        quality=""
+    fi
+    echo "$clean_version" "$quality"
 }
