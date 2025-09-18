@@ -195,14 +195,14 @@ install_deb_using_github() {
 
     mkdir -p /tmp/ghcli
     pushd /tmp/ghcli
-    wget https://github.com/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
+    wget -q --show-progress --progress=dot:giga https://github.com/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
     exit_code=$?
     set -e
     if [ "$exit_code" != "0" ]; then
         # Handle situation where git tags are ahead of what was is available to actually download
         echo "(!) github-cli version ${CLI_VERSION} failed to download. Attempting to fall back one version to retry..."
         find_prev_version_from_git_tags CLI_VERSION https://github.com/cli/cli
-        wget https://github.com/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
+        wget -q --show-progress --progress=dot:giga https://github.com/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
     fi
 
     dpkg -i /tmp/ghcli/${cli_filename}
