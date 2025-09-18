@@ -1,6 +1,3 @@
-default_stages: [pre-push]
-files: '.*'
-fail_fast: true
 repos:
   # Syncs pre-commit dependencies with the latest versions.
   - repo: https://github.com/mxr/sync-pre-commit-deps
