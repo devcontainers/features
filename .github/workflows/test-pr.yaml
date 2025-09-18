@@ -62,6 +62,10 @@ jobs:
             baseImage: ubuntu:jammy
           - features: oryx
             baseImage: mcr.microsoft.com/devcontainers/base:ubuntu
+          - features: docker-in-docker
+            baseImage: mcr.microsoft.com/devcontainers/base:debian         
+          - features: docker-outside-of-docker
+            baseImage: mcr.microsoft.com/devcontainers/base:debian             
     steps:
       - uses: actions/checkout@v4
 

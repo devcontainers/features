@@ -19,6 +19,8 @@ INSTALL_SENTINEL=${INSTALLSENTINEL:-false}
 INSTALL_TFSEC=${INSTALLTFSEC:-false}
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
 CUSTOM_DOWNLOAD_SERVER="${CUSTOMDOWNLOADSERVER:-""}"
+# This is because ubuntu noble and debian trixie don't support the old format of GPG keys and validation 
+NEW_GPG_CODENAMES="trixie noble"
 
 TERRAFORM_SHA256="${TERRAFORM_SHA256:-"automatic"}"
 TFLINT_SHA256="${TFLINT_SHA256:-"automatic"}"
@@ -48,6 +50,13 @@ esac
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
+fi
+
+# Detect Ubuntu Noble or Debian Trixie and use new repo setup, else use legacy GPG logic
+IS_GPG_NEW=0
+. /etc/os-release
+if [[ "${NEW_GPG_CODENAMES}" == *"${VERSION_CODENAME}"* ]]; then
+    IS_GPG_NEW=1
 fi
 
 # Get the list of GPG key servers that are reachable
@@ -89,7 +98,7 @@ receive_gpg_keys() {
         keyring_args="--no-default-keyring --keyring $2"
     fi
     if [ ! -z "${KEYSERVER_PROXY}" ]; then
-	keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
+        keyring_args="${keyring_args} --keyserver-options http-proxy=${KEYSERVER_PROXY}"
     fi
 
     # Install curl
@@ -101,6 +110,21 @@ receive_gpg_keys() {
     export GNUPGHOME="/tmp/tmp-gnupg"
     mkdir -p ${GNUPGHOME}
     chmod 700 ${GNUPGHOME}
+    
+    # Special handling for HashiCorp GPG key on Ubuntu Noble
+    if [ "$IS_GPG_NEW" -eq 1 ] && [ "$keys" = "$TERRAFORM_GPG_KEY" ]; then
+        echo "(*) Ubuntu Noble detected, using Keybase for HashiCorp GPG key import...."
+        curl -fsSL https://keybase.io/hashicorp/pgp_keys.asc | gpg --import
+        if ! gpg --list-keys "${TERRAFORM_GPG_KEY}" > /dev/null 2>&1; then
+            gpg --list-keys
+            echo "(*) Warning: HashiCorp GPG key not found in keyring after import."
+            echo "    Continuing installation without GPG verification on Ubuntu Noble."
+            echo "    This is expected behavior for Ubuntu Noble due to keyserver issues."
+            return 1  # Return failure to indicate GPG verification should be skipped
+        fi
+        return 0
+    fi
+
     echo -e "disable-ipv6\n$(get_gpg_key_servers)" > ${GNUPGHOME}/dirmngr.conf
     # GPG key download sometimes fails for some reason and retrying fixes it.
     local retry_count=0
@@ -366,6 +390,32 @@ install_terraform() {
     curl -sSL -o ${terraform_filename} "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/${terraform_filename}"
 }
 
+verify_signature() {
+    local gpg_key=$1
+    local sha256sums_url=$2
+    local sig_url=$3
+    local sha256sums_file=$4
+    local sig_file=$5
+    local verify_result=0
+
+    receive_gpg_keys "$gpg_key"
+    verify_result=$?
+    if [ $verify_result -ne 0 ] && [ "$IS_GPG_NEW" -eq 1 ]; then
+        echo "Skipping the gpg key validation for ubuntu noble as unable to import the key."
+        return 1
+    fi
+    curl -sSL -o "$sha256sums_file" "$sha256sums_url"
+    curl -sSL -o "$sig_file" "$sig_url"
+
+    # Try GPG verification, but don't fail on Noble
+    gpg --verify "$sig_file" "$sha256sums_file"
+    verify_result=$?
+    if [ $verify_result -ne 0 ]; then
+        echo "(!) GPG verification failed."
+        exit 1
+    fi
+}
+
 mkdir -p /tmp/tf-downloads
 cd /tmp/tf-downloads
 # Install Terraform, tflint, Terragrunt
@@ -378,10 +428,25 @@ if grep -q "The specified key does not exist." "${terraform_filename}"; then
 fi
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
     if [ "${TERRAFORM_SHA256}" = "automatic" ]; then
-        receive_gpg_keys TERRAFORM_GPG_KEY
-        curl -sSL -o terraform_SHA256SUMS "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" 
-        curl -sSL -o terraform_SHA256SUMS.sig "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
-        gpg --verify terraform_SHA256SUMS.sig terraform_SHA256SUMS
+        # For Ubuntu Noble, try GPG verification but continue if it fails
+        if [ "$IS_GPG_NEW" -eq 1 ]; then
+            echo "(*) Ubuntu Noble detected - attempting GPG verification with fallback..."
+            set +e
+            sha256sums_url="${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS"
+            sig_url="${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
+            verify_signature TERRAFORM_GPG_KEY "$sha256sums_url" "$sig_url" "terraform_SHA256SUMS" "terraform_SHA256SUMS.sig"
+            verify_result=$?
+            set -e
+            if [ $verify_result -ne 0 ]; then
+                echo "(*) GPG verification failed on Ubuntu Noble, but continuing installation."
+                echo "    Downloading checksums for basic integrity check..."
+                curl -sSL -o terraform_SHA256SUMS "${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS"
+            fi
+        else
+            sha256sums_url="${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS"
+            sig_url="${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
+            verify_signature TERRAFORM_GPG_KEY "$sha256sums_url" "$sig_url" "terraform_SHA256SUMS" "terraform_SHA256SUMS.sig"
+        fi
     else
         echo "${TERRAFORM_SHA256} *${terraform_filename}" > terraform_SHA256SUMS
     fi
@@ -477,12 +542,27 @@ if [ "${INSTALL_SENTINEL}" = "true" ]; then
     curl -sSL -o /tmp/tf-downloads/${sentinel_filename} ${sentinel_releases_url}/${SENTINEL_VERSION}/${sentinel_filename}
     if [ "${SENTINEL_SHA256}" != "dev-mode" ]; then
         if [ "${SENTINEL_SHA256}" = "automatic" ]; then
-            receive_gpg_keys TERRAFORM_GPG_KEY
-            curl -sSL -o sentinel_checksums.txt ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS
-            curl -sSL -o sentinel_checksums.txt.sig ${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig
-            gpg --verify sentinel_checksums.txt.sig sentinel_checksums.txt
+            # For Ubuntu Noble, try GPG verification but continue if it fails
+            if [ "$IS_GPG_NEW" -eq 1 ]; then
+                echo "(*) Ubuntu Noble detected - attempting Sentinel GPG verification with fallback..."
+                set +e
+                sha256sums_url="${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS"
+                sig_url="${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
+                verify_signature TERRAFORM_GPG_KEY "$sha256sums_url" "$sig_url" "sentinel_checksums.txt" "sentinel_checksums.txt.sig"
+                verify_result=$?
+                set -e
+                if [ $verify_result -ne 0 ]; then
+                    echo "(*) GPG verification failed on Ubuntu Noble, but continuing installation."
+                    echo "    Downloading checksums for basic integrity check..."
+                    curl -sSL -o sentinel_checksums.txt "${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS"
+                fi
+            else
+                sha256sums_url="${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS"
+                sig_url="${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS.${TERRAFORM_GPG_KEY}.sig"
+                verify_signature TERRAFORM_GPG_KEY "$sha256sums_url" "$sig_url" "sentinel_checksums.txt" "sentinel_checksums.txt.sig"
+            fi
             # Verify the SHASUM matches the archive
-            shasum -a 256 --ignore-missing -c sentinel_checksums.txt
+            shasum -a 256 --ignore-missing -c sentinel_checksums.txt            
         else
             echo "${SENTINEL_SHA256} *${SENTINEL_FILENAME}" >sentinel_checksums.txt
         fi

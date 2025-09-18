@@ -6,9 +6,7 @@ set -e
 source dev-container-features-test-lib
 
 # Definition specific tests
-. /etc/os-release
-check "non-root user" test "$(whoami)" = "devcontainer"
-check "distro" test "${VERSION_CODENAME}" = "buster"
+check "correct default GatewayPorts" grep "GatewayPorts no" /etc/ssh/sshd_config
 
 # Report result
 reportResults

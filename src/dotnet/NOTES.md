@@ -10,9 +10,10 @@ Installing only the latest .NET SDK version (the default).
 
 Installing an additional SDK version. Multiple versions can be specified as comma-separated values.
 
-``` json
+``` jsonc
 "features": {
     "ghcr.io/devcontainers/features/dotnet:2": {
+        "version": "latest", // (this can be omitted)
         "additionalVersions": "lts"
     }
 }
@@ -67,6 +68,19 @@ Installing .NET workloads. Multiple workloads can be specified as comma-separate
 "features": {
     "ghcr.io/devcontainers/features/dotnet:2": {
       "workloads": "aspire, wasm-tools"
+    }
+}
+```
+
+Installing prerelease builds. Supports `preview` and `daily` suffixes.
+
+``` json
+"features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+        "version": "10.0-preview",
+        "additionalVersions": "10.0.1xx-daily",
+        "dotnetRuntimeVersions": "10.0-daily",
+        "aspnetCoreRuntimeVersions": "10.0-daily"
     }
 }
 ```
