@@ -29,12 +29,8 @@ check "log-exists" bash -c "ls /tmp/container-init.log"
 check "fluxbox-exists" bash -c "ls -la ~/.fluxbox"
 
 . /etc/os-release
-if [ "${ID}" = "ubuntu" ]; then
-    if [ "${VERSION_CODENAME}" = "noble" ]; then
-        checkOSPackage "if libasound2-dev exists !" "libasound2-dev"
-    else 
-        checkOSPackage "if libasound2 exists !" "libasound2"
-    fi
+if [ "${VERSION_CODENAME}" = "noble" ] || [ "${VERSION_CODENAME}" = "trixie" ]; then
+    checkOSPackage "if libasound2-dev exists !" "libasound2-dev"
 else 
     checkOSPackage "if libasound2 exists !" "libasound2"
 fi

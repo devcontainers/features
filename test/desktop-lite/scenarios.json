@@ -39,5 +39,11 @@
             5901,
             6080
         ]
+    },
+    "test_xtigervnc_novnc_started_trixie": {
+        "image": "debian:trixie",
+        "features": {
+            "desktop-lite": {}
+        }
     }
 }

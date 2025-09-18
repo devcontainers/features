@@ -1,6 +1,6 @@
 {
     "id": "dotnet",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
     "description": "This Feature installs the latest .NET SDK, which includes the .NET CLI and the shared runtime. Options are provided to choose a different version or additional versions.",
@@ -11,28 +11,31 @@
                 "latest",
                 "lts",
                 "none",
+                "10.0",
                 "10.0-preview",
+                "10.0-daily",
+                "9.0",
                 "8.0",
                 "7.0",
                 "6.0"
             ],
             "default": "latest",
-            "description": "Select or enter a .NET SDK version. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+            "description": "Select or enter a .NET SDK version. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version, 'X.Y-preview' or 'X.Y-daily' for prereleases."
         },
         "additionalVersions": {
             "type": "string",
             "default": "",
-            "description": "Enter additional .NET SDK versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+            "description": "Enter additional .NET SDK versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version, 'X.Y-preview' or 'X.Y-daily' for prereleases."
         },
         "dotnetRuntimeVersions": {
             "type": "string",
             "default": "",
-            "description": "Enter additional .NET runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+            "description": "Enter additional .NET runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version, 'X.Y-preview' or 'X.Y-daily' for prereleases."
         },
         "aspNetCoreRuntimeVersions": {
             "type": "string",
             "default": "",
-            "description": "Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version."
+            "description": "Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version, 'X.Y-preview' or 'X.Y-daily' for prereleases."
         },
         "workloads": {
             "type": "string",

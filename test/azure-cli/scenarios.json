@@ -1,4 +1,14 @@
 {
+  "install_extensions_trixie": {
+    "image": "mcr.microsoft.com/devcontainers/base:trixie",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "extensions": "aks-preview,amg,containerapp"
+      }
+    }
+  },  
   "install_extensions": {
     "image": "mcr.microsoft.com/devcontainers/base:jammy",
     "user": "vscode",
@@ -29,6 +39,16 @@
       }
     }
   },
+    "install_bicep_trixie": {
+    "image": "mcr.microsoft.com/devcontainers/base:trixie",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "installBicep": true
+      }
+    }
+  },
   "install_with_python": {
     "image": "mcr.microsoft.com/devcontainers/base:jammy",
     "user": "vscode",
@@ -39,6 +59,16 @@
       }
     }
   },
+  "install_with_python_3_13_trixie": {
+    "image": "mcr.microsoft.com/devcontainers/python:2-3.13-trixie",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "installUsingPython": true
+      }
+    }
+  },  
   "install_with_python_3_12_bookworm": {
     "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
     "user": "vscode",
