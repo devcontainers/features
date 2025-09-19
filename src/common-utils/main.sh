@@ -18,6 +18,7 @@ USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
+INSTALL_SSL="${INSTALLSSL:-"true"}"
 
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
@@ -75,25 +76,27 @@ install_debian_packages() {
         manpages-dev \
         init-system-helpers"
 
-        # Include libssl1.1 if available
-        if [[ ! -z $(apt-cache --names-only search ^libssl1.1$) ]]; then
-            package_list="${package_list} libssl1.1"
-        fi
+        if [ "${INSTALL_SSL}" = "true" ]; then
+            # Include libssl1.1 if available
+            if [[ ! -z $(apt-cache --names-only search ^libssl1.1$) ]]; then
+                package_list="${package_list} libssl1.1"
+            fi
 
-        # Include libssl3 if available
-        if [[ ! -z $(apt-cache --names-only search ^libssl3$) ]]; then
-            package_list="${package_list} libssl3"
-        fi
+            # Include libssl3 if available
+            if [[ ! -z $(apt-cache --names-only search ^libssl3$) ]]; then
+                package_list="${package_list} libssl3"
+            fi
 
-        # Include appropriate version of libssl1.0.x if available
-        local libssl_package=$(dpkg-query -f '${db:Status-Abbrev}\t${binary:Package}\n' -W 'libssl1\.0\.?' 2>&1 || echo '')
-        if [ "$(echo "$libssl_package" | grep -o 'libssl1\.0\.[0-9]:' | uniq | sort | wc -l)" -eq 0 ]; then
-            if [[ ! -z $(apt-cache --names-only search ^libssl1.0.2$) ]]; then
-                # Debian 9
-                package_list="${package_list} libssl1.0.2"
-            elif [[ ! -z $(apt-cache --names-only search ^libssl1.0.0$) ]]; then
-                # Ubuntu 18.04
-                package_list="${package_list} libssl1.0.0"
+            # Include appropriate version of libssl1.0.x if available
+            local libssl_package=$(dpkg-query -f '${db:Status-Abbrev}\t${binary:Package}\n' -W 'libssl1\.0\.?' 2>&1 || echo '')
+            if [ "$(echo "$libssl_package" | grep -o 'libssl1\.0\.[0-9]:' | uniq | sort | wc -l)" -eq 0 ]; then
+                if [[ ! -z $(apt-cache --names-only search ^libssl1.0.2$) ]]; then
+                    # Debian 9
+                    package_list="${package_list} libssl1.0.2"
+                elif [[ ! -z $(apt-cache --names-only search ^libssl1.0.0$) ]]; then
+                    # Ubuntu 18.04
+                    package_list="${package_list} libssl1.0.0"
+                fi
             fi
         fi
 
