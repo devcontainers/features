@@ -10,8 +10,8 @@
             "proposals": [
                 "latest",
                 "none",
-                "1.23",
-                "1.22"
+                "1.24",
+                "1.23"
             ],
             "default": "latest",
             "description": "Select or enter a Go version to install"
@@ -27,7 +27,14 @@
         "vscode": {
             "extensions": [
                 "golang.Go"
-            ]
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes Go and common Go utilities pre-installed and available on the `PATH`, along with the Go language extension for Go development."
+                    }
+                ]
+            }
         }
     },
     "containerEnv": {

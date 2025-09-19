@@ -1,6 +1,6 @@
 {
     "install_git_cli_from_release": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "github-cli": {
                 "version": "latest",

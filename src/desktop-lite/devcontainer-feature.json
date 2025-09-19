@@ -1,6 +1,6 @@
 {
     "id": "desktop-lite",
-    "version": "1.2.5",
+    "version": "1.2.8",
     "name": "Light-weight Desktop",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/desktop-lite",
     "description": "Adds a lightweight Fluxbox based desktop to the container that can be accessed using a VNC viewer or the web. GUI-based commands executed from the built-in VS code terminal will open on the desktop automatically.",
@@ -16,9 +16,9 @@
         "noVncVersion": {
             "type": "string",
             "proposals": [
-                "1.2.0"
+                "1.6.0"
             ],
-            "default": "1.2.0",
+            "default": "1.6.0",
             "description": "The noVNC version to use"
         },
         "password": {
@@ -53,6 +53,17 @@
     "entrypoint": "/usr/local/share/desktop-init.sh",
     "containerEnv": {
         "DISPLAY": ":1"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes a lightweight Fluxbox based desktop that can be accessed using a VNC viewer or the web. GUI-based commands executed from the built-in VS Code terminal will open on the desktop automatically."
+                    }
+                ]
+            }
+        }
     },
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"

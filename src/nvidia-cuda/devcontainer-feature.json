@@ -1,6 +1,6 @@
 {
   "id": "nvidia-cuda",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "name": "NVIDIA CUDA",
   "description": "Installs shared libraries for NVIDIA CUDA.",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/nvidia-cuda",
@@ -84,6 +84,17 @@
       "description": "Version of cuDNN to install"
     }
   },
+  "customizations": {
+        "vscode": {
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes shared libraries for NVIDIA CUDA pre-installed and available on the `PATH`. It's only useful for dev containers that run on a host machine with an NVIDIA GPU. Within your dev container, use the `nvidia-smi` command to ensure that your GPU is available for CUDA. If the `nvidia-smi` command is not available, you may need to follow NVIDIA's instructions to install the NVIDIA Container Toolkit on your host machine."
+                    }
+                ]
+            }
+        }
+    },
   "installsAfter": [
       "ghcr.io/devcontainers/features/common-utils"
   ]

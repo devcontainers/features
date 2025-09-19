@@ -9,20 +9,20 @@
         }
     },
     "install_dotnet_specific_release": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "3.1"
+                "version": "8.0"
             }
         }
     },
     "install_dotnet_specific_release_and_feature_band": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "5.0.3xx"
+                "version": "8.0.3xx"
             }
         }
     },
@@ -40,14 +40,36 @@
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "9.0",
+                "version": "10.0",
                 "additionalVersions": [
+                    "9.0",
                     "8.0",
-                    "7.0",
-                    "6.0",
-                    "5.0",
-                    "3.1"
+                    "7.0"
                 ]
+            }
+        }
+    },
+    "install_dotnet_preview": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "dotnet": {
+                "version": "10.0-preview",
+                "additionalVersions": "10.0.1xx-preview",
+                "aspnetcoreRuntimeVersions": "10.0-preview",
+                "dotnetRuntimeVersions": "10.0-preview"
+            }
+        }
+    },
+    "install_dotnet_daily": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "dotnet": {
+                "version": "10.0-daily",
+                "additionalVersions": "10.0.1xx-daily",
+                "aspnetcoreRuntimeVersions": "10.0-daily",
+                "dotnetRuntimeVersions": "10.0-daily"
             }
         }
     },

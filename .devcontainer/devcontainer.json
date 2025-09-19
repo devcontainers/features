@@ -1,5 +1,5 @@
 {
-    "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18",
+    "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },

@@ -5,6 +5,14 @@
             "desktop-lite": {}
         }
     },
+    "test_xtigervnc_novnc_started_noVNC_old_launch_script": {
+        "image": "ubuntu:noble",
+        "features": {
+            "desktop-lite": {
+                "noVncVersion": "1.2.0"
+            }
+        }
+    },    
     "test_vnc_resolution_as_container_env_var": {
         "image": "ubuntu:noble",
         "features": {
@@ -31,5 +39,11 @@
             5901,
             6080
         ]
+    },
+    "test_xtigervnc_novnc_started_trixie": {
+        "image": "debian:trixie",
+        "features": {
+            "desktop-lite": {}
+        }
     }
 }

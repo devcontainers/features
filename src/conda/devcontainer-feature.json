@@ -1,6 +1,6 @@
 {
     "id": "conda",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "name": "Conda",
     "description": "A cross-platform, language-agnostic binary package manager",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/conda",
@@ -25,6 +25,17 @@
         "CONDA_DIR": "/opt/conda",
         "CONDA_SCRIPT":"/opt/conda/etc/profile.d/conda.sh",
         "PATH": "/opt/conda/bin:${PATH}"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes the conda package manager pre-installed and available on the `PATH` for data science and Python development. Additional packages installed using Conda will be downloaded from Anaconda or another repository configured by the user. A user can install different versions of Python than the one in this dev container by running a command like: conda install python=3.7"
+                    }
+                ]
+            }
+        }
     },
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"

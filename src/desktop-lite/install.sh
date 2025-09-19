@@ -7,7 +7,7 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/desktop-lite.md
 # Maintainer: The VS Code and Codespaces Teams
 
-NOVNC_VERSION="${NOVNCVERSION:-"1.2.0"}" # TODO: Add in a 'latest' auto-detect and swap name to 'version'
+NOVNC_VERSION="${NOVNCVERSION:-"1.6.0"}" # TODO: Add in a 'latest' auto-detect and swap name to 'version'
 VNC_PASSWORD=${PASSWORD:-"vscode"}
 if [ "$VNC_PASSWORD" = "noPassword" ]; then
     unset VNC_PASSWORD
@@ -31,7 +31,6 @@ package_list="
     fbautostart \
     at-spi2-core \
     xterm \
-    eterm \
     nautilus\
     mousepad \
     seahorse \
@@ -200,13 +199,13 @@ fi
 # Install X11, fluxbox and VS Code dependencies
 check_packages ${package_list}
 
-# if Ubuntu-24.04, noble(numbat) found, then will install libasound2-dev instead of libasound2.
+# if Ubuntu-24.04, noble(numbat) / Debian-13, trixie found, then will install libasound2-dev instead of libasound2.
 # this change is temporary, https://packages.ubuntu.com/noble/libasound2 will switch to libasound2 once it is available for Ubuntu-24.04, noble(numbat)
 . /etc/os-release
-if [ "${ID}" = "ubuntu" ] && [ "${VERSION_CODENAME}" = "noble" ]; then
-    echo "Ubuntu 24.04, Noble(Numbat) detected. Installing libasound2-dev package..."
+if { [ "${ID}" = "ubuntu" ] && [ "${VERSION_CODENAME}" = "noble" ]; } || { [ "${ID}" = "debian" ] && [ "${VERSION_CODENAME}" = "trixie" ]; }; then
+    echo "Detected Noble (Ubuntu 24.04) or Trixie (Debian). Installing libasound2-dev package..."
     check_packages "libasound2-dev"
-else 
+else
     check_packages "libasound2"
 fi
 
@@ -355,6 +354,13 @@ log()
     echo -e "[\$(date)] \$@" | sudoIf tee -a \$LOG > /dev/null
 }
 
+# Function to compare versions
+version_gt() {
+    # returns 0 if \$1 > \$2
+    [ "\$(printf '%s\n' "\$2" "\$1" | sort -V | head -n1)" != "\$1" ]
+}
+
+
 log "** SCRIPT START **"
 
 # Start dbus.
@@ -386,11 +392,20 @@ else
 fi
 
 # Spin up noVNC if installed and not running.
-if [ -d "/usr/local/novnc" ] && [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/launch.sh | grep -v grep)" = "" ]; then
-    keepRunningInBackground "noVNC" sudoIf "/usr/local/novnc/noVNC*/utils/launch.sh --listen ${NOVNC_PORT} --vnc localhost:${VNC_PORT}"
-    log "noVNC started."
+if [ -d "/usr/local/novnc" ]; then
+    if [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/launch.sh | grep -v grep)" = "" ] && [ "\$(ps -ef | grep /usr/local/novnc/noVNC*/utils/novnc_proxy | grep -v grep)" = "" ]; then
+        if version_gt "${NOVNC_VERSION}" "1.2.0"; then
+            keepRunningInBackground "noVNC" sudoIf "/usr/local/novnc/noVNC*/utils/novnc_proxy --listen ${NOVNC_PORT} --vnc localhost:${VNC_PORT}"
+            log "noVNC started with novnc_proxy."
+        else
+            keepRunningInBackground "noVNC" sudoIf "/usr/local/novnc/noVNC*/utils/launch.sh --listen ${NOVNC_PORT} --vnc localhost:${VNC_PORT}"
+            log "noVNC started with launch.sh."
+        fi
+    else
+        log "noVNC is already running."
+    fi
 else
-    log "noVNC is already running or not installed."
+    log "noVNC is not installed."
 fi
 
 # Run whatever was passed in

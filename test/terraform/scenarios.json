@@ -1,4 +1,36 @@
 {
+    "install_in_ubuntu_trixie": {
+        "image": "mcr.microsoft.com/devcontainers/base:trixie",
+        "features": {
+            "terraform": {
+                "version": "latest"
+            }
+        }
+    },
+    "install_in_ubuntu_trixie_sentinel": {
+        "image": "mcr.microsoft.com/devcontainers/base:trixie",
+        "features": {
+            "terraform": {
+                "installSentinel": true
+            }
+        }
+    },    
+    "install_in_ubuntu_noble": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "terraform": {
+                "version": "latest"
+            }
+        }
+    },
+    "install_in_ubuntu_noble_sentinel": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "terraform": {
+                "installSentinel": true
+            }
+        }
+    },
     "install_sentinel": {
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
@@ -68,6 +100,25 @@
         "features": {
             "terraform": {
                 "tflint": "0.40.0"
+            }
+        }
+    },
+    "custom_download_server": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "version": "1.6.5",
+                "customDownloadServer": "https://releases.hashicorp.com"
+            }
+        }
+    },
+    "custom_download_server_with_sentinel": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "version": "1.6.5",
+                "installSentinel": true,
+                "customDownloadServer": "https://releases.hashicorp.com"
             }
         }
     }

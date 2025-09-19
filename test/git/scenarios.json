@@ -1,6 +1,6 @@
 {
     "install_git_from_src": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "git": {
                 "version": "latest",
@@ -26,8 +26,8 @@
             }
         }
     },
-    "install_git_from_ppa_bionic": {
-        "image": "ubuntu:bionic",
+    "install_git_from_ppa_jammy": {
+        "image": "ubuntu:jammy",
         "features": {
             "git": {
                 "version": "latest",
@@ -35,8 +35,8 @@
             }
         }
     },
-    "install_git_from_src_bionic": {
-        "image": "ubuntu:bionic",
+    "install_git_from_src_noble": {
+        "image": "ubuntu:noble",
         "features": {
             "git": {
                 "version": "latest",
@@ -46,15 +46,6 @@
     },
     "install_git_from_src_bullseye": {
         "image": "debian:bullseye",
-        "features": {
-            "git": {
-                "version": "latest",
-                "ppa": "false"
-            }
-        }
-    },
-    "install_git_from_src_buster": {
-        "image": "debian:buster",
         "features": {
             "git": {
                 "version": "latest",
