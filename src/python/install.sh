@@ -48,6 +48,8 @@ fi
 MAJOR_VERSION_ID=$(echo ${VERSION_ID} | cut -d . -f 1)
 if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
+elif [ "${ID}" = "alpine" ] || [ "${ID_LIKE}" = "alpine" ]; then
+    ADJUSTED_ID="alpine"
 elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     if [[ "${ID}" = "rhel" ]] || [[ "${ID}" = *"alma"* ]] || [[ "${ID}" = *"rocky"* ]]; then
@@ -82,20 +84,29 @@ fi
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
     INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
+elif type apk > /dev/null 2>&1; then
+    PKG_MGR_CMD=apk
+    INSTALL_CMD="${PKG_MGR_CMD} add --no-cache --no-interactive"
 elif type microdnf > /dev/null 2>&1; then
     PKG_MGR_CMD=microdnf
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
 elif type dnf > /dev/null 2>&1; then
     PKG_MGR_CMD=dnf
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
-else
+elif type yum > /dev/null 2>&1; then
     PKG_MGR_CMD=yum
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --noplugins --setopt=install_weak_deps=0"
+else
+    echo "(Error) Unable to find a supported package manager."
+    exit 1
 fi
 
 # Clean up
 clean_up() {
     case ${ADJUSTED_ID} in
+        alpine)
+            rm -rf /var/cache/apk/*
+            ;;
         debian)
             rm -rf /var/lib/apt/lists/*
             ;;
@@ -115,6 +126,10 @@ updaterc() {
     local _zshrc
     if [ "${UPDATE_RC}" = "true" ]; then
         case $ADJUSTED_ID in
+            alpine) echo "Updating /etc/bash/bashrc and /etc/zsh/zshrc..."
+                _bashrc=/etc/bash/bashrc
+                _zshrc=/etc/zsh/zshrc
+                ;;
             debian) echo "Updating /etc/bash.bashrc and /etc/zsh/zshrc..."
                 _bashrc=/etc/bash.bashrc
                 _zshrc=/etc/zsh/zshrc
@@ -375,6 +390,12 @@ oryx_install() {
 
 pkg_mgr_update() {
     case $ADJUSTED_ID in
+        alpine)
+            if [ "$(find /var/cache/apk/* | wc -l)" = "0" ]; then
+                echo "Running apk update..."
+                ${PKG_MGR_CMD} update
+            fi
+            ;;
         debian)
             if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
                 echo "Running apt-get update..."
@@ -406,6 +427,12 @@ pkg_mgr_update() {
 # Checks if packages are installed and installs them if not
 check_packages() {
     case ${ADJUSTED_ID} in
+        alpine)
+            if ! apk info --installed "$@" > /dev/null 2>&1; then
+                pkg_mgr_update
+                ${INSTALL_CMD} "$@"
+            fi
+            ;;
         debian)
             if ! dpkg -s "$@" > /dev/null 2>&1; then
                 pkg_mgr_update
@@ -423,13 +450,13 @@ check_packages() {
 
 add_symlink() {
     if [[ ! -d "${CURRENT_PATH}" ]]; then
-        ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"
+        ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}" || ln -s "${INSTALL_PATH}" "${CURRENT_PATH}"
     fi
 
     if [ "${OVERRIDE_DEFAULT_VERSION}" = "true" ]; then
         if [[ $(ls -l ${CURRENT_PATH}) != *"-> ${INSTALL_PATH}"* ]] ; then
             rm "${CURRENT_PATH}"
-            ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"
+            ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}" || ln -s "${INSTALL_PATH}" "${CURRENT_PATH}"
         fi
     fi
 }
@@ -493,13 +520,13 @@ install_from_source() {
     # via common package repositories, for now rhel-7 family, use case statement to
     # make it easy to expand
     SSL_INSTALL_PATH="/usr/local"
-    case ${VERSION_CODENAME} in
-        centos7|rhel7)
-            check_packages perl-IPC-Cmd
-            install_openssl3
-            ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
-            ;;
-    esac
+    if [ "${VERSION_CODENAME}" = "centos7" ] || [ "${VERSION_CODENAME}" = "rhel7" ]; then
+        check_packages perl-IPC-Cmd
+        install_openssl3
+        ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
+    elif [ "${ADJUSTED_ID}" = "alpine" ]; then
+        check_packages gpg gpg-agent
+    fi
 
     install_cpython "${VERSION}"
     if [ -f "/tmp/python-src/${cpython_tgz_filename}" ]; then
@@ -616,6 +643,8 @@ install_python() {
     if [ ${version} = "os-provided" ] || [ ${version} = "system" ]; then
         if [ ${ADJUSTED_ID} = "debian" ]; then
             check_packages python3 python3-doc python3-pip python3-venv python3-dev python3-tk
+        elif [ ${ADJUSTED_ID} = "alpine" ]; then
+            check_packages python3 python3-doc py3-pip py3-virtualenv python3-dev python3-tkinter
         else
             if [ ${ID} != "mariner" ]; then
                 check_packages python3 python3-pip python3-devel python3-tkinter
@@ -666,6 +695,27 @@ sys.prefix == sys.base_prefix and print(sysconfig.get_path("stdlib", sysconfig.g
     fi
 }
 
+add_system_group() {
+    local _group=$1
+
+    if [ "${ADJUSTED_ID}" = "alpine" ]; then
+        addgroup --system "${_group}"
+    else
+        groupadd --system "${_group}"
+    fi
+}
+
+add_user_to_group() {
+    local _user=$1
+    local _group=$2
+
+    if [ "${ADJUSTED_ID}" = "alpine" ]; then
+        addgroup "${_user}" "${_group}"
+    else
+        usermod --append --groups "${_group}" "${_user}"
+    fi
+}
+
 # Ensure that login shells get the correct path if the user updated the PATH using ENV.
 rm -f /etc/profile.d/00-restore-env.sh
 echo "export PATH=${PATH//$(sh -lc 'echo $PATH')/\$PATH}" > /etc/profile.d/00-restore-env.sh
@@ -675,6 +725,9 @@ chmod +x /etc/profile.d/00-restore-env.sh
 if ! type awk >/dev/null 2>&1; then
     check_packages awk
 fi
+
+# Some distributions do not include a PCRE-enabled grep by default (e.g., Alpine)
+check_packages grep
 
 # Determine the appropriate non-root user
 if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
@@ -700,6 +753,38 @@ export DEBIAN_FRONTEND=noninteractive
 
 REQUIRED_PKGS=""
 case ${ADJUSTED_ID} in
+    alpine)
+        REQUIRED_PKGS="${REQUIRED_PKGS} \
+            curl \
+            "
+
+        # ref. <https://github.com/docker-library/python/blob/2d4fb586c48b067b432cf56653ee2541d94fdd7d/3.11/alpine3.20/Dockerfile#L29>
+        REQUIRED_PKGS="${REQUIRED_PKGS} \
+            bluez-dev \
+            bzip2-dev \
+            expat-dev \
+            findutils \
+            gcc \
+            gdbm-dev \
+            libc-dev \
+            libffi-dev \
+            libnsl-dev \
+            libtirpc-dev \
+            linux-headers \
+            make \
+            ncurses-dev \
+            openssl-dev \
+            pax-utils \
+            readline-dev \
+            sqlite-dev \
+            tcl-dev \
+            tk \
+            tk-dev \
+            util-linux-dev \
+            xz-dev \
+            zlib-dev \
+            "
+        ;;
     debian)
         REQUIRED_PKGS="${REQUIRED_PKGS} \
             ca-certificates \
@@ -764,6 +849,7 @@ case ${ADJUSTED_ID} in
         ;;
 esac
 
+clean_up
 check_packages ${REQUIRED_PKGS}
 
 # Function to get the major version from a SemVer string
@@ -775,9 +861,9 @@ get_major_version() {
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
     if ! cat /etc/group | grep -e "^python:" > /dev/null 2>&1; then
-        groupadd -r python
+        add_system_group python
     fi
-    usermod -a -G python "${USERNAME}"
+    add_user_to_group "${USERNAME}" python
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
     install_python ${PYTHON_VERSION}
 
@@ -839,9 +925,9 @@ if [[ "${INSTALL_PYTHON_TOOLS}" = "true" ]] && [[ -n "${PYTHON_SRC}" ]]; then
 
     # Create pipx group, dir, and set sticky bit
     if ! cat /etc/group | grep -e "^pipx:" > /dev/null 2>&1; then
-        groupadd -r pipx
+        add_system_group pipx
     fi
-    usermod -a -G pipx ${USERNAME}
+    add_user_to_group "${USERNAME}" pipx
     umask 0002
     mkdir -p ${PIPX_BIN_DIR}
     chown -R "${USERNAME}:pipx" ${PIPX_HOME}
