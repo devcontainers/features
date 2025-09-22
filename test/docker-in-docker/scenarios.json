@@ -177,5 +177,21 @@
         },
         "remoteUser": "vscode",
         "onCreateCommand": "docker ps && sleep 5s && docker ps"
+    },
+    "debian_trixie_without_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:trixie",
+        "features": {
+            "docker-in-docker": {
+                "moby": false
+            }
+        }
+    },
+    "debian_trixie_with_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:trixie",
+        "features": {
+            "docker-in-docker": {
+                "moby": true
+            }
+        }
     }
 }

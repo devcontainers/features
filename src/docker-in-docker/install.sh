@@ -195,11 +195,10 @@ export DEBIAN_FRONTEND=noninteractive
 # Fetch host/container arch.
 architecture="$(dpkg --print-architecture)"
 
-# Prevent attempting to install Moby on Debian trixie (packages removed)
+# Handle moby option for Debian trixie
 if [ "${USE_MOBY}" = "true" ] && [ "${ID}" = "debian" ] && [ "${VERSION_CODENAME}" = "trixie" ]; then
-    err "The 'moby' option is not supported on Debian 'trixie' because 'moby-cli' and related system packages have been removed from that distribution."
-    err "To continue, either set the feature option '\"moby\": false' or use a different base image (for example: 'debian:bookworm' or 'ubuntu-24.04')."
-    exit 1
+     echo "The 'moby' option is not supported on Debian 'trixie', hence setting moby to false"
+    USE_MOBY="false"
 fi
 
 # Check if distro is supported
