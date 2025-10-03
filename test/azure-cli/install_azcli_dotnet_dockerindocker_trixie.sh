@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -e
 
 # Import test library for `check` command
