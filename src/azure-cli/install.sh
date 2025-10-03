@@ -98,7 +98,11 @@ install_using_apt() {
     # Import key safely (new 'signed-by' method rather than deprecated apt-key approach) and install
     curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
     echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/azure-cli/ ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/azure-cli.list
-    apt-get update
+
+    if ! (apt-get update); then
+        echo "(!) Failed to update apt cache, removing repository file"
+        rm -f /etc/apt/sources.list.d/azure-cli.list
+    fi
 
     if [ "${AZ_VERSION}" = "latest" ] || [ "${AZ_VERSION}" = "lts" ] || [ "${AZ_VERSION}" = "stable" ]; then
         # Empty, meaning grab the "latest" in the apt repo
@@ -135,7 +139,7 @@ install_using_pip_strategy() {
 
 install_with_pipx() {
     echo "(*) Attempting to install globally with pipx..."
-    local ver="$1"
+    local ver="$1" 
     export 
     local 
 
