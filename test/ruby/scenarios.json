@@ -1,4 +1,34 @@
-{
+{   
+    "install_ruby_trixie_base": {
+        "build": {
+            "dockerfile": "Dockerfile"
+        },        
+        "features": {
+            "ghcr.io/devcontainers/features/common-utils:2": {
+                "installZsh": "true",
+                "username": "vscode",
+                "userUid": "1000",
+                "userGid": "1000",
+                "upgradePackages": "true"
+            },
+            "ruby": "none",
+            "ghcr.io/devcontainers/features/node:1": "none",
+            "ghcr.io/devcontainers/features/git:1": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        },
+        "remoteUser": "vscode"
+    },
+    "install_additional_ruby_trixie": {
+        "image": "debian:trixie",
+        "features": {
+            "ruby": {
+                "version": "3.4.2",
+                "additionalVersions": "3.2,3.3.2"
+            }
+        }
+    },       
     "install_additional_ruby": {
         "image": "ubuntu:noble",
         "features": {

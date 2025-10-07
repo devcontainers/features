@@ -108,17 +108,27 @@ done
 check_packages wget ca-certificates icu-devtools
 
 for version in "${versions[@]}"; do
-    # Remove '-preview' from version if suffixed with the version label
-    clean_version="$(echo "$version" | sed 's/-preview$//')"
-    install_sdk "$clean_version"
+    read -r clean_version quality < <(parse_version_and_quality "$version")
+    if [ -n "$quality" ]; then
+        echo "Interpreting requested version '$version' as version '$clean_version' with quality '$quality'"
+    fi
+    install_sdk "$clean_version" "$quality"
 done
 
 for version in "${dotnetRuntimeVersions[@]}"; do
-    install_runtime "dotnet" "$version"
+    read -r clean_version quality < <(parse_version_and_quality "$version")
+    if [ -n "$quality" ]; then
+        echo "Interpreting requested runtime version '$version' as version '$clean_version' with quality '$quality'"
+    fi
+    install_runtime "dotnet" "$clean_version" "$quality"
 done
 
 for version in "${aspNetCoreRuntimeVersions[@]}"; do
-    install_runtime "aspnetcore" "$version"
+    read -r clean_version quality < <(parse_version_and_quality "$version")
+    if [ -n "$quality" ]; then
+        echo "Interpreting requested ASP.NET Core runtime version '$version' as version '$clean_version' with quality '$quality'"
+    fi
+    install_runtime "aspnetcore" "$clean_version" "$quality"
 done
 
 workloads=()

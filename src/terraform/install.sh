@@ -19,6 +19,8 @@ INSTALL_SENTINEL=${INSTALLSENTINEL:-false}
 INSTALL_TFSEC=${INSTALLTFSEC:-false}
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
 CUSTOM_DOWNLOAD_SERVER="${CUSTOMDOWNLOADSERVER:-""}"
+# This is because ubuntu noble and debian trixie don't support the old format of GPG keys and validation 
+NEW_GPG_CODENAMES="trixie noble"
 
 TERRAFORM_SHA256="${TERRAFORM_SHA256:-"automatic"}"
 TFLINT_SHA256="${TFLINT_SHA256:-"automatic"}"
@@ -50,13 +52,11 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Detect Ubuntu Noble and use new repo setup, else use legacy GPG logic
-IS_NOBLE=0
-if grep -qi 'ubuntu' /etc/os-release; then
-    . /etc/os-release
-    if [[ "$VERSION_CODENAME" == "noble" ]]; then
-        IS_NOBLE=1
-    fi
+# Detect Ubuntu Noble or Debian Trixie and use new repo setup, else use legacy GPG logic
+IS_GPG_NEW=0
+. /etc/os-release
+if [[ "${NEW_GPG_CODENAMES}" == *"${VERSION_CODENAME}"* ]]; then
+    IS_GPG_NEW=1
 fi
 
 # Get the list of GPG key servers that are reachable
@@ -112,7 +112,7 @@ receive_gpg_keys() {
     chmod 700 ${GNUPGHOME}
     
     # Special handling for HashiCorp GPG key on Ubuntu Noble
-    if [ "$IS_NOBLE" -eq 1 ] && [ "$keys" = "$TERRAFORM_GPG_KEY" ]; then
+    if [ "$IS_GPG_NEW" -eq 1 ] && [ "$keys" = "$TERRAFORM_GPG_KEY" ]; then
         echo "(*) Ubuntu Noble detected, using Keybase for HashiCorp GPG key import...."
         curl -fsSL https://keybase.io/hashicorp/pgp_keys.asc | gpg --import
         if ! gpg --list-keys "${TERRAFORM_GPG_KEY}" > /dev/null 2>&1; then
@@ -400,7 +400,7 @@ verify_signature() {
 
     receive_gpg_keys "$gpg_key"
     verify_result=$?
-    if [ $verify_result -ne 0 ] && [ "$IS_NOBLE" -eq 1 ]; then
+    if [ $verify_result -ne 0 ] && [ "$IS_GPG_NEW" -eq 1 ]; then
         echo "Skipping the gpg key validation for ubuntu noble as unable to import the key."
         return 1
     fi
@@ -429,7 +429,7 @@ fi
 if [ "${TERRAFORM_SHA256}" != "dev-mode" ]; then
     if [ "${TERRAFORM_SHA256}" = "automatic" ]; then
         # For Ubuntu Noble, try GPG verification but continue if it fails
-        if [ "$IS_NOBLE" -eq 1 ]; then
+        if [ "$IS_GPG_NEW" -eq 1 ]; then
             echo "(*) Ubuntu Noble detected - attempting GPG verification with fallback..."
             set +e
             sha256sums_url="${HASHICORP_RELEASES_URL}/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS"
@@ -543,7 +543,7 @@ if [ "${INSTALL_SENTINEL}" = "true" ]; then
     if [ "${SENTINEL_SHA256}" != "dev-mode" ]; then
         if [ "${SENTINEL_SHA256}" = "automatic" ]; then
             # For Ubuntu Noble, try GPG verification but continue if it fails
-            if [ "$IS_NOBLE" -eq 1 ]; then
+            if [ "$IS_GPG_NEW" -eq 1 ]; then
                 echo "(*) Ubuntu Noble detected - attempting Sentinel GPG verification with fallback..."
                 set +e
                 sha256sums_url="${sentinel_releases_url}/${SENTINEL_VERSION}/sentinel_${SENTINEL_VERSION}_SHA256SUMS"
