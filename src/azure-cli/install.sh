@@ -98,10 +98,14 @@ install_using_apt() {
     # Import key safely (new 'signed-by' method rather than deprecated apt-key approach) and install
     curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
     echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/azure-cli/ ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/azure-cli.list
-
+    
+    # This is a workaround for the fact that Azure CLI is not yet a supported package for debian trixie. Once Azure CLI is supported we should revert to avoid script failure for non Azure CLI packages
     if ! (apt-get update); then
         echo "(!) Failed to update apt cache, removing repository file"
         rm -f /etc/apt/sources.list.d/azure-cli.list
+    else  
+        echo "WARNING: apt-get update succeeded. The workaround for broken Azure CLI install on Debian Trixie may no longer be needed."  
+        echo "TODO: Consider reverting to a simple `apt-get update` if the Azure CLI repo works reliably for debian trixie"  
     fi
 
     if [ "${AZ_VERSION}" = "latest" ] || [ "${AZ_VERSION}" = "lts" ] || [ "${AZ_VERSION}" = "stable" ]; then
