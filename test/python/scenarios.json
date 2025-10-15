@@ -275,5 +275,13 @@
                 "additionalVersions": "3.8,3.9.13,3.10.5"
             }
         }
+    },
+    "python_sig_verification": {
+        "image": "ubuntu:noble",
+        "features": {
+            "python": {
+                "version": "latest"
+            }
+        }
     }
 }
