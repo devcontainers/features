@@ -40,7 +40,7 @@
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "10.0-preview",
+                "version": "10.0",
                 "additionalVersions": [
                     "9.0",
                     "8.0",
@@ -49,20 +49,30 @@
             }
         }
     },
-    "install_dotnet_multiple_versions_preview": {
+    "install_dotnet_preview": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "9.0",
-                "additionalVersions": [
-                    "10.0-preview",
-                    "8.0",
-                    "7.0"
-                ]
+                "version": "10.0-preview",
+                "additionalVersions": "10.0.1xx-preview",
+                "aspnetcoreRuntimeVersions": "10.0-preview",
+                "dotnetRuntimeVersions": "10.0-preview"
             }
         }
-    },    
+    },
+    "install_dotnet_daily": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "dotnet": {
+                "version": "10.0-daily",
+                "additionalVersions": "10.0.1xx-daily",
+                "aspnetcoreRuntimeVersions": "10.0-daily",
+                "dotnetRuntimeVersions": "10.0-daily"
+            }
+        }
+    },
     "install_dotnet_global_tool": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "remoteUser": "vscode",
