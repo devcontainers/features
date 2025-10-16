@@ -77,7 +77,6 @@ if [ ${ADJUSTED_ID} = "rhel" ] && [ ${ID} != "rhel" ]; then
         INSTALL_CMD_ADDL_REPOS="--enablerepo crb"
     fi
 fi
-
 # Setup INSTALL_CMD & PKG_MGR_CMD
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
