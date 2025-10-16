@@ -82,16 +82,67 @@ fi
 if type apt-get > /dev/null 2>&1; then
     PKG_MGR_CMD=apt-get
     INSTALL_CMD="${PKG_MGR_CMD} -y install --no-install-recommends"
+    TIME_PIECE_PKG="libtime-piece-perl"
 elif type microdnf > /dev/null 2>&1; then
     PKG_MGR_CMD=microdnf
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+    TIME_PIECE_PKG="perl-Time-Piece"
 elif type dnf > /dev/null 2>&1; then
     PKG_MGR_CMD=dnf
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
+    TIME_PIECE_PKG="perl-Time-Piece"
 else
     PKG_MGR_CMD=yum
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --noplugins --setopt=install_weak_deps=0"
+     TIME_PIECE_PKG="perl-Time-Piece"
 fi
+# Install Time::Piece Perl module required by OpenSSL 3.0.18+ build system
+install_time_piece() {
+    echo "(*) Ensuring Time::Piece Perl module is available..."
+    
+    # Check if Time::Piece is already available (it's usually in Perl core)
+    if perl -MTime::Piece -e 'exit 0' 2>/dev/null; then
+        echo "(*) Time::Piece already available"
+        return 0
+    fi
+    
+    echo "(*) Time::Piece not found, attempting installation..."
+    
+    case ${ADJUSTED_ID} in
+        debian)
+            # Update package cache
+            pkg_mgr_update
+            
+            # Try different package combinations
+            if ${INSTALL_CMD} perl-modules-5.36 2>/dev/null; then
+                echo "(*) Installed perl-modules-5.36"
+            elif ${INSTALL_CMD} perl-modules-5.34 2>/dev/null; then
+                echo "(*) Installed perl-modules-5.34" 
+            elif ${INSTALL_CMD} perl-modules 2>/dev/null; then
+                echo "(*) Installed perl-modules"
+            elif ${INSTALL_CMD} perl-base perl-modules-5.* 2>/dev/null; then
+                echo "(*) Installed perl-base and modules"
+            else
+                echo "(*) Warning: Could not install Time::Piece via packages"
+                echo "(*) Time::Piece is usually built into Perl core, continuing..."
+            fi
+            ;;
+        rhel)
+            ${INSTALL_CMD} ${TIME_PIECE_PKG} || {
+                echo "(*) Warning: Could not install ${TIME_PIECE_PKG}"
+            }
+            ;;
+    esac
+    
+    # Final check
+    if perl -MTime::Piece -e 'exit 0' 2>/dev/null; then
+        echo "(*) Time::Piece is now available"
+    else
+        echo "(*) Warning: Time::Piece may not be available"
+        echo "(*) This could cause issues with OpenSSL 3.0.18+ builds"
+    fi
+}
+
 
 # Clean up
 clean_up() {
@@ -1090,6 +1141,8 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
     fi
 fi
 
+# Call the installation function
+install_time_piece
 # Clean up
 clean_up
 
