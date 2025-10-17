@@ -684,6 +684,8 @@ install_from_source() {
     case ${VERSION_CODENAME} in
         centos7|rhel7)
             check_packages perl-IPC-Cmd
+            # Call the installation function install_time_piece
+            install_time_piece
             install_openssl3
             ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
             ;;
@@ -1140,8 +1142,6 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
     fi
 fi
 
-# Call the installation function
-install_time_piece
 # Clean up
 clean_up
 
