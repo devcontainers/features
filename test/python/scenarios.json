@@ -283,5 +283,14 @@
                 "version": "latest"
             }
         }
+    },
+    "python_sig_veri_older_versions": {
+        "image": "ubuntu:noble",
+        "features": {
+            "python": {
+                "version": "3.14",
+                "additionalVersions": "3.8,3.9.13,3.10.5,3.11,3.12,3.13"
+            }
+        }
     }
 }
