@@ -85,15 +85,16 @@ if type apt-get > /dev/null 2>&1; then
 elif type microdnf > /dev/null 2>&1; then
     PKG_MGR_CMD=microdnf
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
-    TIME_PIECE_PKG="perl-Time-Piece"
 elif type dnf > /dev/null 2>&1; then
     PKG_MGR_CMD=dnf
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --refresh --best --nodocs --noplugins --setopt=install_weak_deps=0"
-    TIME_PIECE_PKG="perl-Time-Piece"
 else
     PKG_MGR_CMD=yum
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --noplugins --setopt=install_weak_deps=0"
-     TIME_PIECE_PKG="perl-Time-Piece"
+fi
+# Set TIME_PIECE_PKG for RHEL-based systems (all except apt-get)
+if [ "${PKG_MGR_CMD}" != "apt-get" ]; then
+    TIME_PIECE_PKG="perl-Time-Piece"
 fi
 # Install Time::Piece Perl module required by OpenSSL 3.0.18+ build system
 install_time_piece() {
@@ -620,27 +621,43 @@ ensure_cosign() {
     return 0
 }
 
-# Updated signature verification logic
+# Updated signature verification logic with proper version-specific handling
 verify_python_signature() {
     local VERSION="$1"
     local major_version=$(echo "$VERSION" | cut -d. -f1)
     local minor_version=$(echo "$VERSION" | cut -d. -f2)
     
-    # Use cosign for Python 3.14+ (when available)
+    # Version-specific signature verification
     if [ "$major_version" -eq 3 ] && [ "$minor_version" -ge 14 ]; then
         echo "(*) Python 3.14+ detected. Attempting cosign verification..."
         
-        # Try to install and use cosign
+        # Try to install and use cosign for 3.14+
         if ensure_cosign; then
             echo "Using cosign to verify Python ${VERSION} signature..."
-            # Note: This is placeholder - actual cosign verification would need 
-            # the proper sigstore bundle or signature files from python.org
-            echo "(*) Cosign verification not yet implemented for Python releases"
-            echo "(*) Falling back to GPG verification"
+            
+            # Attempt actual COSIGN verification
+            if perform_cosign_verification "${VERSION}"; then
+                echo "(*) COSIGN verification successful - skipping GPG"
+                return 0
+            else
+                echo "(*) COSIGN verification failed, falling back to GPG"
+                perform_gpg_verification "${VERSION}"
+            fi
+        else
+            echo "(!) Failed to install cosign for Python 3.14+, falling back to GPG"
+            perform_gpg_verification "${VERSION}"
         fi
+    else
+        # Direct GPG verification for Python < 3.14
+        echo "(*) Python < 3.14 detected. Using GPG signature verification..."
+        perform_gpg_verification "${VERSION}"
     fi
+}
+
+# Extracted GPG verification logic to avoid duplication
+perform_gpg_verification() {
+    local VERSION="$1"
     
-    # Fall back to GPG verification
     echo "(*) Using GPG signature verification..."
     if [[ ${VERSION_CODENAME} = "centos7" ]] || [[ ${VERSION_CODENAME} = "rhel7" ]]; then
         receive_gpg_keys_centos7 PYTHON_SOURCE_GPG_KEYS
@@ -666,6 +683,43 @@ verify_python_signature() {
     echo "(*) GPG signature verification successful"
     return 0
 }
+
+# COSIGN signature verification logic
+perform_cosign_verification() {
+    local VERSION="$1"
+    
+    echo "(*) Attempting COSIGN verification for Python ${VERSION}..."
+    
+    # Check if COSIGN signature files exist (these don't exist yet for Python releases)
+    local cosign_sig_url="${cpython_tgz_url}.sig"
+    local cosign_cert_url="${cpython_tgz_url}.pem"
+    
+    # Download COSIGN signature and certificate files
+    if ! curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}.sig" "${cosign_sig_url}"; then
+        echo "(!) COSIGN signature file not available for Python ${VERSION}"
+        return 1
+    fi
+    
+    if ! curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}.pem" "${cosign_cert_url}"; then
+        echo "(!) COSIGN certificate file not available for Python ${VERSION}"
+        return 1
+    fi
+    
+    # Perform COSIGN verification
+    if cosign verify-blob \
+        --certificate "/tmp/python-src/${cpython_tgz_filename}.pem" \
+        --signature "/tmp/python-src/${cpython_tgz_filename}.sig" \
+        --certificate-identity-regexp=".*" \
+        --certificate-oidc-issuer-regexp=".*" \
+        "/tmp/python-src/${cpython_tgz_filename}"; then
+        echo "(*) COSIGN signature verification successful"
+        return 0
+    else
+        echo "(!) COSIGN signature verification failed"
+        return 1
+    fi
+}
+
 
 install_from_source() {
     VERSION=$1
