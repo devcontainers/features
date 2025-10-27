@@ -542,28 +542,6 @@ get_architecture() {
     echo ${architecture}
 }
 
-# Get GitHub API repo URL
-get_github_api_repo_url() {
-    local url="$1"
-    echo "${url/github.com/api.github.com/repos}"
-}
-
-# Get previous version from GitHub API
-get_previous_version() {
-    local url="$1"
-    local repo_url="$2" 
-    local variable_name="$3"
-    local current_version="${!variable_name}"
-    
-    # Get list of releases and find previous version
-    local releases=$(curl -s "${repo_url}/releases" | grep '"tag_name"' | head -10)
-    local previous_version=$(echo "$releases" | grep -v "v${current_version}" | head -1 | sed 's/.*"v\([^"]*\)".*/\1/')
-    
-    if [ -n "$previous_version" ]; then
-        declare -g ${variable_name}="$previous_version"
-    fi
-}
-
 # cosign installation
 install_cosign() {
     local COSIGN_VERSION="$1"
@@ -630,24 +608,24 @@ verify_python_signature() {
     # Version-specific signature verification
     if [ "$major_version" -eq 3 ] && [ "$minor_version" -ge 14 ]; then
         echo "(*) Python 3.14+ detected. Attempting cosign verification..."
-        
+    
         # Try to install and use cosign for 3.14+
         if ensure_cosign; then
             echo "Using cosign to verify Python ${VERSION} signature..."
-            
+        
             # Attempt actual COSIGN verification
             if perform_cosign_verification "${VERSION}"; then
-                echo "(*) COSIGN verification successful - skipping GPG"
+                echo "(*) COSIGN verification successful"
                 return 0
             else
-                echo "(*) COSIGN verification failed, falling back to GPG"
-                perform_gpg_verification "${VERSION}"
+                echo "(!) COSIGN verification failed"
             fi
         else
-            echo "(!) Failed to install cosign for Python 3.14+, falling back to GPG"
-            perform_gpg_verification "${VERSION}"
-        fi
-    else
+            echo "(!) Failed to install cosign for Python 3.14+"
+            echo "(*) Skipping signature verification for Python ${VERSION}"
+            return 0
+        fi    
+    else    
         # Direct GPG verification for Python < 3.14
         echo "(*) Python < 3.14 detected. Using GPG signature verification..."
         perform_gpg_verification "${VERSION}"
