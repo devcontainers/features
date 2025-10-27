@@ -69,7 +69,7 @@ if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
 fi
 
 # To find some devel packages, some rhel need to enable specific extra repos, but not on RedHat ubi images...
-INSTALL_CMD_ADDL_REPO=""
+INSTALL_CMD_ADDL_REPOS=""
 if [ ${ADJUSTED_ID} = "rhel" ] && [ ${ID} != "rhel" ]; then
     if [ ${MAJOR_VERSION_ID} = "8" ]; then
         INSTALL_CMD_ADDL_REPOS="--enablerepo powertools"
@@ -92,6 +92,27 @@ else
     PKG_MGR_CMD=yum
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --noplugins --setopt=install_weak_deps=0"
 fi
+
+# Install Time::Piece Perl module required by OpenSSL 3.0.18+ build system on CentOS 7/RHEL 7
+install_time_piece() {
+    echo "(*) Ensuring Time::Piece Perl module is available for OpenSSL 3.0.18+ build..."
+    
+    # Check if Time::Piece is already available (it's usually in Perl core)
+    if perl -MTime::Piece -e 'exit 0' 2>/dev/null; then
+        echo "(*) Time::Piece already available"
+        return 0
+    fi
+    
+    echo "(*) Time::Piece not found, installing perl-Time-Piece package..."
+    
+    # Install perl-Time-Piece package for CentOS 7/RHEL 7
+    if ${INSTALL_CMD} perl-Time-Piece; then
+        echo "(*) perl-Time-Piece installed for OpenSSL 3.0.18+ build"
+    else
+        echo "(!) Failed to install perl-Time-Piece package. This will cause OpenSSL 3.0.18+ build to fail"
+        return 1
+    fi
+}
 
 # Clean up
 clean_up() {
@@ -620,6 +641,8 @@ install_from_source() {
     case ${VERSION_CODENAME} in
         centos7|rhel7)
             check_packages perl-IPC-Cmd
+            # Install Time::Piece Perl module required by OpenSSL 3.0.18+ build system
+            install_time_piece
             install_openssl3
             ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
             ;;
