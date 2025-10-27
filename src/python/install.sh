@@ -478,6 +478,130 @@ install_cpython() {
         curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
     fi
 }
+# Get system architecture for downloads
+get_architecture() {
+    local architecture=""
+    case $(uname -m) in
+        x86_64) architecture="amd64" ;;
+        aarch64 | armv8*) architecture="arm64" ;;
+        aarch32 | armv7* | armvhf*) architecture="armhf" ;;
+        i?86) architecture="386" ;;
+        *) echo "(!) Architecture $(uname -m) unsupported"; exit 1 ;;
+    esac
+    echo ${architecture}
+}
+
+# Install cosign with multi-distro support
+install_cosign() {
+
+    COSIGN_VERSION="latest"
+    local cosign_url='https://github.com/sigstore/cosign'
+    local architecture=$(get_architecture)
+
+    find_version_from_git_tags COSIGN_VERSION "${cosign_url}"
+
+    # Remove 'v' prefix if present for download URL
+    local version_for_url="${COSIGN_VERSION#v}"
+
+    local cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
+    local cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
+    
+    echo "Downloading cosign from: ${cosign_url}"
+    
+    if curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
+        echo "(*) Successfully downloaded cosign v${COSIGN_VERSION}"
+    else
+        echo -e "\n(!) Failed to fetch cosign v${COSIGN_VERSION}..."
+        # Try previous version
+        find_prev_version_from_git_tags COSIGN_VERSION "https://github.com/sigstore/cosign"
+        echo -e "\nAttempting to install ${COSIGN_VERSION}"
+        
+        version_for_url="${COSIGN_VERSION#v}"
+        cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
+        cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
+        
+        if ! curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
+            echo "(!) Failed to download cosign v${COSIGN_VERSION} as fallback"
+            return 1
+        fi
+    fi
+    
+    # Install the package
+    if [ -f "$cosign_filename" ]; then
+        dpkg -i "$cosign_filename"
+        rm "$cosign_filename"
+        echo "Installation of cosign succeeded with ${COSIGN_VERSION}."
+    else
+        echo "(!) Failed to download cosign package"
+        return 1
+    fi
+
+}
+
+# COSIGN signature verification for python versions >= 3.14
+cosign_verification() {
+    local VERSION="$1"
+
+    # Ensure cosign is installed
+    if ! type cosign > /dev/null 2>&1; then
+        echo "(*) cosign not found, installing..."
+        if ! install_cosign; then
+            echo "(!) Failed to install cosign"
+            return 1
+        fi
+    else
+         echo "(*) cosign is already available on the system"
+    fi
+    
+    echo "(*) Attempting COSIGN verification for Python ${VERSION}..."
+    
+    # Check if COSIGN signature files exist (these don't exist yet for Python releases)
+    local cosign_sig_url="${cpython_tgz_url}.sig"
+    local cosign_cert_url="${cpython_tgz_url}.pem"
+    
+    # Download COSIGN signature and certificate files with proper error handling
+    echo "(*) Checking for cosign signature files..."
+    if ! curl -sSL -f --fail-with-body -o "/tmp/python-src/${cpython_tgz_filename}.sig" "${cosign_sig_url}" 2>/dev/null; then
+        echo "(!) COSIGN signature file not available for Python ${VERSION}"
+        echo "    Signature URL: ${cosign_sig_url}"
+        return 1
+    fi
+    
+    if ! curl -sSL -f --fail-with-body -o "/tmp/python-src/${cpython_tgz_filename}.pem" "${cosign_cert_url}" 2>/dev/null; then
+        echo "(!) COSIGN certificate file not available for Python ${VERSION}"
+        echo "    Certificate URL: ${cosign_cert_url}"
+        return 1
+    fi
+    
+    # Perform COSIGN verification
+    if cosign verify-blob \
+        --certificate "/tmp/python-src/${cpython_tgz_filename}.pem" \
+        --signature "/tmp/python-src/${cpython_tgz_filename}.sig" \
+        --certificate-identity-regexp=".*" \
+        --certificate-oidc-issuer-regexp=".*" \
+        "/tmp/python-src/${cpython_tgz_filename}"; then
+        echo "(*) COSIGN signature verification successful"
+        return 0
+    else
+        echo "(!) COSIGN signature verification failed"
+        return 1
+    fi
+}
+
+# GPG verification for python versions < 3.14
+gpg_verification() {    
+    echo "(*) Using GPG signature verification..."
+    if [[ ${VERSION_CODENAME} = "centos7" ]] || [[ ${VERSION_CODENAME} = "rhel7" ]]; then
+        receive_gpg_keys_centos7 PYTHON_SOURCE_GPG_KEYS
+    else
+        receive_gpg_keys PYTHON_SOURCE_GPG_KEYS
+    fi
+    echo "Downloading ${cpython_tgz_filename}.asc..."
+    curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}.asc" "${cpython_tgz_url}.asc"
+    gpg --verify "${cpython_tgz_filename}.asc"
+    echo "(*) GPG signature verification successful"
+}
+
 
 install_from_source() {
     VERSION=$1
@@ -507,15 +631,27 @@ install_from_source() {
             install_prev_vers_cpython "${VERSION}"
         fi
     fi;
-    # Verify signature
-    if [[ ${VERSION_CODENAME} = "centos7" ]] || [[ ${VERSION_CODENAME} = "rhel7" ]]; then
-        receive_gpg_keys_centos7 PYTHON_SOURCE_GPG_KEYS
+
+    # Discontinuation of PGP signatures for releases of Python 3.14 or future versions
+    # CPython release artifacts are additionally signed with Sigstore starting with the Python 3.11.0
+    local major_version=$(echo "$VERSION" | cut -d. -f1)
+    local minor_version=$(echo "$VERSION" | cut -d. -f2)
+    echo "(*) Detected Python version: ${major_version}.${minor_version}"    
+    if [ "$major_version" -eq 3 ] && [ "$minor_version" -ge 14 ]; then
+        echo "(*) Python 3.14+ detected. Attempting cosign verification..."
+        if cosign_verification "$VERSION"; then
+            echo "(*) COSIGN verification successful."
+        else
+            echo "(*) COSIGN verification failed or not available for Python ${VERSION}"
+            echo "(*) WARNING: Installing Python ${VERSION} without signature verification"
+            echo "(*) This is expected for newly released versions where cosign signatures are not yet available"
+            echo "(*) Python 3.14+ discontinued PGP signatures in favor of cosign, but cosign signatures may take time to be published"
+        fi
     else
-        receive_gpg_keys PYTHON_SOURCE_GPG_KEYS
+        echo "(*) Python < 3.14 detected. Using GPG signature verification..."
+        gpg_verification
+        echo "(*) GPG verification successful."
     fi
-    echo "Downloading ${cpython_tgz_filename}.asc..."
-    curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}.asc" "${cpython_tgz_url}.asc"
-    gpg --verify "${cpython_tgz_filename}.asc"
 
     # Update min protocol for testing only - https://bugs.python.org/issue41561
     if [ -f /etc/pki/tls/openssl.cnf ]; then
