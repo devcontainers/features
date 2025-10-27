@@ -535,7 +535,7 @@ install_cosign() {
         echo -e "\n(!) Failed to fetch cosign v${COSIGN_VERSION}..."
         # Try previous version
         find_prev_version_from_git_tags COSIGN_VERSION "https://github.com/sigstore/cosign"
-        echo -e "\nAttempting to install ${COSIGN_VERSION}"
+        echo -e "\nAttempting to install previous cosign ${COSIGN_VERSION} version as fallback mechanism"
         
         version_for_url="${COSIGN_VERSION#v}"
         cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
@@ -553,7 +553,7 @@ install_cosign() {
         rm "$cosign_filename"
         echo "Installation of cosign succeeded with ${COSIGN_VERSION}."
     else
-        echo "(!) Failed to download cosign package"
+        echo "(!) Failed to install cosign package"
         return 1
     fi
 
@@ -660,7 +660,7 @@ install_from_source() {
     local major_version=$(echo "$VERSION" | cut -d. -f1)
     local minor_version=$(echo "$VERSION" | cut -d. -f2)
     echo "(*) Detected Python version: ${major_version}.${minor_version}"    
-    if [ "$major_version" -eq 3 ] && [ "$minor_version" -ge 14 ]; then
+    if (( major_version > 3 )) || { (( major_version == 3 )) && (( minor_version >= 14 )); }; then
         echo "(*) Python 3.14+ detected. Attempting cosign verification..."
         if cosign_verification "$VERSION"; then
             echo "(*) COSIGN verification successful."
