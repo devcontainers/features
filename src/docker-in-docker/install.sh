@@ -410,25 +410,25 @@ EOF
                 # Install device-mapper libraries (critical for Docker CE)
                 echo "(*) Installing device-mapper libraries for Docker CE..."
                 ${PKG_MGR_CMD} -y install device-mapper-libs || {
-                echo "(*) Trying alternative device-mapper package names..."
-                ${PKG_MGR_CMD} -y install lvm2-libs || {
-                echo "(*) ERROR: Could not install device-mapper libraries"
-                echo "(*) Docker CE requires libdevmapper.so.1.02 to function"
-                exit 1
-            }
-        }
+                    echo "(*) Trying alternative device-mapper package names..."
+                    ${PKG_MGR_CMD} -y install lvm2-libs || {
+                        echo "(*) ERROR: Could not install device-mapper libraries"
+                        echo "(*) Docker CE requires libdevmapper.so.1.02 to function"
+                        exit 1
+                    }
+                }
 
-# Install other essential libraries for Docker CE
-echo "(*) Installing additional Docker CE dependencies..."
-${PKG_MGR_CMD} -y install \
-    libseccomp \
-    libtool-ltdl \
-    systemd-libs \
-    libcgroup \
-    tar \
-    xz || {
-    echo "(*) Some optional dependencies could not be installed, continuing..."
-}
+                # Install other essential libraries for Docker CE
+                echo "(*) Installing additional Docker CE dependencies..."
+                ${PKG_MGR_CMD} -y install \
+                    libseccomp \
+                    libtool-ltdl \
+                    systemd-libs \
+                    libcgroup \
+                    tar \
+                    xz || {
+                    echo "(*) Some optional dependencies could not be installed, continuing..."
+                }
 
                 # For Azure Linux, install Docker CE without container-selinux complexity
                 if [ "${USE_MOBY}" != "true" ]; then
@@ -770,7 +770,6 @@ fallback_compose-switch() {
     echo -e "\nAttempting to install v${compose_switch_version}"
     curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${target_switch_arch}" -o /usr/local/bin/compose-switch
 }
-
 # Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
 if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /dev/null 2>&1; then
     if type docker-compose > /dev/null 2>&1; then
@@ -779,14 +778,22 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
         target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
         compose_switch_version="latest"
         compose_switch_url="https://github.com/docker/compose-switch"
+        # Try to get latest version, fallback to known stable version if GitHub API fails
+        set +e
         find_version_from_git_tags compose_switch_version "$compose_switch_url"
+        if [ $? -ne 0 ] || [ -z "${compose_switch_version}" ] || [ "${compose_switch_version}" = "latest" ]; then
+            echo "(*) GitHub API rate limited or failed, using fallback version 1.0.5"
+            compose_switch_version="1.0.5"
+        fi
+        set -e
+        
         # Map architecture for compose-switch downloads
         case "${architecture}" in
             amd64|x86_64) target_switch_arch=amd64 ;;
             arm64|aarch64) target_switch_arch=arm64 ;;
             *) target_switch_arch=${architecture} ;;
         esac
-        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || fallback_compose-switch "$compose_switch_url"
+        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${target_switch_arch}" -o /usr/local/bin/compose-switch || fallback_compose-switch "$compose_switch_url"
         chmod +x /usr/local/bin/compose-switch
         # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
         # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
