@@ -18,6 +18,7 @@ USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
+ALLOW_SHELL_HISTORY="${ALLOWSHELLHISTORY:-"false"}"
 
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
@@ -572,6 +573,20 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         fi
     fi
 fi
+
+# *********************************
+# ** Enable shell history **
+# *********************************
+
+echo export ALLOW_SHELL_HISTORY="${ALLOW_SHELL_HISTORY}" > /etc/env.sh
+echo export user_home="${user_home}" >> /etc/env.sh
+echo export USERNAME="${USERNAME}" >> /etc/env.sh
+
+chown "$USERNAME":"$USERNAME" "/etc/env.sh"
+chmod u+rx "/etc/env.sh"
+
+cp -f "${FEATURE_DIR}/scripts/setup_history.sh" /etc/setup_history.sh
+chmod +x /etc/setup_history.sh
 
 # *********************************
 # ** Ensure config directory **

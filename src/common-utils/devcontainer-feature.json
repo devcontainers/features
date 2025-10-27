@@ -64,6 +64,31 @@
             "type": "boolean",
             "default": false,
             "description": "Add packages from non-free Debian repository? (Debian only)"
+        },
+        "allowShellHistory": {
+            "type": "boolean",
+            "default": false,
+            "description": "Preserve shell history across dev container instances? (Currently supports bash, zsh, and fish)"
         }
-    }
-}
+    },
+    "containerEnv": {
+        "DOCKER_BUILDKIT": "1"
+    },
+    "postCreateCommand": "export DEVCONTAINER_ID=${devcontainerId} && . /etc/setup_history.sh",
+    "mounts": [{
+        "source": "devcontainers",
+        "target": "/devcontainers",
+        "type": "volume"
+    },
+    {
+        "source": "dind-var-lib-docker-${devcontainerId}",
+        "target": "/var/lib/docker",
+        "type": "volume"
+    },
+    {
+        "source": "/var/run/docker.sock",
+        "target": "/var/run/docker.sock",
+        "type": "bind"
+    }],
+    "entrypoint": "/usr/local/share/docker-init.sh"
+}   
