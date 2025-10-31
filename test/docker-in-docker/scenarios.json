@@ -197,5 +197,25 @@
                 "azureDnsAutoDetection": false
             }
         }
+    },
+    "cbl_mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "true",
+                "azureDnsAutoDetection": false
+            }
+        }
+    },
+    "cbl_mariner_docker_ce": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "false",
+                "azureDnsAutoDetection": false
+            }
+        }
     }
 }

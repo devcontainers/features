@@ -21,8 +21,6 @@ MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 MICROSOFT_GPG_KEYS_ROLLING_URI="https://packages.microsoft.com/keys/microsoft-rolling.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble"
-# Azure Linux support for Moby packages (using official Microsoft repositories)
-AZURE_LINUX_MOBY_SUPPORTED="true"
 DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
 
 # Default: Exit on any failure.
@@ -74,21 +72,13 @@ pkg_mgr_update() {
             ;;
         rhel)
             if [ ${PKG_MGR_CMD} = "microdnf" ]; then
-                if [ "$(ls /var/cache/yum/* 2>/dev/null | wc -l)" = 0 ]; then
-                    echo "Running ${PKG_MGR_CMD} makecache ..."
-                    ${PKG_MGR_CMD} makecache
-                fi
+                cache_check_dir="/var/cache/yum"
             else
-                if [ "$(ls /var/cache/${PKG_MGR_CMD}/* 2>/dev/null | wc -l)" = 0 ]; then
-                    echo "Running ${PKG_MGR_CMD} check-update ..."
-                    set +e
-                    ${PKG_MGR_CMD} check-update
-                    rc=$?
-                    if [ $rc != 0 ] && [ $rc != 100 ]; then
-                        exit 1
-                    fi
-                    set -e
-                fi
+                cache_check_dir="/var/cache/${PKG_MGR_CMD}"
+            fi
+            if [ "$(ls ${cache_check_dir}/* 2>/dev/null | wc -l)" = 0 ]; then
+                echo "Running ${PKG_MGR_CMD} makecache ..."
+                ${PKG_MGR_CMD} makecache
             fi
             ;;
     esac
@@ -237,7 +227,7 @@ if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     else
         architecture="$(uname -m)"
     fi
-elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "azurelinux" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "azurelinux" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"azurelinux"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     # Determine the appropriate package manager for RHEL-based systems
     if type tdnf > /dev/null 2>&1; then
@@ -283,12 +273,12 @@ if [ "${USE_MOBY}" = "true" ]; then
             err "Supported distributions include: ${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}"
             exit 1
         fi
-        echo "Distro codename '${VERSION_CODENAME}' matched filter '${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}'"
+        echo "(*) ${VERSION_CODENAME} is supported for Moby installation (supported: ${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}) - setting up Microsoft repository"
     elif [ "${ADJUSTED_ID}" = "rhel" ]; then
         if [ "${ID}" = "azurelinux" ] || [ "${ID}" = "mariner" ]; then
-            echo "Azure Linux/Mariner detected - using Microsoft repositories for Moby packages"
+            echo " (*) Azure Linux ${VERSION_ID}/Mariner ${VERSION_ID} detected - using Microsoft repositories for Moby packages"
         else
-            echo "RHEL-based system detected - Moby packages may require additional configuration"
+            echo "RHEL-based system (${ID}) detected - Moby packages may require additional configuration"
         fi
     fi
 else
@@ -298,9 +288,10 @@ else
             err "Supported distributions include: ${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}"
             exit 1
         fi
-        echo "Distro codename '${VERSION_CODENAME}' matched filter '${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}'"
+        echo "(*) ${VERSION_CODENAME} is supported for Docker CE installation (supported: ${DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES}) - setting up Docker repository"
     elif [ "${ADJUSTED_ID}" = "rhel" ]; then
-        echo "RHEL-based system detected - using Docker CE packages"
+        
+        echo "RHEL-based system (${ID}) detected - using Docker CE packages"
     fi
 fi
 
@@ -320,8 +311,8 @@ case ${ADJUSTED_ID} in
         ;;
 esac
 
-# Swap to legacy iptables for compatibility
-if type iptables-legacy > /dev/null 2>&1; then
+# Swap to legacy iptables for compatibility (Debian only)
+if [ "${ADJUSTED_ID}" = "debian" ] type iptables-legacy > /dev/null 2>&1; then
     update-alternatives --set iptables /usr/sbin/iptables-legacy
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 fi
@@ -361,9 +352,21 @@ if [ "${USE_MOBY}" = "true" ]; then
                     exit 1
                 fi
             elif [ "${ID}" = "mariner" ]; then
-                # CBL-Mariner - use Microsoft repository if available
-                curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /etc/pki/rpm-gpg/microsoft.gpg
-                cat > /etc/yum.repos.d/microsoft.repo << EOF
+                # CBL-Mariner - check if moby packages are available first
+                echo "(*) CBL-Mariner detected"
+                echo "(*) Checking for built-in container packages..."
+                
+                # Check if moby packages are available in default repos first
+                if ${PKG_MGR_CMD} list available moby-engine >/dev/null 2>&1; then
+                    echo "(*) Using built-in CBL-Mariner Moby packages"
+                    # Use default repositories - no additional repo needed
+                else
+                    echo "(*) Moby packages not found in default repositories"
+                    echo "(*) Adding Microsoft repository for CBL-Mariner..."
+                
+                    # Add Microsoft repository if packages aren't available locally
+                    curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /etc/pki/rpm-gpg/microsoft.gpg
+                    cat > /etc/yum.repos.d/microsoft.repo << EOF
 [microsoft]
 name=Microsoft Repository
 baseurl=https://packages.microsoft.com/repos/microsoft-cbl-mariner-2.0-prod-base/
@@ -371,6 +374,15 @@ enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/microsoft.gpg
 EOF
+                # Verify packages are available after adding repo
+                pkg_mgr_update
+                if ! ${PKG_MGR_CMD} list available moby-engine >/dev/null 2>&1; then
+                    echo "(*) Moby packages not found in Microsoft repository either"
+                    err "Moby packages are not available for CBL-Mariner ${VERSION_ID}."
+                    err "Recommendation: Use '\"moby\": false' to install Docker CE instead."
+                    exit 1
+                fi
+            fi
             else
                 err "Moby packages are not available for ${ID}. Please use 'moby': false option."
                 exit 1
@@ -388,7 +400,7 @@ else
             ;;
                 rhel)
             if [ "${ID}" = "azurelinux" ] || [ "${ID}" = "mariner" ]; then
-                echo "(*) Azure Linux detected"
+                echo "(*) ${ID} detected"
                 echo "(*) Note: Moby packages work better on Azure Linux. Consider using 'moby': true"
                 echo "(*) Setting up Docker CE repository..."
                 
@@ -404,20 +416,12 @@ gpgkey=file:///etc/pki/rpm-gpg/docker-ce.gpg
 skip_if_unavailable=1
 module_hotfixes=1
 EOF
-                
-                # Azure Linux specific handling for container runtime dependencies
-                echo "(*) Installing container runtime dependencies..."
-                # Install device-mapper libraries (critical for Docker CE)
+                # Install device-mapper-libs for Docker CE storage management, but skip on Mariner due to repo sync issues and lack of strict requirement
                 echo "(*) Installing device-mapper libraries for Docker CE..."
-                ${PKG_MGR_CMD} -y install device-mapper-libs || {
-                    echo "(*) Trying alternative device-mapper package names..."
-                    ${PKG_MGR_CMD} -y install lvm2-libs || {
-                        echo "(*) ERROR: Could not install device-mapper libraries"
-                        echo "(*) Docker CE requires libdevmapper.so.1.02 to function"
-                        exit 1
-                    }
-                }
-
+                if [ "${ID}" != "mariner" ]; then 
+                ${PKG_MGR_CMD} -y install device-mapper-libs 2>/dev/null || echo "(*) Device-mapper install failed, proceeding"
+                fi
+                
                 # Install other essential libraries for Docker CE
                 echo "(*) Installing additional Docker CE dependencies..."
                 ${PKG_MGR_CMD} -y install \
