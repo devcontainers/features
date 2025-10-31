@@ -146,6 +146,13 @@ if [ ! -e /usr/bin/dotnet ]; then
     ln --symbolic "$DOTNET_ROOT/dotnet" /usr/bin/dotnet
 fi
 
+# Add .NET Core SDK tools to PATH for bash and zsh users
+# This is where 'dotnet tool install --global <tool>' installs tools to
+# Use single-quoted EOF to defer $PATH expansion until sourcing the file
+cat << 'EOF' >> /etc/profile.d/dotnet.sh
+export PATH="$PATH:$HOME/.dotnet/tools"
+EOF
+
 # Clean up
 rm -rf /var/lib/apt/lists/*
 rm -rf scripts
