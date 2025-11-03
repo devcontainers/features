@@ -312,7 +312,7 @@ case ${ADJUSTED_ID} in
 esac
 
 # Swap to legacy iptables for compatibility (Debian only)
-if [ "${ADJUSTED_ID}" = "debian" ] type iptables-legacy > /dev/null 2>&1; then
+if [ "${ADJUSTED_ID}" = "debian" ] && type iptables-legacy > /dev/null 2>&1; then
     update-alternatives --set iptables /usr/sbin/iptables-legacy
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 fi
