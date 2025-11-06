@@ -222,32 +222,23 @@ if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
     PKG_MGR_CMD="apt-get"
     # Use dpkg for Debian-based systems
-    if command -v dpkg >/dev/null 2>&1; then
-        architecture="$(dpkg --print-architecture)"
-    else
-        architecture="$(uname -m)"
-    fi
+    architecture="$(dpkg --print-architecture 2>/dev/null || uname -m)"
 elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "azurelinux" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"azurelinux"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     # Determine the appropriate package manager for RHEL-based systems
-    if type tdnf > /dev/null 2>&1; then
-        PKG_MGR_CMD="tdnf"
-    elif type dnf > /dev/null 2>&1; then
-        PKG_MGR_CMD="dnf"
-    elif type microdnf > /dev/null 2>&1; then
-        PKG_MGR_CMD="microdnf"
-    elif type yum > /dev/null 2>&1; then
-        PKG_MGR_CMD="yum"
-    else
+    for pkg_mgr in tdnf dnf microdnf yum; do
+        if command -v "$pkg_mgr" >/dev/null 2>&1; then
+            PKG_MGR_CMD="$pkg_mgr"
+            break
+        fi
+    done
+    
+    if [ -z "${PKG_MGR_CMD}" ]; then
         err "Unable to find a supported package manager (tdnf, dnf, microdnf, yum)"
         exit 1
     fi
-     # Use rpm for RHEL-based systems  
-    if command -v rpm >/dev/null 2>&1; then
-        architecture="$(rpm --eval '%{_arch}')"
-    else
-        architecture="$(uname -m)"
-    fi
+    
+    architecture="$(rpm --eval '%{_arch}' 2>/dev/null || uname -m)"
 else
     err "Linux distro ${ID} not supported."
     exit 1
@@ -273,10 +264,10 @@ if [ "${USE_MOBY}" = "true" ]; then
             err "Supported distributions include: ${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}"
             exit 1
         fi
-        echo "(*) ${VERSION_CODENAME} is supported for Moby installation (supported: ${DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES}) - setting up Microsoft repository"
+        echo "(*) ${VERSION_CODENAME} is supported for Moby installation  - setting up Microsoft repository"
     elif [ "${ADJUSTED_ID}" = "rhel" ]; then
         if [ "${ID}" = "azurelinux" ] || [ "${ID}" = "mariner" ]; then
-            echo " (*) Azure Linux ${VERSION_ID}/Mariner ${VERSION_ID} detected - using Microsoft repositories for Moby packages"
+            echo " (*) ${ID} ${VERSION_ID} detected - using Microsoft repositories for Moby packages"
         else
             echo "RHEL-based system (${ID}) detected - Moby packages may require additional configuration"
         fi
@@ -295,21 +286,22 @@ else
     fi
 fi
 
-# Install dependencies
+# Install base dependencies
+base_packages="curl ca-certificates pigz iptables gnupg2 wget jq"
 case ${ADJUSTED_ID} in
     debian)
-        check_packages apt-transport-https curl ca-certificates pigz iptables gnupg2 dirmngr wget jq
-        if ! type git > /dev/null 2>&1; then
-            check_packages git
-        fi
+        check_packages apt-transport-https $base_packages dirmngr
         ;;
     rhel)
-        check_packages curl ca-certificates pigz iptables gnupg2 wget jq tar gawk shadow-utils policycoreutils  procps-ng systemd-libs systemd-devel
-        if ! type git > /dev/null 2>&1; then
-            check_packages git
-        fi
+        check_packages $base_packages tar gawk shadow-utils policycoreutils  procps-ng systemd-libs systemd-devel
+       
         ;;
 esac
+
+# Install git if not already present
+if ! command -v git >/dev/null 2>&1; then
+    check_packages git
+fi
 
 # Swap to legacy iptables for compatibility (Debian only)
 if [ "${ADJUSTED_ID}" = "debian" ] && type iptables-legacy > /dev/null 2>&1; then
@@ -332,41 +324,26 @@ if [ "${USE_MOBY}" = "true" ]; then
             } | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
             echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
             ;;
-                rhel)
-            if [ "${ID}" = "azurelinux" ]; then
-                # Azure Linux - Microsoft doesn't provide separate Moby repositories
-                # Use built-in repositories or recommend Docker CE
-                echo "(*) Azure Linux detected"
-                echo "(*) Microsoft does not provide separate Moby repositories for Azure Linux"
-                echo "(*) Checking for built-in container packages..."
-                
-                # Check if moby packages are available in default repos
-                if ${PKG_MGR_CMD} list available moby-engine >/dev/null 2>&1; then
-                    echo "(*) Using built-in Azure Linux Moby packages"
-                    # Use default Azure Linux repositories - no additional repo needed
-                else
-                    echo "(*) Moby packages not found in Azure Linux repositories"
-                    echo "(*) For Azure Linux, Docker CE ('moby': false) is recommended"
-                    err "Moby packages are not available for Azure Linux ${VERSION_ID}."
-                    err "Recommendation: Use '\"moby\": false' to install Docker CE instead."
-                    exit 1
-                fi
-            elif [ "${ID}" = "mariner" ]; then
-                # CBL-Mariner - check if moby packages are available first
-                echo "(*) CBL-Mariner detected"
-                echo "(*) Checking for built-in container packages..."
-                
-                # Check if moby packages are available in default repos first
-                if ${PKG_MGR_CMD} list available moby-engine >/dev/null 2>&1; then
-                    echo "(*) Using built-in CBL-Mariner Moby packages"
-                    # Use default repositories - no additional repo needed
-                else
-                    echo "(*) Moby packages not found in default repositories"
-                    echo "(*) Adding Microsoft repository for CBL-Mariner..."
-                
-                    # Add Microsoft repository if packages aren't available locally
-                    curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /etc/pki/rpm-gpg/microsoft.gpg
-                    cat > /etc/yum.repos.d/microsoft.repo << EOF
+        rhel)
+            echo "(*) ${ID} detected - checking for Moby packages..."
+        
+            # Check if moby packages are available in default repos
+            if ${PKG_MGR_CMD} list available moby-engine >/dev/null 2>&1; then
+                echo "(*) Using built-in ${ID} Moby packages"
+            else
+                case "${ID}" in
+                    azurelinux)
+                        echo "(*) Moby packages not found in Azure Linux repositories"
+                        echo "(*) For Azure Linux, Docker CE ('moby': false) is recommended"
+                        err "Moby packages are not available for Azure Linux ${VERSION_ID}."
+                        err "Recommendation: Use '\"moby\": false' to install Docker CE instead."
+                        exit 1
+                        ;;
+                    mariner)
+                        echo "(*) Adding Microsoft repository for CBL-Mariner..."
+                        # Add Microsoft repository if packages aren't available locally
+                        curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /etc/pki/rpm-gpg/microsoft.gpg
+                        cat > /etc/yum.repos.d/microsoft.repo << EOF
 [microsoft]
 name=Microsoft Repository
 baseurl=https://packages.microsoft.com/repos/microsoft-cbl-mariner-2.0-prod-base/
@@ -382,12 +359,14 @@ EOF
                     err "Recommendation: Use '\"moby\": false' to install Docker CE instead."
                     exit 1
                 fi
-            fi
-            else
+                ;;
+            *)
                 err "Moby packages are not available for ${ID}. Please use 'moby': false option."
                 exit 1
-            fi
-            ;;
+                ;;
+            esac    
+        fi
+        ;;
     esac
 else
     # Name of licensed engine/cli
@@ -398,15 +377,11 @@ else
             curl -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
             ;;
-                rhel)
-            if [ "${ID}" = "azurelinux" ] || [ "${ID}" = "mariner" ]; then
-                echo "(*) ${ID} detected"
-                echo "(*) Note: Moby packages work better on Azure Linux. Consider using 'moby': true"
-                echo "(*) Setting up Docker CE repository..."
-                
-                # Create Docker CE repository for Azure Linux
+        rhel)
+            # Docker CE repository setup for RHEL-based systems
+            setup_docker_ce_repo() {
                 curl -fsSL https://download.docker.com/linux/centos/gpg > /etc/pki/rpm-gpg/docker-ce.gpg
-                cat > /etc/yum.repos.d/docker-ce.repo << EOF
+                cat > /etc/yum.repos.d/docker-ce.repo << EOF  
 [docker-ce-stable]
 name=Docker CE Stable
 baseurl=https://download.docker.com/linux/centos/9/\$basearch/stable
@@ -416,58 +391,55 @@ gpgkey=file:///etc/pki/rpm-gpg/docker-ce.gpg
 skip_if_unavailable=1
 module_hotfixes=1
 EOF
-                # Install device-mapper-libs for Docker CE storage management, but skip on Mariner due to repo sync issues and lack of strict requirement
+            }
+            install_azure_linux_deps() {
                 echo "(*) Installing device-mapper libraries for Docker CE..."
-                if [ "${ID}" != "mariner" ]; then 
-                ${PKG_MGR_CMD} -y install device-mapper-libs 2>/dev/null || echo "(*) Device-mapper install failed, proceeding"
-                fi
-                
-                # Install other essential libraries for Docker CE
+                [ "${ID}" != "mariner" ] && ${PKG_MGR_CMD} -y install device-mapper-libs 2>/dev/null || echo "(*) Device-mapper install failed, proceeding"   
                 echo "(*) Installing additional Docker CE dependencies..."
-                ${PKG_MGR_CMD} -y install \
-                    libseccomp \
-                    libtool-ltdl \
-                    systemd-libs \
-                    libcgroup \
-                    tar \
-                    xz || {
+                ${PKG_MGR_CMD} -y install libseccomp libtool-ltdl systemd-libs libcgroup tar xz || {
                     echo "(*) Some optional dependencies could not be installed, continuing..."
                 }
-
-                # For Azure Linux, install Docker CE without container-selinux complexity
-                if [ "${USE_MOBY}" != "true" ]; then
-                    echo "(*) Docker CE installation for Azure Linux - skipping container-selinux"
-                    echo "(*) Note: SELinux policies will be minimal but Docker will function normally"     
-                    # Create minimal SELinux context for Docker compatibility (if SELinux is enabled)
-                    if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" != "Disabled" ]; then
-                        echo "(*) Creating minimal SELinux context for Docker compatibility..."
-                        mkdir -p /etc/selinux/targeted/contexts/files/ 2>/dev/null || true
-                        echo "/var/lib/docker(/.*)? system_u:object_r:container_file_t:s0" >> /etc/selinux/targeted/contexts/files/file_contexts.local 2>/dev/null || true
+            }
+            setup_selinux_context() {
+                if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" != "Disabled" ]; then
+                    echo "(*) Creating minimal SELinux context for Docker compatibility..."
+                    mkdir -p /etc/selinux/targeted/contexts/files/ 2>/dev/null || true
+                    echo "/var/lib/docker(/.*)? system_u:object_r:container_file_t:s0" >> /etc/selinux/targeted/contexts/files/file_contexts.local 2>/dev/null || true
+                fi
+            }
+            
+            # Special handling for RHEL Docker CE installation
+            case "${ID}" in
+                azurelinux|mariner)
+                    echo "(*) ${ID} detected"
+                    echo "(*) Note: Moby packages work better on Azure Linux. Consider using 'moby': true"
+                    echo "(*) Setting up Docker CE repository..."
+                    
+                    setup_docker_ce_repo
+                    install_azure_linux_deps
+                    
+                    if [ "${USE_MOBY}" != "true" ]; then
+                        echo "(*) Docker CE installation for Azure Linux - skipping container-selinux"
+                        echo "(*) Note: SELinux policies will be minimal but Docker will function normally"
+                        setup_selinux_context
+                    else
+                        echo "(*) Using Moby - container-selinux not required"
                     fi
-                else
-                    echo "(*) Using Moby - container-selinux not required"
-                fi
-            else
-                # Standard RHEL/CentOS/Fedora approach
-                if command -v dnf >/dev/null 2>&1; then
-                    dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-                else
-                    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 2>/dev/null || {
+                    ;;
+                *)     
+                    # Standard RHEL/CentOS/Fedora approach
+                    if command -v dnf >/dev/null 2>&1; then
+                        dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+                    elif command -v yum-config-manager >/dev/null 2>&1; then
+                        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+                    else  
                         # Manual fallback
-                        curl -fsSL https://download.docker.com/linux/centos/gpg > /etc/pki/rpm-gpg/docker-ce.gpg
-                        cat > /etc/yum.repos.d/docker-ce.repo << EOF
-[docker-ce-stable]
-name=Docker CE Stable
-baseurl=https://download.docker.com/linux/centos/9/\$basearch/stable
-enabled=1
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/docker-ce.gpg
-EOF
-                    }
-                fi
+                        setup_docker_ce_repo
             fi
             ;;
-    esac
+        esac
+        ;;
+    esac    
 fi
 
 # Refresh package database
