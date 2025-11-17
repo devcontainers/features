@@ -758,8 +758,8 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
         set +e
         find_version_from_git_tags compose_switch_version "$compose_switch_url"
         if [ $? -ne 0 ] || [ -z "${compose_switch_version}" ] || [ "${compose_switch_version}" = "latest" ]; then
-            echo "(*) GitHub API rate limited or failed, using fallback version 1.0.5"
-            compose_switch_version="1.0.5"
+            echo "(*) GitHub API rate limited or failed, using fallback method"
+            fallback_compose-switch "$compose_switch_url"
         fi
         set -e
         
