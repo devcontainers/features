@@ -172,7 +172,7 @@ install_redhat_packages() {
     else
        echo "Unable to find 'tdnf', 'dnf', or 'yum' package manager. Exiting."
        exit 1
-fi
+    fi
 
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         package_list="${package_list} \
@@ -228,7 +228,7 @@ fi
         fi
 
         # Install EPEL repository if needed (required to install 'jq' for CentOS)
-        if ! ${install_cmd} -q list jq >/dev/null 2>&1; then
+        if [[ "${ID}" = "centos" ]] && ! rpm -q jq >/dev/null 2>&1; then
             ${install_cmd} -y install epel-release
             remove_epel="true"
         fi
@@ -240,11 +240,18 @@ fi
     fi
 
     if [ -n "${package_list}" ]; then
-        ${install_cmd} -y install ${package_list}
+        echo "Packages to verify are installed: ${package_list}"
+        echo "Running ${install_cmd} install..."
+        if [ "${install_cmd}" = "dnf" ]; then
+            ${install_cmd} -y install --allowerasing ${package_list}
+        else
+            ${install_cmd} -y install ${package_list}
+        fi
     fi
 
     # Get to latest versions of all packages
     if [ "${UPGRADE_PACKAGES}" = "true" ]; then
+        echo "Running ${install_cmd} upgrade..."
         ${install_cmd} upgrade -y
     fi
 
