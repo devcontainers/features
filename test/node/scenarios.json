@@ -7,6 +7,14 @@
             }
         }
     },    
+    "test_registry_override": {
+        "image": "debian:11",
+        "features": {
+            "node": {
+                "nvmNodeJsOrgMirror": "https://nodejs.org/dist"
+            }
+        }
+    },
     "install_additional_node": {
         "image": "debian:11",
         "features": {
