@@ -20,6 +20,7 @@ Installs Node.js, nvm, yarn, pnpm, and needed dependencies.
 | nvmInstallPath | The path where NVM will be installed. | string | /usr/local/share/nvm |
 | pnpmVersion | Select or enter the PNPM version to install | string | latest |
 | nvmVersion | Version of NVM to install. | string | latest |
+| nvmNodeJsOrgMirror | The mirror of the Node.js binaries. Use this to point to a private mirror. | string | - |
 | installYarnUsingApt | On Debian and Ubuntu systems, you have the option to install Yarn globally via APT. If you choose not to use this option, Yarn will be set up using Corepack instead. This choice is specific to Debian and Ubuntu; for other Linux distributions, Yarn is always installed using Corepack, with a fallback to installation via NPM if an error occurs. | boolean | true |
 
 ## Customizations
@@ -55,6 +56,18 @@ Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and Rocky Linux distributi
 **Note**:  RedHat 7 Family (RedHat, CentOS, etc.) must use Node versions less than 18 due to its system libraries and long-term support (LTS) policies.
 
 `bash` is required to execute the `install.sh` script.
+
+## Setting a private Node.js mirror
+
+If you need to use a private mirror for downloading Node.js binaries (e.g. in an air-gapped environment), you can use the `nvmNodeJsOrgMirror` option:
+
+```json
+"features": {
+    "ghcr.io/devcontainers/features/node:1": {
+        "nvmNodeJsOrgMirror": "https://my-private-registry.com/node-dist"
+    }
+}
+```
 
 
 ---

@@ -25,3 +25,15 @@ Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and Rocky Linux distributi
 **Note**:  RedHat 7 Family (RedHat, CentOS, etc.) must use Node versions less than 18 due to its system libraries and long-term support (LTS) policies.
 
 `bash` is required to execute the `install.sh` script.
+
+## Setting a private Node.js mirror
+
+If you need to use a private mirror for downloading Node.js binaries (e.g. in an air-gapped environment), you can use the `nvmNodeJsOrgMirror` option:
+
+```json
+"features": {
+    "ghcr.io/devcontainers/features/node:1": {
+        "nvmNodeJsOrgMirror": "https://my-private-registry.com/node-dist"
+    }
+}
+```

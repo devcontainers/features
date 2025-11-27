@@ -11,6 +11,7 @@ export NODE_VERSION="${VERSION:-"lts"}"
 export PNPM_VERSION="${PNPMVERSION:-"latest"}"
 export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
+export NVM_NODEJS_ORG_MIRROR="${NVMNODEJSORGMIRROR:-}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-true}"  # only concerns Debian-based systems
 
@@ -302,6 +303,7 @@ find_version_from_git_tags NVM_VERSION "https://github.com/nvm-sh/nvm"
 nvm_install_snippet="$(cat << EOF
 set -e
 umask 0002
+${NVM_NODEJS_ORG_MIRROR:+export NVM_NODEJS_ORG_MIRROR="${NVM_NODEJS_ORG_MIRROR}"}
 # Do not update profile - we'll do this manually
 export PROFILE=/dev/null
 curl -so- "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash ||  {
@@ -318,6 +320,7 @@ EOF
 
 # Snippet that should be added into rc / profiles
 nvm_rc_snippet="$(cat << EOF
+${NVM_NODEJS_ORG_MIRROR:+export NVM_NODEJS_ORG_MIRROR="${NVM_NODEJS_ORG_MIRROR}"}
 export NVM_DIR="${NVM_DIR}"
 [ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
 [ -s "\$NVM_DIR/bash_completion" ] && . "\$NVM_DIR/bash_completion"
@@ -350,7 +353,7 @@ if [ ! -d "${NVM_DIR}" ]; then
 else
     echo "NVM already installed."
     if [ "${NODE_VERSION}" != "" ]; then
-        su ${USERNAME} -c "umask 0002 && . '$NVM_DIR/nvm.sh' && nvm install '${NODE_VERSION}' && nvm alias default '${NODE_VERSION}'"
+        su ${USERNAME} -c "umask 0002 && . '$NVM_DIR/nvm.sh' && ${NVM_NODEJS_ORG_MIRROR:+NVM_NODEJS_ORG_MIRROR=\"${NVM_NODEJS_ORG_MIRROR}\"} nvm install '${NODE_VERSION}' && nvm alias default '${NODE_VERSION}'"
     fi
 fi
 
@@ -366,7 +369,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     IFS=","
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for ver in "${additional_versions[@]}"; do
-            su ${USERNAME} -c "umask 0002 && . '$NVM_DIR/nvm.sh' && nvm install '${ver}'"
+            su ${USERNAME} -c "umask 0002 && . '$NVM_DIR/nvm.sh' && ${NVM_NODEJS_ORG_MIRROR:+NVM_NODEJS_ORG_MIRROR=\"${NVM_NODEJS_ORG_MIRROR}\"} nvm install '${ver}'"
             # possibly install yarn (puts yarn in per-Node install on RHEL, uses system yarn on Debian)
             install_yarn "${ver}"
         done
