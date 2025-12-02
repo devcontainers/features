@@ -412,7 +412,7 @@ elif [ "${USERNAME}" = "none" ]; then
     USER_GID=0
 fi
 # Create or update a non-root user to match UID/GID.
-group_name="${USERNAME}"
+group_name="$(id -gn "$USERNAME" 2>/dev/null || echo "$USERNAME")"
 if id -u ${USERNAME} > /dev/null 2>&1; then
     # User exists, update if needed
     if [ "${USER_GID}" != "automatic" ] && [ "$USER_GID" != "$(id -g $USERNAME)" ]; then
@@ -420,8 +420,18 @@ if id -u ${USERNAME} > /dev/null 2>&1; then
         groupmod --gid $USER_GID ${group_name}
         usermod --gid $USER_GID $USERNAME
     fi
+    # Check if the target UID is different from current user's UID before modifying
     if [ "${USER_UID}" != "automatic" ] && [ "$USER_UID" != "$(id -u $USERNAME)" ]; then
-        usermod --uid $USER_UID $USERNAME
+        # Additional safety check: ensure target UID isn't already taken by another user
+        # This prevents "UID already exists" errors when multiple users have the same UID
+        if id -u $USER_UID > /dev/null 2>&1; then
+            existing_user=$(id -nu $USER_UID)
+            if [ "$existing_user" != "$USERNAME" ]; then
+                echo "Warning: UID $USER_UID is already in use by user '$existing_user'. Skipping UID modification."
+            fi
+        else
+            usermod --uid $USER_UID $USERNAME
+        fi
     fi
 else
     # Create user
