@@ -18,6 +18,7 @@ USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
+INSTALL_SSL="${INSTALLSSL:-"true"}"
 
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
@@ -75,25 +76,27 @@ install_debian_packages() {
         manpages-dev \
         init-system-helpers"
 
-        # Include libssl1.1 if available
-        if [[ ! -z $(apt-cache --names-only search ^libssl1.1$) ]]; then
-            package_list="${package_list} libssl1.1"
-        fi
+        if [ "${INSTALL_SSL}" = "true" ]; then
+            # Include libssl1.1 if available
+            if [[ ! -z $(apt-cache --names-only search ^libssl1.1$) ]]; then
+                package_list="${package_list} libssl1.1"
+            fi
 
-        # Include libssl3 if available
-        if [[ ! -z $(apt-cache --names-only search ^libssl3$) ]]; then
-            package_list="${package_list} libssl3"
-        fi
+            # Include libssl3 if available
+            if [[ ! -z $(apt-cache --names-only search ^libssl3$) ]]; then
+                package_list="${package_list} libssl3"
+            fi
 
-        # Include appropriate version of libssl1.0.x if available
-        local libssl_package=$(dpkg-query -f '${db:Status-Abbrev}\t${binary:Package}\n' -W 'libssl1\.0\.?' 2>&1 || echo '')
-        if [ "$(echo "$libssl_package" | grep -o 'libssl1\.0\.[0-9]:' | uniq | sort | wc -l)" -eq 0 ]; then
-            if [[ ! -z $(apt-cache --names-only search ^libssl1.0.2$) ]]; then
-                # Debian 9
-                package_list="${package_list} libssl1.0.2"
-            elif [[ ! -z $(apt-cache --names-only search ^libssl1.0.0$) ]]; then
-                # Ubuntu 18.04
-                package_list="${package_list} libssl1.0.0"
+            # Include appropriate version of libssl1.0.x if available
+            local libssl_package=$(dpkg-query -f '${db:Status-Abbrev}\t${binary:Package}\n' -W 'libssl1\.0\.?' 2>&1 || echo '')
+            if [ "$(echo "$libssl_package" | grep -o 'libssl1\.0\.[0-9]:' | uniq | sort | wc -l)" -eq 0 ]; then
+                if [[ ! -z $(apt-cache --names-only search ^libssl1.0.2$) ]]; then
+                    # Debian 9
+                    package_list="${package_list} libssl1.0.2"
+                elif [[ ! -z $(apt-cache --names-only search ^libssl1.0.0$) ]]; then
+                    # Ubuntu 18.04
+                    package_list="${package_list} libssl1.0.0"
+                fi
             fi
         fi
 
@@ -172,7 +175,7 @@ install_redhat_packages() {
     else
        echo "Unable to find 'tdnf', 'dnf', or 'yum' package manager. Exiting."
        exit 1
-fi
+    fi
 
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         package_list="${package_list} \
@@ -228,7 +231,7 @@ fi
         fi
 
         # Install EPEL repository if needed (required to install 'jq' for CentOS)
-        if ! ${install_cmd} -q list jq >/dev/null 2>&1; then
+        if [[ "${ID}" = "centos" ]] && ! rpm -q jq >/dev/null 2>&1; then
             ${install_cmd} -y install epel-release
             remove_epel="true"
         fi
@@ -240,11 +243,18 @@ fi
     fi
 
     if [ -n "${package_list}" ]; then
-        ${install_cmd} -y install ${package_list}
+        echo "Packages to verify are installed: ${package_list}"
+        echo "Running ${install_cmd} install..."
+        if [ "${install_cmd}" = "dnf" ]; then
+            ${install_cmd} -y install --allowerasing ${package_list}
+        else
+            ${install_cmd} -y install ${package_list}
+        fi
     fi
 
     # Get to latest versions of all packages
     if [ "${UPGRADE_PACKAGES}" = "true" ]; then
+        echo "Running ${install_cmd} upgrade..."
         ${install_cmd} upgrade -y
     fi
 
