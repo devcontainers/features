@@ -21,7 +21,7 @@ Installs the GitHub Copilot CLI. Auto-detects latest version and installs needed
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+This Feature should work on recent versions of Debian/Ubuntu-based distributions.
 
 `bash` is required to execute the `install.sh` script.
 
