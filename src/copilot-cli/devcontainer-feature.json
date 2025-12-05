@@ -1,6 +1,6 @@
 {
     "id": "copilot-cli",
-    "version": "0.0.367",
+    "version": "1.0.0",
     "name": "GitHub Copilot CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/copilot-cli",
     "description": "Installs the GitHub Copilot CLI.",
