@@ -116,8 +116,8 @@ install_using_github() {
     rm -rf /tmp/copilotcli
 }
 
-# Install the Copilot CLI
-echo "Downloading Copilot CLI..."
+# Install the GitHub Copilot CLI
+echo "Downloading GitHub Copilot CLI..."
 
 install_using_github
 
