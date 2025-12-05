@@ -9,6 +9,7 @@
             "type": "string",
             "proposals": [
                 "latest",
+                "prerelease",
                 "none"
             ],
             "default": "latest",
