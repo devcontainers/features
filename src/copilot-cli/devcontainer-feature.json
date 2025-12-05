@@ -1,0 +1,34 @@
+{
+    "id": "copilot-cli",
+    "version": "1.0.0",
+    "name": "GitHub Copilot CLI",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/copilot-cli",
+    "description": "Installs the GitHub Copilot CLI.",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest",
+                "prerelease",
+                "none"
+            ],
+            "default": "latest",
+            "description": "Select version of the GitHub Copilot CLI, if not latest."
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes the GitHub Copilot CLI (`copilot`), which is pre-installed and available on the `PATH`."
+                    }
+                ]
+            }
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
+}
+
