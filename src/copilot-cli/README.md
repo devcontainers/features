@@ -16,7 +16,6 @@ Installs the GitHub Copilot CLI. Auto-detects latest version and installs needed
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select version of the GitHub Copilot CLI, if not latest. | string | latest |
-| installDirectlyFromGitHubRelease | - | boolean | true |
 
 
 
