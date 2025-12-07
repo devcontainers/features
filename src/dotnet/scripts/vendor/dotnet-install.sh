@@ -1169,11 +1169,11 @@ download() {
             exit 1
         fi
 
-        if [ "$failed" = false ] || [ $attempts -ge 3 ] || { [ ! -z $http_code ] && [ $http_code = "404" ]; }; then
+        if [ "$failed" = false ] || [ $attempts -ge 3 ] || { [ -n "${http_code-}" ] && [ "${http_code}" = "404" ]; }; then
             break
         fi
 
-        say "Download attempt #$attempts has failed: $http_code $download_error_msg"
+        say "Download attempt #$attempts has failed: ${http_code-} ${download_error_msg-}"
         say "Attempt #$((attempts+1)) will start in $((attempts*10)) seconds."
         sleep $((attempts*10))
     done
@@ -1580,12 +1580,12 @@ install_dotnet() {
         download "$download_link" "$zip_path" 2>&1 || download_failed=true
 
         if [ "$download_failed" = true ]; then
-            case $http_code in
+            case ${http_code-} in
             404)
                 say "The resource at $link_type link '$download_link' is not available."
                 ;;
             *)
-                say "Failed to download $link_type link '$download_link': $http_code $download_error_msg"
+                say "Failed to download $link_type link '$download_link': ${http_code-} ${download_error_msg-}"
                 ;;
             esac
             rm -f "$zip_path" 2>&1 && say_verbose "Temporary archive file $zip_path was removed"
