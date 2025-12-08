@@ -67,6 +67,10 @@ install_using_github() {
         download_from_github "https://github.com/github/copilot-cli/releases/download/${prerelease_version}/${cli_filename}"
     else
         # Install specific version
+        # Add leading v to version if it doesn't start with v
+        if [[ ! "${CLI_VERSION}" =~ ^v[0-9] ]]; then
+            CLI_VERSION="v${CLI_VERSION}"
+        fi
         download_from_github "https://github.com/github/copilot-cli/releases/download/${CLI_VERSION}/${cli_filename}"
     fi
 }
