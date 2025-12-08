@@ -9,8 +9,7 @@
             "type": "string",
             "proposals": [
                 "latest",
-                "prerelease",
-                "none"
+                "prerelease"
             ],
             "default": "latest",
             "description": "Select version of the GitHub Copilot CLI, if not latest."
