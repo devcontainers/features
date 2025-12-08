@@ -24,6 +24,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 | userUid | Enter UID for non-root user | string | automatic |
 | userGid | Enter GID for non-root user | string | automatic |
 | nonFreePackages | Add packages from non-free Debian repository? (Debian only) | boolean | false |
+| installSsl | Install SSL? | boolean | true |
 
 ## OS Support
 
