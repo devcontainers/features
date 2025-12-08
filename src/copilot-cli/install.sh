@@ -49,6 +49,13 @@ install_using_github() {
     check_packages wget tar ca-certificates git
     echo "Finished setting up dependencies"
     arch=$(dpkg --print-architecture)
+    if [ "${arch}" = "amd64" ]; then
+        arch="x64"
+    fi
+    if [ "${arch}" != "x64" ] && [ "${arch}" != "arm64" ]; then
+        echo "Unsupported architecture: ${arch}" >&2
+        exit 1
+    fi
     cli_filename="copilot-linux-${arch}.tar.gz"
     echo "Installing GitHub Copilot CLI for ${arch} architecture: ${cli_filename}"
 
