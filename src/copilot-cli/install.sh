@@ -66,8 +66,8 @@ install_using_github() {
         prerelease_version="$(git ls-remote --tags https://github.com/github/copilot-cli | tail -1 | awk -F/ '{print $NF}')"
         download_from_github "https://github.com/github/copilot-cli/releases/download/${prerelease_version}/${cli_filename}"
     else
-        echo "Unsupported version value: ${CLI_VERSION}, falling back to latest" >&2
-        download_from_github "https://github.com/github/copilot-cli/releases/latest/download/${cli_filename}"
+        # Install specific version
+        download_from_github "https://github.com/github/copilot-cli/releases/download/${CLI_VERSION}/${cli_filename}"
     fi
 }
 
