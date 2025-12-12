@@ -21,7 +21,6 @@ HELM_SHA256="${HELM_SHA256:-"automatic"}"
 MINIKUBE_SHA256="${MINIKUBE_SHA256:-"automatic"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
-HELM_GPG_KEYS_URI="https://raw.githubusercontent.com/helm/helm/main/KEYS"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -231,38 +230,6 @@ get_helm() {
     curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
 }
 
-# Get the list of GPG key servers that are reachable
-get_gpg_key_servers() {
-    declare -A keyservers_curl_map=(
-        ["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
-        ["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
-        ["hkps://keys.openpgp.org"]="https://keys.openpgp.org"
-        ["hkp://keyserver.pgp.com"]="http://keyserver.pgp.com:11371"
-    )
-
-    local curl_args=""
-    local keyserver_reachable=false  # Flag to indicate if any keyserver is reachable
-
-    if [ ! -z "${KEYSERVER_PROXY}" ]; then
-        curl_args="--proxy ${KEYSERVER_PROXY}"
-    fi
-
-    for keyserver in "${!keyservers_curl_map[@]}"; do
-        local keyserver_curl_url="${keyservers_curl_map[${keyserver}]}"
-        if curl -s ${curl_args} --max-time 5 ${keyserver_curl_url} > /dev/null; then
-            echo "keyserver ${keyserver}"
-            keyserver_reachable=true
-        else
-            echo "(*) Keyserver ${keyserver} is not reachable." >&2
-        fi
-    done
-
-    if ! $keyserver_reachable; then
-        echo "(!) No keyserver is reachable." >&2
-        exit 1
-    fi
-}
-
 if [ ${HELM_VERSION} != "none" ]; then
     # Install Helm, verify signature and checksum
     echo "Downloading Helm..."
@@ -283,8 +250,8 @@ if [ ${HELM_VERSION} != "none" ]; then
     export GNUPGHOME="/tmp/helm/gnupg"
     mkdir -p "${GNUPGHOME}"
     chmod 700 ${GNUPGHOME}
-    curl -sSL "${HELM_GPG_KEYS_URI}" -o /tmp/helm/KEYS
-    echo -e "disable-ipv6\n$(get_gpg_key_servers)" > ${GNUPGHOME}/dirmngr.conf
+    # Use local KEYS file instead of downloading from GitHub
+    cp KEYS /tmp/helm/KEYS || exit 1
     gpg -q --import "/tmp/helm/KEYS"
     if ! gpg --verify "${tmp_helm_filename}.asc" > ${GNUPGHOME}/verify.log 2>&1; then
         echo "Verification failed!"
