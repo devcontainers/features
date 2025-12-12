@@ -177,5 +177,45 @@
         },
         "remoteUser": "vscode",
         "onCreateCommand": "docker ps && sleep 5s && docker ps"
+    },
+    "azure_linux": {
+        "image": "mcr.microsoft.com/azurelinux/base/core:3.0",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "true",
+                "azureDnsAutoDetection": false
+            }
+        }
+    },
+    "azure_linux_docker_ce": {
+        "image": "mcr.microsoft.com/azurelinux/base/core:3.0",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "false",
+                "azureDnsAutoDetection": false
+            }
+        }
+    },
+    "cbl_mariner": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "true",
+                "azureDnsAutoDetection": false
+            }
+        }
+    },
+    "cbl_mariner_docker_ce": {
+        "image": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "false",
+                "azureDnsAutoDetection": false
+            }
+        }
     }
 }
