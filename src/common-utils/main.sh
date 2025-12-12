@@ -421,12 +421,16 @@ elif [ "${USERNAME}" = "none" ]; then
     USER_UID=0
     USER_GID=0
 fi
+
 # Create or update a non-root user to match UID/GID.
-group_name="${USERNAME}"
+group_name=$(getent group "$USER_GID" | cut -d: -f3)
+if [ -z "$group_name" ]; then
+    # Group does not yet exist and will be created. Use the user name as group name.
+    group_name="${USERNAME}"
+fi
 if id -u ${USERNAME} > /dev/null 2>&1; then
     # User exists, update if needed
     if [ "${USER_GID}" != "automatic" ] && [ "$USER_GID" != "$(id -g $USERNAME)" ]; then
-        group_name="$(id -gn $USERNAME)"
         groupmod --gid $USER_GID ${group_name}
         usermod --gid $USER_GID $USERNAME
     fi
