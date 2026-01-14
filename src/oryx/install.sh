@@ -173,7 +173,7 @@ fi
 BUILD_SCRIPT_GENERATOR=/usr/local/buildscriptgen
 ORYX=/usr/local/oryx
 GIT_ORYX=/opt/tmp/oryx-repo
-# Pin to commit before breaking change (commit 689fdef from 2026-01-13)
+# Pin to commit 689fdef61a38802f1e1deda40be5933cc75e3631 (before breaking change on 2026-01-13)
 # See: https://github.com/microsoft/Oryx/commit/21c559437d69cb43fd9b34f01f68c43ea4bce318
 ORYX_PINNED_COMMIT="689fdef61a38802f1e1deda40be5933cc75e3631"
 
