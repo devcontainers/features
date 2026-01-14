@@ -184,8 +184,11 @@ git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
 # See: https://github.com/microsoft/Oryx/commit/21c559437d69cb43fd9b34f01f68c43ea4bce318
 MEMORY_SOURCE_REPO_FILE="$GIT_ORYX/tests/Detector.Tests/MemorySourceRepo.cs"
 if [ -f "$MEMORY_SOURCE_REPO_FILE" ]; then
-    # Add GetFileSize implementation before the GetGitCommitId method
-    sed -i '/public string GetGitCommitId()/i\
+    # Check if GetFileSize is already implemented
+    if ! grep -q "GetFileSize" "$MEMORY_SOURCE_REPO_FILE"; then
+        echo "Patching MemorySourceRepo to add GetFileSize implementation..."
+        # Add GetFileSize implementation before the GetGitCommitId method
+        sed -i '/public string GetGitCommitId()/i\
         public long? GetFileSize(params string[] paths)\
         {\
             var path = Path.Combine(paths);\
@@ -197,6 +200,16 @@ if [ -f "$MEMORY_SOURCE_REPO_FILE" ]; then
             return content?.Length;\
         }\
 ' "$MEMORY_SOURCE_REPO_FILE"
+        
+        # Verify the patch was applied
+        if grep -q "GetFileSize" "$MEMORY_SOURCE_REPO_FILE"; then
+            echo "Successfully patched MemorySourceRepo"
+        else
+            echo "Warning: Failed to patch MemorySourceRepo - build may fail"
+        fi
+    else
+        echo "MemorySourceRepo already has GetFileSize implementation, skipping patch"
+    fi
 fi
 
 if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
