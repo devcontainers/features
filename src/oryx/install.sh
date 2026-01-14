@@ -183,17 +183,14 @@ mkdir -p ${ORYX}
 git clone https://github.com/microsoft/Oryx $GIT_ORYX
 cd $GIT_ORYX
 git checkout $ORYX_PINNED_COMMIT
-cd -
 
 if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
-    cd $GIT_ORYX
     dotnet new globaljson --sdk-version ${PINNED_SDK_VERSION}
 fi
 
 SOLUTION_FILE_NAME="Oryx.sln"
 echo "Building solution '$SOLUTION_FILE_NAME'..."
 
-cd $GIT_ORYX
 ${DOTNET_BINARY} build "$SOLUTION_FILE_NAME" -c Debug
 
 ${DOTNET_BINARY} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj --self-contained true
