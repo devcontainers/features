@@ -9,10 +9,6 @@ USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="${UPDATE_RC:-"true"}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
-# Pin Oryx to a specific commit to avoid breaking changes
-# Last stable commit before ISourceRepo.GetFileSize breaking change (2026-01-13)
-# See: https://github.com/microsoft/Oryx/commit/21c559437d69cb43fd9b34f01f68c43ea4bce318
-ORYX_COMMIT="0243a804b56d92febdb15cab01f98bbb168baa3b"
 
 set -eu
 
@@ -181,10 +177,27 @@ GIT_ORYX=/opt/tmp/oryx-repo
 mkdir -p ${BUILD_SCRIPT_GENERATOR}
 mkdir -p ${ORYX}
 
-git clone https://github.com/microsoft/Oryx $GIT_ORYX
-cd $GIT_ORYX
-git checkout $ORYX_COMMIT
-cd -
+git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
+
+# Patch MemorySourceRepo to implement ISourceRepo.GetFileSize method
+# This fixes a breaking interface change introduced in upstream Oryx
+# See: https://github.com/microsoft/Oryx/commit/21c559437d69cb43fd9b34f01f68c43ea4bce318
+MEMORY_SOURCE_REPO_FILE="$GIT_ORYX/tests/Detector.Tests/MemorySourceRepo.cs"
+if [ -f "$MEMORY_SOURCE_REPO_FILE" ]; then
+    # Add GetFileSize implementation before the GetGitCommitId method
+    sed -i '/public string GetGitCommitId()/i\
+        public long? GetFileSize(params string[] paths)\
+        {\
+            var path = Path.Combine(paths);\
+            if (!pathsToFiles.ContainsKey(path))\
+            {\
+                return null;\
+            }\
+            var content = pathsToFiles[path];\
+            return content?.Length;\
+        }\
+' "$MEMORY_SOURCE_REPO_FILE"
+fi
 
 if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     cd $GIT_ORYX
