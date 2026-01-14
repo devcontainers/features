@@ -177,7 +177,12 @@ GIT_ORYX=/opt/tmp/oryx-repo
 mkdir -p ${BUILD_SCRIPT_GENERATOR}
 mkdir -p ${ORYX}
 
-git clone --depth=1 https://github.com/microsoft/Oryx $GIT_ORYX
+# Pin to commit before ISourceRepo.GetFileSize breaking change (2026-01-13)
+# See: https://github.com/microsoft/Oryx/commit/21c559437d69cb43fd9b34f01f68c43ea4bce318
+git clone https://github.com/microsoft/Oryx $GIT_ORYX
+cd $GIT_ORYX
+git checkout 0243a804b56d92febdb15cab01f98bbb168baa3b
+cd -
 
 if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     cd $GIT_ORYX
