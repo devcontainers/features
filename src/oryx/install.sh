@@ -9,6 +9,10 @@ USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="${UPDATE_RC:-"true"}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
+# Pin Oryx to a specific commit to avoid breaking changes
+# Last stable commit before ISourceRepo.GetFileSize breaking change (2026-01-13)
+# See: https://github.com/microsoft/Oryx/commit/21c559437d69cb43fd9b34f01f68c43ea4bce318
+ORYX_COMMIT="0243a804b56d92febdb15cab01f98bbb168baa3b"
 
 set -eu
 
@@ -177,11 +181,9 @@ GIT_ORYX=/opt/tmp/oryx-repo
 mkdir -p ${BUILD_SCRIPT_GENERATOR}
 mkdir -p ${ORYX}
 
-# Pin to commit before ISourceRepo.GetFileSize breaking change (2026-01-13)
-# See: https://github.com/microsoft/Oryx/commit/21c559437d69cb43fd9b34f01f68c43ea4bce318
 git clone https://github.com/microsoft/Oryx $GIT_ORYX
 cd $GIT_ORYX
-git checkout 0243a804b56d92febdb15cab01f98bbb168baa3b
+git checkout $ORYX_COMMIT
 cd -
 
 if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
