@@ -54,5 +54,4 @@
   "installsAfter": [
     "ghcr.io/devcontainers/features/common-utils"
   ]
-
 }
