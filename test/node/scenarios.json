@@ -1,4 +1,20 @@
 {
+    "install_node_debian_trixie": {
+        "image": "debian:13",
+        "features": {
+            "node": {
+                "version": "lts"
+            }
+        }
+    },    
+    "install_node_debian_bookworm": {
+        "image": "debian:12",
+        "features": {
+            "node": {
+                "version": "lts"
+            }
+        }
+    },    
     "nvm_test_fallback": {
         "image": "debian:11",
         "features": {
