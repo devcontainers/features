@@ -24,18 +24,9 @@ if [ "${is_jdk_8}" = "true" ]; then
     jdk_11_folder="$(ls --format=single-column ${SDKMAN_DIR}/candidates/java | grep -oE -m 1 '11\..+')"
     ln -s "${SDKMAN_DIR}/candidates/java/${jdk_11_folder}" /extension-java-home
 
-    # Determine the appropriate non-root user
-    username=""
-    possible_users=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for current_user in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${current_user} > /dev/null 2>&1; then
-            username=${current_user}
-            break
-        fi
-    done
-    if [ "${username}" = "" ]; then
-        username=root
-    fi
+    # Source common helper functions to determine the appropriate non-root user
+    source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../_common/common-setup.sh"
+    username=$(determine_user_from_input "${USERNAME}" "root")
 else
     ln -s ${SDKMAN_DIR}/candidates/java/current /extension-java-home
 fi
