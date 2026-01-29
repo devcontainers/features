@@ -11,6 +11,7 @@ YARN_VERSION="4.9.4"
 # Definition specific tests
 check "version" node  --version
 check "pnpm" pnpm -v
+check "yarn" yarn --version
 
 # Corepack provides shims for package managers like yarn. The first time yarn is invoked via the "yarn"
 # command, corepack will interactively request permission to download the yarn binary. To
