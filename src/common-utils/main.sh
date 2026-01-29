@@ -403,13 +403,16 @@ esac
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../_common/common-setup.sh"
 
-# If in automatic mode, determine if a user already exists, if not use vscode (which will be created)
-USERNAME=$(determine_user_from_input "${USERNAME}" "vscode")
-
-# Handle the special "none" case for common-utils
-if [ "${USERNAME}" = "none" ]; then
+# Handle the special "none" case for common-utils before user determination
+# The "none" case sets USER_UID and USER_GID to 0
+ORIGINAL_USERNAME="${USERNAME}"
+if [ "${ORIGINAL_USERNAME}" = "none" ]; then
+    USERNAME="root"
     USER_UID=0
     USER_GID=0
+else
+    # If in automatic mode, determine if a user already exists, if not use vscode (which will be created)
+    USERNAME=$(determine_user_from_input "${USERNAME}" "vscode")
 fi
 # Create or update a non-root user to match UID/GID.
 group_name="${USERNAME}"

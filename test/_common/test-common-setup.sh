@@ -113,14 +113,17 @@ test_remote_user_root() {
 
 # Test 10: Finding vscode user if it exists
 test_find_vscode_user() {
-    # Check if vscode user exists
-    if id -u vscode > /dev/null 2>&1; then
+    # Check if vscode user exists and no higher priority users exist
+    if id -u vscode > /dev/null 2>&1 && \
+       ! id -u devcontainer > /dev/null 2>&1; then
+        # Unset _REMOTE_USER to ensure it doesn't interfere
+        unset _REMOTE_USER
         local result=$(determine_user_from_input "automatic")
         # Should find vscode (it's second in priority after devcontainer)
         run_test "Finds vscode user in automatic mode" "vscode" "${result}"
     else
-        # Skip this test if vscode user doesn't exist
-        run_test "Finds vscode user in automatic mode (SKIPPED - user doesn't exist)" "SKIP" "SKIP"
+        # Skip this test if vscode user doesn't exist or higher priority user exists
+        run_test "Finds vscode user in automatic mode (SKIPPED - conditions not met)" "SKIP" "SKIP"
     fi
 }
 
@@ -128,6 +131,8 @@ test_find_vscode_user() {
 test_find_devcontainer_user() {
     # Check if devcontainer user exists
     if id -u devcontainer > /dev/null 2>&1; then
+        # Unset _REMOTE_USER to ensure it doesn't interfere
+        unset _REMOTE_USER
         local result=$(determine_user_from_input "automatic")
         # Should find devcontainer (highest priority)
         run_test "Finds devcontainer user (highest priority)" "devcontainer" "${result}"
@@ -165,6 +170,18 @@ test_empty_input() {
     run_test "Empty input treated as automatic and finds UID 1000 or uses fallback" "${expected}" "${result}"
 }
 
+# Test 14: _REMOTE_USER set to non-existent user should use fallback
+test_remote_user_nonexistent() {
+    export _REMOTE_USER="nonexistentuser99999"
+    local result=$(determine_user_from_input "automatic" "mydefault")
+    unset _REMOTE_USER
+    
+    # Should fall through to normal detection - find UID 1000 or use fallback
+    local uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd 2>/dev/null || echo '')
+    local expected="${uid_1000_user:-mydefault}"
+    run_test "_REMOTE_USER set to non-existent user falls back to detection" "${expected}" "${result}"
+}
+
 # Run all tests
 echo "Running tests for common-setup.sh..."
 echo "======================================"
@@ -183,6 +200,7 @@ test_find_vscode_user
 test_find_devcontainer_user
 test_find_uid_1000
 test_empty_input
+test_remote_user_nonexistent
 
 # Print summary
 echo ""

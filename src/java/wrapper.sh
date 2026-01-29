@@ -23,10 +23,6 @@ if [ "${is_jdk_8}" = "true" ]; then
     ./install.sh "${ADDITIONAL_JAVA_VERSION}" "${SDKMAN_DIR}" "${USERNAME}" "${UPDATE_RC}"
     jdk_11_folder="$(ls --format=single-column ${SDKMAN_DIR}/candidates/java | grep -oE -m 1 '11\..+')"
     ln -s "${SDKMAN_DIR}/candidates/java/${jdk_11_folder}" /extension-java-home
-
-    # Source common helper functions to determine the appropriate non-root user
-    source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../_common/common-setup.sh"
-    username=$(determine_user_from_input "${USERNAME}" "root")
 else
     ln -s ${SDKMAN_DIR}/candidates/java/current /extension-java-home
 fi
