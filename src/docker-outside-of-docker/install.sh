@@ -434,6 +434,8 @@ echo "docker-init doesn't exist, adding..."
 
 # By default, make the source and target sockets the same
 if [ "${SOURCE_SOCKET}" != "${TARGET_SOCKET}" ]; then
+    # Create parent directory if it doesn't exist
+    mkdir -p "$(dirname "${SOURCE_SOCKET}")"
     touch "${SOURCE_SOCKET}"
     ln -s "${SOURCE_SOCKET}" "${TARGET_SOCKET}"
 fi
