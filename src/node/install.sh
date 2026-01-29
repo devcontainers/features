@@ -362,7 +362,9 @@ else
 fi
 
 # Possibly install yarn (puts yarn in per-Node install on RHEL, uses system yarn on Debian)
-install_yarn
+if [ -n "${NODE_VERSION}" ] && [ "${NODE_VERSION}" != "none" ]; then
+    install_yarn
+fi
 
 # Additional node versions to be installed but not be set as
 # default we can assume the nvm is the group owner of the nvm
