@@ -1,7 +1,7 @@
 
 # GitHub Copilot CLI (copilot-cli)
 
-Installs the GitHub Copilot CLI. Auto-detects latest version and installs needed dependencies.
+Installs the GitHub Copilot CLI.
 
 ## Example Usage
 
