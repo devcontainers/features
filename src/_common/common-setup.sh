@@ -37,8 +37,17 @@ determine_user_from_input() {
         
         # First, check if _REMOTE_USER is set and is not root
         if [ -n "${_REMOTE_USER:-}" ] && [ "${_REMOTE_USER}" != "root" ]; then
-            resolved_username="${_REMOTE_USER}"
-        else
+            # Verify the user exists before using it
+            if id -u "${_REMOTE_USER}" > /dev/null 2>&1; then
+                resolved_username="${_REMOTE_USER}"
+            else
+                # _REMOTE_USER doesn't exist, fall through to normal detection
+                resolved_username=""
+            fi
+        fi
+        
+        # If we didn't resolve via _REMOTE_USER, try to find a non-root user
+        if [ -z "${resolved_username}" ]; then
             # Try to find a non-root user from a list of common usernames
             # The list includes: devcontainer, vscode, node, codespace, and the user with UID 1000
             local possible_users=("devcontainer" "vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd 2>/dev/null || echo '')")
