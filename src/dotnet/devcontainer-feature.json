@@ -1,6 +1,6 @@
 {
     "id": "dotnet",
-    "version": "2.4.0",
+    "version": "2.4.2",
     "name": "Dotnet CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/dotnet",
     "description": "This Feature installs the latest .NET SDK, which includes the .NET CLI and the shared runtime. Options are provided to choose a different version or additional versions.",
@@ -12,8 +12,6 @@
                 "lts",
                 "none",
                 "10.0",
-                "10.0-preview",
-                "10.0-daily",
                 "9.0",
                 "8.0",
                 "7.0",
@@ -45,7 +43,7 @@
     },
     "containerEnv": {
         "DOTNET_ROOT": "/usr/share/dotnet",
-        "PATH": "$PATH:$DOTNET_ROOT:~/.dotnet/tools",
+        "PATH": "$PATH:$DOTNET_ROOT",
         "DOTNET_RUNNING_IN_CONTAINER": "true",
         "DOTNET_USE_POLLING_FILE_WATCHER": "true"
     },
