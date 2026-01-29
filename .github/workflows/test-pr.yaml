@@ -56,7 +56,7 @@ jobs:
             "debian:12",
             "mcr.microsoft.com/devcontainers/base:ubuntu",
             "mcr.microsoft.com/devcontainers/base:debian",
-            "mcr.microsoft.com/devcontainers/base:noble"
+            "mcr.microsoft.com/devcontainers/base:noble",
           ]
         exclude:
           - features: oryx
@@ -76,6 +76,39 @@ jobs:
       - name: "Generating tests for '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
         run: devcontainer features test  --skip-scenarios -f ${{ matrix.features }} -i ${{ matrix.baseImage }} .
 
+  detect-changes-non-debian:
+    runs-on: ubuntu-latest
+    outputs:
+      features: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            common-utils: ./**/common-utils/**
+            git: ./**/git/**
+            go: ./**/go/**
+            java: ./**/java/**
+            node: ./**/node/**
+            python: ./**/python/**
+            sshd: ./**/sshd/**
+
+  test-non-debian:
+    needs: [detect-changes-non-debian]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        features: ${{ fromJSON(needs.detect-changes-non-debian.outputs.features) }}
+        baseImage: ["fedora:40", "fedora:41"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Install latest devcontainer CLI"
+        run: npm install -g @devcontainers/cli
+
+      - name: "Generating tests for '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+        run: devcontainer features test  --skip-scenarios -f ${{ matrix.features }} -i ${{ matrix.baseImage }} .
   test-scenarios:
     needs: [detect-changes]
     runs-on: devcontainer-image-builder-ubuntu
