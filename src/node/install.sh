@@ -12,7 +12,7 @@ export PNPM_VERSION="${PNPMVERSION:-"latest"}"
 export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
-export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-true}"  # only concerns Debian-based systems
+export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-false}"  # only concerns Debian-based systems
 
 # Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
