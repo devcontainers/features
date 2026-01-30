@@ -1,6 +1,6 @@
 {
     "id": "node",
-    "version": "1.6.4",
+    "version": "1.7.1",
     "name": "Node.js (via nvm), yarn and pnpm.",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/node",
     "description": "Installs Node.js, nvm, yarn, pnpm, and needed dependencies.",
@@ -52,7 +52,7 @@
         },
         "installYarnUsingApt": {
             "type": "boolean",
-            "default": true,
+            "default": false,
             "description": "On Debian and Ubuntu systems, you have the option to install Yarn globally via APT. If you choose not to use this option, Yarn will be set up using Corepack instead. This choice is specific to Debian and Ubuntu; for other Linux distributions, Yarn is always installed using Corepack, with a fallback to installation via NPM if an error occurs."
         }
     },
