@@ -314,13 +314,19 @@ else
             buildx=(moby-buildx${buildx_version_suffix})
         fi
         apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}" || { err "It seems packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-24.04')." ; exit 1 ; }
-        apt-get -y install --no-install-recommends moby-compose || echo "(*) Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+        if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "v1" ]; then
+            apt-get -y install --no-install-recommends moby-compose || echo "(*) Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+        fi
     else
         buildx=()
         if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
             buildx=(docker-buildx-plugin)
         fi
-        apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}" docker-compose-plugin
+        if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "v1" ]; then
+            apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}" docker-compose-plugin
+        else
+            apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}"
+        fi
         buildx_path="/usr/libexec/docker/cli-plugins/docker-buildx"
         # Older versions of Docker CE installs buildx as part of the CLI package
         if [ "${INSTALL_DOCKER_BUILDX}" = "false" ] && [ -f "${buildx_path}" ]; then
