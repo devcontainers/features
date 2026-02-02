@@ -14,7 +14,8 @@ check "docker-buildx" docker buildx version
 check "docker-build" docker build ./
 
 check "installs docker-compose v1 install" bash -c "type docker-compose"
-check "installs compose-switch" bash -c "[[ -f /usr/local/bin/compose-switch ]]"
+
+check "Not installing compose-switch by default" bash -c "[[ ! -f /usr/local/bin/compose-switch ]]"
 
 # Report result
 reportResults

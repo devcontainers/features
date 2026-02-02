@@ -19,7 +19,7 @@ AZ_BICEPVERSION=${BICEPVERSION:-latest}
 INSTALL_USING_PYTHON=${INSTALLUSINGPYTHON:-false}
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64 arm64"
-AZCLI_ARCHIVE_VERSION_CODENAMES="stretch bookworm buster bullseye bionic focal jammy noble"
+AZCLI_ARCHIVE_VERSION_CODENAMES="stretch bookworm buster bullseye bionic focal jammy noble trixie"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -98,7 +98,15 @@ install_using_apt() {
     # Import key safely (new 'signed-by' method rather than deprecated apt-key approach) and install
     curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
     echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/azure-cli/ ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/azure-cli.list
-    apt-get update
+    
+    # This is a workaround for the fact that Azure CLI is not yet a supported package for debian trixie. Once Azure CLI is supported we should revert to avoid script failure for non Azure CLI packages
+    if ! (apt-get update); then
+        echo "(!) Failed to update apt cache, removing repository file"
+        rm -f /etc/apt/sources.list.d/azure-cli.list
+    else  
+        echo "WARNING: apt-get update succeeded. The workaround for broken Azure CLI install on Debian Trixie may no longer be needed."  
+        echo "TODO: Consider reverting to a simple `apt-get update` if the Azure CLI repo works reliably for debian trixie"  
+    fi
 
     if [ "${AZ_VERSION}" = "latest" ] || [ "${AZ_VERSION}" = "lts" ] || [ "${AZ_VERSION}" = "stable" ]; then
         # Empty, meaning grab the "latest" in the apt repo
@@ -135,7 +143,7 @@ install_using_pip_strategy() {
 
 install_with_pipx() {
     echo "(*) Attempting to install globally with pipx..."
-    local ver="$1"
+    local ver="$1" 
     export 
     local 
 

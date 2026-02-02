@@ -13,7 +13,7 @@
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "8.0"
+                "version": "10.0"
             }
         }
     },
@@ -40,7 +40,7 @@
         "remoteUser": "vscode",
         "features": {
             "dotnet": {
-                "version": "10.0-preview",
+                "version": "10.0",
                 "additionalVersions": [
                     "9.0",
                     "8.0",
@@ -49,20 +49,6 @@
             }
         }
     },
-    "install_dotnet_multiple_versions_preview": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-        "remoteUser": "vscode",
-        "features": {
-            "dotnet": {
-                "version": "9.0",
-                "additionalVersions": [
-                    "10.0-preview",
-                    "8.0",
-                    "7.0"
-                ]
-            }
-        }
-    },    
     "install_dotnet_global_tool": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "remoteUser": "vscode",
