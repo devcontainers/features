@@ -1,7 +1,3 @@
-## OS Support
-
-This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, RockyLinux, and Alpine Linux.
-
 ## Location of Flakes
 
 Currently `flakeUri` works best with a remote URI (e.g., `github:nixos/nixpkgs/nixpkgs-unstable#hello`) as local files need to be in the image.
@@ -27,9 +23,15 @@ sudo /usr/local/share/nix-entrypoint.sh
 
 This same command can be used to restart the daemon if it has stopped for some reason. Logs are available at `/tmp/nix-daemon.log`.
 
-
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, RockyLinux, and Alpine Linux.
+(Just `bash` is required to execute the `install.sh` script.)
 
-`bash` is required to execute the `install.sh` script.
+It's known to be broken (see #[275](https://github.com/devcontainers/features/issues/275)) with:
+
+    "image": "mcr.microsoft.com/devcontainers/universal:2-linux",
+
+but known (and tested) to work with:
+
+    "image": "mcr.microsoft.com/devcontainers/base:trixie",
