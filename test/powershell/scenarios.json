@@ -3,6 +3,7 @@
     "image": "mcr.microsoft.com/devcontainers/base:noble",
     "features": {
       "powershell": {
+        "version": "lts",
         "modules": "az.resources, az.storage",
         "powershellProfileURL": "https://raw.githubusercontent.com/codspace/powershell-profile/main/Test-Profile.ps1"
       }
@@ -29,6 +30,14 @@
     "image": "mcr.microsoft.com/devcontainers/base:noble",
     "features": {
       "powershell": {}
+    }
+  },
+  "validate_powershell_installation_spec": {
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
+    "features": {
+      "powershell": {
+        "version": "7.5"
+      }
     }
   },
   "powershell_alma_linux": {
