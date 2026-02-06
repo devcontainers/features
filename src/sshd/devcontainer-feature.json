@@ -1,42 +1,42 @@
 {
-    "id": "sshd",
-    "version": "1.1.0",
-    "name": "SSH server",
-    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/sshd",
-    "description": "Adds a SSH server into a container so that you can use an external terminal, sftp, or SSHFS to interact with it.",
-    "options": {
-        "version": {
-            "type": "string",
-            "proposals": [
-                "latest"
-            ],
-            "default": "latest",
-            "description": "Currently unused."
-        },
-        "gatewayPorts": {
-            "type": "string",
-            "enum": [
-                "no",
-                "yes",
-                "clientspecified"
-            ],
-            "default": "no",
-            "description": "Enable other hosts in the same network to connect to the forwarded ports"
-        }
+  "id": "sshd",
+  "version": "1.2.0",
+  "name": "SSH server",
+  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/sshd",
+  "description": "Adds a SSH server into a container so that you can use an external terminal, sftp, or SSHFS to interact with it.",
+  "options": {
+    "version": {
+      "type": "string",
+      "proposals": [
+        "latest"
+      ],
+      "default": "latest",
+      "description": "Currently unused."
     },
-    "entrypoint": "/usr/local/share/ssh-init.sh",
-    "customizations": {
-        "vscode": {
-            "settings": {
-                "github.copilot.chat.codeGeneration.instructions": [
-                    {
-                        "text": "This dev container includes an SSH server so that you can use an external terminal, sftp, or SSHFS to interact with it. The first time you've started the container, you will want to set a password for your user. With each connection to the container, you'll want to forward the SSH port to your local machine and use a local terminal or other tool to connect using the password you set."
-                    }
-                ]
-            }
-        }
-    },
-    "installsAfter": [
-        "ghcr.io/devcontainers/features/common-utils"
-    ]
+    "gatewayPorts": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "clientspecified"
+      ],
+      "default": "no",
+      "description": "Enable other hosts in the same network to connect to the forwarded ports"
+    }
+  },
+  "entrypoint": "/usr/local/share/ssh-init.sh",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes an SSH server so that you can use an external terminal, sftp, or SSHFS to interact with it. The first time you've started the container, you will want to set a password for your user. With each connection to the container, you'll want to forward the SSH port to your local machine and use a local terminal or other tool to connect using the password you set."
+          }
+        ]
+      }
+    }
+  },
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/common-utils"
+  ]
 }
