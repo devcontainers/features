@@ -15,7 +15,7 @@ Determines the appropriate non-root user based on the input username.
 **Usage:**
 ```bash
 # Source the helper script
-source "${SCRIPT_DIR}/../.common/common-setup.sh"
+source "${SCRIPT_DIR}/_lib/common-setup.sh"
 
 # Determine the user
 USERNAME=$(determine_user_from_input "${USERNAME}" "root")
@@ -110,7 +110,7 @@ fi
 ```bash
 # Source common helper functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../.common/common-setup.sh"
+source "${SCRIPT_DIR}/_lib/common-setup.sh"
 
 # Determine the appropriate non-root user
 USERNAME=$(determine_user_from_input "${USERNAME}" "root")
