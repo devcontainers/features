@@ -15,7 +15,7 @@ Determines the appropriate non-root user based on the input username.
 **Usage:**
 ```bash
 # Source the helper script
-source "${SCRIPT_DIR}/../_common/common-setup.sh"
+source "${SCRIPT_DIR}/../.common/common-setup.sh"
 
 # Determine the user
 USERNAME=$(determine_user_from_input "${USERNAME}" "root")
@@ -64,10 +64,10 @@ Prints the resolved username to stdout, which can be captured using command subs
 
 ## Testing
 
-Tests for the helper scripts are located in `/test/_common/`. Run the tests with:
+Tests for the helper scripts are located in `/test/.common/`. Run the tests with:
 
 ```bash
-bash test/_common/test-common-setup.sh
+bash test/.common/test-common-setup.sh
 ```
 
 ## Edge Cases
@@ -110,7 +110,7 @@ fi
 ```bash
 # Source common helper functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../_common/common-setup.sh"
+source "${SCRIPT_DIR}/../.common/common-setup.sh"
 
 # Determine the appropriate non-root user
 USERNAME=$(determine_user_from_input "${USERNAME}" "root")

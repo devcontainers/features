@@ -73,7 +73,7 @@ fi
 
 # Source common helper functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../_common/common-setup.sh"
+source "${SCRIPT_DIR}/../.common/common-setup.sh"
 
 # Determine the appropriate non-root user
 USERNAME=$(determine_user_from_input "${USERNAME}" "root")

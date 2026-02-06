@@ -8,7 +8,7 @@ set -e
 
 # Source the helper script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../../src/_common/common-setup.sh"
+source "${SCRIPT_DIR}/../../src/.common/common-setup.sh"
 
 # Test counters
 PASSED=0
