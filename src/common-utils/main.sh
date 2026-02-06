@@ -399,10 +399,6 @@ case "${ADJUSTED_ID}" in
         ;;
 esac
 
-# Source common helper functions
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/_lib/common-setup.sh"
-
 # Handle the special "none" case for common-utils before user determination
 # The "none" case sets USER_UID and USER_GID to 0
 ORIGINAL_USERNAME="${USERNAME}"
@@ -410,9 +406,25 @@ if [ "${ORIGINAL_USERNAME}" = "none" ]; then
     USERNAME="root"
     USER_UID=0
     USER_GID=0
-else
+elif [ "${ORIGINAL_USERNAME}" = "auto" ] || [ "${ORIGINAL_USERNAME}" = "automatic" ]; then
     # If in automatic mode, determine if a user already exists, if not use vscode (which will be created)
-    USERNAME=$(determine_user_from_input "${USERNAME}" "vscode")
+    # common-utils has special handling because it CREATES users, not just uses existing ones
+    if [ "${_REMOTE_USER}" != "root" ]; then
+        USERNAME="${_REMOTE_USER}"
+    else
+        # Try to find an existing user, or fall back to "vscode" which we'll create
+        USERNAME=""
+        POSSIBLE_USERS=("devcontainer" "vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
+        for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
+            if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+                USERNAME=${CURRENT_USER}
+                break
+            fi
+        done
+        if [ "${USERNAME}" = "" ]; then
+            USERNAME=vscode
+        fi
+    fi
 fi
 # Create or update a non-root user to match UID/GID.
 group_name="${USERNAME}"
