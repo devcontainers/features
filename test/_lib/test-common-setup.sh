@@ -6,9 +6,9 @@
 
 set -e
 
-# Source the helper script
+# Source the helper script from anaconda feature as reference
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../../src/.common/common-setup.sh"
+source "${SCRIPT_DIR}/../../src/anaconda/_lib/common-setup.sh"
 
 # Test counters
 PASSED=0
