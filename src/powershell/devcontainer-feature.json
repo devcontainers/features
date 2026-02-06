@@ -20,7 +20,7 @@
         "modules": {
             "type": "string",
             "default": "",
-            "description": "Optional comma separated list of PowerShell modules to install. If you need to install a specific version of a module, use '==' to specify the version (e.g. 'az.resources==2.5.0')"
+            "description": "Optional comma separated list of PowerShell modules to install. If you need to install a specific version of a module, use '==' to specify the version (e.g. 'az.resources==2.5.0')."
         },
         "powershellProfileURL": {
             "type": "string",
