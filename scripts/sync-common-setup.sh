@@ -19,9 +19,9 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SOURCE_FILE="${REPO_ROOT}/scripts/lib/common-setup.sh"
 
 # Features that use the common-setup helper
+# Note: common-utils is excluded because it creates users (different semantics)
 FEATURES=(
     "anaconda"
-    "common-utils"
     "conda"
     "desktop-lite"
     "docker-in-docker"
