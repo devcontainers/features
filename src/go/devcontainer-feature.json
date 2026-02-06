@@ -1,54 +1,54 @@
 {
-  "id": "go",
-  "version": "1.4.0",
-  "name": "Go",
-  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/go",
-  "description": "Installs Go and common Go utilities. Auto-detects latest version and installs needed dependencies.",
-  "options": {
-    "version": {
-      "type": "string",
-      "proposals": [
-        "latest",
-        "none",
-        "1.24",
-        "1.23"
-      ],
-      "default": "latest",
-      "description": "Select or enter a Go version to install"
+    "id": "go",
+    "version": "1.4.0",
+    "name": "Go",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/go",
+    "description": "Installs Go and common Go utilities. Auto-detects latest version and installs needed dependencies.",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest",
+                "none",
+                "1.24",
+                "1.23"
+            ],
+            "default": "latest",
+            "description": "Select or enter a Go version to install"
+        },
+        "golangciLintVersion": {
+            "type": "string",
+            "default": "latest",
+            "description": "Version of golangci-lint to install"
+        }
     },
-    "golangciLintVersion": {
-      "type": "string",
-      "default": "latest",
-      "description": "Version of golangci-lint to install"
-    }
-  },
-  "init": true,
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "golang.Go"
-      ],
-      "settings": {
-        "github.copilot.chat.codeGeneration.instructions": [
-          {
-            "text": "This dev container includes Go and common Go utilities pre-installed and available on the `PATH`, along with the Go language extension for Go development."
-          }
-        ]
-      }
-    }
-  },
-  "containerEnv": {
-    "GOROOT": "/usr/local/go",
-    "GOPATH": "/go",
-    "PATH": "/usr/local/go/bin:/go/bin:${PATH}"
-  },
-  "capAdd": [
-    "SYS_PTRACE"
-  ],
-  "securityOpt": [
-    "seccomp=unconfined"
-  ],
-  "installsAfter": [
-    "ghcr.io/devcontainers/features/common-utils"
-  ]
+    "init": true,
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.Go"
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes Go and common Go utilities pre-installed and available on the `PATH`, along with the Go language extension for Go development."
+                    }
+                ]
+            }
+        }
+    },
+    "containerEnv": {
+        "GOROOT": "/usr/local/go",
+        "GOPATH": "/go",
+        "PATH": "/usr/local/go/bin:/go/bin:${PATH}"
+    },
+    "capAdd": [
+        "SYS_PTRACE"
+    ],
+    "securityOpt": [
+        "seccomp=unconfined"
+    ],
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
 }
