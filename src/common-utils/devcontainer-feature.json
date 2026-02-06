@@ -1,6 +1,10 @@
 {
     "id": "common-utils",
+<<<<<<< HEAD
     "version": "2.5.7",
+=======
+    "version": "2.6.0",
+>>>>>>> 997feb3 (Fix JSON indentation to preserve original formatting)
     "name": "Common Utilities",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/common-utils",
     "description": "Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.",

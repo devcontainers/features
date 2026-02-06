@@ -1,34 +1,34 @@
 {
-  "id": "anaconda",
-  "version": "1.2.0",
-  "name": "Anaconda",
-  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/anaconda",
-  "options": {
-    "version": {
-      "type": "string",
-      "proposals": [
-        "latest"
-      ],
-      "default": "latest",
-      "description": "Select or enter an anaconda version."
-    }
-  },
-  "containerEnv": {
-    "CONDA_DIR": "/usr/local/conda",
-    "PATH": "/usr/local/conda/bin:${PATH}"
-  },
-  "customizations": {
-    "vscode": {
-      "settings": {
-        "github.copilot.chat.codeGeneration.instructions": [
-          {
-            "text": "This dev container includes Anaconda and the conda package manager pre-installed and available on the `PATH` for data science and Python development. Additional packages installed using Conda will be downloaded from Anaconda or another repository configured by the user. A user can install different versions of Python than the one in this dev container by running a command like: conda install python=3.7"
-          }
-        ]
-      }
-    }
-  },
-  "installsAfter": [
-    "ghcr.io/devcontainers/features/common-utils"
-  ]
+    "id": "anaconda",
+    "version": "1.2.0",
+    "name": "Anaconda",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/anaconda",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest"
+            ],
+            "default": "latest",
+            "description": "Select or enter an anaconda version."
+        }
+    },
+    "containerEnv": {
+        "CONDA_DIR": "/usr/local/conda",
+        "PATH": "/usr/local/conda/bin:${PATH}"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes Anaconda and the conda package manager pre-installed and available on the `PATH` for data science and Python development. Additional packages installed using Conda will be downloaded from Anaconda or another repository configured by the user. A user can install different versions of Python than the one in this dev container by running a command like: conda install python=3.7"
+                    }
+                ]
+            }
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
 }

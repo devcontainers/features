@@ -1,6 +1,10 @@
 {
     "id": "go",
+<<<<<<< HEAD
     "version": "1.3.3",
+=======
+    "version": "1.4.0",
+>>>>>>> 997feb3 (Fix JSON indentation to preserve original formatting)
     "name": "Go",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/go",
     "description": "Installs Go and common Go utilities. Auto-detects latest version and installs needed dependencies.",
@@ -22,6 +26,7 @@
             "description": "Version of golangci-lint to install"
         }
     },
+<<<<<<< HEAD
   "init": true,
   "customizations": {
     "vscode": {
@@ -51,4 +56,35 @@
   "installsAfter": [
     "ghcr.io/devcontainers/features/common-utils"
   ]
+=======
+    "init": true,
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.Go"
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes Go and common Go utilities pre-installed and available on the `PATH`, along with the Go language extension for Go development."
+                    }
+                ]
+            }
+        }
+    },
+    "containerEnv": {
+        "GOROOT": "/usr/local/go",
+        "GOPATH": "/go",
+        "PATH": "/usr/local/go/bin:/go/bin:${PATH}"
+    },
+    "capAdd": [
+        "SYS_PTRACE"
+    ],
+    "securityOpt": [
+        "seccomp=unconfined"
+    ],
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
+>>>>>>> 997feb3 (Fix JSON indentation to preserve original formatting)
 }

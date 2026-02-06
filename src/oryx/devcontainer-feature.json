@@ -1,6 +1,10 @@
 {
     "id": "oryx",
+<<<<<<< HEAD
     "version": "2.0.0",
+=======
+    "version": "1.5.0",
+>>>>>>> 997feb3 (Fix JSON indentation to preserve original formatting)
     "name": "Oryx",
     "description": "Installs the oryx CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/oryx",
@@ -10,7 +14,11 @@
         "DYNAMIC_INSTALL_ROOT_DIR": "/opt",
         "ORYX_PREFER_USER_INSTALLED_SDKS": "true",
         "ORYX_DIR": "/usr/local/oryx",
+<<<<<<< HEAD
         "DEBIAN_FLAVOR": "bookworm",
+=======
+        "DEBIAN_FLAVOR": "focal-scm",
+>>>>>>> 997feb3 (Fix JSON indentation to preserve original formatting)
         "PATH": "/usr/local/oryx:${PATH}"
     },
     "customizations": {

@@ -1,106 +1,106 @@
 {
-  "id": "rust",
-  "version": "1.6.0",
-  "name": "Rust",
-  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/rust",
-  "description": "Installs Rust, common Rust utilities, and their required dependencies",
-  "options": {
-    "version": {
-      "type": "string",
-      "proposals": [
-        "latest",
-        "none",
-        "1.87",
-        "1.86",
-        "1.85",
-        "1.84",
-        "1.83",
-        "1.82",
-        "1.81",
-        "1.80",
-        "1.79",
-        "1.78",
-        "1.77",
-        "1.76",
-        "1.75",
-        "1.74",
-        "1.73",
-        "1.72",
-        "1.71",
-        "1.70",
-        "1.69",
-        "1.68",
-        "1.67",
-        "1.66",
-        "1.65",
-        "1.64"
-      ],
-      "default": "latest",
-      "description": "Select or enter a version of Rust to install."
-    },
-    "profile": {
-      "type": "string",
-      "proposals": [
-        "minimal",
-        "default",
-        "complete"
-      ],
-      "default": "minimal",
-      "description": "Select a rustup install profile."
-    },
-    "targets": {
-      "type": "string",
-      "default": "",
-      "description": "Optional comma separated list of additional Rust targets to install.",
-      "proposals": [
-        "aarch64-unknown-linux-gnu",
-        "armv7-unknown-linux-gnueabihf",
-        "x86_64-unknown-redox,x86_64-unknown-uefi"
-      ]
-    },
-    "components": {
-      "type": "string",
-      "default": "rust-analyzer,rust-src,rustfmt,clippy",
-      "description": "Optional, comma separated list of Rust components to be installed",
-      "proposals": [
-        "rust-analyzer,rust-src,rustfmt,clippy",
-        "rust-analyzer,rust-src",
-        "rustfmt,clippy,rust-docs",
-        "llvm-tools-preview,rust-src,rustfmt"
-      ]
-    }
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "vadimcn.vscode-lldb",
-        "rust-lang.rust-analyzer",
-        "tamasfe.even-better-toml"
-      ],
-      "settings": {
-        "files.watcherExclude": {
-          "**/target/**": true
+    "id": "rust",
+    "version": "1.6.0",
+    "name": "Rust",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/rust",
+    "description": "Installs Rust, common Rust utilities, and their required dependencies",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest",
+                "none",
+                "1.87",
+                "1.86",
+                "1.85",
+                "1.84",
+                "1.83",
+                "1.82",
+                "1.81",
+                "1.80",
+                "1.79",
+                "1.78",
+                "1.77",
+                "1.76",
+                "1.75",
+                "1.74",
+                "1.73",
+                "1.72",
+                "1.71",
+                "1.70",
+                "1.69",
+                "1.68",
+                "1.67",
+                "1.66",
+                "1.65",
+                "1.64"
+            ],
+            "default": "latest",
+            "description": "Select or enter a version of Rust to install."
         },
-        "github.copilot.chat.codeGeneration.instructions": [
-          {
-            "text": "This dev container includes Rust, common Rust utilities, and needed dependencies pre-installed and available on the `PATH`, along with the Rust language extension for Rust development."
-          }
-        ]
-      }
-    }
-  },
-  "containerEnv": {
-    "CARGO_HOME": "/usr/local/cargo",
-    "RUSTUP_HOME": "/usr/local/rustup",
-    "PATH": "/usr/local/cargo/bin:${PATH}"
-  },
-  "capAdd": [
-    "SYS_PTRACE"
-  ],
-  "securityOpt": [
-    "seccomp=unconfined"
-  ],
-  "installsAfter": [
-    "ghcr.io/devcontainers/features/common-utils"
-  ]
+        "profile": {
+            "type": "string",
+            "proposals": [
+                "minimal",
+                "default",
+                "complete"
+            ],
+            "default": "minimal",
+            "description": "Select a rustup install profile."
+        },
+        "targets": {
+            "type": "string",
+            "default": "",
+            "description": "Optional comma separated list of additional Rust targets to install.",
+            "proposals": [
+                "aarch64-unknown-linux-gnu",
+                "armv7-unknown-linux-gnueabihf",
+                "x86_64-unknown-redox,x86_64-unknown-uefi"
+            ]
+        },
+        "components": {
+            "type": "string",
+            "default": "rust-analyzer,rust-src,rustfmt,clippy",
+            "description": "Optional, comma separated list of Rust components to be installed",
+            "proposals": [
+                "rust-analyzer,rust-src,rustfmt,clippy",
+                "rust-analyzer,rust-src",
+                "rustfmt,clippy,rust-docs",
+                "llvm-tools-preview,rust-src,rustfmt"
+            ]
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "vadimcn.vscode-lldb",
+                "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml"
+            ],
+            "settings": {
+                "files.watcherExclude": {
+                    "**/target/**": true
+                },
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes Rust, common Rust utilities, and needed dependencies pre-installed and available on the `PATH`, along with the Rust language extension for Rust development."
+                    }
+                ]
+            }
+        }
+    },
+    "containerEnv": {
+        "CARGO_HOME": "/usr/local/cargo",
+        "RUSTUP_HOME": "/usr/local/rustup",
+        "PATH": "/usr/local/cargo/bin:${PATH}"
+    },
+    "capAdd": [
+        "SYS_PTRACE"
+    ],
+    "securityOpt": [
+        "seccomp=unconfined"
+    ],
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
 }

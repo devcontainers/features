@@ -1,49 +1,49 @@
 {
-  "id": "php",
-  "version": "1.2.0",
-  "name": "PHP",
-  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/php",
-  "options": {
-    "version": {
-      "type": "string",
-      "proposals": [
-        "latest",
-        "8",
-        "8.2",
-        "8.2.0",
-        "none"
-      ],
-      "default": "latest",
-      "description": "Select or enter a PHP version"
+    "id": "php",
+    "version": "1.2.0",
+    "name": "PHP",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/php",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest",
+                "8",
+                "8.2",
+                "8.2.0",
+                "none"
+            ],
+            "default": "latest",
+            "description": "Select or enter a PHP version"
+        },
+        "installComposer": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install PHP Composer?"
+        }
     },
-    "installComposer": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install PHP Composer?"
-    }
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "xdebug.php-debug",
-        "bmewburn.vscode-intelephense-client",
-        "xdebug.php-pack",
-        "devsense.phptools-vscode"
-      ],
-      "settings": {
-        "github.copilot.chat.codeGeneration.instructions": [
-          {
-            "text": "This dev container includes PHP pre-installed and available on the `PATH`, along with PHP language extensions for PHP development."
-          }
-        ]
-      }
-    }
-  },
-  "containerEnv": {
-    "PHP_PATH": "/usr/local/php/current",
-    "PATH": "/usr/local/php/current/bin:${PATH}"
-  },
-  "installsAfter": [
-    "ghcr.io/devcontainers/features/common-utils"
-  ]
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "xdebug.php-debug",
+                "bmewburn.vscode-intelephense-client",
+                "xdebug.php-pack",
+                "devsense.phptools-vscode"
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes PHP pre-installed and available on the `PATH`, along with PHP language extensions for PHP development."
+                    }
+                ]
+            }
+        }
+    },
+    "containerEnv": {
+        "PHP_PATH": "/usr/local/php/current",
+        "PATH": "/usr/local/php/current/bin:${PATH}"
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
 }

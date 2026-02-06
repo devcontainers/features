@@ -1,43 +1,43 @@
 {
-  "id": "ruby",
-  "version": "1.4.0",
-  "name": "Ruby (via rvm)",
-  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/ruby",
-  "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
-  "options": {
-    "version": {
-      "type": "string",
-      "proposals": [
-        "latest",
-        "none",
-        "3.4",
-        "3.2"
-      ],
-      "default": "latest",
-      "description": "Select or enter a Ruby version to install"
-    }
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "shopify.ruby-lsp"
-      ],
-      "settings": {
-        "github.copilot.chat.codeGeneration.instructions": [
-          {
-            "text": "This dev container includes Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies pre-installed and available on the `PATH`, along with the Ruby language extension for Ruby development."
-          }
-        ]
-      }
-    }
-  },
-  "containerEnv": {
-    "GEM_PATH": "/usr/local/rvm/gems/default:/usr/local/rvm/gems/default@global",
-    "GEM_HOME": "/usr/local/rvm/gems/default",
-    "MY_RUBY_HOME": "/usr/local/rvm/rubies/default",
-    "PATH": "/usr/local/rvm/gems/default/bin:/usr/local/rvm/gems/default@global/bin:/usr/local/rvm/rubies/default/bin:/usr/local/share/rbenv/bin:${PATH}"
-  },
-  "installsAfter": [
-    "ghcr.io/devcontainers/features/common-utils"
-  ]
+    "id": "ruby",
+    "version": "1.4.0",
+    "name": "Ruby (via rvm)",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/ruby",
+    "description": "Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest",
+                "none",
+                "3.4",
+                "3.2"
+            ],
+            "default": "latest",
+            "description": "Select or enter a Ruby version to install"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "shopify.ruby-lsp"
+            ],
+            "settings": {
+                "github.copilot.chat.codeGeneration.instructions": [
+                    {
+                        "text": "This dev container includes Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies pre-installed and available on the `PATH`, along with the Ruby language extension for Ruby development."
+                    }
+                ]
+            }
+        }
+    },
+    "containerEnv": {
+        "GEM_PATH": "/usr/local/rvm/gems/default:/usr/local/rvm/gems/default@global",
+        "GEM_HOME": "/usr/local/rvm/gems/default",
+        "MY_RUBY_HOME": "/usr/local/rvm/rubies/default",
+        "PATH": "/usr/local/rvm/gems/default/bin:/usr/local/rvm/gems/default@global/bin:/usr/local/rvm/rubies/default/bin:/usr/local/share/rbenv/bin:${PATH}"
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
 }
