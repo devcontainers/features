@@ -38,7 +38,7 @@ chmod +x /etc/profile.d/00-restore-env.sh
 
 # Source common helper functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../_common/common-setup.sh"
+source "${SCRIPT_DIR}/../.common/common-setup.sh"
 
 # If in automatic mode, determine if a user already exists, if not use root
 USERNAME=$(determine_user_from_input "${USERNAME}" "root")
