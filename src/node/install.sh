@@ -12,7 +12,7 @@ export PNPM_VERSION="${PNPMVERSION:-"latest"}"
 export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
-export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-true}"  # only concerns Debian-based systems
+export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-false}"  # only concerns Debian-based systems
 
 # Comma-separated list of node versions to be installed (with nvm)
 # alongside NODE_VERSION, but not set as default.
@@ -203,15 +203,9 @@ install_yarn() {
         # via apt-get on Debian systems
         if ! type yarn >/dev/null 2>&1; then
             # Import key safely (new method rather than deprecated apt-key approach) and install
-            if [ "${VERSION_CODENAME}" = "trixie" ]; then
-                # Trixie requires fetching the key from keys.openpgp.org
-                mkdir -p /etc/apt/keyrings
-                curl -fsSL "https://keys.openpgp.org/vks/v1/by-fingerprint/72ECF46A56B4AD39C907BBB71646B01B86E50310" | gpg --dearmor --yes -o /etc/apt/keyrings/yarn-archive-keyring.gpg
-                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-            else
-                curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor > /usr/share/keyrings/yarn-archive-keyring.gpg
-                echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-            fi
+            mkdir -p /etc/apt/keyrings
+            curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor --yes -o /etc/apt/keyrings/yarn-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
             apt-get update
             apt-get -y install --no-install-recommends yarn
         else
@@ -352,7 +346,9 @@ else
 fi
 
 # Possibly install yarn (puts yarn in per-Node install on RHEL, uses system yarn on Debian)
-install_yarn
+if [ -n "${NODE_VERSION}" ] && [ "${NODE_VERSION}" != "none" ]; then
+    install_yarn
+fi
 
 # Additional node versions to be installed but not be set as
 # default we can assume the nvm is the group owner of the nvm
