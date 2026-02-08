@@ -13,6 +13,7 @@ INSTALL_ZSH="${INSTALLZSH:-"true"}"
 CONFIGURE_ZSH_AS_DEFAULT_SHELL="${CONFIGUREZSHASDEFAULTSHELL:-"false"}"
 INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
 INSTALL_OH_MY_ZSH_CONFIG="${INSTALLOHMYZSHCONFIG:-"true"}"
+OH_MY_ZSH_THEME="${OHMYZSHTHEME:-"devcontainers"}"
 UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
 USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
@@ -570,7 +571,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             if ! [ -f "${template_path}" ] || ! grep -qF "$(head -n 1 "${template_path}")" "${user_rc_file}"; then
                 echo -e "$(cat "${template_path}")\nzstyle ':omz:update' mode disabled" > ${user_rc_file}
             fi
-            sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
+            sed -i -e "s/ZSH_THEME=.*/ZSH_THEME=\"${OH_MY_ZSH_THEME}\"/g" ${user_rc_file}
         fi
 
         # Copy to non-root user if one is specified
