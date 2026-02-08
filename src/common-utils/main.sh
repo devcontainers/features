@@ -571,7 +571,13 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             if ! [ -f "${template_path}" ] || ! grep -qF "$(head -n 1 "${template_path}")" "${user_rc_file}"; then
                 echo -e "$(cat "${template_path}")\nzstyle ':omz:update' mode disabled" > ${user_rc_file}
             fi
-            sed -i -e "s/ZSH_THEME=.*/ZSH_THEME=\"${OH_MY_ZSH_THEME}\"/g" ${user_rc_file}
+            # Validate theme name to prevent injection (allow alphanumeric, hyphens, underscores, and dots)
+            if echo "${OH_MY_ZSH_THEME}" | grep -qE '^[a-zA-Z0-9_.-]+$'; then
+                sed -i -e "s/ZSH_THEME=.*/ZSH_THEME=\"${OH_MY_ZSH_THEME}\"/g" ${user_rc_file}
+            else
+                echo "Warning: Invalid theme name '${OH_MY_ZSH_THEME}'. Using default 'devcontainers' theme."
+                sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
+            fi
         fi
 
         # Copy to non-root user if one is specified
