@@ -37,7 +37,7 @@
         "settings": {
                 "github.copilot.chat.codeGeneration.instructions": [
                     {
-                        "text": "This dev container includes PowerShell along with needed dependencies pre-installed and available on the `PATH`, along with the PowerShell extension."
+                        "text": "This dev container includes PowerShell along with needed dependencies pre-installed and available on the `PATH`, along with the PowerShell extension.."
                     }
                 ]
             }
