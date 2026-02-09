@@ -296,9 +296,10 @@ install_using_github() {
     if ! type git > /dev/null 2>&1; then
         check_packages git
     fi
-
-     if [ "${architecture}" = "amd64" ]; then
+    if [ "${architecture}" = "amd64" ] || [ "${architecture}" = "x86_64" ]; then
         architecture="x64"
+    elif [ "${architecture}" = "aarch64" ]; then
+        architecture="arm64"
     fi
     pwsh_url="https://github.com/PowerShell/PowerShell"
     find_version_from_git_tags POWERSHELL_VERSION $pwsh_url

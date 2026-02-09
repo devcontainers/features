@@ -40,6 +40,12 @@
       }
     }
   },
+  "validate_powershell_installation_debian": {
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+      "powershell": {}
+    }
+  },  
   "powershell_alma_linux": {
     "image": "almalinux:9",
     "features": {
