@@ -48,6 +48,26 @@ clean_cache() {
         rm -rf /var/cache/dnf/*
     fi
 }
+# Function to resolve PowerShell version from Microsoft redirect URLs
+resolve_powershell_version() {
+    local version_tag="$1"
+    local redirect_url="https://aka.ms/powershell-release?tag=${version_tag}"
+    
+    # Follow the redirect and extract the version from the final URL
+    local resolved_url
+    resolved_url=$(curl -sSL -o /dev/null -w '%{url_effective}' "${redirect_url}")
+    
+    # Extract version from URL (e.g., https://github.com/PowerShell/PowerShell/releases/tag/v7.4.7 -> 7.4.7)
+    local resolved_version
+    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-\w+\.\d+)?' || echo "")
+    
+    if [ -z "${resolved_version}" ]; then
+        echo "Failed to resolve version for tag: ${version_tag}" >&2
+        return 1
+    fi
+    
+    echo "${resolved_version}"
+}
 # Install dependencies for RHEL/CentOS/AlmaLinux (DNF-based systems)
 install_using_dnf() {
    dnf remove -y curl-minimal
@@ -98,6 +118,58 @@ detect_package_manager() {
         echo "Could not detect OS"
         exit 1
     fi
+}
+
+# Function to find the latest preview version from git tags
+find_preview_version_from_git_tags() {
+    local variable_name=$1
+    local requested_version=${!variable_name}
+    local repository_url=$2
+
+    if [ -z "${googlegit_cmd_name}" ]; then
+        if type git > /dev/null 2>&1; then
+            git_cmd_name="git"
+        else
+            echo "Git not found. Cannot determine preview version."
+            return 1
+        fi
+    fi
+
+    # Fetch tags from remote repository
+    local tags
+    tags=$(git ls-remote --tags "${repository_url}" 2>/dev/null | grep -oP 'refs/tags/v\K[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+' | sort -V)
+
+    if [ -z "${tags}" ]; then
+        echo "No preview tags found in repository."
+        return 1
+    fi
+
+    local version=""
+
+    if [ "${requested_version}" = "preview" ] || [ "${requested_version}" = "latest" ]; then
+        # Get the latest preview version
+        version=$(echo "${tags}" | tail -n 1)
+    elif [[ "${requested_version}" =~ ^[0-9]+\.[0-9]+$ ]]; then
+        # Partial version provided (e.g., "7.6"), find latest preview matching that major.minor
+        version=$(echo "${tags}" | grep "^${requested_version}\." | tail -n 1)
+    elif [[ "${requested_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-preview$ ]]; then
+        # Version like "7.6.0-preview" provided, find latest preview for that version
+        local base_version="${requested_version%-preview}"
+        version=$(echo "${tags}" | grep "^${base_version}-preview\." | tail -n 1)
+    elif [[ "${requested_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+$ ]]; then
+        # Exact preview version provided, verify it exists
+        if echo "${tags}" | grep -q "^${requested_version}$"; then
+            version="${requested_version}"
+        fi
+    fi
+
+    if [ -z "${version}" ]; then
+        echo "Could not find matching preview version for: ${requested_version}"
+        return 1
+    fi
+
+    declare -g "${variable_name}=${version}"
+    echo "${variable_name}=${version}"
 }
 
 # Figure out correct version of a three part version number is not passed
@@ -302,7 +374,14 @@ install_using_github() {
         architecture="arm64"
     fi
     pwsh_url="https://github.com/PowerShell/PowerShell"
-    find_version_from_git_tags POWERSHELL_VERSION $pwsh_url
+    # Check if we need to find a preview version or stable version
+    if [[ "${POWERSHELL_VERSION}" == *"preview"* ]] || [ "${POWERSHELL_VERSION}" = "preview" ]; then
+        echo "Finding preview version..."
+        find_preview_version_from_git_tags POWERSHELL_VERSION "${pwsh_url}"
+    else
+        find_version_from_git_tags POWERSHELL_VERSION "${pwsh_url}"
+    fi
+
     install_pwsh "${POWERSHELL_VERSION}"
     if grep -q "Not Found" "${powershell_filename}"; then 
         install_prev_pwsh $pwsh_url
@@ -312,7 +391,6 @@ install_using_github() {
     wget https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}
     mkdir ~/powershell
     tar -xvf powershell-${POWERSHELL_VERSION}-linux-x64.tar.gz -C ~/powershell
-
 
     powershell_archive_sha256="$(cat release.html | tr '\n' ' ' | sed 's|<[^>]*>||g' | grep -oP "${powershell_filename}\s+\K[0-9a-fA-F]{64}" || echo '')"
     if [ -z "${powershell_archive_sha256}" ]; then
@@ -331,6 +409,17 @@ install_using_github() {
 
 if ! type pwsh >/dev/null 2>&1; then
     export DEBIAN_FRONTEND=noninteractive
+    if [ "${POWERSHELL_VERSION}" = "lts" ] || [ "${POWERSHELL_VERSION}" = "stable" ] || [ "${POWERSHELL_VERSION}" = "preview" ]; then
+        echo "Resolving PowerShell '${POWERSHELL_VERSION}' version from Microsoft..."
+        resolved_version=$(resolve_powershell_version "${POWERSHELL_VERSION}")
+        if [ -n "${resolved_version}" ]; then
+            echo "Resolved '${POWERSHELL_VERSION}' to version: ${resolved_version}"
+            POWERSHELL_VERSION="${resolved_version}"
+        else
+            echo "Warning: Could not resolve '${POWERSHELL_VERSION}' version. Falling back to 'latest'."
+            POWERSHELL_VERSION="latest"
+        fi
+    fi    
     
     # Source /etc/os-release to get OS info
     . /etc/os-release
@@ -341,11 +430,10 @@ if ! type pwsh >/dev/null 2>&1; then
         POWERSHELL_ARCHIVE_ARCHITECTURES="${POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX}"
     fi
 
-    if [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${POWERSHELL_ARCHIVE_ARCHITECTURES_UBUNTU}"* ]] && [[  "${POWERSHELL_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
+    if [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${POWERSHELL_ARCHIVE_ARCHITECTURES_UBUNTU}"* ]] && [[  "${POWERSHELL_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${POWERSHELL_VERSION}" != *"preview"* ]]; then
         install_using_apt || use_github="true"
-    elif [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX}"* ]]; then 
+    elif [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX}"* ]] && [[ "${POWERSHELL_VERSION}" != *"preview"* ]]; then 
         install_using_dnf && install_powershell_dnf || use_github="true"
-    
     else 
        use_github="true"
     fi

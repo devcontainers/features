@@ -51,5 +51,37 @@
     "features": {
       "powershell": {} 
     }
+  },
+  "powershell_stable_version": {
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
+    "features": {
+      "powershell": {
+        "version": "stable"
+      }
+    }
+  },
+  "powershell_preview_version": {
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
+    "features": {
+      "powershell": {
+        "version": "preview"
+      }
+    }
+  },
+  "powershell_stable_version_debian": {
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+      "powershell": {
+        "version": "stable"
+      }
+    }
+  },
+  "powershell_preview_version_debian": {
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+      "powershell": {
+        "version": "preview"
+      }
+    }
   }
 }
