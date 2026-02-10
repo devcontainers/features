@@ -76,6 +76,14 @@
       }
     }
   },
+  "powershell_lts_version_debian": {
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+      "powershell": {
+        "version": "lts"
+      }
+    }
+  },
   "powershell_preview_version_debian": {
     "image": "mcr.microsoft.com/devcontainers/base:debian",
     "features": {
