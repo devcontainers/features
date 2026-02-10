@@ -85,19 +85,23 @@ if ! conda --version &> /dev/null ; then
     if [ "${VERSION}" = "latest" ]; then
         # For latest, we need to query the repository to find the current version
         # Use the Packages file from the repository
-        PACKAGES_URL="https://repo.anaconda.com/pkgs/misc/debrepo/conda/dists/stable/main/binary-$(dpkg --print-architecture)/Packages"
+        ARCH="$(dpkg --print-architecture 2>/dev/null || echo "amd64")"
+        PACKAGES_URL="https://repo.anaconda.com/pkgs/misc/debrepo/conda/dists/stable/main/binary-${ARCH}/Packages"
         echo "Fetching package list to determine latest version..."
-        CONDA_PKG_INFO=$(curl -fsSL "${PACKAGES_URL}" | grep -A 20 "^Package: conda$" | head -n 21)
+        CONDA_PKG_INFO=$(curl -fsSL "${PACKAGES_URL}" | grep -A 30 "^Package: conda$" | head -n 31)
         CONDA_VERSION=$(echo "${CONDA_PKG_INFO}" | grep "^Version:" | head -n 1 | awk '{print $2}')
         
         if [ -z "${CONDA_VERSION}" ]; then
-            echo "ERROR: Could not determine latest conda version"
+            echo "ERROR: Could not determine latest conda version from ${PACKAGES_URL}"
+            echo "This may indicate an unsupported architecture or repository unavailability."
             rm -f "${TEMP_DEB}"
             exit 1
         fi
         
         CONDA_PKG_NAME="conda_${CONDA_VERSION}_all.deb"
     else
+        # For specific versions, try the standard naming pattern
+        # Note: Package revision suffix (e.g., -0, -1) may vary; -0 is most common
         CONDA_PKG_NAME="conda_${VERSION}-0_all.deb"
     fi
     
@@ -121,7 +125,7 @@ if ! conda --version &> /dev/null ; then
     
     # Install the package using apt (which handles dependencies automatically)
     echo "Installing conda package..."
-    if ! apt-get install -y "${TEMP_DEB}"; then
+    if ! apt-get install -y "./${TEMP_DEB}"; then
         echo "ERROR: Failed to install conda package"
         rm -f "${TEMP_DEB}"
         exit 1
