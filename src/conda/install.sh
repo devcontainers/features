@@ -72,48 +72,63 @@ if ! conda --version &> /dev/null ; then
     fi
     usermod -a -G conda "${USERNAME}"
 
-    # Install dependencies (only curl and ca-certificates needed for direct download)
+    # Install dependencies
     check_packages curl ca-certificates
 
     echo "Installing Conda..."
 
-    # Download Miniconda installer directly (avoiding apt repository with SHA1 signature issues)
-    TEMP_INSTALLER="$(mktemp -t miniconda_installer_XXXXXX.sh)"
-    MINICONDA_BASE_URL="https://repo.anaconda.com/miniconda"
+    # Download .deb package directly from repository (bypassing SHA1 signature issue)
+    TEMP_DEB="$(mktemp -t conda_XXXXXX.deb)"
+    CONDA_REPO_BASE="https://repo.anaconda.com/pkgs/misc/debrepo/conda/pool/main/c/conda"
     
-    # Determine installer filename based on requested version
+    # Determine package filename based on requested version
     if [ "${VERSION}" = "latest" ]; then
-        INSTALLER_NAME="Miniconda3-latest-Linux-x86_64.sh"
+        # For latest, we need to query the repository to find the current version
+        # Use the Packages file from the repository
+        PACKAGES_URL="https://repo.anaconda.com/pkgs/misc/debrepo/conda/dists/stable/main/binary-$(dpkg --print-architecture)/Packages"
+        echo "Fetching package list to determine latest version..."
+        CONDA_PKG_INFO=$(curl -fsSL "${PACKAGES_URL}" | grep -A 20 "^Package: conda$" | head -n 21)
+        CONDA_VERSION=$(echo "${CONDA_PKG_INFO}" | grep "^Version:" | head -n 1 | awk '{print $2}')
+        
+        if [ -z "${CONDA_VERSION}" ]; then
+            echo "ERROR: Could not determine latest conda version"
+            rm -f "${TEMP_DEB}"
+            exit 1
+        fi
+        
+        CONDA_PKG_NAME="conda_${CONDA_VERSION}_all.deb"
     else
-        # Note: Specific conda versions may require corresponding Python version adjustments
-        # The py39 base works with conda 4.11.0 and 4.12.0 (as per feature options)
-        INSTALLER_NAME="Miniconda3-py39_${VERSION}-Linux-x86_64.sh"
+        CONDA_PKG_NAME="conda_${VERSION}-0_all.deb"
     fi
     
-    # Fetch the installer script with error handling
-    if ! curl -fsSL "${MINICONDA_BASE_URL}/${INSTALLER_NAME}" -o "${TEMP_INSTALLER}"; then
-        echo "ERROR: Failed to download Miniconda installer from ${MINICONDA_BASE_URL}/${INSTALLER_NAME}"
+    # Download the .deb package
+    CONDA_DEB_URL="${CONDA_REPO_BASE}/${CONDA_PKG_NAME}"
+    echo "Downloading conda package from ${CONDA_DEB_URL}..."
+    
+    if ! curl -fsSL "${CONDA_DEB_URL}" -o "${TEMP_DEB}"; then
+        echo "ERROR: Failed to download conda .deb package from ${CONDA_DEB_URL}"
         echo "Please verify the version specified is valid."
-        rm -f "${TEMP_INSTALLER}"
+        rm -f "${TEMP_DEB}"
         exit 1
     fi
     
-    # Verify the installer was downloaded successfully
-    if [ ! -f "${TEMP_INSTALLER}" ] || [ ! -s "${TEMP_INSTALLER}" ]; then
-        echo "ERROR: Miniconda installer file is missing or empty"
-        rm -f "${TEMP_INSTALLER}"
+    # Verify the package was downloaded successfully
+    if [ ! -f "${TEMP_DEB}" ] || [ ! -s "${TEMP_DEB}" ]; then
+        echo "ERROR: Conda .deb package file is missing or empty"
+        rm -f "${TEMP_DEB}"
         exit 1
     fi
     
-    # Execute installation in silent mode to target directory
-    if ! bash "${TEMP_INSTALLER}" -b -u -p "${CONDA_DIR}"; then
-        echo "ERROR: Miniconda installation failed. Check system requirements and disk space."
-        rm -f "${TEMP_INSTALLER}"
+    # Install the package using apt (which handles dependencies automatically)
+    echo "Installing conda package..."
+    if ! apt-get install -y "${TEMP_DEB}"; then
+        echo "ERROR: Failed to install conda package"
+        rm -f "${TEMP_DEB}"
         exit 1
     fi
     
-    # Clean up installer file
-    rm -f "${TEMP_INSTALLER}"
+    # Clean up downloaded package
+    rm -f "${TEMP_DEB}"
 
     CONDA_SCRIPT="/opt/conda/etc/profile.d/conda.sh"
     . $CONDA_SCRIPT
