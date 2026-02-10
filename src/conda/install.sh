@@ -72,21 +72,48 @@ if ! conda --version &> /dev/null ; then
     fi
     usermod -a -G conda "${USERNAME}"
 
-    # Install dependencies
-    check_packages curl ca-certificates gnupg2
+    # Install dependencies (only curl and ca-certificates needed for direct download)
+    check_packages curl ca-certificates
 
     echo "Installing Conda..."
 
-    curl -sS https://repo.anaconda.com/pkgs/misc/gpgkeys/anaconda.asc | gpg --dearmor > /usr/share/keyrings/conda-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/conda-archive-keyring.gpg] https://repo.anaconda.com/pkgs/misc/debrepo/conda stable main" > /etc/apt/sources.list.d/conda.list
-    apt-get update -y -o APT::Key::GPGVCommand=1
-
-    CONDA_PKG="conda=${VERSION}-0"
+    # Download Miniconda installer directly (avoiding apt repository with SHA1 signature issues)
+    TEMP_INSTALLER="/tmp/miniconda_installer_$$.sh"
+    MINICONDA_BASE_URL="https://repo.anaconda.com/miniconda"
+    
+    # Determine installer filename based on requested version
     if [ "${VERSION}" = "latest" ]; then
-        CONDA_PKG="conda"
+        INSTALLER_NAME="Miniconda3-latest-Linux-x86_64.sh"
+    else
+        # Note: Specific conda versions may require corresponding Python version adjustments
+        # The py39 base works with conda 4.11.0 and 4.12.0 (as per feature options)
+        INSTALLER_NAME="Miniconda3-py39_${VERSION}-Linux-x86_64.sh"
     fi
-
-    check_packages $CONDA_PKG
+    
+    # Fetch the installer script with error handling
+    if ! curl -fsSL "${MINICONDA_BASE_URL}/${INSTALLER_NAME}" -o "${TEMP_INSTALLER}"; then
+        echo "ERROR: Failed to download Miniconda installer from ${MINICONDA_BASE_URL}/${INSTALLER_NAME}"
+        echo "Please verify the version specified is valid."
+        rm -f "${TEMP_INSTALLER}"
+        exit 1
+    fi
+    
+    # Verify the installer was downloaded successfully
+    if [ ! -f "${TEMP_INSTALLER}" ] || [ ! -s "${TEMP_INSTALLER}" ]; then
+        echo "ERROR: Miniconda installer file is missing or empty"
+        rm -f "${TEMP_INSTALLER}"
+        exit 1
+    fi
+    
+    # Execute installation in silent mode to target directory
+    if ! bash "${TEMP_INSTALLER}" -b -u -p "${CONDA_DIR}"; then
+        echo "ERROR: Miniconda installation failed. Check system requirements and disk space."
+        rm -f "${TEMP_INSTALLER}"
+        exit 1
+    fi
+    
+    # Clean up installer file
+    rm -f "${TEMP_INSTALLER}"
 
     CONDA_SCRIPT="/opt/conda/etc/profile.d/conda.sh"
     . $CONDA_SCRIPT
