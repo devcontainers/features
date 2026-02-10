@@ -136,7 +136,7 @@ if ! conda --version &> /dev/null ; then
     
     # Install the package using apt (which handles dependencies automatically)
     echo "Installing conda package..."
-    if ! apt-get install -y "./${TEMP_DEB}"; then
+    if ! apt-get install -y "${TEMP_DEB}"; then
         echo "ERROR: Failed to install conda package"
         rm -f "${TEMP_DEB}"
         exit 1
