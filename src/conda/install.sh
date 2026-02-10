@@ -85,14 +85,32 @@ if ! conda --version &> /dev/null ; then
     if [ "${VERSION}" = "latest" ]; then
         INSTALLER_NAME="Miniconda3-latest-Linux-x86_64.sh"
     else
+        # Note: Specific conda versions may require corresponding Python version adjustments
+        # The py39 base works with conda 4.11.0 and 4.12.0 (as per feature options)
         INSTALLER_NAME="Miniconda3-py39_${VERSION}-Linux-x86_64.sh"
     fi
     
-    # Fetch the installer script
-    curl -fsSL "${MINICONDA_BASE_URL}/${INSTALLER_NAME}" -o "${TEMP_INSTALLER}"
+    # Fetch the installer script with error handling
+    if ! curl -fsSL "${MINICONDA_BASE_URL}/${INSTALLER_NAME}" -o "${TEMP_INSTALLER}"; then
+        echo "ERROR: Failed to download Miniconda installer from ${MINICONDA_BASE_URL}/${INSTALLER_NAME}"
+        echo "Please verify the version specified is valid."
+        rm -f "${TEMP_INSTALLER}"
+        exit 1
+    fi
+    
+    # Verify the installer was downloaded successfully
+    if [ ! -f "${TEMP_INSTALLER}" ] || [ ! -s "${TEMP_INSTALLER}" ]; then
+        echo "ERROR: Miniconda installer file is missing or empty"
+        rm -f "${TEMP_INSTALLER}"
+        exit 1
+    fi
     
     # Execute installation in silent mode to target directory
-    bash "${TEMP_INSTALLER}" -b -u -p "${CONDA_DIR}"
+    if ! bash "${TEMP_INSTALLER}" -b -u -p "${CONDA_DIR}"; then
+        echo "ERROR: Miniconda installation failed. Check system requirements and disk space."
+        rm -f "${TEMP_INSTALLER}"
+        exit 1
+    fi
     
     # Clean up installer file
     rm -f "${TEMP_INSTALLER}"
