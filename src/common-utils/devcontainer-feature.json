@@ -25,6 +25,11 @@
             "default": true,
             "description": "Allow installing the default dev container .zshrc templates?"
         },
+        "ohMyZshTheme": {
+            "type": "string",
+            "default": "devcontainers",
+            "description": "Oh My Zsh theme to use (e.g., 'robbyrussell', 'agnoster', 'fino'). Default is 'devcontainers'."
+        },
         "upgradePackages": {
             "type": "boolean",
             "default": true,
