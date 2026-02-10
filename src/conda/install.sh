@@ -79,30 +79,41 @@ if ! conda --version &> /dev/null ; then
 
     # Download .deb package directly from repository (bypassing SHA1 signature issue)
     TEMP_DEB="$(mktemp -t conda_XXXXXX.deb)"
-    CONDA_REPO_BASE="https://repo.anaconda.com/pkgs/misc/debrepo/conda/pool/main/c/conda"
+    CONDA_REPO_BASE="https://repo.anaconda.com/pkgs/misc/debrepo/conda"
     
     # Determine package filename based on requested version
+    ARCH="$(dpkg --print-architecture 2>/dev/null || echo "amd64")"
+    PACKAGES_URL="https://repo.anaconda.com/pkgs/misc/debrepo/conda/dists/stable/main/binary-${ARCH}/Packages"
+    
     if [ "${VERSION}" = "latest" ]; then
         # For latest, we need to query the repository to find the current version
-        # Use the Packages file from the repository
-        ARCH="$(dpkg --print-architecture 2>/dev/null || echo "amd64")"
-        PACKAGES_URL="https://repo.anaconda.com/pkgs/misc/debrepo/conda/dists/stable/main/binary-${ARCH}/Packages"
         echo "Fetching package list to determine latest version..."
         CONDA_PKG_INFO=$(curl -fsSL "${PACKAGES_URL}" | grep -A 30 "^Package: conda$" | head -n 31)
         CONDA_VERSION=$(echo "${CONDA_PKG_INFO}" | grep "^Version:" | head -n 1 | awk '{print $2}')
+        CONDA_FILENAME=$(echo "${CONDA_PKG_INFO}" | grep "^Filename:" | head -n 1 | awk '{print $2}')
         
-        if [ -z "${CONDA_VERSION}" ]; then
-            echo "ERROR: Could not determine latest conda version from ${PACKAGES_URL}"
+        if [ -z "${CONDA_VERSION}" ] || [ -z "${CONDA_FILENAME}" ]; then
+            echo "ERROR: Could not determine latest conda version or filename from ${PACKAGES_URL}"
             echo "This may indicate an unsupported architecture or repository unavailability."
             rm -f "${TEMP_DEB}"
             exit 1
         fi
         
-        CONDA_PKG_NAME="conda_${CONDA_VERSION}_all.deb"
+        CONDA_PKG_NAME="${CONDA_FILENAME}"
     else
-        # For specific versions, try the standard naming pattern
-        # Note: Package revision suffix (e.g., -0, -1) may vary; -0 is most common
-        CONDA_PKG_NAME="conda_${VERSION}-0_all.deb"
+        # For specific versions, query the Packages file to find the exact filename
+        echo "Fetching package list to find version ${VERSION}..."
+        CONDA_PKG_INFO=$(curl -fsSL "${PACKAGES_URL}" | grep -B 5 "^Version: ${VERSION}" | grep -A 30 "^Package: conda$" | head -n 31)
+        CONDA_FILENAME=$(echo "${CONDA_PKG_INFO}" | grep "^Filename:" | head -n 1 | awk '{print $2}')
+        
+        if [ -z "${CONDA_FILENAME}" ]; then
+            echo "ERROR: Could not find conda version ${VERSION} in ${PACKAGES_URL}"
+            echo "Please verify the version specified is valid."
+            rm -f "${TEMP_DEB}"
+            exit 1
+        fi
+        
+        CONDA_PKG_NAME="${CONDA_FILENAME}"
     fi
     
     # Download the .deb package
