@@ -78,7 +78,7 @@ if ! conda --version &> /dev/null ; then
     echo "Installing Conda..."
 
     # Download Miniconda installer directly (avoiding apt repository with SHA1 signature issues)
-    TEMP_INSTALLER="/tmp/miniconda_installer_$$.sh"
+    TEMP_INSTALLER="$(mktemp -t miniconda_installer_XXXXXX.sh)"
     MINICONDA_BASE_URL="https://repo.anaconda.com/miniconda"
     
     # Determine installer filename based on requested version
