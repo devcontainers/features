@@ -231,7 +231,8 @@ apt_get_update()
     for package in "$@"; do
         if ! dnf list installed "$package" > /dev/null 2>&1; then
             echo "Package $package not installed. Installing using dnf..."
-            dnf install -y "$package"
+            # Use --allowerasing to handle conflicts like curl-minimal vs curl
+            dnf install -y --allowerasing "$package"
         else
             echo "Package $package is already installed (DNF)."
         fi
@@ -364,7 +365,14 @@ install_pwsh() {
 
 install_using_github() {
     # Fall back on direct download if no apt package exists in microsoft pool
-    check_packages curl ca-certificates gnupg2 dirmngr libc6 libgcc1 libgssapi-krb5-2 libstdc++6 libunwind8 libuuid1 zlib1g libicu[0-9][0-9]
+    # Fall back on direct download if no apt package exists in microsoft pool
+    if command -v apt-get > /dev/null 2>&1; then
+        # Debian/Ubuntu dependencies
+        check_packages curl ca-certificates gnupg2 dirmngr libc6 libgcc1 libgssapi-krb5-2 libstdc++6 libunwind8 libuuid1 zlib1g libicu[0-9][0-9]
+    elif command -v dnf > /dev/null 2>&1; then
+        # AlmaLinux/RHEL dependencies
+        check_packages curl ca-certificates gnupg2 glibc libgcc krb5-libs libstdc++ libuuid zlib libicu wget tar
+    fi
     if ! type git > /dev/null 2>&1; then
         check_packages git
     fi
@@ -402,7 +410,16 @@ install_using_github() {
     tar xf "${powershell_filename}" -C "${powershell_target_path}"
     chmod 755 "${powershell_target_path}/pwsh"
     ln -sf "${powershell_target_path}/pwsh" /usr/bin/pwsh
-    add-shell "/usr/bin/pwsh"
+    # Add pwsh to /etc/shells
+    if command -v add-shell > /dev/null 2>&1; then
+        # Debian/Ubuntu - use add-shell
+        add-shell "/usr/bin/pwsh"
+    else
+        # AlmaLinux/RHEL - manually add to /etc/shells - add-shell is not available in almalinux repos and manual approach is simpler than adding a dependency just for this
+        if ! grep -q "/usr/bin/pwsh" /etc/shells; then
+            echo "/usr/bin/pwsh" >> /etc/shells
+        fi
+    fi
     cd /tmp
     rm -rf /tmp/pwsh
 }

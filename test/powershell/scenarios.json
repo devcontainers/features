@@ -83,5 +83,29 @@
         "version": "preview"
       }
     }
+  },
+  "powershell_lts_version_almalinux": {
+    "image": "almalinux:9",
+    "features": {
+      "powershell": {
+        "version": "lts"
+      }
+    }
+  },
+  "powershell_stable_version_almalinux": {
+    "image": "almalinux:9",
+    "features": {
+      "powershell": {
+        "version": "stable"
+      }
+    }
+  },
+  "powershell_preview_version_almalinux": {
+    "image": "almalinux:9",
+    "features": {
+      "powershell": {
+        "version": "preview"
+      }
+    }
   }
 }
