@@ -13,7 +13,7 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 # Fallback version when stable.txt cannot be fetched (updated: 2026-02)
-KUBECTL_FALLBACK_VERSION="v1.28.0"
+KUBECTL_FALLBACK_VERSION="v1.35.1"
 
 KUBECTL_VERSION="${VERSION:-"latest"}"
 HELM_VERSION="${HELM:-"latest"}"
