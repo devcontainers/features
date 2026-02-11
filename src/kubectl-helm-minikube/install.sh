@@ -159,7 +159,11 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     if [ "${KUBECTL_VERSION}" = "latest" ] || [ "${KUBECTL_VERSION}" = "lts" ] || [ "${KUBECTL_VERSION}" = "current" ] || [ "${KUBECTL_VERSION}" = "stable" ]; then
         KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 https://dl.k8s.io/release/stable.txt 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
         if [ -z "${KUBECTL_VERSION}" ]; then
-            echo "(!) Failed to fetch kubectl stable version. Using fallback version ${KUBECTL_FALLBACK_VERSION}"
+            echo "(!) Failed to fetch kubectl stable version from dl.k8s.io, trying alternative URL..."
+            KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 https://storage.googleapis.com/kubernetes-release/release/stable.txt 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
+        fi
+        if [ -z "${KUBECTL_VERSION}" ]; then
+            echo "(!) Failed to fetch kubectl stable version from both URLs. Using fallback version ${KUBECTL_FALLBACK_VERSION}"
             KUBECTL_VERSION="${KUBECTL_FALLBACK_VERSION}"
         fi
     else
