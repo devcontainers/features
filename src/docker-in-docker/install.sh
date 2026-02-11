@@ -295,7 +295,8 @@ fi
 
 # Update CA certificates to ensure HTTPS connections work properly
 # This is especially important for Ubuntu 24.04 (Noble) and Debian Trixie
-if [ "${ADJUSTED_ID}" = "debian" ]; then
+# Only run for Debian-based systems (RHEL uses update-ca-trust instead)
+if [ "${ADJUSTED_ID}" = "debian" ] && command -v update-ca-certificates > /dev/null 2>&1; then
     update-ca-certificates
 fi
 
