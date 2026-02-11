@@ -218,7 +218,10 @@ fi
 
 # Install the Cascadia Code fonts - https://github.com/microsoft/cascadia-code
 if [ ! -d "/usr/share/fonts/truetype/cascadia" ]; then
-    curl -sSL https://github.com/microsoft/cascadia-code/releases/download/v2008.25/CascadiaCode-2008.25.zip -o /tmp/cascadia-fonts.zip
+    if ! curl -fsSL https://github.com/microsoft/cascadia-code/releases/download/v2008.25/CascadiaCode-2008.25.zip -o /tmp/cascadia-fonts.zip; then
+        echo "Failed to download Cascadia fonts"
+        exit 1
+    fi
     unzip /tmp/cascadia-fonts.zip -d /tmp/cascadia-fonts
     mkdir -p /usr/share/fonts/truetype/cascadia
     mv /tmp/cascadia-fonts/ttf/* /usr/share/fonts/truetype/cascadia/
@@ -228,10 +231,16 @@ fi
 # Install noVNC
 if [ "${INSTALL_NOVNC}" = "true" ] && [ ! -d "/usr/local/novnc" ]; then
     mkdir -p /usr/local/novnc
-    curl -sSL https://github.com/novnc/noVNC/archive/v${NOVNC_VERSION}.zip -o /tmp/novnc-install.zip
+    if ! curl -fsSL https://github.com/novnc/noVNC/archive/v${NOVNC_VERSION}.zip -o /tmp/novnc-install.zip; then
+        echo "Failed to download noVNC"
+        exit 1
+    fi
     unzip /tmp/novnc-install.zip -d /usr/local/novnc
     cp /usr/local/novnc/noVNC-${NOVNC_VERSION}/vnc.html /usr/local/novnc/noVNC-${NOVNC_VERSION}/index.html
-    curl -sSL https://github.com/novnc/websockify/archive/v${WEBSOCKETIFY_VERSION}.zip -o /tmp/websockify-install.zip
+    if ! curl -fsSL https://github.com/novnc/websockify/archive/v${WEBSOCKETIFY_VERSION}.zip -o /tmp/websockify-install.zip; then
+        echo "Failed to download websockify"
+        exit 1
+    fi
     unzip /tmp/websockify-install.zip -d /usr/local/novnc
     ln -s /usr/local/novnc/websockify-${WEBSOCKETIFY_VERSION} /usr/local/novnc/noVNC-${NOVNC_VERSION}/utils/websockify
     rm -f /tmp/websockify-install.zip /tmp/novnc-install.zip
