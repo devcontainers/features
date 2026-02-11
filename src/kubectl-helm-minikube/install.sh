@@ -154,17 +154,13 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     # Install the kubectl, verify checksum
     echo "Downloading kubectl..."
     if [ "${KUBECTL_VERSION}" = "latest" ] || [ "${KUBECTL_VERSION}" = "lts" ] || [ "${KUBECTL_VERSION}" = "current" ] || [ "${KUBECTL_VERSION}" = "stable" ]; then
-        KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 https://dl.k8s.io/release/stable.txt 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
+        KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 https://dl.k8s.io/release/stable.txt 2>/dev/null || echo "")"
         if [ -z "${KUBECTL_VERSION}" ]; then
-            echo "(!) Failed to fetch kubectl stable version from dl.k8s.io, falling back to version discovery via git tags"
-            find_version_from_git_tags KUBECTL_VERSION https://github.com/kubernetes/kubernetes
+            echo "(!) Failed to fetch kubectl stable version. Using fallback version v1.28.0"
+            KUBECTL_VERSION="v1.28.0"
         fi
     else
         find_version_from_git_tags KUBECTL_VERSION https://github.com/kubernetes/kubernetes
-    fi
-    if [ -z "${KUBECTL_VERSION}" ]; then
-        echo "(!) Failed to determine kubectl version. Check network connectivity or set VERSION option to a specific kubectl version (e.g., '1.28.0')."
-        exit 1
     fi
     if [ "${KUBECTL_VERSION::1}" != 'v' ]; then
         KUBECTL_VERSION="v${KUBECTL_VERSION}"
