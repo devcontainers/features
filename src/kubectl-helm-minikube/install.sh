@@ -163,7 +163,7 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
         find_version_from_git_tags KUBECTL_VERSION https://github.com/kubernetes/kubernetes
     fi
     if [ -z "${KUBECTL_VERSION}" ]; then
-        echo "(!) Failed to determine kubectl version. Check network connectivity or specify an explicit version."
+        echo "(!) Failed to determine kubectl version. Check network connectivity or set VERSION option to a specific kubectl version (e.g., '1.28.0')."
         exit 1
     fi
     if [ "${KUBECTL_VERSION::1}" != 'v' ]; then
