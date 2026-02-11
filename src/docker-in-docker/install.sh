@@ -393,9 +393,28 @@ EOF
                 echo "(*) Installing device-mapper libraries for Docker CE..."
                 [ "${ID}" != "mariner" ] && ${PKG_MGR_CMD} -y install device-mapper-libs 2>/dev/null || echo "(*) Device-mapper install failed, proceeding"   
                 echo "(*) Installing additional Docker CE dependencies..."
-                ${PKG_MGR_CMD} -y install libseccomp libtool-ltdl systemd-libs libcgroup tar xz || {
-                    echo "(*) Some optional dependencies could not be installed, continuing..."
-                }
+                
+                # Package installation sometimes fails due to transient network issues (e.g., HTTP 504), retrying fixes it.
+                local retry_count=0
+                local install_ok="false"
+                set +e
+                until [ "${install_ok}" = "true" ] || [ "${retry_count}" -eq "3" ];
+                do
+                    if ${PKG_MGR_CMD} -y install libseccomp libtool-ltdl systemd-libs libcgroup tar xz; then
+                        install_ok="true"
+                    else
+                        echo "(*) Package installation failed, retrying... (attempt $((retry_count + 1))/3)"
+                        retry_count=$((retry_count + 1))
+                        if [ "${retry_count}" -lt "3" ]; then
+                            sleep 2
+                        fi
+                    fi
+                done
+                set -e
+                
+                if [ "${install_ok}" != "true" ]; then
+                    echo "(*) Some optional dependencies could not be installed after 3 attempts, continuing..."
+                fi
             }
             setup_selinux_context() {
                 if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" != "Disabled" ]; then
