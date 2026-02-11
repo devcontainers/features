@@ -154,8 +154,10 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     # Install the kubectl, verify checksum
     echo "Downloading kubectl..."
     if [ "${KUBECTL_VERSION}" = "latest" ] || [ "${KUBECTL_VERSION}" = "lts" ] || [ "${KUBECTL_VERSION}" = "current" ] || [ "${KUBECTL_VERSION}" = "stable" ]; then
-        KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 https://dl.k8s.io/release/stable.txt 2>/dev/null || echo "")"
+        KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 https://dl.k8s.io/release/stable.txt 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
         if [ -z "${KUBECTL_VERSION}" ]; then
+            # Fallback to a known stable version when stable.txt cannot be fetched
+            # Note: This version should be updated periodically to a recent stable release
             echo "(!) Failed to fetch kubectl stable version. Using fallback version v1.28.0"
             KUBECTL_VERSION="v1.28.0"
         fi
