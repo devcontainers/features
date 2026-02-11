@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "id": "conda",
 "version": "1.2.5",
   "name": "Conda",
@@ -15,8 +14,6 @@
       ],
       "default": "latest",
       "description": "Select or enter a conda version."
-=======
->>>>>>> 4e3ccd7 (Fix conda installation failure due to SHA1 signature rejection (#1565))
     },
     "addCondaForge": {
       "type": "boolean",
