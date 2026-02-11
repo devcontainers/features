@@ -103,7 +103,8 @@ if ! conda --version &> /dev/null ; then
     else
         # For specific versions, query the Packages file to find the exact filename
         echo "Fetching package list to find version ${VERSION}..."
-        CONDA_PKG_INFO=$(curl -fsSL "${PACKAGES_URL}" | grep -B 5 "^Version: ${VERSION}" | grep -A 30 "^Package: conda$" | head -n 31)
+        # Search for version pattern - user may specify 4.12.0 but package has 4.12.0-0
+        CONDA_PKG_INFO=$(curl -fsSL "${PACKAGES_URL}" | grep -A 30 "^Package: conda$" | grep -B 5 -A 25 "^Version: ${VERSION}")
         CONDA_FILENAME=$(echo "${CONDA_PKG_INFO}" | grep "^Filename:" | head -n 1 | awk '{print $2}')
         
         if [ -z "${CONDA_FILENAME}" ]; then
