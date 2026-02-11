@@ -293,6 +293,12 @@ if ! command -v git >/dev/null 2>&1; then
     check_packages git
 fi
 
+# Update CA certificates to ensure HTTPS connections work properly
+# This is especially important for Ubuntu 24.04 (Noble) and Debian Trixie
+if [ "${ADJUSTED_ID}" = "debian" ]; then
+    update-ca-certificates
+fi
+
 # Swap to legacy iptables for compatibility (Debian only)
 if [ "${ADJUSTED_ID}" = "debian" ] && type iptables-legacy > /dev/null 2>&1; then
     update-alternatives --set iptables /usr/sbin/iptables-legacy

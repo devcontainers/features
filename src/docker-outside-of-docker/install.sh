@@ -182,6 +182,9 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr wget
+# Update CA certificates to ensure HTTPS connections work properly
+# This is especially important for Ubuntu 24.04 (Noble) and Debian Trixie
+update-ca-certificates
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
