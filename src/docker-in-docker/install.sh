@@ -395,17 +395,18 @@ EOF
                 echo "(*) Installing additional Docker CE dependencies..."
                 
                 # Package installation sometimes fails due to transient network issues (e.g., HTTP 504), retrying fixes it.
+                local max_retries=3
                 local retry_count=0
                 local install_ok="false"
                 set +e
-                until [ "${install_ok}" = "true" ] || [ "${retry_count}" -eq "3" ];
+                until [ "${install_ok}" = "true" ] || [ "${retry_count}" -eq "${max_retries}" ];
                 do
                     if ${PKG_MGR_CMD} -y install libseccomp libtool-ltdl systemd-libs libcgroup tar xz; then
                         install_ok="true"
                     else
-                        echo "(*) Package installation failed, retrying... (attempt $((retry_count + 1))/3)"
+                        echo "(*) Package installation failed, retrying... (attempt $((retry_count + 1))/${max_retries})"
                         retry_count=$((retry_count + 1))
-                        if [ "${retry_count}" -lt "3" ]; then
+                        if [ "${retry_count}" -lt "${max_retries}" ]; then
                             sleep 2
                         fi
                     fi
@@ -413,7 +414,7 @@ EOF
                 set -e
                 
                 if [ "${install_ok}" != "true" ]; then
-                    echo "(*) Some optional dependencies could not be installed after 3 attempts, continuing..."
+                    echo "(*) Some optional dependencies could not be installed after ${max_retries} attempts, continuing..."
                 fi
             }
             setup_selinux_context() {
