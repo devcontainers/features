@@ -297,6 +297,11 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     usermod -a -G sdkman ${USERNAME}
     umask 0002
     # Install SDKMAN
+    # For RHEL 8 systems (glibc 2.28), disable native version to avoid glibc compatibility issues
+    # SDKMAN native binaries require glibc 2.30+ which is not available in RHEL 8 / AlmaLinux 8 / Rocky 8
+    if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${MAJOR_VERSION_ID}" = "8" ]; then
+        export SDKMAN_NATIVE_VERSION="false"
+    fi
     curl -sSL "https://get.sdkman.io?rcupdate=false" | bash
     chown -R "${USERNAME}:sdkman" ${SDKMAN_DIR}
     find ${SDKMAN_DIR} -type d -print0 | xargs -d '\n' -0 chmod g+s
