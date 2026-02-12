@@ -23,6 +23,7 @@ Re-use the host docker socket, adding the Docker CLI to a container. Feature inv
 | dockerDashComposeVersion | Compose version to use for docker-compose (v1 or v2 or none) | string | v2 |
 | installDockerBuildx | Install Docker Buildx | boolean | true |
 | installDockerComposeSwitch | Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter. | boolean | true |
+| socketPath | Path where the Docker socket is mounted inside the container. For rootless Docker, override the mount in devcontainer.json to map your host socket to this path. | string | /var/run/docker-host.sock |
 
 ## Customizations
 
@@ -35,6 +36,30 @@ Re-use the host docker socket, adding the Docker CLI to a container. Feature inv
 - As the name implies, the Feature is expected to work when the host is running Docker (or the OSS Moby container engine it is built on). It may be possible to get running in other container engines, but it has not been tested with them.
 - The host and the container must be running on the same chip architecture. You will not be able to use it with an emulated x86 image with Docker Desktop on an Apple Silicon Mac, for example.
 - This approach does not currently enable bind mounting the workspace folder by default, and cannot support folders outside of the workspace folder. Consider whether the [Docker-in-Docker Feature](../docker-in-docker) would better meet your needs given it does not have this limitation.
+
+## Rootless Docker Support
+
+By default, this feature expects the Docker socket at `/var/run/docker.sock` on the host, which works for standard (root) Docker installations. For **rootless Docker** setups where the socket is located at `/run/user/$UID/docker.sock` or `$XDG_RUNTIME_DIR/docker.sock`, you need to override the mount in your `devcontainer.json`:
+
+```json
+{
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  "mounts": [
+    {
+      "source": "/run/user/1000/docker.sock",
+      "target": "/var/run/docker-host.sock",
+      "type": "bind"
+    }
+  ]
+}
+```
+
+**Notes:**
+- Replace `1000` with your actual user ID (run `id -u` to find it)
+- The feature will automatically detect the socket at `/var/run/docker-host.sock`
+- Your custom mount will override the feature's default mount
 
 ## Supporting bind mounts from the workspace folder
 

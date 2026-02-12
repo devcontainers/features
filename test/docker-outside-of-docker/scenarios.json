@@ -180,5 +180,72 @@
                 "moby": false
             }
         }
+    },
+    "rootless_docker_socket": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false,
+                "socketPath": "/var/run/docker-rootless.sock"
+            }
+        },
+        "mounts": [
+            {
+                "source": "/var/run/docker.sock",
+                "target": "/var/run/docker-rootless.sock",
+                "type": "bind"
+            }
+        ],
+        "containerUser": "vscode"
+    },
+    "root_docker_socket": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false
+            }
+        },
+        "mounts": [
+            {
+                "source": "/var/run/docker.sock",
+                "target": "/var/run/docker-host.sock",
+                "type": "bind"
+            }
+        ],
+        "containerUser": "vscode"
+    },
+    "custom_rootless_socket_path": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false,
+                "socketPath": "/custom/docker/rootless.sock"
+            }
+        },
+        "mounts": [
+            {
+                "source": "/var/run/docker.sock",
+                "target": "/custom/docker/rootless.sock",
+                "type": "bind"
+            }
+        ],
+        "containerUser": "vscode"
+    },
+    "xdg_runtime_dir_socket": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false,
+                "socketPath": "/var/run/user-docker.sock"
+            }
+        },
+        "mounts": [
+            {
+                "source": "/var/run/docker.sock",
+                "target": "/var/run/user-docker.sock",
+                "type": "bind"
+            }
+        ],
+        "containerUser": "vscode"
     }
 }
