@@ -20,7 +20,7 @@ Re-use the host docker socket, adding the Docker CLI to a container. Feature inv
 | version | Select or enter a Docker/Moby CLI version. (Availability can vary by OS version.) | string | latest |
 | moby | Install OSS Moby build instead of Docker CE | boolean | true |
 | mobyBuildxVersion | Install a specific version of moby-buildx when using Moby | string | latest |
-| dockerDashComposeVersion | Compose version to use for docker-compose (v1 or v2 or none) | string | v2 |
+| dockerDashComposeVersion | Compose version to use for docker-compose (v1 or v2 or none or latest) | string | latest |
 | installDockerBuildx | Install Docker Buildx | boolean | true |
 | installDockerComposeSwitch | Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter. | boolean | true |
 
