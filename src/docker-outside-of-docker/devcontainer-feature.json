@@ -1,6 +1,6 @@
 {
     "id": "docker-outside-of-docker",
-    "version": "1.6.5",
+    "version": "1.6.6",
     "name": "Docker (docker-outside-of-docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-outside-of-docker",
     "description": "Re-use the host docker socket, adding the Docker CLI to a container. Feature invokes a script to enable using a forwarded Docker socket within a container to run Docker commands.",
@@ -29,10 +29,11 @@
             "type": "string",
             "enum": [
                 "none",
+                "latest",
                 "v1",
                 "v2"
             ],
-            "default": "v2",
+            "default": "latest",
             "description": "Compose version to use for docker-compose (v1 or v2 or none)"
         },
         "installDockerBuildx": {

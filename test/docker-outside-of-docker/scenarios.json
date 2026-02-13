@@ -180,5 +180,25 @@
                 "moby": false
             }
         }
+    },
+     "docker_dash_compose_latest_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": true,
+                "dockerDashComposeVersion": "latest"
+            }
+        },
+        "containerUser": "vscode"
+    },
+    "docker_dash_compose_latest_no_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false,
+                "dockerDashComposeVersion": "latest"
+            }
+        },
+        "containerUser": "vscode"
     }
 }
