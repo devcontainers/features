@@ -303,11 +303,16 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
         export SDKMAN_NATIVE_VERSION="false"
     fi
     curl -sSL "https://get.sdkman.io?rcupdate=false" | bash
-    # For RHEL 8 systems, also disable native version in config file and remove native binaries
+    # For RHEL 8 systems, also disable native CLI in config file and remove native binaries
     if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${MAJOR_VERSION_ID}" = "8" ]; then
-        # Disable native version in config to prevent future usage
+        # Disable native CLI in config to prevent future usage
+        # The SDKMAN config key is sdkman_native_enable (checked in sdkman-main.sh)
         if [ -f "${SDKMAN_DIR}/etc/config" ]; then
-            sed -i 's/sdkman_native_version=.*/sdkman_native_version=false/' "${SDKMAN_DIR}/etc/config"
+            if grep -q "sdkman_native_enable" "${SDKMAN_DIR}/etc/config"; then
+                sed -i 's/sdkman_native_enable=.*/sdkman_native_enable=false/' "${SDKMAN_DIR}/etc/config"
+            else
+                echo "sdkman_native_enable=false" >> "${SDKMAN_DIR}/etc/config"
+            fi
         fi
         # Remove native binaries if they were installed
         if [ -d "${SDKMAN_DIR}/libexec" ]; then
