@@ -21,6 +21,7 @@
             "type": "string",
             "proposals": [
                 "latest",
+                "none",
                 "0.47.0",
                 "0.46.1"
             ],
@@ -30,7 +31,8 @@
         "terragrunt": {
             "type": "string",
             "proposals": [
-                "latest"
+                "latest",
+                "none"
             ],
             "default": "latest",
             "description": "Terragrunt version"
