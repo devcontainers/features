@@ -397,7 +397,7 @@ install_using_github() {
     # downlaod the latest version of powershell and extracting the file to powershell directory
     wget https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}
     mkdir ~/powershell
-    tar -xvf powershell-${POWERSHELL_VERSION}-linux-x64.tar.gz -C ~/powershell
+    tar -xvf ${powershell_filename} -C ~/powershell
 
     powershell_archive_sha256="$(cat release.html | tr '\n' ' ' | sed 's|<[^>]*>||g' | grep -oP "${powershell_filename}\s+\K[0-9a-fA-F]{64}" || echo '')"
     if [ -z "${powershell_archive_sha256}" ]; then
