@@ -9,8 +9,8 @@
       "type": "string",
       "proposals": [
         "latest",
-        "4.11.0",
-        "4.12.0"
+        "24.11.3",
+        "24.7.1"
       ],
       "default": "latest",
       "description": "Select or enter a conda version."
