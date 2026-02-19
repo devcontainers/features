@@ -367,7 +367,7 @@ install_using_github() {
     # Fall back on direct download if no apt package exists in microsoft pool
     if command -v apt-get > /dev/null 2>&1; then
         # Debian/Ubuntu dependencies
-        check_packages curl ca-certificates gnupg2 dirmngr libc6 libgcc1 libgssapi-krb5-2 libstdc++6 libunwind8 libuuid1 zlib1g libicu[0-9][0-9]
+        check_packages curl ca-certificates gnupg2 dirmngr libc6 libgcc1 libgssapi-krb5-2 libstdc++6 libunwind8 libuuid1 zlib1g libicu[0-9][0-9] wget
     elif command -v dnf > /dev/null 2>&1; then
         # AlmaLinux/RHEL dependencies
         check_packages curl ca-certificates gnupg2 glibc libgcc krb5-libs libstdc++ libuuid zlib libicu wget tar
@@ -394,7 +394,7 @@ install_using_github() {
         install_prev_pwsh $pwsh_url
     fi
     
-    # downlaod the latest version of powershell and extracting the file to powershell directory
+    # download the latest version of powershell and extracting the file to powershell directory
     wget https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}
     mkdir ~/powershell
     tar -xvf ${powershell_filename} -C ~/powershell
