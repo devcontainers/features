@@ -284,5 +284,17 @@
         "features": {
             "common-utils": {}
         }
+    },
+    "custom-zsh-theme": {
+        "image": "ubuntu:jammy",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {
+                "installZsh": true,
+                "installOhMyZsh": true,
+                "ohMyZshTheme": "fino",
+                "configureZshAsDefaultShell": true
+            }
+        }
     }
 }
