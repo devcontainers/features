@@ -55,6 +55,18 @@
         },
         "remoteUser": "node"
     },
+    "docker_build_with_compose_switch": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "false",
+                "dockerDashComposeVersion": "v2",
+                "installDockerComposeSwitch": true
+            }
+        },
+        "remoteUser": "node"
+    },    
     "docker_build_2": {
         "image": "ubuntu:noble",
         "features": {
