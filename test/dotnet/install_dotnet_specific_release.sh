@@ -13,13 +13,13 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-expected=$(fetch_latest_version_in_channel "8.0")
+expected=$(fetch_latest_version_in_channel "10.0")
 
-check ".NET Core SDK 8.0 installed" \
+check ".NET Core SDK 10.0 installed" \
 is_dotnet_sdk_version_installed "$expected"
 
 check "Build and run example project" \
-dotnet run --project projects/net8.0 
+dotnet run --project projects/net10.0 
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.
