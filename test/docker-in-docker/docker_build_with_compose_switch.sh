@@ -15,7 +15,8 @@ check "docker-compose" bash -c "docker-compose --version | grep -E '2.[0-9]+.[0-
 check "docker-buildx" bash -c "docker buildx version"
 check "docker-buildx-path" bash -c "ls -la /usr/libexec/docker/cli-plugins/docker-buildx"
 
-check "Not installing compose-switch by default" bash -c "[[ ! -f /usr/local/bin/compose-switch ]]"
+check "installs compose-switch as the flag is on" bash -c "[[ -f /usr/local/bin/compose-switch ]]"
 
 # Report result
 reportResults
+

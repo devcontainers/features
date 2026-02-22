@@ -1,6 +1,6 @@
 {
     "id": "github-cli",
-    "version": "1.0.15",
+    "version": "1.1.0",
     "name": "GitHub CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/github-cli",
     "description": "Installs the GitHub CLI. Auto-detects latest version and installs needed dependencies.",
@@ -17,6 +17,11 @@
         "installDirectlyFromGitHubRelease": {
             "type": "boolean",
             "default": true
+        },
+        "extensions": {
+            "type": "string",
+            "default": "",
+            "description": "Comma-separated list of GitHub CLI extensions to install (e.g. 'dlvhdr/gh-dash,github/gh-copilot')."
         }
     },
     "customizations": {
@@ -35,4 +40,3 @@
         "ghcr.io/devcontainers/features/git"
     ]
 }
-
