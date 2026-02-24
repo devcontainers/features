@@ -307,7 +307,28 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     usermod -a -G sdkman ${USERNAME}
     umask 0002
     # Install SDKMAN
+    # For RHEL 8 systems (glibc 2.28), disable native version to avoid glibc compatibility issues
+    # SDKMAN native binaries require glibc 2.30+ which is not available in RHEL 8 / AlmaLinux 8 / Rocky 8
+    if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${MAJOR_VERSION_ID}" = "8" ]; then
+        export SDKMAN_NATIVE_VERSION="false"
+    fi
     curl -sSL "https://get.sdkman.io?rcupdate=false" | bash
+    # For RHEL 8 systems, also disable native CLI in config file and remove native binaries
+    if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${MAJOR_VERSION_ID}" = "8" ]; then
+        # Disable native CLI in config to prevent future usage
+        # The SDKMAN config key is sdkman_native_enable (checked in sdkman-main.sh)
+        if [ -f "${SDKMAN_DIR}/etc/config" ]; then
+            if grep -q "sdkman_native_enable" "${SDKMAN_DIR}/etc/config"; then
+                sed -i 's/sdkman_native_enable=.*/sdkman_native_enable=false/' "${SDKMAN_DIR}/etc/config"
+            else
+                echo "sdkman_native_enable=false" >> "${SDKMAN_DIR}/etc/config"
+            fi
+        fi
+        # Remove native binaries if they were installed
+        if [ -d "${SDKMAN_DIR}/libexec" ]; then
+            rm -rf "${SDKMAN_DIR}/libexec"
+        fi
+    fi
     chown -R "${USERNAME}:sdkman" ${SDKMAN_DIR}
     find ${SDKMAN_DIR} -type d -print0 | xargs -d '\n' -0 chmod g+s
     # Add sourcing of sdkman into bashrc/zshrc files (unless disabled)
