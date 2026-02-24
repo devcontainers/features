@@ -3,6 +3,7 @@
     "image": "mcr.microsoft.com/devcontainers/base:noble",
     "features": {
       "powershell": {
+        "version": "lts",
         "modules": "az.resources, az.storage",
         "powershellProfileURL": "https://raw.githubusercontent.com/codspace/powershell-profile/main/Test-Profile.ps1"
       }
@@ -31,10 +32,88 @@
       "powershell": {}
     }
   },
+  "validate_powershell_installation_spec": {
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
+    "features": {
+      "powershell": {
+        "version": "7.5"
+      }
+    }
+  },
+  "validate_powershell_installation_debian": {
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+      "powershell": {}
+    }
+  },  
   "powershell_alma_linux": {
     "image": "almalinux:9",
     "features": {
       "powershell": {} 
+    }
+  },
+  "powershell_stable_version": {
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
+    "features": {
+      "powershell": {
+        "version": "stable"
+      }
+    }
+  },
+  "powershell_preview_version": {
+    "image": "mcr.microsoft.com/devcontainers/base:noble",
+    "features": {
+      "powershell": {
+        "version": "preview"
+      }
+    }
+  },
+  "powershell_stable_version_debian": {
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+      "powershell": {
+        "version": "stable"
+      }
+    }
+  },
+  "powershell_lts_version_debian": {
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+      "powershell": {
+        "version": "lts"
+      }
+    }
+  },
+  "powershell_preview_version_debian": {
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+      "powershell": {
+        "version": "preview"
+      }
+    }
+  },
+  "powershell_lts_version_almalinux": {
+    "image": "almalinux:9",
+    "features": {
+      "powershell": {
+        "version": "lts"
+      }
+    }
+  },
+  "powershell_stable_version_almalinux": {
+    "image": "almalinux:9",
+    "features": {
+      "powershell": {
+        "version": "stable"
+      }
+    }
+  },
+  "powershell_preview_version_almalinux": {
+    "image": "almalinux:9",
+    "features": {
+      "powershell": {
+        "version": "preview"
+      }
     }
   }
 }
