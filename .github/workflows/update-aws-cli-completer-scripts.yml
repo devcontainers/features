@@ -12,7 +12,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run fetch-latest-completer-scripts.sh
         run: src/aws-cli/scripts/fetch-latest-completer-scripts.sh
