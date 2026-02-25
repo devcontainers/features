@@ -3,7 +3,7 @@
         "image": "ubuntu:noble",
         "features": {
             "conda": {
-                "version": "4.12.0",
+                "version": "latest",
                 "addCondaForge": "true"
             }
         }
