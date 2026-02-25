@@ -265,11 +265,18 @@ if [ "${AUTO_PULL}" != "true" ]; then
     exit 0
 fi
 
-# Check if repo is a git lfs repo.
-if ! git lfs ls-files > /dev/null 2>&1; then
+# Check if repo is a git lfs enabled repo by running 'git lfs ls-files'
+if ! ls_files_output=$(git lfs ls-files 2>&1); then
+    echo "(!) Skipping automatic 'git lfs pull' because 'git lfs ls-files' failed"
+    exit 0
+fi
+
+# Check if 'git lfs ls-files' output is empty
+if [ -z "$ls_files_output" ]; then
     echo "(!) Skipping automatic 'git lfs pull' because no git lfs files were detected"
     exit 0
 fi
+
 git lfs install
 git lfs pull
 EOF
