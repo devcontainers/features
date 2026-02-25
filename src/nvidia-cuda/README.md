@@ -7,7 +7,7 @@ Installs shared libraries for NVIDIA CUDA.
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/nvidia-cuda:2": {}
+    "ghcr.io/devcontainers/features/nvidia-cuda:3": {}
 }
 ```
 
@@ -19,7 +19,7 @@ Installs shared libraries for NVIDIA CUDA.
 | installCudnnDev | Additionally install CUDA Deep Neural Network (cuDNN) development libraries and headers | boolean | false |
 | installNvtx | Additionally install NVIDIA Tools Extension (NVTX) | boolean | false |
 | installToolkit | Additionally install NVIDIA CUDA Toolkit | boolean | false |
-| cudaVersion | Version of CUDA to install | string | 11.8 |
+| cudaVersion | Version of CUDA to install | string | 12.5 |
 | cudnnVersion | Version of cuDNN to install | string | automatic |
 
 ## Compatibility
