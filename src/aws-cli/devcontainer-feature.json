@@ -12,6 +12,11 @@
             ],
             "default": "latest",
             "description": "Select or enter an AWS CLI version."
+        },
+        "verbose": {
+            "type": "boolean",
+            "default": true,
+            "description": "Suppress verbose output."
         }
     },
     "customizations": {

@@ -13,6 +13,7 @@ set -e
 rm -rf /var/lib/apt/lists/*
 
 VERSION=${VERSION:-"latest"}
+VERBOSE=${VERBOSE:-"true"}
 
 AWSCLI_GPG_KEY=FB5DB77FD5C118B80511ADA8A6310ACC4672475C
 AWSCLI_GPG_KEY_MATERIAL="-----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -110,7 +111,12 @@ install() {
         exit 1
     fi
 
-    unzip "${scriptZipFile}"
+    if [ "${VERBOSE}" = "false" ]; then
+        unzip -q "${scriptZipFile}"
+    else
+        unzip "${scriptZipFile}"
+    fi
+    
     ./aws/install
 
     # kubectl bash completion
