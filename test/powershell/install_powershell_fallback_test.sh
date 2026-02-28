@@ -25,7 +25,7 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local escaped_separator=${separator//./\\.}
         local last_part
@@ -85,7 +85,7 @@ find_prev_version_from_git_tags() {
             ((breakfix=breakfix-1))
             if [ "${breakfix}" = "0" ] && [ "${last_part_optional}" = "true" ]; then
                 declare -g ${variable_name}="${major}.${minor}"
-            else 
+            else
                 declare -g ${variable_name}="${major}.${minor}.${breakfix}"
             fi
         fi
@@ -102,10 +102,10 @@ get_previous_version() {
 
     output=$(curl -s "$repo_url");
     message=$(echo "$output" | jq -r '.message')
-    
+
     if [ $mode == "mode1" ]; then
         message="API rate limit exceeded"
-    else 
+    else
         message=""
     fi
 
@@ -114,11 +114,11 @@ get_previous_version() {
         echo -e "\nAttempting to find latest version using GitHub tags."
         find_prev_version_from_git_tags prev_version "$url" "tags/v"
         declare -g ${variable_name}="${prev_version}"
-    else 
+    else
         echo -e "\nAttempting to find latest version using GitHub Api."
         version=$(echo "$output" | jq -r '.tag_name')
         declare -g ${variable_name}="${version#v}"
-    fi  
+    fi
     echo "${variable_name}=${!variable_name}"
 }
 
@@ -156,7 +156,7 @@ install_using_github() {
     pwsh_url="https://github.com/PowerShell/PowerShell"
     POWERSHELL_VERSION="7.4.xyz"
     install_pwsh "${POWERSHELL_VERSION}"
-    if grep -q "Not Found" "${powershell_filename}"; then 
+    if grep -q "Not Found" "${powershell_filename}"; then
         install_prev_pwsh $pwsh_url $mode
     fi
 
@@ -164,7 +164,7 @@ install_using_github() {
     sudo curl -sSL -o "release.html" "https://github.com/PowerShell/PowerShell/releases/tag/v${POWERSHELL_VERSION}"
     powershell_archive_sha256="$(cat release.html | tr '\n' ' ' | sed 's|<[^>]*>||g' | grep -oP "${powershell_filename}\s+\K[0-9a-fA-F]{64}" || echo '')"
     if [ -z "${powershell_archive_sha256}" ]; then
-        echo "(!) WARNING: Failed to retrieve SHA256 for archive. Skipping validaiton."
+        echo "(!) WARNING: Failed to retrieve SHA256 for archive. Skipping validation."
     else
         echo "SHA256: ${powershell_archive_sha256}"
         echo "${powershell_archive_sha256} *${powershell_filename}" | sha256sum -c -

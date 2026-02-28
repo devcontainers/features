@@ -91,7 +91,7 @@ pkg_manager_update() {
                     set +e
                         stderr_messages=$(${PKG_MGR_CMD} -q check-update 2>&1)
                         rc=$?
-                        # centos 7 sometimes returns a status of 100 when it apears to work.
+                        # centos 7 sometimes returns a status of 100 when it appears to work.
                         if [ $rc != 0 ] && [ $rc != 100 ]; then
                             echo "(Error) ${PKG_MGR_CMD} check-update produced the following error message(s):"
                             echo "${stderr_messages}"
@@ -202,17 +202,17 @@ find_version_list() {
     ifLts="$4"
     version_list=$5
     java_ver=$6
-    
+
     check_packages jq
     all_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
-    if [ "${ifLts}" = "true" ]; then 
+    if [ "${ifLts}" = "true" ]; then
         major_version=$(echo "$all_versions" | jq -r '.most_recent_lts')
     elif [ "${java_ver}" = "latest" ]; then
-        major_version=$(echo "$all_versions" | jq -r '.most_recent_feature_release') 
+        major_version=$(echo "$all_versions" | jq -r '.most_recent_feature_release')
     else
         major_version=$(echo "$java_ver" | cut -d '.' -f 1)
     fi
-    
+
     # Remove the hardcoded fallback as this fails for new jdk latest version released ex: 24
     # Related Issue: https://github.com/devcontainers/features/issues/1308
     if [ "${JDK_DISTRO}" = "ms" ]; then
@@ -255,7 +255,7 @@ sdk_install() {
             requested_version="$(echo "${version_list}" | head -n 1)"
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
-    else 
+    else
         find_version_list "$prefix" "$suffix" "$install_type" "false" version_list "${requested_version}"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
