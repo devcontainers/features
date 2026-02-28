@@ -14,7 +14,7 @@
                 "installSentinel": true
             }
         }
-    },    
+    },
     "install_in_ubuntu_noble": {
         "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
@@ -91,7 +91,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
             "terraform": {
-                "tflint": "latest"
+                "tflint": "0.50.0"
             }
         }
     },
