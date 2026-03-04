@@ -30,11 +30,12 @@
       "type": "string",
       "enum": [
         "none",
+        "latest",
         "v1",
         "v2"
       ],
-      "default": "v2",
-      "description": "Compose version to use for docker-compose (v1 or v2 or none)"
+      "default": "latest",
+      "description": "Compose version to use for docker-compose (v1 or v2 or none or latest)"
     },
     "installDockerBuildx": {
       "type": "boolean",
