@@ -14,7 +14,7 @@
         "20.10"
       ],
       "default": "latest",
-      "description": "Select or enter a Docker/Moby CLI version. (Availability can vary by OS version.)
+      "description": "Select or enter a Docker/Moby CLI version. (Availability can vary by OS version.)"
     },
     "moby": {
       "type": "boolean",
