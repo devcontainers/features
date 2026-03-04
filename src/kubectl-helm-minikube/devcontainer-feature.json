@@ -35,6 +35,11 @@
       ],
       "default": "latest",
       "description": "Select or enter a Minikube version to install"
+    },
+    "kubectlFallbackVersion": {
+      "type": "string",
+      "default": "v1.35.1",
+      "description": "Fallback kubectl version to use when the latest stable version cannot be fetched"
     }
   },
   "mounts": [
