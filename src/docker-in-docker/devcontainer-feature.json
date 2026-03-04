@@ -1,94 +1,94 @@
 {
-    "id": "docker-in-docker",
-    "version": "2.14.0",
-    "name": "Docker (Docker-in-Docker)",
-    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
-    "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
-    "options": {
-        "version": {
-            "type": "string",
-            "proposals": [
-                "latest",
-                "none",
-                "20.10"
-            ],
-            "default": "latest",
-            "description": "Select or enter a Docker/Moby Engine version. (Availability can vary by OS version.)"
-        },
-        "moby": {
-            "type": "boolean",
-            "default": true,
-            "description": "Install OSS Moby build instead of Docker CE"
-        },
-        "mobyBuildxVersion": {
-            "type": "string",
-            "default": "latest",
-            "description": "Install a specific version of moby-buildx when using Moby"
-        },
-        "dockerDashComposeVersion": {
-            "type": "string",
-            "enum": [
-                "none",
-                "v1",
-                "v2"
-            ],
-            "default": "v2",
-            "description": "Default version of Docker Compose (v1, v2 or none)"
-        },
-        "azureDnsAutoDetection": {
-            "type": "boolean",
-            "default": true,
-            "description": "Allow automatically setting the dockerd DNS server when the installation script detects it is running in Azure"
-        },
-        "dockerDefaultAddressPool": {
-            "type": "string",
-            "default": "",
-            "proposals": [],
-            "description": "Define default address pools for Docker networks. e.g. base=192.168.0.0/16,size=24"
-        },
-        "installDockerBuildx": {
-            "type": "boolean",
-            "default": true,
-            "description": "Install Docker Buildx"
-        },
-        "installDockerComposeSwitch": {
-            "type": "boolean",
-            "default": false,
-            "description": "Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter."
-        },
-        "disableIp6tables": {
-            "type": "boolean",
-            "default": false,
-            "description": "Disable ip6tables (this option is only applicable for Docker versions 27 and greater)"
-        }
+  "id": "docker-in-docker",
+  "version": "2.16.0",
+  "name": "Docker (Docker-in-Docker)",
+  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
+  "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
+  "options": {
+    "version": {
+      "type": "string",
+      "proposals": [
+        "latest",
+        "none",
+        "20.10"
+      ],
+      "default": "latest",
+      "description": "Select or enter a Docker/Moby Engine version. (Availability can vary by OS version.)"
     },
-    "entrypoint": "/usr/local/share/docker-init.sh",
-    "privileged": true,
-    "containerEnv": {
-        "DOCKER_BUILDKIT": "1"
+    "moby": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install OSS Moby build instead of Docker CE"
     },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-azuretools.vscode-containers"
-            ],
-            "settings": {
-                "github.copilot.chat.codeGeneration.instructions": [
-                    {
-                        "text": "This dev container includes the Docker CLI (`docker`) pre-installed and available on the `PATH` for running and managing containers using a dedicated Docker daemon running inside the dev container."
-                    }
-                ]
-            }
-        }
+    "mobyBuildxVersion": {
+      "type": "string",
+      "default": "latest",
+      "description": "Install a specific version of moby-buildx when using Moby"
     },
-    "mounts": [
-        {
-            "source": "dind-var-lib-docker-${devcontainerId}",
-            "target": "/var/lib/docker",
-            "type": "volume"
-        }
-    ],
-    "installsAfter": [
-        "ghcr.io/devcontainers/features/common-utils"
-    ]
+    "dockerDashComposeVersion": {
+      "type": "string",
+      "enum": [
+        "none",
+        "v1",
+        "v2"
+      ],
+      "default": "v2",
+      "description": "Default version of Docker Compose (v1, v2 or none)"
+    },
+    "azureDnsAutoDetection": {
+      "type": "boolean",
+      "default": true,
+      "description": "Allow automatically setting the dockerd DNS server when the installation script detects it is running in Azure"
+    },
+    "dockerDefaultAddressPool": {
+      "type": "string",
+      "default": "",
+      "proposals": [],
+      "description": "Define default address pools for Docker networks. e.g. base=192.168.0.0/16,size=24"
+    },
+    "installDockerBuildx": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install Docker Buildx"
+    },
+    "installDockerComposeSwitch": {
+      "type": "boolean",
+      "default": false,
+      "description": "Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter."
+    },
+    "disableIp6tables": {
+      "type": "boolean",
+      "default": false,
+      "description": "Disable ip6tables (this option is only applicable for Docker versions 27 and greater)"
+    }
+  },
+  "entrypoint": "/usr/local/share/docker-init.sh",
+  "privileged": true,
+  "containerEnv": {
+    "DOCKER_BUILDKIT": "1"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-containers"
+      ],
+      "settings": {
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes the Docker CLI (`docker`) pre-installed and available on the `PATH` for running and managing containers using a dedicated Docker daemon running inside the dev container."
+          }
+        ]
+      }
+    }
+  },
+  "mounts": [
+    {
+      "source": "dind-var-lib-docker-${devcontainerId}",
+      "target": "/var/lib/docker",
+      "type": "volume"
+    }
+  ],
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/common-utils"
+  ]
 }
