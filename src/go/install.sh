@@ -301,10 +301,11 @@ GO_TOOLS="\
 if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
     echo "Installing common Go tools..."
     export PATH=${TARGET_GOROOT}/bin:${PATH}
-    mkdir -p /tmp/gotools /usr/local/etc/vscode-dev-containers ${TARGET_GOPATH}/bin
-    cd /tmp/gotools
     export GOPATH=/tmp/gotools
-    export GOCACHE=/tmp/gotools/cache
+    export GOCACHE="${GOPATH}/cache"
+
+    mkdir -p "${GOPATH}" /usr/local/etc/vscode-dev-containers "${TARGET_GOPATH}/bin"
+    cd "${GOPATH}"
 
     # Use go get for versions of go under 1.16
     go_install_command=install
@@ -316,10 +317,9 @@ if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
 
     (echo "${GO_TOOLS}" | xargs -n 1 go ${go_install_command} -v )2>&1 | tee -a /usr/local/etc/vscode-dev-containers/go.log
 
-    # Move Go tools into path and clean up
-    if [ -d /tmp/gotools/bin ]; then
-        mv /tmp/gotools/bin/* ${TARGET_GOPATH}/bin/
-        rm -rf /tmp/gotools
+    # Move Go tools into path
+    if [ -d "${GOPATH}/bin" ]; then
+        mv "${GOPATH}/bin"/* "${TARGET_GOPATH}/bin/"
     fi
 
     # Install golangci-lint from precompiled binares
@@ -332,6 +332,9 @@ if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
         curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
             sh -s -- -b "${TARGET_GOPATH}/bin" "v${GOLANGCILINT_VERSION}"
     fi
+
+    # Remove Go tools temp directory
+    rm -rf "${GOPATH}"
 fi
 
 
