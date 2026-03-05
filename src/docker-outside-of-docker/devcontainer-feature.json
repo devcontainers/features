@@ -51,37 +51,6 @@
             "description": "Path where the Docker socket is mounted inside the container. For rootless Docker, override the mount in devcontainer.json to map your host socket to this path."
         }
     },
-    "moby": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install OSS Moby build instead of Docker CE"
-    },
-    "mobyBuildxVersion": {
-      "type": "string",
-      "default": "latest",
-      "description": "Install a specific version of moby-buildx when using Moby"
-    },
-    "dockerDashComposeVersion": {
-      "type": "string",
-      "enum": [
-        "none",
-        "v1",
-        "v2"
-      ],
-      "default": "v2",
-      "description": "Compose version to use for docker-compose (v1 or v2 or none)"
-    },
-    "installDockerBuildx": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install Docker Buildx"
-    },
-    "installDockerComposeSwitch": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter."
-    }
-  },
   "entrypoint": "/usr/local/share/docker-init.sh",
   "customizations": {
     "vscode": {
