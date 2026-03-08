@@ -303,6 +303,13 @@ if ! command -v git >/dev/null 2>&1; then
     check_packages git
 fi
 
+# Update CA certificates to ensure HTTPS connections work properly
+# This is especially important for Ubuntu 24.04 (Noble) and Debian Trixie
+# Only run for Debian-based systems (RHEL uses update-ca-trust instead)
+if [ "${ADJUSTED_ID}" = "debian" ] && command -v update-ca-certificates > /dev/null 2>&1; then
+    update-ca-certificates
+fi
+
 # Swap to legacy iptables for compatibility (Debian only)
 if [ "${ADJUSTED_ID}" = "debian" ] && type iptables-legacy > /dev/null 2>&1; then
     update-alternatives --set iptables /usr/sbin/iptables-legacy
@@ -852,6 +859,10 @@ if [ "$DISABLE_IP6_TABLES" == true ]; then
         DOCKER_DEFAULT_IP6_TABLES="--ip6tables=false"
         echo "(!) As requested, passing '${DOCKER_DEFAULT_IP6_TABLES}'"
     fi
+fi
+
+if [ ! -d /usr/local/share ]; then
+    mkdir -p /usr/local/share
 fi
 
 tee /usr/local/share/docker-init.sh > /dev/null \
