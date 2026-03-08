@@ -90,3 +90,21 @@ Installing prerelease builds. Supports `preview` and `daily` suffixes.
 This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
 
 `bash` is required to execute the `install.sh` script.
+
+## Tab completions
+
+When using .NET SDK 10 or newer, tab completions for the `dotnet` CLI are automatically installed for bash, zsh, and fish. The completion scripts are placed in the standard system-wide directories so they work for all users:
+
+- **Bash**: `/usr/share/bash-completion/completions/dotnet`
+- **Zsh**: `/usr/share/zsh/site-functions/_dotnet`
+- **Fish**: `/usr/share/fish/vendor_completions.d/dotnet.fish`
+
+To disable this, set `tabCompletions` to `false`:
+
+``` json
+"features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+        "tabCompletions": false
+    }
+}
+```

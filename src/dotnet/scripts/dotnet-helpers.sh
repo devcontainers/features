@@ -194,3 +194,45 @@ parse_version_and_quality() {
     fi
     echo "$clean_version" "$quality"
 }
+
+# Checks if the installed .NET SDK is at least the given major version.
+# Returns 0 (true) if the SDK major version >= the specified version, 1 otherwise.
+# Also returns 1 if no SDK is installed (e.g. runtime-only installs).
+# Usage: is_at_least_sdk_version <major_version>
+# Example: is_at_least_sdk_version 10
+is_at_least_sdk_version() {
+    local required_major="$1"
+    local dotnet_version
+    dotnet_version=$("$DOTNET_ROOT/dotnet" --version 2>/dev/null || true)
+    local major_version="${dotnet_version%%.*}"
+    [[ "$major_version" =~ ^[0-9]+$ ]] && [ "$major_version" -ge "$required_major" ]
+}
+
+# Sets up dotnet tab completions for bash, zsh, and fish.
+# The 'dotnet completions script' command is only available in .NET SDK 10+.
+# Older SDKs and runtime-only installs will naturally skip this since the
+# command won't be available.
+# Reference: https://learn.microsoft.com/en-us/dotnet/core/tools/enable-tab-autocomplete
+# Completion scripts are generated at install time and placed in the standard
+# system-wide completion directories, which are auto-discovered by
+# bash-completion, zsh, and fish without modifying any rc files.
+install_completions() {
+    if ! is_at_least_sdk_version 10; then
+        echo "Skipping dotnet tab completions (requires SDK 10+)."
+        return
+    fi
+
+    echo "Setting up dotnet tab completions..."
+
+    # Bash: drop into the standard bash-completion directory
+    mkdir -p /usr/share/bash-completion/completions
+    "$DOTNET_ROOT/dotnet" completions script bash > /usr/share/bash-completion/completions/dotnet
+
+    # Zsh: drop into the standard site-functions directory
+    mkdir -p /usr/share/zsh/site-functions
+    "$DOTNET_ROOT/dotnet" completions script zsh > /usr/share/zsh/site-functions/_dotnet
+
+    # Fish: drop into the standard vendor completions directory
+    mkdir -p /usr/share/fish/vendor_completions.d
+    "$DOTNET_ROOT/dotnet" completions script fish > /usr/share/fish/vendor_completions.d/dotnet.fish
+}

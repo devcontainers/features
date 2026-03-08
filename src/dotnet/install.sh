@@ -11,6 +11,7 @@ ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 DOTNET_RUNTIME_VERSIONS="${DOTNETRUNTIMEVERSIONS:-""}"
 ASPNETCORE_RUNTIME_VERSIONS="${ASPNETCORERUNTIMEVERSIONS:-""}"
 WORKLOADS="${WORKLOADS:-""}"
+TAB_COMPLETIONS="${TABCOMPLETIONS:-"true"}"
 
 # Prevent "Welcome to .NET" message from dotnet
 export DOTNET_NOLOGO=true
@@ -144,6 +145,10 @@ fi
 # This is necessary because 'sudo' resets the PATH variable, so it won't search the DOTNET_ROOT directory
 if [ ! -e /usr/bin/dotnet ]; then
     ln --symbolic "$DOTNET_ROOT/dotnet" /usr/bin/dotnet
+fi
+
+if [ "$TAB_COMPLETIONS" = "true" ]; then
+    install_completions
 fi
 
 # Add .NET Core SDK tools to PATH for bash and zsh users
