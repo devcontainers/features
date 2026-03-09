@@ -13,10 +13,8 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-expected=$(fetch_latest_version_in_channel "10.0")
-
 check ".NET Core SDK 10.0 installed" \
-is_dotnet_sdk_version_installed "$expected"
+is_dotnet_sdk_version_installed "10.0"
 
 check "Build and run example project" \
 dotnet run --project projects/net10.0 

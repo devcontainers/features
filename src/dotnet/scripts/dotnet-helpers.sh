@@ -8,40 +8,30 @@
 # Maintainer: The Dev Container spec maintainers
 DOTNET_SCRIPTS=$(dirname "${BASH_SOURCE[0]}")
 DOTNET_INSTALL_SCRIPT="$DOTNET_SCRIPTS/vendor/dotnet-install.sh"
+DOTNET_RELEASES_INDEX_URL="https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json"
 
-# Prints the latest dotnet version in the specified channel
-# Usage: fetch_latest_version_in_channel <channel> [<runtime>]
-# Example: fetch_latest_version_in_channel "LTS"
-# Example: fetch_latest_version_in_channel "6.0" "dotnet"
-# Example: fetch_latest_version_in_channel "6.0" "aspnetcore"
-fetch_latest_version_in_channel() {
-    local channel="$1"
-    local runtime="$2"
-    if [ "$runtime" = "dotnet" ]; then
-        wget -qO- "https://builds.dotnet.microsoft.com/dotnet/Runtime/$channel/latest.version"
-    elif [ "$runtime" = "aspnetcore" ]; then
-        wget -qO- "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/$channel/latest.version"
-    else
-        wget -qO- "https://builds.dotnet.microsoft.com/dotnet/Sdk/$channel/latest.version"
-    fi
-}
-
-# Prints the latest dotnet version
+# Prints the latest active dotnet version from the releases index.
 # Usage: fetch_latest_version [<runtime>]
 # Example: fetch_latest_version
 # Example: fetch_latest_version "dotnet"
 # Example: fetch_latest_version "aspnetcore"
 fetch_latest_version() {
     local runtime="$1"
-    local sts_version
-    local lts_version
-    sts_version=$(fetch_latest_version_in_channel "STS" "$runtime")
-    lts_version=$(fetch_latest_version_in_channel "LTS" "$runtime")
-    if [[ "$sts_version" > "$lts_version" ]]; then
-        echo "$sts_version"
-    else
-        echo "$lts_version"
+    local version_field="latest-sdk"
+
+    if [ -n "$runtime" ]; then
+        version_field="latest-runtime"
     fi
+
+    wget -qO- "$DOTNET_RELEASES_INDEX_URL" \
+        | jq -er --arg version_field "$version_field" '
+            .["releases-index"]
+            | map(
+                select(."support-phase" == "active")
+                | .[$version_field]
+            )
+            | .[0]
+        '
 }
 
 # Installs a version of the .NET SDK
