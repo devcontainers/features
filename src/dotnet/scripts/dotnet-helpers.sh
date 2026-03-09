@@ -18,12 +18,15 @@ DOTNET_RELEASES_INDEX_URL="https://builds.dotnet.microsoft.com/dotnet/release-me
 fetch_latest_version() {
     local runtime="$1"
     local version_field="latest-sdk"
+    local releases_index=""
 
     if [ -n "$runtime" ]; then
         version_field="latest-runtime"
     fi
 
-    wget -qO- "$DOTNET_RELEASES_INDEX_URL" \
+    releases_index="$(wget -qO- "$DOTNET_RELEASES_INDEX_URL")" || return $?
+
+    printf '%s\n' "$releases_index" \
         | jq -er --arg version_field "$version_field" '
             .["releases-index"]
             | map(
