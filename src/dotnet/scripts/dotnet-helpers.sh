@@ -11,18 +11,34 @@ DOTNET_INSTALL_SCRIPT="$DOTNET_SCRIPTS/vendor/dotnet-install.sh"
 DOTNET_RELEASES_INDEX_URL="https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json"
 
 # Prints the latest active dotnet version from the releases index.
-# Usage: fetch_latest_version [<runtime>]
+# Usage: fetch_latest_version [<target>]
+# With no target, resolves the latest SDK version.
+# With "sdk", resolves the latest SDK version explicitly.
+# With "dotnet" or "aspnetcore", resolves the latest runtime version.
+# Note: the upstream releases index only distinguishes SDK vs runtime for
+# latest resolution, so "dotnet" and "aspnetcore" currently resolve to the
+# same version.
 # Example: fetch_latest_version
+# Example: fetch_latest_version "sdk"
 # Example: fetch_latest_version "dotnet"
 # Example: fetch_latest_version "aspnetcore"
 fetch_latest_version() {
-    local runtime="$1"
-    local version_field="latest-sdk"
+    local target="$1"
+    local version_field=""
     local releases_index=""
 
-    if [ -n "$runtime" ]; then
-        version_field="latest-runtime"
-    fi
+    case "$target" in
+        ""|sdk)
+            version_field="latest-sdk"
+            ;;
+        dotnet|aspnetcore)
+            version_field="latest-runtime"
+            ;;
+        *)
+            echo "Unsupported target '$target'. Expected 'sdk', 'dotnet', or 'aspnetcore'." >&2
+            return 1
+            ;;
+    esac
 
     releases_index="$(wget -qO- "$DOTNET_RELEASES_INDEX_URL")" || return $?
 
