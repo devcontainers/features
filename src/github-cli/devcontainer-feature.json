@@ -1,6 +1,6 @@
 {
     "id": "github-cli",
-    "version": "1.1.0",
+    "version": "1.3.0",
     "name": "GitHub CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/github-cli",
     "description": "Installs the GitHub CLI. Auto-detects latest version and installs needed dependencies.",
@@ -21,7 +21,17 @@
         "extensions": {
             "type": "string",
             "default": "",
-            "description": "Comma-separated list of GitHub CLI extensions to install (e.g. 'dlvhdr/gh-dash,github/gh-copilot')."
+            "description": "Comma-separated list of GitHub CLI extensions to install (e.g. 'dlvhdr/gh-dash,github/gh-copilot'). Requires either `authOnSetup` or `installExtensionsFromGit` to be true."
+        },
+        "installExtensionsFromGit": {
+            "type": "boolean",
+            "default": false,
+            "description": "Install `extensions` by cloning their repositories directly instead of using `gh extension install`. Set this to true when `authOnSetup` is false and `extensions` are configured. When used together with `authOnSetup`, git-based installs happen during feature setup instead of waiting for login."
+        },
+        "authOnSetup": {
+            "type": "boolean",
+            "default": false,
+            "description": "Automatically authenticate with `gh auth login --with-token` when `GH_TOKEN` or `GITHUB_TOKEN` is available, otherwise start `gh auth login` on the first interactive shell if you are not already authenticated. If `extensions` are configured, this must be true unless `installExtensionsFromGit` is true."
         }
     },
     "customizations": {
