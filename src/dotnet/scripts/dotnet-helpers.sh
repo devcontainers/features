@@ -8,40 +8,49 @@
 # Maintainer: The Dev Container spec maintainers
 DOTNET_SCRIPTS=$(dirname "${BASH_SOURCE[0]}")
 DOTNET_INSTALL_SCRIPT="$DOTNET_SCRIPTS/vendor/dotnet-install.sh"
+DOTNET_RELEASES_INDEX_URL="https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json"
 
-# Prints the latest dotnet version in the specified channel
-# Usage: fetch_latest_version_in_channel <channel> [<runtime>]
-# Example: fetch_latest_version_in_channel "LTS"
-# Example: fetch_latest_version_in_channel "6.0" "dotnet"
-# Example: fetch_latest_version_in_channel "6.0" "aspnetcore"
-fetch_latest_version_in_channel() {
-    local channel="$1"
-    local runtime="$2"
-    if [ "$runtime" = "dotnet" ]; then
-        wget -qO- "https://builds.dotnet.microsoft.com/dotnet/Runtime/$channel/latest.version"
-    elif [ "$runtime" = "aspnetcore" ]; then
-        wget -qO- "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/$channel/latest.version"
-    else
-        wget -qO- "https://builds.dotnet.microsoft.com/dotnet/Sdk/$channel/latest.version"
-    fi
-}
-
-# Prints the latest dotnet version
-# Usage: fetch_latest_version [<runtime>]
+# Prints the latest active dotnet version from the releases index.
+# Usage: fetch_latest_version [<target>]
+# With no target, resolves the latest SDK version.
+# With "sdk", resolves the latest SDK version explicitly.
+# With "dotnet" or "aspnetcore", resolves the latest runtime version.
+# Note: the upstream releases index only distinguishes SDK vs runtime for
+# latest resolution, so "dotnet" and "aspnetcore" currently resolve to the
+# same version.
 # Example: fetch_latest_version
+# Example: fetch_latest_version "sdk"
 # Example: fetch_latest_version "dotnet"
 # Example: fetch_latest_version "aspnetcore"
 fetch_latest_version() {
-    local runtime="$1"
-    local sts_version
-    local lts_version
-    sts_version=$(fetch_latest_version_in_channel "STS" "$runtime")
-    lts_version=$(fetch_latest_version_in_channel "LTS" "$runtime")
-    if [[ "$sts_version" > "$lts_version" ]]; then
-        echo "$sts_version"
-    else
-        echo "$lts_version"
-    fi
+    local target="$1"
+    local version_field=""
+    local releases_index=""
+
+    case "$target" in
+        ""|sdk)
+            version_field="latest-sdk"
+            ;;
+        dotnet|aspnetcore)
+            version_field="latest-runtime"
+            ;;
+        *)
+            echo "Unsupported target '$target'. Expected 'sdk', 'dotnet', or 'aspnetcore'." >&2
+            return 1
+            ;;
+    esac
+
+    releases_index="$(wget -qO- "$DOTNET_RELEASES_INDEX_URL")" || return $?
+
+    printf '%s\n' "$releases_index" \
+        | jq -er --arg version_field "$version_field" '
+            .["releases-index"]
+            | map(
+                select(."support-phase" == "active")
+                | .[$version_field]
+            )
+            | .[0]
+        '
 }
 
 # Installs a version of the .NET SDK

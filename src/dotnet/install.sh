@@ -105,7 +105,7 @@ done
 
 # Install .NET versions and dependencies
 # icu-devtools includes dependencies for .NET
-check_packages wget ca-certificates icu-devtools
+check_packages wget ca-certificates icu-devtools jq
 
 for version in "${versions[@]}"; do
     read -r clean_version quality < <(parse_version_and_quality "$version")
