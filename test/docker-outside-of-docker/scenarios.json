@@ -205,13 +205,6 @@
                 "moby": false
             }
         },
-        "mounts": [
-            {
-                "source": "/var/run/docker.sock",
-                "target": "/var/run/docker-host.sock",
-                "type": "bind"
-            }
-        ],
         "containerUser": "vscode"
     },
     "custom_rootless_socket_path": {
