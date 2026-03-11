@@ -18,6 +18,7 @@ Installs latest version of kubectl, Helm, and optionally minikube. Auto-detects 
 | version | Select or enter a Kubernetes version to install | string | latest |
 | helm | Select or enter a Helm version to install | string | latest |
 | minikube | Select or enter a Minikube version to install | string | latest |
+| kubectlFallbackVersion | Fallback kubectl version to use when the latest stable version cannot be fetched | string | v1.35.1 |
 
 ## Ingress and port forwarding
 
