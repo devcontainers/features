@@ -15,10 +15,10 @@ This Feature installs the latest .NET SDK, which includes the .NET CLI and the s
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| version | Select or enter a .NET SDK version. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | latest |
-| additionalVersions | Enter additional .NET SDK versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
-| dotnetRuntimeVersions | Enter additional .NET runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
-| aspNetCoreRuntimeVersions | Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version. | string | - |
+| version | Select or enter a .NET SDK version. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version, 'X.Y-preview' or 'X.Y-daily' for prereleases. | string | latest |
+| additionalVersions | Enter additional .NET SDK versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version, 'X.Y-preview' or 'X.Y-daily' for prereleases. | string | - |
+| dotnetRuntimeVersions | Enter additional .NET runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version, 'X.Y-preview' or 'X.Y-daily' for prereleases. | string | - |
+| aspNetCoreRuntimeVersions | Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version, 'X.Y-preview' or 'X.Y-daily' for prereleases. | string | - |
 | workloads | Enter additional .NET SDK workloads, separated by commas. Use 'dotnet workload search' to learn what workloads are available to install. | string | - |
 
 ## Customizations
@@ -95,7 +95,7 @@ Installing .NET workloads. Multiple workloads can be specified as comma-separate
 ``` json
 "features": {
     "ghcr.io/devcontainers/features/dotnet:2": {
-      "workloads": "aspire, wasm-tools"
+      "workloads": "wasm-tools"
     }
 }
 ```
