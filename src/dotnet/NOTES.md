@@ -57,7 +57,7 @@ Installing only the .NET Runtime or the ASP.NET Core Runtime. (The SDK includes 
     "ghcr.io/devcontainers/features/dotnet:2": {
         "version": "none",
         "dotnetRuntimeVersions": "latest, lts",
-        "aspnetCoreRuntimeVersions": "latest, lts",
+        "aspNetCoreRuntimeVersions": "latest, lts",
     }
 }
 ```
@@ -80,7 +80,7 @@ Installing prerelease builds. Supports `preview` and `daily` suffixes.
         "version": "10.0-preview",
         "additionalVersions": "10.0.1xx-daily",
         "dotnetRuntimeVersions": "10.0-daily",
-        "aspnetCoreRuntimeVersions": "10.0-daily"
+        "aspNetCoreRuntimeVersions": "10.0-daily"
     }
 }
 ```
