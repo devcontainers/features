@@ -20,6 +20,7 @@ This Feature installs the latest .NET SDK, which includes the .NET CLI and the s
 | dotnetRuntimeVersions | Enter additional .NET runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version, 'X.Y-preview' or 'X.Y-daily' for prereleases. | string | - |
 | aspNetCoreRuntimeVersions | Enter additional ASP.NET Core runtime versions, separated by commas. Use 'latest' for the latest version, 'lts' for the latest LTS version, 'X.Y' or 'X.Y.Z' for a specific version, 'X.Y-preview' or 'X.Y-daily' for prereleases. | string | - |
 | workloads | Enter additional .NET SDK workloads, separated by commas. Use 'dotnet workload search' to learn what workloads are available to install. | string | - |
+| tabCompletions | Install shell tab completions for the dotnet CLI. Requires SDK 10 or newer. | boolean | true |
 
 ## Customizations
 
@@ -85,7 +86,7 @@ Installing only the .NET Runtime or the ASP.NET Core Runtime. (The SDK includes 
     "ghcr.io/devcontainers/features/dotnet:2": {
         "version": "none",
         "dotnetRuntimeVersions": "latest, lts",
-        "aspnetCoreRuntimeVersions": "latest, lts",
+        "aspNetCoreRuntimeVersions": "latest, lts",
     }
 }
 ```
