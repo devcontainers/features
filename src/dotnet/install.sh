@@ -11,6 +11,7 @@ ADDITIONAL_VERSIONS="${ADDITIONALVERSIONS:-""}"
 DOTNET_RUNTIME_VERSIONS="${DOTNETRUNTIMEVERSIONS:-""}"
 ASPNETCORE_RUNTIME_VERSIONS="${ASPNETCORERUNTIMEVERSIONS:-""}"
 WORKLOADS="${WORKLOADS:-""}"
+TAB_COMPLETIONS="${TABCOMPLETIONS:-"true"}"
 
 # Prevent "Welcome to .NET" message from dotnet
 export DOTNET_NOLOGO=true
@@ -105,18 +106,30 @@ done
 
 # Install .NET versions and dependencies
 # icu-devtools includes dependencies for .NET
-check_packages wget ca-certificates icu-devtools
+check_packages wget ca-certificates icu-devtools jq
 
 for version in "${versions[@]}"; do
-    install_sdk "$version"
+    read -r clean_version quality < <(parse_version_and_quality "$version")
+    if [ -n "$quality" ]; then
+        echo "Interpreting requested version '$version' as version '$clean_version' with quality '$quality'"
+    fi
+    install_sdk "$clean_version" "$quality"
 done
 
 for version in "${dotnetRuntimeVersions[@]}"; do
-    install_runtime "dotnet" "$version"
+    read -r clean_version quality < <(parse_version_and_quality "$version")
+    if [ -n "$quality" ]; then
+        echo "Interpreting requested runtime version '$version' as version '$clean_version' with quality '$quality'"
+    fi
+    install_runtime "dotnet" "$clean_version" "$quality"
 done
 
 for version in "${aspNetCoreRuntimeVersions[@]}"; do
-    install_runtime "aspnetcore" "$version"
+    read -r clean_version quality < <(parse_version_and_quality "$version")
+    if [ -n "$quality" ]; then
+        echo "Interpreting requested ASP.NET Core runtime version '$version' as version '$clean_version' with quality '$quality'"
+    fi
+    install_runtime "aspnetcore" "$clean_version" "$quality"
 done
 
 workloads=()
@@ -133,6 +146,17 @@ fi
 if [ ! -e /usr/bin/dotnet ]; then
     ln --symbolic "$DOTNET_ROOT/dotnet" /usr/bin/dotnet
 fi
+
+if [ "$TAB_COMPLETIONS" = "true" ]; then
+    install_completions
+fi
+
+# Add .NET Core SDK tools to PATH for bash and zsh users
+# This is where 'dotnet tool install --global <tool>' installs tools to
+# Use single-quoted EOF to defer $PATH expansion until sourcing the file
+cat << 'EOF' >> /etc/profile.d/dotnet.sh
+export PATH="$PATH:$HOME/.dotnet/tools"
+EOF
 
 # Clean up
 rm -rf /var/lib/apt/lists/*

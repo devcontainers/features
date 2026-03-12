@@ -13,4 +13,6 @@ This docker-in-docker Dev Container Feature is roughly based on the [official do
 
 This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
 
+Debian Trixie (13) does not include moby-cli and related system packages, so the feature cannot install with "moby": "true". To use this feature on Trixie, please set "moby": "false" or choose a different base image (for example, Ubuntu 24.04).
+
 `bash` is required to execute the `install.sh` script.

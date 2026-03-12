@@ -18,6 +18,7 @@ USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${UID:-"automatic"}"
 USER_GID="${GID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
+INSTALL_SSL="${INSTALLSSL:-"true"}"
 
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
@@ -31,6 +32,8 @@ fi
 if [ "${ID}" = "alpine" ]; then
     apk add --no-cache bash
 fi
-
+if [ "${ID}" = "azurelinux" ]; then
+    tdnf install -y curl git 
+fi
 exec /bin/bash "$(dirname $0)/main.sh" "$@"
 exit $?

@@ -148,8 +148,10 @@ install_pwsh() {
 
 install_using_github() {
     mode=$1
-    if [ "${architecture}" = "amd64" ]; then
+    if [ "${architecture}" = "amd64" ] || [ "${architecture}" = "x86_64" ]; then
         architecture="x64"
+    elif [ "${architecture}" = "aarch64" ]; then
+        architecture="arm64"
     fi
     pwsh_url="https://github.com/PowerShell/PowerShell"
     POWERSHELL_VERSION="7.4.xyz"

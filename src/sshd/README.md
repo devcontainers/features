@@ -15,6 +15,7 @@ Adds a SSH server into a container so that you can use an external terminal, sft
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
+| gatewayPorts | Enable other hosts in the same network to connect to the forwarded ports | string | no
 | version | Currently unused. | string | latest |
 
 ## Usage

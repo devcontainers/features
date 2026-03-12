@@ -1,4 +1,3 @@
-
 # GitHub CLI (github-cli)
 
 Installs the GitHub CLI. Auto-detects latest version and installs needed dependencies.
@@ -13,12 +12,11 @@ Installs the GitHub CLI. Auto-detects latest version and installs needed depende
 
 ## Options
 
-| Options Id | Description | Type | Default Value |
-|-----|-----|-----|-----|
-| version | Select version of the GitHub CLI, if not latest. | string | latest |
-| installDirectlyFromGitHubRelease | - | boolean | true |
-
-
+| Options Id                       | Description                                                                                         | Type    | Default Value |
+| -------------------------------- | --------------------------------------------------------------------------------------------------- | ------- | ------------- |
+| version                          | Select version of the GitHub CLI, if not latest.                                                    | string  | latest        |
+| installDirectlyFromGitHubRelease | -                                                                                                   | boolean | true          |
+| extensions                       | Comma-separated list of GitHub CLI extensions to install (e.g. 'dlvhdr/gh-dash,github/gh-copilot'). | string  |               |
 
 ## OS Support
 
@@ -26,7 +24,6 @@ This Feature should work on recent versions of Debian/Ubuntu-based distributions
 
 `bash` is required to execute the `install.sh` script.
 
-
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/github-cli/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/github-cli/devcontainer-feature.json). Add additional notes to a `NOTES.md`._

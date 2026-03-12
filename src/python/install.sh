@@ -69,7 +69,7 @@ if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
 fi
 
 # To find some devel packages, some rhel need to enable specific extra repos, but not on RedHat ubi images...
-INSTALL_CMD_ADDL_REPO=""
+INSTALL_CMD_ADDL_REPOS=""
 if [ ${ADJUSTED_ID} = "rhel" ] && [ ${ID} != "rhel" ]; then
     if [ ${MAJOR_VERSION_ID} = "8" ]; then
         INSTALL_CMD_ADDL_REPOS="--enablerepo powertools"
@@ -92,6 +92,27 @@ else
     PKG_MGR_CMD=yum
     INSTALL_CMD="${PKG_MGR_CMD} ${INSTALL_CMD_ADDL_REPOS} -y install --noplugins --setopt=install_weak_deps=0"
 fi
+
+# Install Time::Piece Perl module required by OpenSSL 3.0.18+ build system on CentOS 7/RHEL 7
+install_time_piece() {
+    echo "(*) Ensuring Time::Piece Perl module is available for OpenSSL 3.0.18+ build..."
+    
+    # Check if Time::Piece is already available (it's usually in Perl core)
+    if perl -MTime::Piece -e 'exit 0' 2>/dev/null; then
+        echo "(*) Time::Piece already available"
+        return 0
+    fi
+    
+    echo "(*) Time::Piece not found, installing perl-Time-Piece package..."
+    
+    # Install perl-Time-Piece package for CentOS 7/RHEL 7
+    if ${INSTALL_CMD} perl-Time-Piece; then
+        echo "(*) perl-Time-Piece installed for OpenSSL 3.0.18+ build"
+    else
+        echo "(!) Failed to install perl-Time-Piece package. This will cause OpenSSL 3.0.18+ build to fail"
+        return 1
+    fi
+}
 
 # Clean up
 clean_up() {
@@ -478,6 +499,130 @@ install_cpython() {
         curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
     fi
 }
+# Get system architecture for downloads
+get_architecture() {
+    local architecture=""
+    case $(uname -m) in
+        x86_64) architecture="amd64" ;;
+        aarch64 | armv8*) architecture="arm64" ;;
+        aarch32 | armv7* | armvhf*) architecture="armhf" ;;
+        i?86) architecture="386" ;;
+        *) echo "(!) Architecture $(uname -m) unsupported"; exit 1 ;;
+    esac
+    echo ${architecture}
+}
+
+# Install cosign with multi-distro support
+install_cosign() {
+
+    COSIGN_VERSION="latest"
+    local cosign_url='https://github.com/sigstore/cosign'
+    local architecture=$(get_architecture)
+
+    find_version_from_git_tags COSIGN_VERSION "${cosign_url}"
+
+    # Remove 'v' prefix if present for download URL
+    local version_for_url="${COSIGN_VERSION#v}"
+
+    local cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
+    local cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
+    
+    echo "Downloading cosign from: ${cosign_url}"
+    
+    if curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
+        echo "(*) Successfully downloaded cosign v${COSIGN_VERSION}"
+    else
+        echo -e "\n(!) Failed to fetch cosign v${COSIGN_VERSION}..."
+        # Try previous version
+        find_prev_version_from_git_tags COSIGN_VERSION "https://github.com/sigstore/cosign"
+        echo -e "\nAttempting to install previous cosign ${COSIGN_VERSION} version as fallback mechanism"
+        
+        version_for_url="${COSIGN_VERSION#v}"
+        cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
+        cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
+        
+        if ! curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
+            echo "(!) Failed to download cosign v${COSIGN_VERSION} as fallback"
+            return 1
+        fi
+    fi
+    
+    # Install the package
+    if [ -f "$cosign_filename" ]; then
+        dpkg -i "$cosign_filename"
+        rm "$cosign_filename"
+        echo "Installation of cosign succeeded with ${COSIGN_VERSION}."
+    else
+        echo "(!) Failed to install cosign package"
+        return 1
+    fi
+
+}
+
+# COSIGN signature verification for python versions >= 3.14
+cosign_verification() {
+    local VERSION="$1"
+
+    # Ensure cosign is installed
+    if ! type cosign > /dev/null 2>&1; then
+        echo "(*) cosign not found, installing..."
+        if ! install_cosign; then
+            echo "(!) Failed to install cosign"
+            return 1
+        fi
+    else
+         echo "(*) cosign is already available on the system"
+    fi
+    
+    echo "(*) Attempting COSIGN verification for Python ${VERSION}..."
+    
+    # Check if COSIGN signature files exist (these don't exist yet for Python releases)
+    local cosign_sig_url="${cpython_tgz_url}.sig"
+    local cosign_cert_url="${cpython_tgz_url}.pem"
+    
+    # Download COSIGN signature and certificate files with proper error handling
+    echo "(*) Checking for cosign signature files..."
+    if ! curl -sSL -f --fail-with-body -o "/tmp/python-src/${cpython_tgz_filename}.sig" "${cosign_sig_url}" 2>/dev/null; then
+        echo "(!) COSIGN signature file not available for Python ${VERSION}"
+        echo "    Signature URL: ${cosign_sig_url}"
+        return 1
+    fi
+    
+    if ! curl -sSL -f --fail-with-body -o "/tmp/python-src/${cpython_tgz_filename}.pem" "${cosign_cert_url}" 2>/dev/null; then
+        echo "(!) COSIGN certificate file not available for Python ${VERSION}"
+        echo "    Certificate URL: ${cosign_cert_url}"
+        return 1
+    fi
+    
+    # Perform COSIGN verification
+    if cosign verify-blob \
+        --certificate "/tmp/python-src/${cpython_tgz_filename}.pem" \
+        --signature "/tmp/python-src/${cpython_tgz_filename}.sig" \
+        --certificate-identity-regexp=".*" \
+        --certificate-oidc-issuer-regexp=".*" \
+        "/tmp/python-src/${cpython_tgz_filename}"; then
+        echo "(*) COSIGN signature verification successful"
+        return 0
+    else
+        echo "(!) COSIGN signature verification failed"
+        return 1
+    fi
+}
+
+# GPG verification for python versions < 3.14
+gpg_verification() {    
+    echo "(*) Using GPG signature verification..."
+    if [[ ${VERSION_CODENAME} = "centos7" ]] || [[ ${VERSION_CODENAME} = "rhel7" ]]; then
+        receive_gpg_keys_centos7 PYTHON_SOURCE_GPG_KEYS
+    else
+        receive_gpg_keys PYTHON_SOURCE_GPG_KEYS
+    fi
+    echo "Downloading ${cpython_tgz_filename}.asc..."
+    curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}.asc" "${cpython_tgz_url}.asc"
+    gpg --verify "${cpython_tgz_filename}.asc"
+    echo "(*) GPG signature verification successful"
+}
+
 
 install_from_source() {
     VERSION=$1
@@ -496,6 +641,8 @@ install_from_source() {
     case ${VERSION_CODENAME} in
         centos7|rhel7)
             check_packages perl-IPC-Cmd
+            # Install Time::Piece Perl module required by OpenSSL 3.0.18+ build system
+            install_time_piece
             install_openssl3
             ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
             ;;
@@ -507,15 +654,27 @@ install_from_source() {
             install_prev_vers_cpython "${VERSION}"
         fi
     fi;
-    # Verify signature
-    if [[ ${VERSION_CODENAME} = "centos7" ]] || [[ ${VERSION_CODENAME} = "rhel7" ]]; then
-        receive_gpg_keys_centos7 PYTHON_SOURCE_GPG_KEYS
+
+    # Discontinuation of PGP signatures for releases of Python 3.14 or future versions
+    # CPython release artifacts are additionally signed with Sigstore starting with the Python 3.11.0
+    local major_version=$(echo "$VERSION" | cut -d. -f1)
+    local minor_version=$(echo "$VERSION" | cut -d. -f2)
+    echo "(*) Detected Python version: ${major_version}.${minor_version}"    
+    if (( major_version > 3 )) || { (( major_version == 3 )) && (( minor_version >= 14 )); }; then
+        echo "(*) Python 3.14+ detected. Attempting cosign verification..."
+        if cosign_verification "$VERSION"; then
+            echo "(*) COSIGN verification successful."
+        else
+            echo "(*) COSIGN verification failed or not available for Python ${VERSION}"
+            echo "(*) WARNING: Installing Python ${VERSION} without signature verification"
+            echo "(*) This is expected for newly released versions where cosign signatures are not yet available"
+            echo "(*) Python 3.14+ discontinued PGP signatures in favor of cosign, but cosign signatures may take time to be published"
+        fi
     else
-        receive_gpg_keys PYTHON_SOURCE_GPG_KEYS
+        echo "(*) Python < 3.14 detected. Using GPG signature verification..."
+        gpg_verification
+        echo "(*) GPG verification successful."
     fi
-    echo "Downloading ${cpython_tgz_filename}.asc..."
-    curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}.asc" "${cpython_tgz_url}.asc"
-    gpg --verify "${cpython_tgz_filename}.asc"
 
     # Update min protocol for testing only - https://bugs.python.org/issue41561
     if [ -f /etc/pki/tls/openssl.cnf ]; then
@@ -766,15 +925,19 @@ esac
 
 check_packages ${REQUIRED_PKGS}
 
+# Function to get the major version from a SemVer string
+get_major_version() {
+    local version="$1"
+    echo "$version" | cut -d '.' -f 1
+}
+
 # Install Python from source if needed
 if [ "${PYTHON_VERSION}" != "none" ]; then
     if ! cat /etc/group | grep -e "^python:" > /dev/null 2>&1; then
         groupadd -r python
     fi
     usermod -a -G python "${USERNAME}"
-
     CURRENT_PATH="${PYTHON_INSTALL_PATH}/current"
-
     install_python ${PYTHON_VERSION}
 
     # Additional python versions to be installed but not be set as default.
@@ -783,9 +946,27 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         OLDIFS=$IFS
         IFS=","
             read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
-            for version in "${additional_versions[@]}"; do
+            major_version=$(get_major_version ${VERSION})
+            if type apt-get > /dev/null 2>&1; then
+                # Debian/Ubuntu: Use update-alternatives
+                update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${#additional_versions[@]}+1))
+                update-alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
+            elif type dnf > /dev/null 2>&1 || type yum > /dev/null 2>&1 || type microdnf > /dev/null 2>&1; then
+                # Fedora/RHEL/CentOS: Use alternatives
+                alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${#additional_versions[@]}+1))
+                alternatives --set python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION}
+            fi
+            for i in "${!additional_versions[@]}"; do
+                version=${additional_versions[$i]}
                 OVERRIDE_DEFAULT_VERSION="false"
                 install_python $version
+                if type apt-get > /dev/null 2>&1; then
+                    # Debian/Ubuntu: Use update-alternatives
+                    update-alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
+                elif type dnf > /dev/null 2>&1 || type yum > /dev/null 2>&1 || type microdnf > /dev/null 2>&1; then
+                    # Fedora/RHEL/CentOS: Use alternatives
+                    alternatives --install ${CURRENT_PATH} python${major_version} ${PYTHON_INSTALL_PATH}/${VERSION} $((${i}+1))
+                fi
             done
         INSTALL_PATH="${OLD_INSTALL_PATH}"
         IFS=$OLDIFS
@@ -912,21 +1093,15 @@ if [ "${INSTALL_JUPYTERLAB}" = "true" ]; then
     install_user_package $INSTALL_UNDER_ROOT jupyterlab
     install_user_package $INSTALL_UNDER_ROOT jupyterlab-git
 
+    # Create a symlink to the JupyterLab binary for non root users
     if [ "$INSTALL_UNDER_ROOT" = false ]; then
-        # JupyterLab would have installed into /home/${USERNAME}/.local/bin
-        # Adding it to default path for Codespaces which use non-login shells
-        SUDOERS_FILE="/etc/sudoers.d/$USERNAME"
-        SEARCH_STR="Defaults secure_path="
-        REPLACE_STR="Defaults secure_path=/home/${USERNAME}/.local/bin"
-
-        if grep -qs ${SEARCH_STR} ${SUDOERS_FILE}; then
-            # string found and file is present
-            sed -i "s|${SEARCH_STR}|${REPLACE_STR}:|g" "${SUDOERS_FILE}"
-        else
-            # either string is not found, or file is not present
-            # In either case take same action, note >> places at end of file
-            echo "${REPLACE_STR}:${PATH}" >> ${SUDOERS_FILE}
+        JUPYTER_INPATH=/home/${USERNAME}/.local/bin
+        if [ ! -d "$JUPYTER_INPATH" ]; then
+            echo "Error: $JUPYTER_INPATH does not exist."
+            exit 1
         fi
+        JUPYTER_PATH=/usr/local/jupyter
+        ln -s "$JUPYTER_INPATH" "$JUPYTER_PATH"
     fi
 
     # Configure JupyterLab if needed

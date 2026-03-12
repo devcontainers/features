@@ -35,7 +35,7 @@ conda install python=3.7
 ## OS Support
 
 This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
-
+Also RHEL based linux distributions such as almalinux, rockylinux, fedora are supported now.
 `bash` is required to execute the `install.sh` script.
 
 

@@ -10,7 +10,7 @@
 GIT_VERSION=${VERSION} # 'system' checks the base image first, else installs 'latest'
 USE_PPA_IF_AVAILABLE=${PPA}
 
-GIT_CORE_PPA_ARCHIVE_GPG_KEY=E1DD270288B4E6030699E45FA1715D88E1DF1F24
+GIT_CORE_PPA_ARCHIVE_GPG_KEY=F911AB184317630C59970973E363C90F8F1B6217
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -270,6 +270,12 @@ elif [ "${ADJUSTED_ID}" = "rhel" ]; then
     if ! type curl > /dev/null 2>&1; then
         check_packages curl
     fi
+    if ! type cmp > /dev/null 2>&1; then
+        check_packages diffutils
+    fi
+    if ! type awk > /dev/null 2>&1; then
+        check_packages gawk
+    fi        
     if [ $ID = "mariner" ]; then
         check_packages glibc-devel kernel-headers binutils
     fi
@@ -282,7 +288,16 @@ fi
 # Partial version matching
 if [ "$(echo "${GIT_VERSION}" | grep -o '\.' | wc -l)" != "2" ]; then
     requested_version="${GIT_VERSION}"
-    version_list="$(curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" | grep -oP '"name":\s*"v\K[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"' | sort -rV )"
+    response_output_file=$(mktemp)
+    trap 'rm "$response_output_file"' EXIT
+
+    http_code=$(curl --silent --output $response_output_file --write-out "%{http_code}" -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags")
+    version_content=$(cat "$response_output_file")
+    if [[ ${http_code} -lt 200 || ${http_code} -gt 299 ]] ; then
+        echo "$version_content" >&2
+        exit 1
+    fi
+    version_list="$(echo "$version_content" | grep -oP '"name":\s*"v\K[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"' | sort -rV )"
     if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "lts" ] || [ "${requested_version}" = "current" ]; then
         GIT_VERSION="$(echo "${version_list}" | head -n 1)"
     else

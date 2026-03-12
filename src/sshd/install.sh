@@ -13,6 +13,7 @@ SSHD_PORT="${SSHD_PORT:-"2222"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 START_SSHD="${START_SSHD:-"false"}"
 NEW_PASSWORD="${NEW_PASSWORD:-"skip"}"
+GATEWAY_PORTS="${GATEWAYPORTS:-"no"}" 
 
 set -e
 
@@ -89,6 +90,7 @@ mkdir -p /var/run/sshd
 sed -i 's/session\s*required\s*pam_loginuid\.so/session optional pam_loginuid.so/g' /etc/pam.d/sshd
 sed -i 's/#*PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
 sed -i -E "s/#*\s*Port\s+.+/Port ${SSHD_PORT}/g" /etc/ssh/sshd_config
+sed -i "s/#GatewayPorts no/GatewayPorts ${GATEWAY_PORTS}/g" /etc/ssh/sshd_config
 # Need to UsePAM so /etc/environment is processed
 sed -i -E "s/#?\s*UsePAM\s+.+/UsePAM yes/g" /etc/ssh/sshd_config
 

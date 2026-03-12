@@ -1,4 +1,14 @@
 {
+  "install_extensions_trixie": {
+    "image": "mcr.microsoft.com/devcontainers/base:trixie",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "extensions": "aks-preview,amg,containerapp"
+      }
+    }
+  },
   "install_extensions": {
     "image": "mcr.microsoft.com/devcontainers/base:jammy",
     "user": "vscode",
@@ -29,8 +39,28 @@
       }
     }
   },
+  "install_bicep_trixie": {
+    "image": "mcr.microsoft.com/devcontainers/base:trixie",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "installBicep": true
+      }
+    }
+  },
   "install_with_python": {
     "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest",
+        "installUsingPython": true
+      }
+    }
+  },
+  "install_with_python_3_13_trixie": {
+    "image": "mcr.microsoft.com/devcontainers/python:2-3.13-trixie",
     "user": "vscode",
     "features": {
       "azure-cli": {
@@ -55,6 +85,21 @@
       "azure-cli": {
         "version": "latest",
         "installUsingPython": "true"
+      }
+    }
+  },
+  "install_azcli_dotnet_dockerindocker_trixie": {
+    "image": "mcr.microsoft.com/devcontainers/dotnet:dev-10.0-preview-trixie",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest"
+      },
+      "dotnet": {
+        "aspNetCoreRuntimeVersions": "8.0"
+      },
+      "docker-in-docker": {
+        "moby": false
       }
     }
   }

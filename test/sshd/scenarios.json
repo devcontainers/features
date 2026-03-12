@@ -1,0 +1,18 @@
+{
+    "sshd_with_default_gateway_ports": {
+        "image": "ubuntu:noble",
+        "features": {
+            "sshd": {
+                "gatewayPorts": "no"
+            }
+        }
+    },
+    "sshd_with_pinned_gateway_ports_clientspecified": {
+        "image": "ubuntu:noble",
+        "features": {
+            "sshd": {
+                "gatewayPorts": "clientspecified"
+            }
+        }
+    }                                                           
+}

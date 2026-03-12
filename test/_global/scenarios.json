@@ -1,6 +1,6 @@
 {
     "all_the_clis": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "aws-cli": {},
             "azure-cli": {},
@@ -8,7 +8,7 @@
         }
     },
     "node_java_rust": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "node": {},
             "java": {},

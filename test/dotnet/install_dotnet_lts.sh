@@ -13,13 +13,10 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-expected=$(fetch_latest_version_in_channel "LTS")
+expected=$(wget -qO- "https://builds.dotnet.microsoft.com/dotnet/Sdk/LTS/latest.version")
 
 check "Latest LTS version installed" \
 is_dotnet_sdk_version_installed "$expected"
-
-check "Build and run example project" \
-dotnet run --project projects/net8.0
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.

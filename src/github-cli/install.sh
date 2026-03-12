@@ -9,6 +9,7 @@
 
 CLI_VERSION=${VERSION:-"latest"}
 INSTALL_DIRECTLY_FROM_GITHUB_RELEASE=${INSTALLDIRECTLYFROMGITHUBRELEASE:-"true"}
+EXTENSIONS=${EXTENSIONS:-""}
 
 GITHUB_CLI_ARCHIVE_GPG_KEY=23F3D4EA75716059
 
@@ -195,14 +196,14 @@ install_deb_using_github() {
 
     mkdir -p /tmp/ghcli
     pushd /tmp/ghcli
-    wget https://github.com/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
+    wget -q --show-progress --progress=dot:giga https://github.com/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
     exit_code=$?
     set -e
     if [ "$exit_code" != "0" ]; then
         # Handle situation where git tags are ahead of what was is available to actually download
         echo "(!) github-cli version ${CLI_VERSION} failed to download. Attempting to fall back one version to retry..."
         find_prev_version_from_git_tags CLI_VERSION https://github.com/cli/cli
-        wget https://github.com/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
+        wget -q --show-progress --progress=dot:giga https://github.com/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
     fi
 
     dpkg -i /tmp/ghcli/${cli_filename}
@@ -240,6 +241,39 @@ else
     apt-get -y install "gh${version_suffix}"
     rm -rf "/tmp/gh/gnupg"
     echo "Done!"
+fi
+
+# Install requested GitHub CLI extensions (if any)
+if [ -n "${EXTENSIONS}" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    EXTENSIONS_SCRIPT="${SCRIPT_DIR}/scripts/install-extensions.sh"
+
+    # Determine the appropriate non-root user (mirrors other features' "automatic" behavior)
+    USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+    if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
+        USERNAME=""
+        POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
+        for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
+            if [ -n "${CURRENT_USER}" ] && id -u "${CURRENT_USER}" > /dev/null 2>&1; then
+                USERNAME="${CURRENT_USER}"
+                break
+            fi
+        done
+        if [ -z "${USERNAME}" ]; then
+            USERNAME=root
+        fi
+    elif [ "${USERNAME}" = "none" ] || ! id -u "${USERNAME}" > /dev/null 2>&1; then
+        USERNAME=root
+    fi
+
+    if [ "${USERNAME}" = "root" ]; then
+        EXTENSIONS="${EXTENSIONS}" bash "${EXTENSIONS_SCRIPT}"
+    else
+        EXTENSIONS_ESCAPED="$(printf '%q' "${EXTENSIONS}")"
+        USERNAME_ESCAPED="$(printf '%q' "${USERNAME}")"
+        su - "${USERNAME}" -c "EXTENSIONS=${EXTENSIONS_ESCAPED} USERNAME=${USERNAME_ESCAPED} INSTALL_EXTENSIONS=true bash '${EXTENSIONS_SCRIPT}'"
+        INSTALL_EXTENSIONS=false bash "${EXTENSIONS_SCRIPT}"
+    fi
 fi
 
 # Clean up

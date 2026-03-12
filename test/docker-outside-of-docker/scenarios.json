@@ -1,6 +1,6 @@
 {
     "docker_build_compose_fallback": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "moby": false,
@@ -10,7 +10,7 @@
         "containerUser": "vscode"
     },
     "docker_init_moby": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "moby": true
@@ -19,7 +19,7 @@
         "containerUser": "vscode"
     },
     "docker_init": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "moby": false
@@ -46,7 +46,7 @@
         "containerUser": "vscode"
     },
     "docker_build": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "moby": false,
@@ -56,7 +56,7 @@
         "containerUser": "vscode"
     },
     "docker_build_moby": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "moby": true
@@ -65,10 +65,10 @@
         "containerUser": "vscode"
     },
     "docker_build_no_buildx": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
-                "version": "20",
+                "version": "26",
                 "moby": false,
                 "installDockerBuildx": false
             }
@@ -76,10 +76,10 @@
         "containerUser": "vscode"
     },
     "docker_build_no_buildx_moby": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
-                "version": "20",
+                "version": "26",
                 "moby": true,
                 "installDockerBuildx": false
             }
@@ -87,7 +87,7 @@
         "containerUser": "vscode"
     },
     "docker_dash_compose_v1": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "moby": false,
@@ -97,7 +97,7 @@
         "containerUser": "vscode"
     },
     "docker_dash_compose_v1_moby": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "moby": true,
@@ -107,7 +107,7 @@
         "containerUser": "vscode"
     },
     "docker_dash_compose_v2": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "moby": false,
@@ -117,7 +117,7 @@
         "containerUser": "vscode"
     },
     "docker_dash_compose_v2_moby": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "moby": true,
@@ -136,10 +136,10 @@
         "remoteUser": "node"
     },
     "docker_specific_moby_buildx": {
-        "image": "ubuntu:focal",
+        "image": "ubuntu:noble",
         "features": {
             "docker-outside-of-docker": {
-                "mobyBuildxVersion": "0.12.0"
+                "mobyBuildxVersion": "0.14.0"
             }
         }
     },
@@ -154,7 +154,7 @@
         }
     },
     "docker_not_install_compose_switch": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "dockerDashComposeVersion": "latest",
@@ -164,7 +164,7 @@
         "containerUser": "vscode"
     },
     "docker_install_compose_switch": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-20.04",
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "dockerDashComposeVersion": "latest",
@@ -172,5 +172,13 @@
             }
         },
         "containerUser": "vscode"
+    },
+    "install_on_debian_trixie": {
+        "image": "debian:trixie",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false
+            }
+        }
     }
 }

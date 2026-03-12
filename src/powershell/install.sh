@@ -17,17 +17,160 @@ POWERSHELL_MODULES="${MODULES:-""}"
 POWERSHELL_PROFILE_URL="${POWERSHELLPROFILEURL}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
-POWERSHELL_ARCHIVE_ARCHITECTURES="amd64"
+#MICROSOFT_GPG_KEYS_URI=$(curl https://packages.microsoft.com/keys/microsoft.asc -o /usr/share/keyrings/microsoft-archive-keyring.gpg)
+POWERSHELL_ARCHIVE_ARCHITECTURES_UBUNTU="amd64"
+POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX="x86_64"
 POWERSHELL_ARCHIVE_VERSION_CODENAMES="stretch buster bionic focal bullseye jammy bookworm noble"
+
+#These key servers are used to verify the authenticity of packages and repositories.
+#keyservers for ubuntu and almalinux are different so we need to specify both
 GPG_KEY_SERVERS="keyserver hkp://keyserver.ubuntu.com
 keyserver hkp://keyserver.ubuntu.com:80
 keyserver hkps://keys.openpgp.org
-keyserver hkp://keyserver.pgp.com"
+keyserver hkp://keyserver.pgp.com
+keyserver hkp://keyserver.fedoraproject.org
+keyserver hkps://keys.openpgp.org
+keyserver hkp://pgp.mit.edu
+keyserver hkp://keyserver.redhat.com"
+
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
 fi
+
+# Clean up package manager cache
+clean_cache() {
+    if [ -d "/var/cache/apt" ]; then
+        apt-get clean
+    fi
+    if [ -d "/var/cache/dnf" ]; then
+        rm -rf /var/cache/dnf/*
+    fi
+}
+# Function to resolve PowerShell version from Microsoft redirect URLs
+resolve_powershell_version() {
+    local version_tag="$1"
+    local redirect_url="https://aka.ms/powershell-release?tag=${version_tag}"
+    
+    # Follow the redirect and extract the version from the final URL
+    local resolved_url
+    resolved_url=$(curl -sSL -o /dev/null -w '%{url_effective}' "${redirect_url}")
+    
+    # Extract version from URL (e.g., https://github.com/PowerShell/PowerShell/releases/tag/v7.4.7 -> 7.4.7)
+    local resolved_version
+    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-\w+\.\d+)?' || echo "")
+    
+    if [ -z "${resolved_version}" ]; then
+        echo "Failed to resolve version for tag: ${version_tag}" >&2
+        return 1
+    fi
+    
+    echo "${resolved_version}"
+}
+# Install dependencies for RHEL/CentOS/AlmaLinux (DNF-based systems)
+install_using_dnf() {
+   dnf remove -y curl-minimal
+   dnf install -y curl gnupg2 ca-certificates dnf-plugins-core
+   dnf clean all
+   dnf makecache
+   curl --version
+}
+
+# Install PowerShell on RHEL/CentOS/AlmaLinux-based systems (DNF)
+install_powershell_dnf() {
+    # Install wget, if not already installed
+    dnf install -y wget
+
+    # Download Microsoft GPG key
+    curl https://packages.microsoft.com/keys/microsoft.asc -o /usr/share/keyrings/microsoft-archive-keyring.gpg
+    ls -l /usr/share/keyrings/microsoft-archive-keyring.gpg
+
+    # Install necessary dependencies
+    dnf install -y krb5-libs libicu openssl-libs zlib
+
+    # Add Microsoft PowerShell repository 
+        curl "https://packages.microsoft.com/config/rhel/9.0/prod.repo" > /etc/yum.repos.d/microsoft.repo
+    
+    # Install PowerShell
+     dnf install --assumeyes powershell
+}
+
+
+# Detect the package manager and OS
+detect_package_manager() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
+            echo "Detected Debian/Ubuntu-based system"
+            install_using_apt
+            install_pwsh
+        elif [[ "$ID" == "centos" || "$ID" == "rhel" || "$ID" == "almalinux" ]]; then
+            echo "Detected RHEL/CentOS/AlmaLinux-based system"
+            install_using_dnf
+            install_powershell_dnf
+            install_pwsh
+        else
+            echo "Unsupported Linux distribution: $ID"
+            exit 1
+        fi
+    else
+        echo "Could not detect OS"
+        exit 1
+    fi
+}
+
+# Function to find the latest preview version from git tags
+find_preview_version_from_git_tags() {
+    local variable_name=$1
+    local requested_version=${!variable_name}
+    local repository_url=$2
+
+    if [ -z "${googlegit_cmd_name}" ]; then
+        if type git > /dev/null 2>&1; then
+            git_cmd_name="git"
+        else
+            echo "Git not found. Cannot determine preview version."
+            return 1
+        fi
+    fi
+
+    # Fetch tags from remote repository
+    local tags
+    tags=$(git ls-remote --tags "${repository_url}" 2>/dev/null | grep -oP 'refs/tags/v\K[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+' | sort -V)
+
+    if [ -z "${tags}" ]; then
+        echo "No preview tags found in repository."
+        return 1
+    fi
+
+    local version=""
+
+    if [ "${requested_version}" = "preview" ] || [ "${requested_version}" = "latest" ]; then
+        # Get the latest preview version
+        version=$(echo "${tags}" | tail -n 1)
+    elif [[ "${requested_version}" =~ ^[0-9]+\.[0-9]+$ ]]; then
+        # Partial version provided (e.g., "7.6"), find latest preview matching that major.minor
+        version=$(echo "${tags}" | grep "^${requested_version}\." | tail -n 1)
+    elif [[ "${requested_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-preview$ ]]; then
+        # Version like "7.6.0-preview" provided, find latest preview for that version
+        local base_version="${requested_version%-preview}"
+        version=$(echo "${tags}" | grep "^${base_version}-preview\." | tail -n 1)
+    elif [[ "${requested_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+$ ]]; then
+        # Exact preview version provided, verify it exists
+        if echo "${tags}" | grep -q "^${requested_version}$"; then
+            version="${requested_version}"
+        fi
+    fi
+
+    if [ -z "${version}" ]; then
+        echo "Could not find matching preview version for: ${requested_version}"
+        return 1
+    fi
+
+    declare -g "${variable_name}=${version}"
+    echo "${variable_name}=${version}"
+}
 
 # Figure out correct version of a three part version number is not passed
 find_version_from_git_tags() {
@@ -72,19 +215,44 @@ apt_get_update()
 }
 
 # Checks if packages are installed and installs them if not
-check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
-    fi
+   check_packages() {
+    if command -v dpkg > /dev/null 2>&1; then
+        # If dpkg exists, assume APT-based system (Debian/Ubuntu)
+        for package in "$@"; do
+            if ! dpkg -s "$package" > /dev/null 2>&1; then
+                echo "Package $package not installed. Installing using apt-get..."
+                apt-get update
+                apt-get install -y --no-install-recommends "$package"
+            else
+                echo "Package $package is already installed (APT)."
+            fi
+        done
+        elif command -v dnf > /dev/null 2>&1; then
+    for package in "$@"; do
+        if ! dnf list installed "$package" > /dev/null 2>&1; then
+            echo "Package $package not installed. Installing using dnf..."
+            # Use --allowerasing to handle conflicts like curl-minimal vs curl
+            dnf install -y --allowerasing "$package"
+        else
+            echo "Package $package is already installed (DNF)."
+        fi
+    done
+else
+    echo "Unsupported package manager. Neither APT nor DNF found."
+    return 1
+fi
+
+   
 }
 
 install_using_apt() {
     # Install dependencies
     check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr
     # Import key safely (new 'signed-by' method rather than deprecated apt-key approach) and install
+   
     curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+    
 
     # Update lists
     apt-get update -yq
@@ -197,22 +365,40 @@ install_pwsh() {
 
 install_using_github() {
     # Fall back on direct download if no apt package exists in microsoft pool
-    check_packages curl ca-certificates gnupg2 dirmngr libc6 libgcc1 libgssapi-krb5-2 libstdc++6 libunwind8 libuuid1 zlib1g libicu[0-9][0-9]
+    if command -v apt-get > /dev/null 2>&1; then
+        # Debian/Ubuntu dependencies
+        check_packages curl ca-certificates gnupg2 dirmngr libc6 libgcc1 libgssapi-krb5-2 libstdc++6 libunwind8 libuuid1 zlib1g libicu[0-9][0-9] wget
+    elif command -v dnf > /dev/null 2>&1; then
+        # AlmaLinux/RHEL dependencies
+        check_packages curl ca-certificates gnupg2 glibc libgcc krb5-libs libstdc++ libuuid zlib libicu wget tar
+    fi
     if ! type git > /dev/null 2>&1; then
         check_packages git
     fi
-    if [ "${architecture}" = "amd64" ]; then
+    if [ "${architecture}" = "amd64" ] || [ "${architecture}" = "x86_64" ]; then
         architecture="x64"
+    elif [ "${architecture}" = "aarch64" ]; then
+        architecture="arm64"
     fi
     pwsh_url="https://github.com/PowerShell/PowerShell"
-    find_version_from_git_tags POWERSHELL_VERSION $pwsh_url
+    # Check if we need to find a preview version or stable version
+    if [[ "${POWERSHELL_VERSION}" == *"preview"* ]] || [ "${POWERSHELL_VERSION}" = "preview" ]; then
+        echo "Finding preview version..."
+        find_preview_version_from_git_tags POWERSHELL_VERSION "${pwsh_url}"
+    else
+        find_version_from_git_tags POWERSHELL_VERSION "${pwsh_url}"
+    fi
+
     install_pwsh "${POWERSHELL_VERSION}"
     if grep -q "Not Found" "${powershell_filename}"; then 
         install_prev_pwsh $pwsh_url
     fi
+    
+    # download the latest version of powershell and extracting the file to powershell directory
+    wget https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}
+    mkdir ~/powershell
+    tar -xvf ${powershell_filename} -C ~/powershell
 
-    # Ugly - but only way to get sha256 is to parse release HTML. Remove newlines and tags, then look for filename followed by 64 hex characters.
-    curl -sSL -o "release.html" "https://github.com/PowerShell/PowerShell/releases/tag/v${POWERSHELL_VERSION}"
     powershell_archive_sha256="$(cat release.html | tr '\n' ' ' | sed 's|<[^>]*>||g' | grep -oP "${powershell_filename}\s+\K[0-9a-fA-F]{64}" || echo '')"
     if [ -z "${powershell_archive_sha256}" ]; then
         echo "(!) WARNING: Failed to retrieve SHA256 for archive. Skipping validaiton."
@@ -223,24 +409,51 @@ install_using_github() {
     tar xf "${powershell_filename}" -C "${powershell_target_path}"
     chmod 755 "${powershell_target_path}/pwsh"
     ln -sf "${powershell_target_path}/pwsh" /usr/bin/pwsh
-    add-shell "/usr/bin/pwsh"
+    # Add pwsh to /etc/shells
+    if command -v add-shell > /dev/null 2>&1; then
+        # Debian/Ubuntu - use add-shell
+        add-shell "/usr/bin/pwsh"
+    else
+        # AlmaLinux/RHEL - manually add to /etc/shells - add-shell is not available in almalinux repos and manual approach is simpler than adding a dependency just for this
+        if ! grep -q "/usr/bin/pwsh" /etc/shells; then
+            echo "/usr/bin/pwsh" >> /etc/shells
+        fi
+    fi
     cd /tmp
     rm -rf /tmp/pwsh
 }
 
 if ! type pwsh >/dev/null 2>&1; then
     export DEBIAN_FRONTEND=noninteractive
+    if [ "${POWERSHELL_VERSION}" = "lts" ] || [ "${POWERSHELL_VERSION}" = "stable" ] || [ "${POWERSHELL_VERSION}" = "preview" ]; then
+        echo "Resolving PowerShell '${POWERSHELL_VERSION}' version from Microsoft..."
+        resolved_version=$(resolve_powershell_version "${POWERSHELL_VERSION}")
+        if [ -n "${resolved_version}" ]; then
+            echo "Resolved '${POWERSHELL_VERSION}' to version: ${resolved_version}"
+            POWERSHELL_VERSION="${resolved_version}"
+        else
+            echo "Warning: Could not resolve '${POWERSHELL_VERSION}' version. Falling back to 'latest'."
+            POWERSHELL_VERSION="latest"
+        fi
+    fi    
     
     # Source /etc/os-release to get OS info
     . /etc/os-release
-    architecture="$(dpkg --print-architecture)"
-
-    if [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${POWERSHELL_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
-        install_using_apt || use_github="true"
-    else
-        use_github="true"
+    architecture="$(uname -m)"
+    if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
+        POWERSHELL_ARCHIVE_ARCHITECTURES="${POWERSHELL_ARCHIVE_ARCHITECTURES_UBUNTU}"
+    elif [[ "$ID" == "centos" || "$ID" == "rhel" || "$ID" == "almalinux" ]]; then
+        POWERSHELL_ARCHIVE_ARCHITECTURES="${POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX}"
     fi
-    
+
+    if [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${POWERSHELL_ARCHIVE_ARCHITECTURES_UBUNTU}"* ]] && [[  "${POWERSHELL_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${POWERSHELL_VERSION}" != *"preview"* ]]; then
+        install_using_apt || use_github="true"
+    elif [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX}"* ]] && [[ "${POWERSHELL_VERSION}" != *"preview"* ]]; then 
+        install_using_dnf && install_powershell_dnf || use_github="true"
+    else 
+       use_github="true"
+    fi
+
     if [ "${use_github}" = "true" ]; then
         echo "Attempting install from GitHub release..."
         install_using_github

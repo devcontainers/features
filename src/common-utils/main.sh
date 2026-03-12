@@ -18,6 +18,7 @@ USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
+INSTALL_SSL="${INSTALLSSL:-"true"}"
 
 MARKER_FILE="/usr/local/etc/vscode-dev-containers/common"
 
@@ -75,25 +76,27 @@ install_debian_packages() {
         manpages-dev \
         init-system-helpers"
 
-        # Include libssl1.1 if available
-        if [[ ! -z $(apt-cache --names-only search ^libssl1.1$) ]]; then
-            package_list="${package_list} libssl1.1"
-        fi
+        if [ "${INSTALL_SSL}" = "true" ]; then
+            # Include libssl1.1 if available
+            if [[ ! -z $(apt-cache --names-only search ^libssl1.1$) ]]; then
+                package_list="${package_list} libssl1.1"
+            fi
 
-        # Include libssl3 if available
-        if [[ ! -z $(apt-cache --names-only search ^libssl3$) ]]; then
-            package_list="${package_list} libssl3"
-        fi
+            # Include libssl3 if available
+            if [[ ! -z $(apt-cache --names-only search ^libssl3$) ]]; then
+                package_list="${package_list} libssl3"
+            fi
 
-        # Include appropriate version of libssl1.0.x if available
-        local libssl_package=$(dpkg-query -f '${db:Status-Abbrev}\t${binary:Package}\n' -W 'libssl1\.0\.?' 2>&1 || echo '')
-        if [ "$(echo "$libssl_package" | grep -o 'libssl1\.0\.[0-9]:' | uniq | sort | wc -l)" -eq 0 ]; then
-            if [[ ! -z $(apt-cache --names-only search ^libssl1.0.2$) ]]; then
-                # Debian 9
-                package_list="${package_list} libssl1.0.2"
-            elif [[ ! -z $(apt-cache --names-only search ^libssl1.0.0$) ]]; then
-                # Ubuntu 18.04
-                package_list="${package_list} libssl1.0.0"
+            # Include appropriate version of libssl1.0.x if available
+            local libssl_package=$(dpkg-query -f '${db:Status-Abbrev}\t${binary:Package}\n' -W 'libssl1\.0\.?' 2>&1 || echo '')
+            if [ "$(echo "$libssl_package" | grep -o 'libssl1\.0\.[0-9]:' | uniq | sort | wc -l)" -eq 0 ]; then
+                if [[ ! -z $(apt-cache --names-only search ^libssl1.0.2$) ]]; then
+                    # Debian 9
+                    package_list="${package_list} libssl1.0.2"
+                elif [[ ! -z $(apt-cache --names-only search ^libssl1.0.0$) ]]; then
+                    # Ubuntu 18.04
+                    package_list="${package_list} libssl1.0.0"
+                fi
             fi
         fi
 
@@ -161,11 +164,17 @@ install_redhat_packages() {
     local package_list=""
     local remove_epel="false"
     local install_cmd=microdnf
-    if ! type microdnf > /dev/null 2>&1; then
-        install_cmd=dnf
-        if ! type dnf > /dev/null 2>&1; then
-            install_cmd=yum
-        fi
+    if type microdnf > /dev/null 2>&1; then
+       install_cmd=microdnf
+    elif type tdnf > /dev/null 2>&1; then
+       install_cmd=tdnf
+    elif type dnf > /dev/null 2>&1; then
+       install_cmd=dnf
+    elif type yum > /dev/null 2>&1; then
+       install_cmd=yum
+    else
+       echo "Unable to find 'tdnf', 'dnf', or 'yum' package manager. Exiting."
+       exit 1
     fi
 
     if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
@@ -222,7 +231,7 @@ install_redhat_packages() {
         fi
 
         # Install EPEL repository if needed (required to install 'jq' for CentOS)
-        if ! ${install_cmd} -q list jq >/dev/null 2>&1; then
+        if [[ "${ID}" = "centos" ]] && ! rpm -q jq >/dev/null 2>&1; then
             ${install_cmd} -y install epel-release
             remove_epel="true"
         fi
@@ -234,11 +243,18 @@ install_redhat_packages() {
     fi
 
     if [ -n "${package_list}" ]; then
-        ${install_cmd} -y install ${package_list}
+        echo "Packages to verify are installed: ${package_list}"
+        echo "Running ${install_cmd} install..."
+        if [ "${install_cmd}" = "dnf" ]; then
+            ${install_cmd} -y install --allowerasing ${package_list}
+        else
+            ${install_cmd} -y install ${package_list}
+        fi
     fi
 
     # Get to latest versions of all packages
     if [ "${UPGRADE_PACKAGES}" = "true" ]; then
+        echo "Running ${install_cmd} upgrade..."
         ${install_cmd} upgrade -y
     fi
 
@@ -344,7 +360,7 @@ chmod +x /etc/profile.d/00-restore-env.sh
 # Get an adjusted ID independent of distro variants
 if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
-elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "azurelinux" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     VERSION_CODENAME="${ID}${VERSION_ID}"
 elif [ "${ID}" = "alpine" ]; then
@@ -352,14 +368,6 @@ elif [ "${ID}" = "alpine" ]; then
 else
     echo "Linux distro ${ID} not supported."
     exit 1
-fi
-
-if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
-    # As of 1 July 2024, mirrorlist.centos.org no longer exists.
-    # Update the repo files to reference vault.centos.org.
-    sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
-    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
-    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
 fi
 
 if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
@@ -552,7 +560,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
         # Add devcontainer .zshrc template
         if [ "$INSTALL_OH_MY_ZSH_CONFIG" = "true" ]; then
             if ! [ -f "${template_path}" ] || ! grep -qF "$(head -n 1 "${template_path}")" "${user_rc_file}"; then
-                echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
+                echo -e "$(cat "${template_path}")\nzstyle ':omz:update' mode disabled" > ${user_rc_file}
             fi
             sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
         fi
