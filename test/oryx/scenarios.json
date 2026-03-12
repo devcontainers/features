@@ -1,11 +1,11 @@
 {
     "install_dotnet_and_oryx": {
-        "image": "ubuntu:noble",
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
             "dotnet": {
-                "version": "8.0",
-                "dotnetRuntimeVersions": "7.0",
-                "aspNetCoreRuntimeVersions": "7.0"
+                "version": "10.0",
+                "dotnetRuntimeVersions": "9.0",
+                "aspNetCoreRuntimeVersions": "9.0"
             },
             "oryx": {}
         }
