@@ -851,6 +851,10 @@ if [ "$DISABLE_IP6_TABLES" == true ]; then
     fi
 fi
 
+if [ ! -d /usr/local/share ]; then
+    mkdir -p /usr/local/share
+fi
+
 tee /usr/local/share/docker-init.sh > /dev/null \
 << EOF
 #!/bin/sh
