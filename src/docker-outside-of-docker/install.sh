@@ -13,7 +13,8 @@ MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
 DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" # v1 or v2 or none or latest
 
 ENABLE_NONROOT_DOCKER="${ENABLE_NONROOT_DOCKER:-"true"}"
-SOURCE_SOCKET="${SOURCE_SOCKET:-"/var/run/docker-host.sock"}"
+SOCKET_PATH="${SOCKETPATH:-"/var/run/docker-host.sock"}" # From feature option
+SOURCE_SOCKET="${SOURCE_SOCKET:-"${SOCKET_PATH}"}"
 TARGET_SOCKET="${TARGET_SOCKET:-"/var/run/docker.sock"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
@@ -318,22 +319,19 @@ else
             buildx=(moby-buildx${buildx_version_suffix})
         fi
         apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}" || { err "It seems packages for moby not available in OS ${ID} ${VERSION_CODENAME} (${architecture}). To resolve, either: (1) set feature option '\"moby\": false' , or (2) choose a compatible OS version (eg: 'ubuntu-24.04')." ; exit 1 ; }
-        apt-get -y install --no-install-recommends moby-compose || echo "(*) Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+        if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "v1" ]; then
+            apt-get -y install --no-install-recommends moby-compose || echo "(*) Package moby-compose (Docker Compose v2) not available for OS ${ID} ${VERSION_CODENAME} (${architecture}). Skipping."
+        fi
     else
         buildx=()
         if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
             buildx=(docker-buildx-plugin)
         fi
-        apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}" docker-compose-plugin
-        buildx_path="/usr/libexec/docker/cli-plugins/docker-buildx"
-        # Older versions of Docker CE installs buildx as part of the CLI package
-        if [ "${INSTALL_DOCKER_BUILDX}" = "false" ] && [ -f "${buildx_path}" ]; then
-            echo "(*) Removing docker-buildx installed from docker-ce-cli since installDockerBuildx is disabled..."
-            rm -f "${buildx_path}"
+        #install cli + buildx first
+        apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}"
+        if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "v1" ]; then
+            apt-get -y install --no-install-recommends docker-compose-plugin
         fi
-    fi
-    unset buildx buildx_path
-fi
 
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
@@ -438,6 +436,8 @@ echo "docker-init doesn't exist, adding..."
 
 # By default, make the source and target sockets the same
 if [ "${SOURCE_SOCKET}" != "${TARGET_SOCKET}" ]; then
+    # Create parent directory if it doesn't exist
+    mkdir -p "$(dirname "${SOURCE_SOCKET}")"
     touch "${SOURCE_SOCKET}"
     ln -s "${SOURCE_SOCKET}" "${TARGET_SOCKET}"
 fi

@@ -181,6 +181,32 @@
             }
         }
     },
+    "rootless_docker_socket": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false,
+                "socketPath": "/var/run/docker-rootless.sock"
+            }
+        },
+        "mounts": [
+            {
+                "source": "/var/run/docker.sock",
+                "target": "/var/run/docker-rootless.sock",
+                "type": "bind"
+            }
+        ],
+        "containerUser": "vscode"
+    },
+    "root_docker_socket": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false
+              }
+        },
+        "containerUser": "vscode"
+    },
      "docker_dash_compose_latest_moby": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
@@ -201,4 +227,5 @@
         },
         "containerUser": "vscode"
     }
-}
+
+  
