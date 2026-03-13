@@ -203,42 +203,29 @@
         "features": {
             "docker-outside-of-docker": {
                 "moby": false
+              }
+        },
+        "containerUser": "vscode"
+    },
+     "docker_dash_compose_latest_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": true,
+                "dockerDashComposeVersion": "latest"
             }
         },
         "containerUser": "vscode"
     },
-    "custom_rootless_socket_path": {
+    "docker_dash_compose_latest_no_moby": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
             "docker-outside-of-docker": {
                 "moby": false,
-                "socketPath": "/custom/docker/rootless.sock"
+                "dockerDashComposeVersion": "latest"
             }
         },
-        "mounts": [
-            {
-                "source": "/var/run/docker.sock",
-                "target": "/custom/docker/rootless.sock",
-                "type": "bind"
-            }
-        ],
-        "containerUser": "vscode"
-    },
-    "xdg_runtime_dir_socket": {
-        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
-        "features": {
-            "docker-outside-of-docker": {
-                "moby": false,
-                "socketPath": "/var/run/user-docker.sock"
-            }
-        },
-        "mounts": [
-            {
-                "source": "/var/run/docker.sock",
-                "target": "/var/run/user-docker.sock",
-                "type": "bind"
-            }
-        ],
         "containerUser": "vscode"
     }
-}
+
+  
