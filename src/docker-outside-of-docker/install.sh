@@ -327,20 +327,11 @@ else
         if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
             buildx=(docker-buildx-plugin)
         fi
+        #install cli + buildx first
+        apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}"
         if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "v1" ]; then
-            apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}" docker-compose-plugin
-        else
-            apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}"
+            apt-get -y install --no-install-recommends docker-compose-plugin
         fi
-        buildx_path="/usr/libexec/docker/cli-plugins/docker-buildx"
-        # Older versions of Docker CE installs buildx as part of the CLI package
-        if [ "${INSTALL_DOCKER_BUILDX}" = "false" ] && [ -f "${buildx_path}" ]; then
-            echo "(*) Removing docker-buildx installed from docker-ce-cli since installDockerBuildx is disabled..."
-            rm -f "${buildx_path}"
-        fi
-    fi
-    unset buildx buildx_path
-fi
 
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
