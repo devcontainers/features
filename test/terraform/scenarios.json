@@ -91,7 +91,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
             "terraform": {
-                "tflint": "0.50.0"
+                "tflint": "latest"
             }
         }
     },
