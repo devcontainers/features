@@ -10,7 +10,7 @@
 DOCKER_VERSION="${VERSION:-"latest"}"
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
-DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"v2"}" # v1 or v2 or none
+DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" # v1 or v2 or none or latest
 
 ENABLE_NONROOT_DOCKER="${ENABLE_NONROOT_DOCKER:-"true"}"
 SOURCE_SOCKET="${SOURCE_SOCKET:-"/var/run/docker-host.sock"}"
@@ -192,6 +192,11 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 check_packages apt-transport-https curl ca-certificates gnupg2 dirmngr wget
+# Update CA certificates to ensure HTTPS connections work properly
+# This is especially important for Ubuntu 24.04 (Noble) and Debian Trixie
+if command -v update-ca-certificates > /dev/null 2>&1; then
+    update-ca-certificates
+fi
 if ! type git > /dev/null 2>&1; then
     check_packages git
 fi

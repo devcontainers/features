@@ -62,13 +62,26 @@ esac
 # Add NVIDIA's package repository to apt so that we can download packages
 # Updating the repo to ubuntu2204 as ubuntu 20.04 is going out of support. 
 NVIDIA_REPO_URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/$NVIDIA_ARCH"
-KEYRING_PACKAGE="cuda-keyring_1.0-1_all.deb"
-KEYRING_PACKAGE_URL="$NVIDIA_REPO_URL/$KEYRING_PACKAGE"
-KEYRING_PACKAGE_PATH="$(mktemp -d)"
-KEYRING_PACKAGE_FILE="$KEYRING_PACKAGE_PATH/$KEYRING_PACKAGE"
-wget -O "$KEYRING_PACKAGE_FILE" "$KEYRING_PACKAGE_URL"
-apt-get install -yq "$KEYRING_PACKAGE_FILE"
-apt-get update -yq
+
+
+if [ "${ID}" = "debian" ] && [ "${VERSION_CODENAME}" = "trixie" ]; then
+    echo "(!) Temporary workaround on debian:trixie: bypassing NVIDIA repo signature checks"
+    cat > /etc/apt/sources.list.d/cuda.list <<EOF
+deb [trusted=yes] ${NVIDIA_REPO_URL}/ /
+EOF
+
+    apt-get -o Acquire::AllowInsecureRepositories=true \
+            -o Acquire::AllowDowngradeToInsecureRepositories=true \
+            update -yq
+else
+    KEYRING_PACKAGE="cuda-keyring_1.0-1_all.deb"
+    KEYRING_PACKAGE_URL="$NVIDIA_REPO_URL/$KEYRING_PACKAGE"
+    KEYRING_PACKAGE_PATH="$(mktemp -d)"
+    KEYRING_PACKAGE_FILE="$KEYRING_PACKAGE_PATH/$KEYRING_PACKAGE"
+    wget -O "$KEYRING_PACKAGE_FILE" "$KEYRING_PACKAGE_URL"
+    apt-get install -yq "$KEYRING_PACKAGE_FILE"
+    apt-get update -yq
+fi
 
 # Ensure that the requested version of CUDA is available
 cuda_pkg="cuda-libraries-${CUDA_VERSION/./-}"
