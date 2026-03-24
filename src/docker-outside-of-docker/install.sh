@@ -332,7 +332,8 @@ else
         if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "v1" ]; then
             apt-get -y install --no-install-recommends docker-compose-plugin
         fi
-
+    fi
+fi
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
     case "${architecture}" in
