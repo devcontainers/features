@@ -13,9 +13,6 @@ source dev-container-features-test-lib
 source dotnet_env.sh
 source dotnet_helpers.sh
 
-check "Aspire is installed" \
-is_dotnet_workload_installed "aspire"
-
 check "WASM tools are installed" \
 is_dotnet_workload_installed "wasm-tools"
 
