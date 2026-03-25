@@ -15,7 +15,7 @@ jobs:
     outputs:
       features: ${{ steps.filter.outputs.changes }}
     steps:
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           # NOTE: To extend this workflow to other features, add filter entries below
@@ -42,7 +42,7 @@ jobs:
             "mcr.microsoft.com/devcontainers/base:noble"
           ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
@@ -58,7 +58,7 @@ jobs:
       matrix:
         features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
