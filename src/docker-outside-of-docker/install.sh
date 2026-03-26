@@ -329,10 +329,20 @@ else
         fi
         #install cli + buildx first
         apt-get -y install --no-install-recommends ${cli_package_name}${cli_version_suffix} "${buildx[@]}"
+        
+        # Backward compatibility: Older Docker CE versions bundled buildx with CLI
+        # Modern versions have separate packages, but this ensures consistent behavior
+        buildx_path="/usr/libexec/docker/cli-plugins/docker-buildx"
+        if [ "${INSTALL_DOCKER_BUILDX}" = "false" ] && [ -f "${buildx_path}" ]; then
+            echo "(*) Removing docker-buildx (bundled in older Docker CE) since installDockerBuildx is disabled..."
+            rm -f "${buildx_path}"
+        fi
+        
         if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "v1" ]; then
             apt-get -y install --no-install-recommends docker-compose-plugin
         fi
     fi
+    unset buildx buildx_path
 fi
 # If 'docker-compose' command is to be included
 if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
