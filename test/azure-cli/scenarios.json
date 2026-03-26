@@ -89,7 +89,7 @@
     }
   },
   "install_azcli_dotnet_dockerindocker_trixie": {
-    "image": "mcr.microsoft.com/devcontainers/dotnet:dev-10.0-preview-trixie",
+    "image": "mcr.microsoft.com/devcontainers/dotnet:10.0",
     "user": "vscode",
     "features": {
       "azure-cli": {
