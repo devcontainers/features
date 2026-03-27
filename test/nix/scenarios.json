@@ -14,7 +14,7 @@
         "features": {
             "nix": {
                 "multiUser": false,
-                "version": "2.10"
+                "version": "2.18"
             }
         }
     },
