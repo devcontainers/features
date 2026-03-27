@@ -255,8 +255,19 @@ sdk_install() {
             set -e
         fi
         if [ -z "${requested_version}" ] || ! echo "${version_list}" | grep "^${requested_version//./\\.}$" > /dev/null 2>&1; then
-            echo -e "Version $2 not found. Available versions:\n${version_list}" >&2
-            exit 1
+            # Fallback to LTS if "latest" was requested and not found (java only)
+            if [ "$2" = "latest" ] && [ "${install_type}" = "java" ]; then
+                echo "Latest version not found in SDKMAN. Falling back to LTS..."
+                find_version_list "$prefix" "$suffix" "$install_type" "true" version_list "lts"
+                requested_version="$(echo "${version_list}" | head -n 1)"
+                if [ -z "${requested_version}" ] || ! echo "${version_list}" | grep "^${requested_version//./\\.}$" > /dev/null 2>&1; then
+                    echo -e "Version $2 (and LTS fallback) not found. Available versions:\n${version_list}" >&2
+                    exit 1
+                fi
+            else
+                echo -e "Version $2 not found. Available versions:\n${version_list}" >&2
+                exit 1
+            fi
         fi
     fi
     if [ "${set_as_default}" = "true" ]; then
