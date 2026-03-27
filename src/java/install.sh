@@ -197,15 +197,19 @@ updaterc() {
 
 # Fallback to LTS version when the latest feature release is not available
 # in either ms or tem distributions. Handles the full installation directly.
+# Reuses the global all_versions variable already fetched by find_version_list().
 fallback_install_lts() {
     local install_type=$1
     local prefix=$2
     local suffix=$3
     local set_as_default=$4
 
+    # Reuse the API response already fetched by find_version_list()
+    if [ -z "${all_versions}" ]; then
+        return 1
+    fi
+
     check_packages jq
-    local all_versions
-    all_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
     local most_recent_lts
     most_recent_lts=$(echo "$all_versions" | jq -r '.most_recent_lts')
     local most_recent_feature
