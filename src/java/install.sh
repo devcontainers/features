@@ -201,8 +201,16 @@ fallback_to_lts_if_needed() {
     local most_recent_lts
     most_recent_lts=$(echo "$all_versions" | jq -r '.most_recent_lts')
 
+    # Validate that both values are non-empty integers before comparing
+    if [ -z "${feature_release_version}" ] || [ -z "${most_recent_lts}" ] \
+        || ! echo "${feature_release_version}" | grep -qE '^[0-9]+$' \
+        || ! echo "${most_recent_lts}" | grep -qE '^[0-9]+$'; then
+        echo "${feature_release_version}"
+        return
+    fi
+
     if [ "${feature_release_version}" -gt "${most_recent_lts}" ]; then
-        echo "Latest feature release (${feature_release_version}) is newer than most recent LTS (${most_recent_lts}). Falling back to LTS version." >&2
+        echo "Latest feature release (${feature_release_version}) is newer than most recent LTS (${most_recent_lts}). Falling back to LTS version ${most_recent_lts}." >&2
         echo "${most_recent_lts}"
     else
         echo "${feature_release_version}"
