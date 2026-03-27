@@ -17,7 +17,7 @@ We maintain a **single source of truth** with a **sync mechanism** to deploy to 
 
 ### Deployment
 - **Mechanism**: `scripts/sync-common-setup.sh`
-- **Target**: Copies to each feature's `_lib/` directory
+- **Target**: Copies to each feature's directory as `common-setup.sh`
 - **Reason**: Devcontainer packaging requires files to be within each feature's directory
 
 ## Workflow
@@ -25,7 +25,7 @@ We maintain a **single source of truth** with a **sync mechanism** to deploy to 
 ### Making Changes
 
 1. **Edit the source**: Modify `scripts/lib/common-setup.sh`
-2. **Test**: Run `bash test/_lib/test-common-setup.sh`
+2. **Test**: Run `bash test/_global/test-common-setup.sh`
 3. **Sync**: Run `./scripts/sync-common-setup.sh`
 4. **Commit**: Include both source and deployed copies
 
@@ -34,13 +34,13 @@ We maintain a **single source of truth** with a **sync mechanism** to deploy to 
 vim scripts/lib/common-setup.sh
 
 # Test
-bash test/_lib/test-common-setup.sh
+bash test/_global/test-common-setup.sh
 
 # Deploy to all features
 ./scripts/sync-common-setup.sh
 
 # Commit everything
-git add scripts/lib/common-setup.sh src/*/_lib/common-setup.sh
+git add scripts/lib/common-setup.sh src/*/common-setup.sh
 git commit -m "Update common-setup.sh helper function"
 ```
 
@@ -50,7 +50,7 @@ The sync script is idempotent - running it multiple times with the same source p
 
 ```bash
 # Check that all copies are identical
-for f in src/*/_lib/common-setup.sh; do
+for f in src/*/common-setup.sh; do
     diff -q scripts/lib/common-setup.sh "$f" || echo "MISMATCH: $f"
 done
 ```
@@ -81,14 +81,14 @@ The devcontainer spec has a proposal for an `include` property in `devcontainer-
 
 As of this PR:
 - **Source**: `scripts/lib/common-setup.sh` (87 lines)
-- **Deployed**: 17 features, each with `src/FEATURE/_lib/common-setup.sh`
+- **Deployed**: 16 features, each with `src/FEATURE/common-setup.sh`
 - **Sync Script**: `scripts/sync-common-setup.sh`
-- **Tests**: `test/_lib/test-common-setup.sh` (14 test cases)
+- **Tests**: `test/_global/test-common-setup.sh` (14 test cases)
 - **Benefits**: Eliminated ~188 lines of inline duplicated logic from install scripts
 
 ## References
 
 - [Devcontainer Spec Issue #129 - Share code between features](https://github.com/devcontainers/spec/issues/129)
 - [Features Library Proposal](https://github.com/devcontainers/spec/blob/main/proposals/features-library.md)
-- Test documentation: `test/_lib/README.md`
+- Test documentation: `test/_global/test-common-setup.sh`
 - Sync script documentation: `scripts/README.md`

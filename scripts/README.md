@@ -19,21 +19,21 @@ scripts/
 
 ### Deploying Changes
 
-Due to the devcontainer CLI's packaging behavior (each feature is packaged independently), the helper must be deployed to each feature's `_lib/` directory. We maintain this through a sync script:
+Due to the devcontainer CLI's packaging behavior (each feature is packaged independently), the helper must be deployed to each feature's directory. We maintain this through a sync script:
 
 ```bash
 ./scripts/sync-common-setup.sh
 ```
 
 This copies `scripts/lib/common-setup.sh` to all features:
-- `src/anaconda/_lib/common-setup.sh`
-- `src/docker-in-docker/_lib/common-setup.sh`
+- `src/anaconda/common-setup.sh`
+- `src/docker-in-docker/common-setup.sh`
 - etc.
 
 ### Workflow
 
 1. **Edit**: Make changes to `scripts/lib/common-setup.sh`
-2. **Test**: Run `bash test/_lib/test-common-setup.sh` to verify
+2. **Test**: Run `bash test/_global/test-common-setup.sh` to verify
 3. **Sync**: Run `./scripts/sync-common-setup.sh` to deploy to all features
 4. **Commit**: Commit both the source and all copies together
 
@@ -48,10 +48,10 @@ Therefore, each feature needs its own copy of the helper to ensure it's availabl
 
 ## Testing
 
-Tests are located in `test/_lib/` and reference the anaconda feature's copy as the source:
+Tests are located in `test/_global/` and reference the source of truth directly:
 
 ```bash
-bash test/_lib/test-common-setup.sh
+bash test/_global/test-common-setup.sh
 ```
 
 ## Future
