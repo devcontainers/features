@@ -6,9 +6,9 @@
 
 set -e
 
-# Source the helper script from anaconda feature as reference
+# Source the helper script from the source of truth
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../../src/anaconda/_lib/common-setup.sh"
+source "${SCRIPT_DIR}/../../scripts/lib/common-setup.sh"
 
 # Test counters
 PASSED=0
@@ -37,8 +37,6 @@ run_test() {
 # Test 1: Automatic mode finds existing user or fallback
 test_automatic_no_users() {
     local result=$(determine_user_from_input "automatic")
-    # Should find either a known user or fallback to root
-    # On this system, there may be a UID 1000 user (like packer)
     local uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd 2>/dev/null || echo '')
     local expected="${uid_1000_user:-root}"
     run_test "Automatic mode with no matching common users finds UID 1000 or root" "${expected}" "${result}"
@@ -47,7 +45,6 @@ test_automatic_no_users() {
 # Test 2: Automatic mode with fallback user
 test_automatic_with_fallback() {
     local result=$(determine_user_from_input "automatic" "vscode")
-    # Should find a user or use the fallback - check if UID 1000 exists
     local uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd 2>/dev/null || echo '')
     local expected="${uid_1000_user:-vscode}"
     run_test "Automatic mode with custom fallback finds UID 1000 or uses fallback" "${expected}" "${result}"
@@ -80,7 +77,6 @@ test_nonexisting_user() {
 # Test 7: Auto mode (synonym for automatic)
 test_auto_synonym() {
     local result=$(determine_user_from_input "auto" "customfallback")
-    # Should behave same as automatic - find UID 1000 or use fallback
     local uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd 2>/dev/null || echo '')
     local expected="${uid_1000_user:-customfallback}"
     run_test "Auto mode with fallback finds UID 1000 or uses fallback" "${expected}" "${result}"
@@ -88,14 +84,10 @@ test_auto_synonym() {
 
 # Test 8: _REMOTE_USER environment variable (when set and not root)
 test_remote_user_set() {
-    # Test with an existing user (root is always available)
-    # We'll use a user that exists on the system
     local existing_user=$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd 2>/dev/null || echo 'root')
-    
     export _REMOTE_USER="${existing_user}"
     local result=$(determine_user_from_input "automatic")
     unset _REMOTE_USER
-    
     run_test "_REMOTE_USER set to non-root user" "${existing_user}" "${result}"
 }
 
@@ -104,8 +96,6 @@ test_remote_user_root() {
     export _REMOTE_USER="root"
     local result=$(determine_user_from_input "automatic" "mydefault")
     unset _REMOTE_USER
-    
-    # Should use fallback logic - find UID 1000 or use fallback
     local uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd 2>/dev/null || echo '')
     local expected="${uid_1000_user:-mydefault}"
     run_test "_REMOTE_USER set to root uses fallback logic" "${expected}" "${result}"
@@ -113,50 +103,38 @@ test_remote_user_root() {
 
 # Test 10: Finding vscode user if it exists
 test_find_vscode_user() {
-    # Check if vscode user exists and no higher priority users exist
     if id -u vscode > /dev/null 2>&1 && \
        ! id -u devcontainer > /dev/null 2>&1; then
-        # Unset _REMOTE_USER to ensure it doesn't interfere
         unset _REMOTE_USER
         local result=$(determine_user_from_input "automatic")
-        # Should find vscode (it's second in priority after devcontainer)
         run_test "Finds vscode user in automatic mode" "vscode" "${result}"
     else
-        # Skip this test if vscode user doesn't exist or higher priority user exists
         run_test "Finds vscode user in automatic mode (SKIPPED - conditions not met)" "SKIP" "SKIP"
     fi
 }
 
 # Test 11: Finding devcontainer user (highest priority)
 test_find_devcontainer_user() {
-    # Check if devcontainer user exists
     if id -u devcontainer > /dev/null 2>&1; then
-        # Unset _REMOTE_USER to ensure it doesn't interfere
         unset _REMOTE_USER
         local result=$(determine_user_from_input "automatic")
-        # Should find devcontainer (highest priority)
         run_test "Finds devcontainer user (highest priority)" "devcontainer" "${result}"
     else
-        # Skip this test if devcontainer user doesn't exist
         run_test "Finds devcontainer user (highest priority) (SKIPPED - user doesn't exist)" "SKIP" "SKIP"
     fi
 }
 
 # Test 12: Finding user with UID 1000
 test_find_uid_1000() {
-    # Check if there's a user with UID 1000
     local uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd 2>/dev/null || echo '')
-    
     if [ -n "${uid_1000_user}" ] && \
        ! id -u devcontainer > /dev/null 2>&1 && \
        ! id -u vscode > /dev/null 2>&1 && \
        ! id -u node > /dev/null 2>&1 && \
        ! id -u codespace > /dev/null 2>&1; then
-        # Only test if UID 1000 exists and no higher priority users exist
         local result=$(determine_user_from_input "automatic")
         run_test "Finds user with UID 1000" "${uid_1000_user}" "${result}"
     else
-        # Skip this test if conditions aren't met
         run_test "Finds user with UID 1000 (SKIPPED - conditions not met)" "SKIP" "SKIP"
     fi
 }
@@ -164,7 +142,6 @@ test_find_uid_1000() {
 # Test 13: Empty input defaults to "automatic"
 test_empty_input() {
     local result=$(determine_user_from_input "" "mydefault")
-    # Should behave as automatic mode - find UID 1000 or use fallback
     local uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd 2>/dev/null || echo '')
     local expected="${uid_1000_user:-mydefault}"
     run_test "Empty input treated as automatic and finds UID 1000 or uses fallback" "${expected}" "${result}"
@@ -175,8 +152,6 @@ test_remote_user_nonexistent() {
     export _REMOTE_USER="nonexistentuser99999"
     local result=$(determine_user_from_input "automatic" "mydefault")
     unset _REMOTE_USER
-    
-    # Should fall through to normal detection - find UID 1000 or use fallback
     local uid_1000_user=$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd 2>/dev/null || echo '')
     local expected="${uid_1000_user:-mydefault}"
     run_test "_REMOTE_USER set to non-existent user falls back to detection" "${expected}" "${result}"
