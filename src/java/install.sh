@@ -197,24 +197,22 @@ updaterc() {
 
 fallback_to_lts_if_needed() {
     local all_versions="$1"
-    local feature_release_version="$2"
+    local current_major="$2"
     local most_recent_lts
     most_recent_lts=$(echo "$all_versions" | jq -r '.most_recent_lts')
 
-    # Validate that both values are non-empty integers before comparing
-    if [ -z "${feature_release_version}" ] || [ -z "${most_recent_lts}" ] \
-        || ! echo "${feature_release_version}" | grep -qE '^[0-9]+$' \
-        || ! echo "${most_recent_lts}" | grep -qE '^[0-9]+$'; then
-        echo "${feature_release_version}"
-        return
+    if [ -z "${most_recent_lts}" ] || ! echo "${most_recent_lts}" | grep -qE '^[0-9]+$' \
+        || [ -z "${current_major}" ] || ! echo "${current_major}" | grep -qE '^[0-9]+$'; then
+        return 1
     fi
 
-    if [ "${feature_release_version}" -gt "${most_recent_lts}" ]; then
-        echo "Latest feature release (${feature_release_version}) is newer than most recent LTS (${most_recent_lts}). Falling back to LTS version ${most_recent_lts}." >&2
+    if [ "${current_major}" -gt "${most_recent_lts}" ]; then
+        echo "Latest feature release (${current_major}) not available in any distribution. Falling back to LTS version ${most_recent_lts}." >&2
         echo "${most_recent_lts}"
-    else
-        echo "${feature_release_version}"
+        return 0
     fi
+
+    return 1
 }
 
 find_version_list() {
@@ -222,7 +220,7 @@ find_version_list() {
     suffix="$2"
     install_type=$3
     ifLts="$4"
-    version_list=$5
+    local version_list_var=$5
     java_ver=$6
     
     check_packages jq
@@ -230,8 +228,7 @@ find_version_list() {
     if [ "${ifLts}" = "true" ]; then 
         major_version=$(echo "$all_versions" | jq -r '.most_recent_lts')
     elif [ "${java_ver}" = "latest" ]; then
-        major_version=$(echo "$all_versions" | jq -r '.most_recent_feature_release')
-        major_version=$(fallback_to_lts_if_needed "$all_versions" "$major_version")
+        major_version=$(echo "$all_versions" | jq -r '.most_recent_feature_release') 
     else
         major_version=$(echo "$java_ver" | cut -d '.' -f 1)
     fi
@@ -255,7 +252,30 @@ find_version_list() {
     else
         regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
     fi
-    declare -g ${version_list}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
+    declare -g ${version_list_var}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
+
+    # Fallback to LTS when the latest version is not found in either ms or tem distributions
+    if [ -z "${!version_list_var}" ] && [ "${java_ver}" = "latest" ] && [ "${install_type}" = "java" ]; then
+        local lts_version
+        lts_version=$(fallback_to_lts_if_needed "$all_versions" "$major_version")
+        if [ $? -eq 0 ] && [ -n "${lts_version}" ]; then
+            major_version="${lts_version}"
+            JDK_DISTRO="${JDKDISTRO:-"ms"}"
+            if [ "${JDK_DISTRO}" = "ms" ]; then
+                echo "Check if OpenJDK is available for version ${major_version} for ${JDK_DISTRO} Distro"
+                available_versions=$(su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} | grep ${JDK_DISTRO} | grep -oE '[0-9]+(\.[0-9]+(\.[0-9]+)?)?' | sort -u")
+                if echo "${available_versions}" | grep -q "^${major_version}"; then
+                    echo "JDK version ${major_version} is available in ${JDK_DISTRO}..."
+                else
+                    echo "JDK version ${major_version} not available in ${JDK_DISTRO}.... Switching to (tem)."
+                    JDK_DISTRO="tem"
+                fi
+            fi
+            echo "JDK_DISTRO: ${JDK_DISTRO}"
+            regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
+            declare -g ${version_list_var}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
+        fi
+    fi
 }
 
 # Use SDKMAN to install something using a partial version match
