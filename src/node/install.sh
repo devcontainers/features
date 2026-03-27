@@ -132,7 +132,7 @@ pkg_mgr_update() {
                     set +e
                         stderr_messages=$(${PKG_MGR_CMD} -q check-update 2>&1)
                         rc=$?
-                        # centos 7 sometimes returns a status of 100 when it apears to work.
+                        # centos 7 sometimes returns a status of 100 when it appears to work.
                         if [ $rc != 0 ] && [ $rc != 100 ]; then
                             echo "(Error) ${PKG_MGR_CMD} check-update produced the following error message(s):"
                             echo "${stderr_messages}"
@@ -199,7 +199,7 @@ find_version_from_git_tags() {
 
 install_yarn() {
     if [ "${ADJUSTED_ID}" = "debian" ] && [ "${INSTALL_YARN_USING_APT}" = "true" ]; then
-        # for backward compatiblity with existing devcontainer features, install yarn
+        # for backward compatibility with existing devcontainer features, install yarn
         # via apt-get on Debian systems
         if ! type yarn >/dev/null 2>&1; then
             # Import key safely (new method rather than deprecated apt-key approach) and install
