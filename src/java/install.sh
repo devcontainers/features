@@ -195,24 +195,68 @@ updaterc() {
     fi
 }
 
-fallback_to_lts_if_needed() {
-    local all_versions="$1"
-    local current_major="$2"
+# Fallback to LTS version when the latest feature release is not available
+# in either ms or tem distributions. Handles the full installation directly.
+fallback_install_lts() {
+    local install_type=$1
+    local prefix=$2
+    local suffix=$3
+    local set_as_default=$4
+
+    check_packages jq
+    local all_versions
+    all_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
     local most_recent_lts
     most_recent_lts=$(echo "$all_versions" | jq -r '.most_recent_lts')
+    local most_recent_feature
+    most_recent_feature=$(echo "$all_versions" | jq -r '.most_recent_feature_release')
 
+    # Validate that both values are non-empty integers
     if [ -z "${most_recent_lts}" ] || ! echo "${most_recent_lts}" | grep -qE '^[0-9]+$' \
-        || [ -z "${current_major}" ] || ! echo "${current_major}" | grep -qE '^[0-9]+$'; then
+        || [ -z "${most_recent_feature}" ] || ! echo "${most_recent_feature}" | grep -qE '^[0-9]+$'; then
         return 1
     fi
 
-    if [ "${current_major}" -gt "${most_recent_lts}" ]; then
-        echo "Latest feature release (${current_major}) not available in any distribution. Falling back to LTS version ${most_recent_lts}." >&2
-        echo "${most_recent_lts}"
-        return 0
+    # Only fallback if the feature release is newer than the LTS
+    if [ "${most_recent_feature}" -le "${most_recent_lts}" ]; then
+        return 1
     fi
 
-    return 1
+    echo "Latest feature release (${most_recent_feature}) not available in any distribution. Falling back to LTS version ${most_recent_lts}."
+    local major_version="${most_recent_lts}"
+
+    # Reset JDK_DISTRO and check distribution availability for the LTS version
+    JDK_DISTRO="${JDKDISTRO:-"ms"}"
+    if [ "${JDK_DISTRO}" = "ms" ]; then
+        echo "Check if OpenJDK is available for version ${major_version} for ${JDK_DISTRO} Distro"
+        local available_versions
+        available_versions=$(su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} | grep ${JDK_DISTRO} | grep -oE '[0-9]+(\.[0-9]+(\.[0-9]+)?)?' | sort -u")
+        if echo "${available_versions}" | grep -q "^${major_version}"; then
+            echo "JDK version ${major_version} is available in ${JDK_DISTRO}..."
+        else
+            echo "JDK version ${major_version} not available in ${JDK_DISTRO}.... Switching to (tem)."
+            JDK_DISTRO="tem"
+        fi
+    fi
+    echo "JDK_DISTRO: ${JDK_DISTRO}"
+
+    local regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
+    local lts_version_list
+    lts_version_list="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
+
+    local lts_requested_version
+    lts_requested_version="$(echo "${lts_version_list}" | head -n 1)"
+
+    if [ -z "${lts_requested_version}" ]; then
+        echo "LTS version ${major_version} also not found in any distribution." >&2
+        return 1
+    fi
+
+    echo "Installing LTS version: ${lts_requested_version}"
+    if [ "${set_as_default}" = "true" ]; then
+        JAVA_VERSION=${lts_requested_version}
+    fi
+    su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install ${install_type} ${lts_requested_version} && sdk flush archives && sdk flush temp"
 }
 
 find_version_list() {
@@ -220,7 +264,7 @@ find_version_list() {
     suffix="$2"
     install_type=$3
     ifLts="$4"
-    local version_list_var=$5
+    version_list=$5
     java_ver=$6
     
     check_packages jq
@@ -252,30 +296,7 @@ find_version_list() {
     else
         regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
     fi
-    declare -g ${version_list_var}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
-
-    # Fallback to LTS when the latest version is not found in either ms or tem distributions
-    if [ -z "${!version_list_var}" ] && [ "${java_ver}" = "latest" ] && [ "${install_type}" = "java" ]; then
-        local lts_version
-        lts_version=$(fallback_to_lts_if_needed "$all_versions" "$major_version")
-        if [ $? -eq 0 ] && [ -n "${lts_version}" ]; then
-            major_version="${lts_version}"
-            JDK_DISTRO="${JDKDISTRO:-"ms"}"
-            if [ "${JDK_DISTRO}" = "ms" ]; then
-                echo "Check if OpenJDK is available for version ${major_version} for ${JDK_DISTRO} Distro"
-                available_versions=$(su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} | grep ${JDK_DISTRO} | grep -oE '[0-9]+(\.[0-9]+(\.[0-9]+)?)?' | sort -u")
-                if echo "${available_versions}" | grep -q "^${major_version}"; then
-                    echo "JDK version ${major_version} is available in ${JDK_DISTRO}..."
-                else
-                    echo "JDK version ${major_version} not available in ${JDK_DISTRO}.... Switching to (tem)."
-                    JDK_DISTRO="tem"
-                fi
-            fi
-            echo "JDK_DISTRO: ${JDK_DISTRO}"
-            regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
-            declare -g ${version_list_var}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
-        fi
-    fi
+    declare -g ${version_list}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
 }
 
 # Use SDKMAN to install something using a partial version match
@@ -308,6 +329,12 @@ sdk_install() {
             set -e
         fi
         if [ -z "${requested_version}" ] || ! echo "${version_list}" | grep "^${requested_version//./\\.}$" > /dev/null 2>&1; then
+            # Fallback to LTS if the latest version is not found in any distribution
+            if [ "$2" = "latest" ] && [ "${install_type}" = "java" ]; then
+                if fallback_install_lts "${install_type}" "${prefix}" "${suffix}" "${set_as_default}"; then
+                    return
+                fi
+            fi
             echo -e "Version $2 not found. Available versions:\n${version_list}" >&2
             exit 1
         fi
