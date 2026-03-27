@@ -195,6 +195,20 @@ updaterc() {
     fi
 }
 
+fallback_to_lts_if_needed() {
+    local all_versions="$1"
+    local feature_release_version="$2"
+    local most_recent_lts
+    most_recent_lts=$(echo "$all_versions" | jq -r '.most_recent_lts')
+
+    if [ "${feature_release_version}" -gt "${most_recent_lts}" ]; then
+        echo "Latest feature release (${feature_release_version}) is newer than most recent LTS (${most_recent_lts}). Falling back to LTS version." >&2
+        echo "${most_recent_lts}"
+    else
+        echo "${feature_release_version}"
+    fi
+}
+
 find_version_list() {
     prefix="$1"
     suffix="$2"
@@ -208,7 +222,8 @@ find_version_list() {
     if [ "${ifLts}" = "true" ]; then 
         major_version=$(echo "$all_versions" | jq -r '.most_recent_lts')
     elif [ "${java_ver}" = "latest" ]; then
-        major_version=$(echo "$all_versions" | jq -r '.most_recent_feature_release') 
+        major_version=$(echo "$all_versions" | jq -r '.most_recent_feature_release')
+        major_version=$(fallback_to_lts_if_needed "$all_versions" "$major_version")
     else
         major_version=$(echo "$java_ver" | cut -d '.' -f 1)
     fi
