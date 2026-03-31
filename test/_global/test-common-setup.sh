@@ -6,7 +6,7 @@
 
 set -e
 
-# Source the helper script from the source of truth
+# Source the helper script from the single source of truth
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../scripts/lib/common-setup.sh"
 

@@ -19,23 +19,15 @@ scripts/
 
 ### Deploying Changes
 
-Due to the devcontainer CLI's packaging behavior (each feature is packaged independently), the helper must be deployed to each feature's directory. We maintain this through a sync script:
+Due to the devcontainer CLI's packaging behavior (each feature is packaged independently), the helper must be present in each feature's directory at packaging time. This is handled automatically by CI — all workflows run `scripts/sync-common-setup.sh` after checkout and before packaging.
 
-```bash
-./scripts/sync-common-setup.sh
-```
-
-This copies `scripts/lib/common-setup.sh` to all features:
-- `src/anaconda/common-setup.sh`
-- `src/docker-in-docker/common-setup.sh`
-- etc.
+The copies are `.gitignore`d — only the source file is tracked in git.
 
 ### Workflow
 
 1. **Edit**: Make changes to `scripts/lib/common-setup.sh`
 2. **Test**: Run `bash test/_global/test-common-setup.sh` to verify
-3. **Sync**: Run `./scripts/sync-common-setup.sh` to deploy to all features
-4. **Commit**: Commit both the source and all copies together
+3. **Commit**: Only the source file needs to be committed
 
 ### Why Copies?
 
@@ -48,10 +40,18 @@ Therefore, each feature needs its own copy of the helper to ensure it's availabl
 
 ## Testing
 
-Tests are located in `test/_global/` and reference the source of truth directly:
+Tests are located in `test/_global/` and source from the canonical `scripts/lib/common-setup.sh`:
 
 ```bash
 bash test/_global/test-common-setup.sh
+```
+
+### Local Development
+
+To generate the copies locally (e.g., for testing features outside CI):
+
+```bash
+./scripts/sync-common-setup.sh
 ```
 
 ## Future

@@ -8,7 +8,7 @@ Multiple features need the same helper functions (e.g., user selection logic). T
 
 ## Solution
 
-We maintain a **single source of truth** with a **sync mechanism** to deploy to each feature:
+We maintain a **single source of truth** with a **CI-time sync mechanism** to deploy to each feature:
 
 ### Single Source
 - **Location**: `scripts/lib/common-setup.sh`
@@ -16,9 +16,10 @@ We maintain a **single source of truth** with a **sync mechanism** to deploy to 
 - **Maintenance**: All updates happen here
 
 ### Deployment
-- **Mechanism**: `scripts/sync-common-setup.sh`
-- **Target**: Copies to each feature's directory as `common-setup.sh`
+- **Mechanism**: `scripts/sync-common-setup.sh` (runs automatically in CI)
+- **Target**: Copies to each feature's directory as `common-setup.sh` at build/test time
 - **Reason**: Devcontainer packaging requires files to be within each feature's directory
+- **Note**: The copies are `.gitignore`d — only the source file is tracked in git
 
 ## Workflow
 
@@ -26,8 +27,7 @@ We maintain a **single source of truth** with a **sync mechanism** to deploy to 
 
 1. **Edit the source**: Modify `scripts/lib/common-setup.sh`
 2. **Test**: Run `bash test/_global/test-common-setup.sh`
-3. **Sync**: Run `./scripts/sync-common-setup.sh`
-4. **Commit**: Include both source and deployed copies
+3. **Commit**: Only the source file needs to be committed
 
 ```bash
 # Edit the source
@@ -36,24 +36,24 @@ vim scripts/lib/common-setup.sh
 # Test
 bash test/_global/test-common-setup.sh
 
-# Deploy to all features
-./scripts/sync-common-setup.sh
-
-# Commit everything
-git add scripts/lib/common-setup.sh src/*/common-setup.sh
+# Commit just the source
+git add scripts/lib/common-setup.sh
 git commit -m "Update common-setup.sh helper function"
 ```
 
-### Verification
+### Local Development
 
-The sync script is idempotent - running it multiple times with the same source produces the same result. After syncing, you can verify:
+To generate the copies locally (e.g., for testing features outside CI):
 
 ```bash
-# Check that all copies are identical
-for f in src/*/common-setup.sh; do
-    diff -q scripts/lib/common-setup.sh "$f" || echo "MISMATCH: $f"
-done
+./scripts/sync-common-setup.sh
 ```
+
+### CI Integration
+
+All CI workflows (test, release, stress test) automatically run `sync-common-setup.sh`
+after checkout and before the devcontainer CLI packages features. This ensures the
+copies are always present and up-to-date without tracking them in git.
 
 ## Why Not Use Shared Files?
 
@@ -81,10 +81,10 @@ The devcontainer spec has a proposal for an `include` property in `devcontainer-
 
 As of this PR:
 - **Source**: `scripts/lib/common-setup.sh` (87 lines)
-- **Deployed**: 16 features, each with `src/FEATURE/common-setup.sh`
-- **Sync Script**: `scripts/sync-common-setup.sh`
+- **Deployed**: 16 features, each with `src/FEATURE/common-setup.sh` (generated at CI time, gitignored)
+- **Sync Script**: `scripts/sync-common-setup.sh` (called by all CI workflows)
 - **Tests**: `test/_global/test-common-setup.sh` (14 test cases)
-- **Benefits**: Eliminated ~188 lines of inline duplicated logic from install scripts
+- **Benefits**: Eliminated ~188 lines of inline duplicated logic from install scripts, zero duplicate files tracked in git
 
 ## References
 
