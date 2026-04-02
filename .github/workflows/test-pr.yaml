@@ -70,6 +70,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: "Sync shared scripts into features"
+        run: bash scripts/sync-common-setup.sh
+
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
 
@@ -85,6 +88,9 @@ jobs:
         features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
     steps:
       - uses: actions/checkout@v6
+
+      - name: "Sync shared scripts into features"
+        run: bash scripts/sync-common-setup.sh
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
