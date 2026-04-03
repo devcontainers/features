@@ -31,6 +31,9 @@ jobs:
     strategy:
       matrix:
         features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
+        # NOTE: ubuntu:focal and debian:11 are excluded because they ship
+        # GLIBC 2.31, but PowerShell >= 7.6.0 requires GLIBC 2.33+ on arm64.
+        # ubuntu:focal reached EOL Apr 2025; debian:11 reaches EOL Aug 2026.
         baseImage:
           [
             "ubuntu:jammy",
