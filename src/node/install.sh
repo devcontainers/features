@@ -8,6 +8,7 @@
 # Maintainer: The Dev Container spec maintainers
 
 export NODE_VERSION="${VERSION:-"lts"}"
+export NPM_VERSION="${NPMVERSION:-"lts"}"
 export PNPM_VERSION="${PNPMVERSION:-"latest"}"
 export NVM_VERSION="${NVMVERSION:-"latest"}"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
@@ -379,6 +380,41 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
                 su ${USERNAME} -c "umask 0002 && . '$NVM_DIR/nvm.sh' && nvm use default"
         fi
     IFS=$OLDIFS
+fi
+
+# Install or update npm to specific version
+if [ ! -z "${NPM_VERSION}" ] && [ "${NPM_VERSION}" = "none" ]; then
+    echo "Ignoring NPM version update"
+else
+    if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
+        (
+            . "${NVM_DIR}/nvm.sh"
+            [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
+            [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
+            [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
+            echo "Installing npm version ${NPM_VERSION}..."
+            
+            # Clear npm cache to avoid conflicts
+            npm cache clean --force 2>/dev/null || true
+            
+            # Try npm installation with retries
+            for i in {1..3}; do
+                if npm install -g npm@$NPM_VERSION --force; then
+                    echo "Successfully installed npm@${NPM_VERSION}"
+                    break
+                else
+                    echo "Attempt $i failed, retrying..."
+                    sleep 2
+                    if [ $i -eq 3 ]; then
+                        echo "Failed to install npm@${NPM_VERSION} after 3 attempts. Trying latest npm as fallback..."
+                        npm install -g npm@latest --force || echo "Fallback to latest npm also failed. Keeping current npm version $(npm --version 2>/dev/null || echo 'unknown')."
+                    fi
+                fi
+            done
+        )
+    else
+        echo "Skip installing/updating npm because npm is not available"
+    fi
 fi
 
 # Install pnpm
