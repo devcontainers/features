@@ -30,6 +30,8 @@
         "npmVersion": {
             "type": "string",
             "proposals": [
+                "lts",
+                "latest",
                 "10.9.0",
                 "10.8.0",
                 "10.7.0",
