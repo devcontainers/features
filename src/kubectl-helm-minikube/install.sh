@@ -31,22 +31,12 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+# Source common helper functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/common-setup.sh"
+
 # Determine the appropriate non-root user
-if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
-    USERNAME=""
-    POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
-    for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-        if id -u ${CURRENT_USER} > /dev/null 2>&1; then
-            USERNAME=${CURRENT_USER}
-            break
-        fi
-    done
-    if [ "${USERNAME}" = "" ]; then
-        USERNAME=root
-    fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
-    USERNAME=root
-fi
+USERNAME=$(determine_user_from_input "${USERNAME}" "root")
 
 USERHOME="/home/$USERNAME"
 if [ "$USERNAME" = "root" ]; then
@@ -185,7 +175,7 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl"
     chmod 0755 /usr/local/bin/kubectl
     if [ "$KUBECTL_SHA256" = "automatic" ]; then
-        KUBECTL_SHA256="$(curl -sSL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
+        KUBECTL_SHA256="$(curl -sSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
     fi
     ([ "${KUBECTL_SHA256}" = "dev-mode" ] || (echo "${KUBECTL_SHA256} */usr/local/bin/kubectl" | sha256sum -c -))
     if ! type kubectl > /dev/null 2>&1; then

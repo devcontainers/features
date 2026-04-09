@@ -1,6 +1,6 @@
 {
     "id": "desktop-lite",
-    "version": "1.2.8",
+    "version": "1.3.0",
     "name": "Light-weight Desktop",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/desktop-lite",
     "description": "Adds a lightweight Fluxbox based desktop to the container that can be accessed using a VNC viewer or the web. GUI-based commands executed from the built-in VS code terminal will open on the desktop automatically.",

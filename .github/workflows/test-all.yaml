@@ -54,11 +54,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: "Sync shared scripts into features"
+        run: bash scripts/sync-common-setup.sh
+
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
 
       - name: "Generating tests for '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
-        run: devcontainer features test  --skip-scenarios -f ${{ matrix.features }} -i ${{ matrix.baseImage }} .
+        run: devcontainer features test --skip-scenarios -f ${{ matrix.features }} -i ${{ matrix.baseImage }} .
 
   test-scenarios:
     runs-on: ubuntu-latest
@@ -98,6 +101,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: "Sync shared scripts into features"
+        run: bash scripts/sync-common-setup.sh
+
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
 
@@ -109,6 +115,9 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v6
+
+      - name: "Sync shared scripts into features"
+        run: bash scripts/sync-common-setup.sh
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
