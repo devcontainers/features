@@ -393,21 +393,84 @@ else
             [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
             [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
             echo "Installing npm version ${NPM_VERSION}..."
+
+            CURRENT_NPM_VERSION=$(npm --version 2>/dev/null || echo 'unknown')
+            echo "Current npm version: $CURRENT_NPM_VERSION"
             
-            # Clear npm cache to avoid conflicts
+            # Clear npm cache and extract version numbers
             npm cache clean --force 2>/dev/null || true
+            CURRENT_MAJOR=$(echo "$CURRENT_NPM_VERSION" | cut -d. -f1 || echo "0")
+            NODE_MAJOR=$(node --version 2>/dev/null | cut -d. -f1 | tr -d 'v' || echo "0")
+            
+            # Dynamically check npm's Node.js requirements and auto-fallback if incompatible
+            ORIGINAL_NPM_VERSION="$NPM_VERSION"
+            if [ "$NPM_VERSION" != "none" ]; then
+                echo "Checking npm compatibility requirements..."
+                NPM_NODE_REQUIREMENT=$(npm view npm@${NPM_VERSION} engines.node 2>/dev/null || echo "")
+                
+                if [ -n "$NPM_NODE_REQUIREMENT" ]; then
+                    echo "npm $NPM_VERSION requires Node.js: $NPM_NODE_REQUIREMENT"
+                    
+                    # Extract minimum required Node version from requirement string
+                    MIN_NODE=$(echo "$NPM_NODE_REQUIREMENT" | grep -oE '[0-9]+' | head -1 || echo "0")
+                    
+                    if [ "$MIN_NODE" -gt "0" ] && [ "$NODE_MAJOR" -lt "$MIN_NODE" ]; then
+                        echo "⚠️  WARNING: npm $NPM_VERSION requires Node.js $MIN_NODE+, you have $NODE_MAJOR.x"
+                        
+                        # Find compatible npm version dynamically using same logic
+                        echo "🔍 Finding compatible npm version for Node.js $NODE_MAJOR.x..."
+                        
+                        # Try npm major versions in descending order to find highest compatible version
+                        for npm_major in 10 9 8 7 6; do
+                            echo "Checking npm $npm_major compatibility..."
+                            FALLBACK_NODE_REQUIREMENT=$(npm view "npm@${npm_major}" engines.node 2>/dev/null || echo "")
+                            
+                            if [ -n "$FALLBACK_NODE_REQUIREMENT" ]; then
+                                MIN_NODE=$(echo "$FALLBACK_NODE_REQUIREMENT" | grep -oE '[0-9]+' | head -1 || echo "0")
+                                
+                                if [ "$MIN_NODE" -le "$NODE_MAJOR" ]; then
+                                    # Get latest patch version for this compatible major version
+                                    NPM_VERSION=$(npm view "npm@${npm_major}" version 2>/dev/null || echo "")
+                                    if [ -n "$NPM_VERSION" ]; then
+                                        echo "✓ Found compatible npm $NPM_VERSION (requires Node.js $MIN_NODE+)"
+                                        echo "🔄 Auto-fallback: Installing compatible npm $NPM_VERSION instead"
+                                        break
+                                    fi
+                                fi
+                            fi
+                        done
+                        
+                        # If no compatible version found, skip npm installation
+                        if [ "$NPM_VERSION" = "$ORIGINAL_NPM_VERSION" ]; then
+                            echo "❌ Could not find compatible npm version, keeping current npm"
+                            NPM_VERSION="none"
+                        fi
+                    elif [ "$MIN_NODE" -gt "0" ]; then
+                        echo "✓ Node.js $NODE_MAJOR.x meets npm $NPM_VERSION requirement"
+                    fi
+                else
+                    echo "Could not determine Node.js requirements for npm $NPM_VERSION, proceeding anyway..."
+                fi
+            fi
+            
+            # Use special upgrade method for npm 10.x to latest (only if not falling back)
+            if [ "$ORIGINAL_NPM_VERSION" = "latest" ] && [ "$NPM_VERSION" = "latest" ] && [ "$CURRENT_MAJOR" = "10" ]; then
+                echo "Using npmjs.org install script for npm upgrade"
+                curl -fsSL https://www.npmjs.com/install.sh | sh 2>/dev/null || true
+            fi
             
             # Try npm installation with retries
             for i in {1..3}; do
-                if npm install -g npm@$NPM_VERSION --force; then
-                    echo "Successfully installed npm@${NPM_VERSION}"
+                echo "Attempt $i: Running npm install -g npm@$NPM_VERSION"
+                if npm install -g npm@$NPM_VERSION --force --no-audit --no-fund 2>&1; then
+                    NEW_VERSION=$(npm --version 2>/dev/null || echo 'unknown')
+                    echo "Successfully installed npm@${NPM_VERSION}, new version: $NEW_VERSION"
                     break
                 else
                     echo "Attempt $i failed, retrying..."
                     sleep 2
                     if [ $i -eq 3 ]; then
-                        echo "Failed to install npm@${NPM_VERSION} after 3 attempts. Trying latest npm as fallback..."
-                        npm install -g npm@latest --force || echo "Fallback to latest npm also failed. Keeping current npm version $(npm --version 2>/dev/null || echo 'unknown')."
+                        echo "Failed to install npm@${NPM_VERSION} after 3 attempts. Keeping current npm version $(npm --version 2>/dev/null || echo 'unknown')."
                     fi
                 fi
             done
