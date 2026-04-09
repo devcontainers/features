@@ -7,5 +7,17 @@
                 "addCondaForge": "true"
             }
         }
+    },
+    "install_conda_package_after_upgrade": {
+        "image": "ubuntu:noble",
+        "features": {
+            "conda": {}
+        }
+    },
+    "conda_channel_creation": {
+        "image": "ubuntu:noble",
+        "features": {
+            "conda": {}
+        }
     }
 }
