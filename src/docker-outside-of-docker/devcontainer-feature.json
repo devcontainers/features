@@ -1,6 +1,7 @@
 {
+
     "id": "docker-outside-of-docker",
-    "version": "1.6.5",
+    "version": "1.9.1",
     "name": "Docker (docker-outside-of-docker)",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-outside-of-docker",
     "description": "Re-use the host docker socket, adding the Docker CLI to a container. Feature invokes a script to enable using a forwarded Docker socket within a container to run Docker commands.",
@@ -29,11 +30,12 @@
             "type": "string",
             "enum": [
                 "none",
+                "latest",
                 "v1",
                 "v2"
             ],
-            "default": "v2",
-            "description": "Compose version to use for docker-compose (v1 or v2 or none)"
+            "default": "latest",
+            "description": "Compose version to use for docker-compose (v1 or v2 or none or latest)"
         },
         "installDockerBuildx": {
             "type": "boolean",
@@ -42,39 +44,44 @@
         },
         "installDockerComposeSwitch": {
             "type": "boolean",
-            "default": true,
+            "default": false,
             "description": "Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter."
+        },
+        "socketPath": {
+            "type": "string",
+            "default": "/var/run/docker-host.sock",
+            "description": "Path where the Docker socket is mounted inside the container. For rootless Docker, override the mount in devcontainer.json to map your host socket to this path."
         }
     },
-    "entrypoint": "/usr/local/share/docker-init.sh",
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-azuretools.vscode-containers"
-            ],
-            "settings": {
-                "github.copilot.chat.codeGeneration.instructions": [
-                    {
-                        "text": "This dev container includes the Docker CLI (`docker`) pre-installed and available on the `PATH` for running and managing containers using the Docker daemon on the host machine."
-                    }
-                ]
-            }
-        }
-    },
-    "mounts": [
-        {
-            "source": "/var/run/docker.sock",
-            "target": "/var/run/docker-host.sock",
-            "type": "bind"
-        }
-    ],
-    "securityOpt": [
-        "label=disable"
-    ],
-    "installsAfter": [
-        "ghcr.io/devcontainers/features/common-utils"
-    ],
-    "legacyIds": [
-        "docker-from-docker"
-    ]
+  "entrypoint": "/usr/local/share/docker-init.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-containers"
+      ],
+      "settings": {
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes the Docker CLI (`docker`) pre-installed and available on the `PATH` for running and managing containers using the Docker daemon on the host machine."
+          }
+        ]
+      }
+    }
+  },
+  "mounts": [
+    {
+      "source": "/var/run/docker.sock",
+      "target": "/var/run/docker-host.sock",
+      "type": "bind"
+    }
+  ],
+  "securityOpt": [
+    "label=disable"
+  ],
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/common-utils"
+  ],
+  "legacyIds": [
+    "docker-from-docker"
+  ]
 }

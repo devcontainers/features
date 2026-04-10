@@ -15,7 +15,7 @@ jobs:
     outputs:
       features: ${{ steps.filter.outputs.changes }}
     steps:
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           # NOTE: To extend this workflow to other features, add filter entries below
@@ -31,18 +31,19 @@ jobs:
     strategy:
       matrix:
         features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
+        # NOTE: ubuntu:focal and debian:11 are excluded because they ship
+        # GLIBC 2.31, but PowerShell >= 7.6.0 requires GLIBC 2.33+ on arm64.
+        # ubuntu:focal reached EOL Apr 2025; debian:11 reaches EOL Aug 2026.
         baseImage:
           [
-            "ubuntu:focal",
             "ubuntu:jammy",
-            "debian:11",
             "debian:12",
             "mcr.microsoft.com/devcontainers/base:ubuntu",
             "mcr.microsoft.com/devcontainers/base:debian",
             "mcr.microsoft.com/devcontainers/base:noble"
           ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
@@ -58,7 +59,7 @@ jobs:
       matrix:
         features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
