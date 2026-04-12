@@ -19,6 +19,7 @@ Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-r
 | configureZshAsDefaultShell | Change default shell to ZSH? | boolean | false |
 | installOhMyZsh | Install Oh My Zsh!? | boolean | true |
 | installOhMyZshConfig | Allow installing the default dev container .zshrc templates? | boolean | true |
+| ohMyZshTheme | Oh My Zsh theme to use (e.g., 'robbyrussell', 'agnoster', 'fino'). Default is 'devcontainers'. | string | devcontainers |
 | upgradePackages | Upgrade OS packages? | boolean | true |
 | username | Enter name of a non-root user to configure or none to skip | string | automatic |
 | userUid | Enter UID for non-root user | string | automatic |
