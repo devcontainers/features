@@ -328,6 +328,15 @@ set_rvm_install_args() {
     fi
 }
 
+validate_mirror_url() {
+    local mirror_name="$1"
+    local mirror_url="$2"
+    if [ -n "${mirror_url}" ] && [[ ! "${mirror_url}" =~ ^https?:// ]]; then
+        echo "(!) ${mirror_name} must start with http:// or https://"
+        exit 1
+    fi
+}
+
 run_rvm_installer() {
     local install_args="$1"
     if [ -n "${RVM_INSTALL_MIRROR:-}" ]; then
@@ -376,6 +385,8 @@ else
         echo "(!) Mirror values must not contain newlines."
         exit 1
     fi
+    validate_mirror_url "RUBY_SOURCE_MIRROR" "${RUBY_SOURCE_MIRROR:-}"
+    validate_mirror_url "RUBY_BINARIES_MIRROR" "${RUBY_BINARIES_MIRROR:-}"
     if [ -n "${RUBY_SOURCE_MIRROR:-}" ] && ! grep -Fqx "rvm_rubies_url=${RUBY_SOURCE_MIRROR}" /etc/rvmrc 2>/dev/null; then
         echo "rvm_rubies_url=${RUBY_SOURCE_MIRROR}" >> /etc/rvmrc
     fi

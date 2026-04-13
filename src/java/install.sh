@@ -326,12 +326,15 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     fi
     curl -sSL "https://get.sdkman.io?rcupdate=false" | bash
     if [ -n "${SDKMAN_SERVICE_MIRROR:-}" ] && [ -f "${SDKMAN_DIR}/etc/config" ]; then
-        sdkman_service_mirror_escaped="$(printf '%s\n' "${SDKMAN_SERVICE_MIRROR}" | sed 's/[&|\\]/\\&/g')"
-        if grep -q "^sdkman_api=" "${SDKMAN_DIR}/etc/config"; then
-            sed -i "s|^sdkman_api=.*|sdkman_api=${sdkman_service_mirror_escaped}|" "${SDKMAN_DIR}/etc/config"
-        else
-            echo "sdkman_api=${SDKMAN_SERVICE_MIRROR}" >> "${SDKMAN_DIR}/etc/config"
-        fi
+        sdkman_config_tmp="$(mktemp)"
+        awk -v api="${SDKMAN_SERVICE_MIRROR}" '
+            BEGIN { updated=0 }
+            /^sdkman_api=/ { print "sdkman_api=" api; updated=1; next }
+            { print }
+            END { if (updated == 0) print "sdkman_api=" api }
+        ' "${SDKMAN_DIR}/etc/config" > "${sdkman_config_tmp}"
+        cat "${sdkman_config_tmp}" > "${SDKMAN_DIR}/etc/config"
+        rm -f "${sdkman_config_tmp}"
     fi
     # For RHEL 8 systems, also disable native CLI in config file and remove native binaries
     if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${MAJOR_VERSION_ID}" = "8" ]; then
