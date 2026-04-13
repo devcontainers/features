@@ -390,6 +390,9 @@ else
     rm -rf /tmp/rustup
 fi
 
+export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-https://static.rust-lang.org}"
+export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-https://static.rust-lang.org/rustup}"
+
 export PATH=${CARGO_HOME}/bin:${PATH}
 if [ "${UPDATE_RUST}" = "true" ]; then
     echo "Updating Rust..."
@@ -421,6 +424,8 @@ fi
 updaterc "$(cat << EOF
 export RUSTUP_HOME="${RUSTUP_HOME}"
 export CARGO_HOME="${CARGO_HOME}"
+export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER}"
+export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT}"
 if [[ "\${PATH}" != *"\${CARGO_HOME}/bin"* ]]; then export PATH="\${CARGO_HOME}/bin:\${PATH}"; fi
 EOF
 )"

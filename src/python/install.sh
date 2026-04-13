@@ -14,6 +14,8 @@ OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
 ENABLE_SHARED_FROM_SOURCE="${ENABLESHARED:-"false"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
+PYTHON_MIRROR="${PYTHON_MIRROR:-https://www.python.org/ftp}"
+GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
 
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 
@@ -156,6 +158,11 @@ updaterc() {
 
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
+    if [ -n "${GPG_KEYSERVER:-}" ]; then
+        echo "keyserver ${GPG_KEYSERVER}"
+        return
+    fi
+
     declare -A keyservers_curl_map=(
         ["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
         ["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
@@ -494,7 +501,7 @@ install_cpython() {
         mkdir -p /tmp/python-src ${INSTALL_PATH}
         cd /tmp/python-src
         cpython_tgz_filename="Python-${VERSION}.tgz"
-        cpython_tgz_url="https://www.python.org/ftp/python/${VERSION}/${cpython_tgz_filename}"
+        cpython_tgz_url="${PYTHON_MIRROR}/python/${VERSION}/${cpython_tgz_filename}"
         echo "Downloading ${cpython_tgz_filename}..."
         curl -sSL -o "/tmp/python-src/${cpython_tgz_filename}" "${cpython_tgz_url}"
     fi
@@ -525,7 +532,7 @@ install_cosign() {
     local version_for_url="${COSIGN_VERSION#v}"
 
     local cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
-    local cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
+    local cosign_url="${GITHUB_RELEASE_URL}/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
     
     echo "Downloading cosign from: ${cosign_url}"
     
@@ -539,7 +546,7 @@ install_cosign() {
         
         version_for_url="${COSIGN_VERSION#v}"
         cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
-        cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
+        cosign_url="${GITHUB_RELEASE_URL}/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
         
         if ! curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
             echo "(!) Failed to download cosign v${COSIGN_VERSION} as fallback"

@@ -9,6 +9,8 @@
 
 TARGET_GO_VERSION="${VERSION:-"latest"}"
 GOLANGCILINT_VERSION="${GOLANGCILINTVERSION:-"latest"}"
+GO_MIRROR="${GO_MIRROR:-https://golang.org/dl}"
+GO_TAG_SOURCE="${GO_TAG_SOURCE:-https://github.com/golang/go}"
 
 TARGET_GOROOT="${TARGET_GOROOT:-"/usr/local/go"}"
 TARGET_GOPATH="${TARGET_GOPATH:-"/go"}"
@@ -220,7 +222,7 @@ if ! [ -f /usr/bin/find ]; then
 fi
 
 # Get closest match for version number specified
-find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true"
+find_version_from_git_tags TARGET_GO_VERSION "${GO_TAG_SOURCE}" "tags/go" "." "true"
 
 architecture="$(uname -m)"
 case $architecture in
@@ -248,7 +250,7 @@ if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version 2>/dev/null)" != *
     gpg -q --import /tmp/tmp-gnupg/golang_key
     echo "Downloading Go ${TARGET_GO_VERSION}..."
     set +e
-    curl -fsSL -o /tmp/go.tar.gz "https://golang.org/dl/go${TARGET_GO_VERSION}.linux-${architecture}.tar.gz"
+    curl -fsSL -o /tmp/go.tar.gz "${GO_MIRROR}/go${TARGET_GO_VERSION}.linux-${architecture}.tar.gz"
     exit_code=$?
     set -e
     if [ "$exit_code" != "0" ]; then
@@ -263,7 +265,7 @@ if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version 2>/dev/null)" != *
             ((minor=minor-1))
             TARGET_GO_VERSION="${major}.${minor}"
             # Look for latest version from previous minor release
-            find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true"
+            find_version_from_git_tags TARGET_GO_VERSION "${GO_TAG_SOURCE}" "tags/go" "." "true"
         else 
             ((breakfix=breakfix-1))
             if [ "${breakfix}" = "0" ]; then
@@ -274,9 +276,9 @@ if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version 2>/dev/null)" != *
         fi
         set -e
         echo "Trying ${TARGET_GO_VERSION}..."
-        curl -fsSL -o /tmp/go.tar.gz "https://golang.org/dl/go${TARGET_GO_VERSION}.linux-${architecture}.tar.gz"
+        curl -fsSL -o /tmp/go.tar.gz "${GO_MIRROR}/go${TARGET_GO_VERSION}.linux-${architecture}.tar.gz"
     fi
-    curl -fsSL -o /tmp/go.tar.gz.asc "https://golang.org/dl/go${TARGET_GO_VERSION}.linux-${architecture}.tar.gz.asc"
+    curl -fsSL -o /tmp/go.tar.gz.asc "${GO_MIRROR}/go${TARGET_GO_VERSION}.linux-${architecture}.tar.gz.asc"
     gpg --verify /tmp/go.tar.gz.asc /tmp/go.tar.gz
     echo "Extracting Go ${TARGET_GO_VERSION}..."
     tar -xzf /tmp/go.tar.gz -C "${TARGET_GOROOT}" --strip-components=1
