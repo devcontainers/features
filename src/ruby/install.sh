@@ -340,6 +340,11 @@ validate_mirror_url() {
 run_rvm_installer() {
     local install_args="$1"
     if [ -n "${RVM_INSTALL_MIRROR:-}" ]; then
+        if [[ "${RVM_INSTALL_MIRROR}" == *$'\n'* ]]; then
+            echo "(!) RVM_INSTALL_MIRROR must not contain newlines."
+            exit 1
+        fi
+        validate_mirror_url "RVM_INSTALL_MIRROR" "${RVM_INSTALL_MIRROR}"
         local rvm_tmp_dir
         rvm_tmp_dir="$(mktemp -d)"
         git clone --depth=1 "${RVM_INSTALL_MIRROR}/rvm/rvm.git" "${rvm_tmp_dir}/rvm"
