@@ -19,6 +19,7 @@ ANT_VERSION="${ANTVERSION:-"latest"}"
 INSTALL_GROOVY="${INSTALLGROOVY:-"false"}"
 GROOVY_VERSION="${GROOVYVERSION:-"latest"}"
 JDK_DISTRO="${JDKDISTRO:-"ms"}"
+ADOPTIUM_API_URL="${ADOPTIUM_MIRROR:-https://api.adoptium.net}"
 
 export SDKMAN_DIR="${SDKMAN_DIR:-"/usr/local/sdkman"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -204,7 +205,7 @@ find_version_list() {
     java_ver=$6
     
     check_packages jq
-    all_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
+    all_versions=$(curl -s "${ADOPTIUM_API_URL}/v3/info/available_releases")
     if [ "${ifLts}" = "true" ]; then 
         major_version=$(echo "$all_versions" | jq -r '.most_recent_lts')
     elif [ "${java_ver}" = "latest" ]; then
@@ -324,6 +325,13 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
         export SDKMAN_NATIVE_VERSION="false"
     fi
     curl -sSL "https://get.sdkman.io?rcupdate=false" | bash
+    if [ -n "${SDKMAN_SERVICE_MIRROR:-}" ] && [ -f "${SDKMAN_DIR}/etc/config" ]; then
+        if grep -q "^sdkman_api=" "${SDKMAN_DIR}/etc/config"; then
+            sed -i "s|^sdkman_api=.*|sdkman_api=${SDKMAN_SERVICE_MIRROR}|" "${SDKMAN_DIR}/etc/config"
+        else
+            echo "sdkman_api=${SDKMAN_SERVICE_MIRROR}" >> "${SDKMAN_DIR}/etc/config"
+        fi
+    fi
     # For RHEL 8 systems, also disable native CLI in config file and remove native binaries
     if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${MAJOR_VERSION_ID}" = "8" ]; then
         # Disable native CLI in config to prevent future usage

@@ -14,6 +14,9 @@ rm -rf /var/lib/apt/lists/*
 PHP_VERSION="${VERSION:-"latest"}"
 INSTALL_COMPOSER="${INSTALLCOMPOSER:-"true"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
+PHP_MIRROR="${PHP_MIRROR:-https://www.php.net/distributions}"
+COMPOSER_MIRROR="${COMPOSER_MIRROR:-https://getcomposer.org}"
+COMPOSER_SIG_MIRROR="${COMPOSER_SIG_MIRROR:-https://composer.github.io}"
 
 export PHP_DIR="${PHP_DIR:-"/usr/local/php"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -163,8 +166,8 @@ find_prev_version_from_git_tags() {
 
 # Install PHP Composer
 addcomposer() {
-    "${PHP_SRC}" -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-    HASH="$(wget -q -O - https://composer.github.io/installer.sig)"
+    "${PHP_SRC}" -r "copy('${COMPOSER_MIRROR}/installer', 'composer-setup.php');"
+    HASH="$(wget -q -O - ${COMPOSER_SIG_MIRROR}/installer.sig)"
     "${PHP_SRC}" -r "if (hash_file('sha384', 'composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
     "${PHP_SRC}" composer-setup.php --install-dir="/usr/local/bin" --filename=composer
     "${PHP_SRC}" -r "unlink('composer-setup.php');"
@@ -181,7 +184,7 @@ init_php_install() {
         groupadd -r php
     fi
     usermod -a -G php "${USERNAME}"
-    PHP_URL="https://www.php.net/distributions/php-${PHP_VERSION}.tar.gz"
+    PHP_URL="${PHP_MIRROR}/php-${PHP_VERSION}.tar.gz"
 
     PHP_INI_DIR="${PHP_INSTALL_DIR}/ini"
     CONF_DIR="${PHP_INI_DIR}/conf.d"

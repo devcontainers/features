@@ -15,8 +15,10 @@ rm -rf /var/lib/apt/lists/*
 POWERSHELL_VERSION=${VERSION:-"latest"}
 POWERSHELL_MODULES="${MODULES:-""}"
 POWERSHELL_PROFILE_URL="${POWERSHELLPROFILEURL}"
+MICROSOFT_PACKAGES_MIRROR="${MICROSOFT_PACKAGES_MIRROR:-https://packages.microsoft.com}"
+GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
 
-MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
+MICROSOFT_GPG_KEYS_URI="${MICROSOFT_PACKAGES_MIRROR}/keys/microsoft.asc"
 #MICROSOFT_GPG_KEYS_URI=$(curl https://packages.microsoft.com/keys/microsoft.asc -o /usr/share/keyrings/microsoft-archive-keyring.gpg)
 POWERSHELL_ARCHIVE_ARCHITECTURES_UBUNTU="amd64"
 POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX="x86_64"
@@ -48,26 +50,6 @@ clean_cache() {
         rm -rf /var/cache/dnf/*
     fi
 }
-# Function to resolve PowerShell version from Microsoft redirect URLs
-resolve_powershell_version() {
-    local version_tag="$1"
-    local redirect_url="https://aka.ms/powershell-release?tag=${version_tag}"
-    
-    # Follow the redirect and extract the version from the final URL
-    local resolved_url
-    resolved_url=$(curl -sSL -o /dev/null -w '%{url_effective}' "${redirect_url}")
-    
-    # Extract version from URL (e.g., https://github.com/PowerShell/PowerShell/releases/tag/v7.4.7 -> 7.4.7)
-    local resolved_version
-    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-\w+\.\d+)?' || echo "")
-    
-    if [ -z "${resolved_version}" ]; then
-        echo "Failed to resolve version for tag: ${version_tag}" >&2
-        return 1
-    fi
-    
-    echo "${resolved_version}"
-}
 # Install dependencies for RHEL/CentOS/AlmaLinux (DNF-based systems)
 install_using_dnf() {
    dnf remove -y curl-minimal
@@ -83,14 +65,14 @@ install_powershell_dnf() {
     dnf install -y wget
 
     # Download Microsoft GPG key
-    curl https://packages.microsoft.com/keys/microsoft.asc -o /usr/share/keyrings/microsoft-archive-keyring.gpg
+    curl "${MICROSOFT_PACKAGES_MIRROR}/keys/microsoft.asc" -o /usr/share/keyrings/microsoft-archive-keyring.gpg
     ls -l /usr/share/keyrings/microsoft-archive-keyring.gpg
 
     # Install necessary dependencies
     dnf install -y krb5-libs libicu openssl-libs zlib
 
     # Add Microsoft PowerShell repository 
-        curl "https://packages.microsoft.com/config/rhel/9.0/prod.repo" > /etc/yum.repos.d/microsoft.repo
+        curl "${MICROSOFT_PACKAGES_MIRROR}/config/rhel/9.0/prod.repo" > /etc/yum.repos.d/microsoft.repo
     
     # Install PowerShell
      dnf install --assumeyes powershell
@@ -256,7 +238,7 @@ install_using_apt() {
     # Import key safely (new 'signed-by' method rather than deprecated apt-key approach) and install
    
     curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] ${MICROSOFT_PACKAGES_MIRROR}/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
     
 
     # Update lists
@@ -365,7 +347,7 @@ install_pwsh() {
     powershell_target_path="/opt/microsoft/powershell/$(echo ${POWERSHELL_VERSION} | grep -oE '[^\.]+' | head -n 1)"
     mkdir -p /tmp/pwsh "${powershell_target_path}"
     cd /tmp/pwsh
-    curl -sSL -o "${powershell_filename}" "https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}"
+    curl -sSL -o "${powershell_filename}" "${GITHUB_RELEASE_URL}/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}"
 }
 
 install_using_github() {
@@ -400,7 +382,7 @@ install_using_github() {
     fi
     
     # download the latest version of powershell and extracting the file to powershell directory
-    wget https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}
+    wget ${GITHUB_RELEASE_URL}/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}
     mkdir ~/powershell
     tar -xvf ${powershell_filename} -C ~/powershell
 
@@ -430,18 +412,7 @@ install_using_github() {
 
 if ! type pwsh >/dev/null 2>&1; then
     export DEBIAN_FRONTEND=noninteractive
-    if [ "${POWERSHELL_VERSION}" = "lts" ] || [ "${POWERSHELL_VERSION}" = "stable" ] || [ "${POWERSHELL_VERSION}" = "preview" ]; then
-        echo "Resolving PowerShell '${POWERSHELL_VERSION}' version from Microsoft..."
-        resolved_version=$(resolve_powershell_version "${POWERSHELL_VERSION}")
-        if [ -n "${resolved_version}" ]; then
-            echo "Resolved '${POWERSHELL_VERSION}' to version: ${resolved_version}"
-            POWERSHELL_VERSION="${resolved_version}"
-        else
-            echo "Warning: Could not resolve '${POWERSHELL_VERSION}' version. Falling back to 'latest'."
-            POWERSHELL_VERSION="latest"
-        fi
-    fi    
-    
+
     # Source /etc/os-release to get OS info
     . /etc/os-release
     architecture="$(uname -m)"
