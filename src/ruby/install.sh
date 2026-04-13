@@ -372,6 +372,10 @@ else
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
     fi
+    if [[ "${RUBY_SOURCE_MIRROR:-}" == *$'\n'* ]] || [[ "${RUBY_BINARIES_MIRROR:-}" == *$'\n'* ]]; then
+        echo "(!) Mirror values must not contain newlines."
+        exit 1
+    fi
     if [ -n "${RUBY_SOURCE_MIRROR:-}" ] && ! grep -Fqx "rvm_rubies_url=${RUBY_SOURCE_MIRROR}" /etc/rvmrc 2>/dev/null; then
         echo "rvm_rubies_url=${RUBY_SOURCE_MIRROR}" >> /etc/rvmrc
     fi

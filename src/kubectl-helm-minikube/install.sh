@@ -171,7 +171,7 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     # Install the kubectl, verify checksum
     echo "Downloading kubectl..."
     if [ "${KUBECTL_VERSION}" = "latest" ] || [ "${KUBECTL_VERSION}" = "lts" ] || [ "${KUBECTL_VERSION}" = "current" ] || [ "${KUBECTL_VERSION}" = "stable" ]; then
-        KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 ${KUBECTL_MIRROR}/release/stable.txt 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
+        KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 "${KUBECTL_MIRROR}/release/stable.txt" 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
         if [ -z "${KUBECTL_VERSION}" ]; then
             echo "(!) Failed to fetch kubectl stable version from ${KUBECTL_MIRROR}. Using fallback version ${KUBECTL_FALLBACK_VERSION}"
             KUBECTL_VERSION="${KUBECTL_FALLBACK_VERSION}"
@@ -185,7 +185,7 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     curl -sSL -o /usr/local/bin/kubectl "${KUBECTL_MIRROR}/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl"
     chmod 0755 /usr/local/bin/kubectl
     if [ "$KUBECTL_SHA256" = "automatic" ]; then
-        KUBECTL_SHA256="$(curl -sSL "${KUBECTL_MIRROR}/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
+        KUBECTL_SHA256="$(curl -sSL "${KUBECTL_MIRROR}/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
     fi
     ([ "${KUBECTL_SHA256}" = "dev-mode" ] || (echo "${KUBECTL_SHA256} */usr/local/bin/kubectl" | sha256sum -c -))
     if ! type kubectl > /dev/null 2>&1; then
