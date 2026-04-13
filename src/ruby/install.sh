@@ -372,10 +372,10 @@ else
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
     fi
-    if [ -n "${RUBY_SOURCE_MIRROR:-}" ] && ! grep -q "^rvm_rubies_url=${RUBY_SOURCE_MIRROR}$" /etc/rvmrc 2>/dev/null; then
+    if [ -n "${RUBY_SOURCE_MIRROR:-}" ] && ! grep -Fqx "rvm_rubies_url=${RUBY_SOURCE_MIRROR}" /etc/rvmrc 2>/dev/null; then
         echo "rvm_rubies_url=${RUBY_SOURCE_MIRROR}" >> /etc/rvmrc
     fi
-    if [ -n "${RUBY_BINARIES_MIRROR:-}" ] && ! grep -q "^rvm_binaries_url=${RUBY_BINARIES_MIRROR}$" /etc/rvmrc 2>/dev/null; then
+    if [ -n "${RUBY_BINARIES_MIRROR:-}" ] && ! grep -Fqx "rvm_binaries_url=${RUBY_BINARIES_MIRROR}" /etc/rvmrc 2>/dev/null; then
         echo "rvm_binaries_url=${RUBY_BINARIES_MIRROR}" >> /etc/rvmrc
     fi
     # Install rvm

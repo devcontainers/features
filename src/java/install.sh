@@ -326,8 +326,9 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     fi
     curl -sSL "https://get.sdkman.io?rcupdate=false" | bash
     if [ -n "${SDKMAN_SERVICE_MIRROR:-}" ] && [ -f "${SDKMAN_DIR}/etc/config" ]; then
+        sdkman_service_mirror_escaped="$(printf '%s\n' "${SDKMAN_SERVICE_MIRROR}" | sed 's/[&|\\]/\\&/g')"
         if grep -q "^sdkman_api=" "${SDKMAN_DIR}/etc/config"; then
-            sed -i "s|^sdkman_api=.*|sdkman_api=${SDKMAN_SERVICE_MIRROR}|" "${SDKMAN_DIR}/etc/config"
+            sed -i "s|^sdkman_api=.*|sdkman_api=${sdkman_service_mirror_escaped}|" "${SDKMAN_DIR}/etc/config"
         else
             echo "sdkman_api=${SDKMAN_SERVICE_MIRROR}" >> "${SDKMAN_DIR}/etc/config"
         fi
