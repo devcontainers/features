@@ -9,10 +9,10 @@ jobs:
   shellchecker:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Shell Linter
-      uses: azohra/shell-linter@v0.6.0
+      uses: azohra/shell-linter@v0.8.0
       with:
         path: "src/**/*.sh"
         severity: "error" # [style, info, warning, error]
