@@ -50,83 +50,24 @@ clean_cache() {
         rm -rf /var/cache/dnf/*
     fi
 }
-
 # Function to resolve PowerShell version from Microsoft redirect URLs
 resolve_powershell_version() {
     local version_tag="$1"
     local redirect_url="https://aka.ms/powershell-release?tag=${version_tag}"
+    
+    # Follow the redirect and extract the version from the final URL
     local resolved_url
+    resolved_url=$(curl -sSL -o /dev/null -w '%{url_effective}' "${redirect_url}")
+    
+    # Extract version from URL (e.g., https://github.com/PowerShell/PowerShell/releases/tag/v7.4.7 -> 7.4.7)
     local resolved_version
-
-    set +e
-    resolved_url=$(curl -fsSL -o /dev/null -w '%{url_effective}' "${redirect_url}")
-    set -e
-
-    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9-]+(\.[0-9]+)?)?' || echo "")
-    if [ -n "${resolved_version}" ]; then
-        echo "${resolved_version}"
-        return 0
-    fi
-
-    echo "Warning: Failed to resolve version from ${redirect_url}. Trying fallback release metadata." >&2
-    resolve_powershell_version_from_release_metadata "${version_tag}"
-}
-
-# Fallback resolver for environments where aka.ms is unavailable.
-resolve_powershell_version_from_release_metadata() {
-    local version_tag="$1"
-    local metadata_url
-    local curl_error
-    local metadata=""
-    local resolved_version=""
-    local metadata_fetched="false"
-    local fallback_urls=(
-        "${GITHUB_RELEASE_URL}/PowerShell/PowerShell/raw/master/tools/metadata.json"
-        "https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/metadata.json"
-    )
-
-    for metadata_url in "${fallback_urls[@]}"; do
-        set +e
-        metadata="$(curl -fsSL "${metadata_url}" 2>&1)"
-        curl_exit_code=$?
-        set -e
-
-        if [ "${curl_exit_code}" = "0" ]; then
-            metadata_fetched="true"
-            break
-        else
-            curl_error="${metadata}"
-            metadata=""
-            echo "Warning: Failed to fetch PowerShell release metadata from ${metadata_url}: ${curl_error}" >&2
-        fi
-    done
-
-    if [ "${metadata_fetched}" != "true" ] || [ -z "${metadata}" ]; then
-        echo "Warning: Could not fetch PowerShell release metadata from fallback URLs." >&2
-        return 1
-    fi
-
-    case "${version_tag}" in
-        stable)
-            resolved_version="$(echo "${metadata}" | grep -oP '"StableReleaseTag"\s*:\s*"v\K[^"]+' | head -n 1 || true)"
-            ;;
-        preview)
-            resolved_version="$(echo "${metadata}" | grep -oP '"PreviewReleaseTag"\s*:\s*"v\K[^"]+' | head -n 1 || true)"
-            ;;
-        lts)
-            resolved_version="$(echo "${metadata}" | grep -oP '"LTSReleaseTag"\s*:\s*\[\s*"v\K[^"]+' | head -n 1 || true)"
-            if [ -z "${resolved_version}" ]; then
-                # LTSReleaseTag can be either an array or a string depending on metadata schema.
-                resolved_version="$(echo "${metadata}" | grep -oP '"LTSReleaseTag"\s*:\s*"v\K[^"]+' | head -n 1 || true)"
-            fi
-            ;;
-    esac
-
+    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-\w+\.\d+)?' || echo "")
+    
     if [ -z "${resolved_version}" ]; then
-        echo "Warning: Could not determine ${version_tag} version from release metadata." >&2
+        echo "Failed to resolve version for tag: ${version_tag}" >&2
         return 1
     fi
-
+    
     echo "${resolved_version}"
 }
 # Install dependencies for RHEL/CentOS/AlmaLinux (DNF-based systems)
@@ -492,8 +433,8 @@ install_using_github() {
 if ! type pwsh >/dev/null 2>&1; then
     export DEBIAN_FRONTEND=noninteractive
     if [ "${POWERSHELL_VERSION}" = "lts" ] || [ "${POWERSHELL_VERSION}" = "stable" ] || [ "${POWERSHELL_VERSION}" = "preview" ]; then
-        echo "Resolving PowerShell '${POWERSHELL_VERSION}' version from aka.ms..."
-        resolved_version="$(resolve_powershell_version "${POWERSHELL_VERSION}" || true)"
+        echo "Resolving PowerShell '${POWERSHELL_VERSION}' version from Microsoft..."
+        resolved_version=$(resolve_powershell_version "${POWERSHELL_VERSION}")
         if [ -n "${resolved_version}" ]; then
             echo "Resolved '${POWERSHELL_VERSION}' to version: ${resolved_version}"
             POWERSHELL_VERSION="${resolved_version}"
@@ -501,8 +442,8 @@ if ! type pwsh >/dev/null 2>&1; then
             echo "Warning: Could not resolve '${POWERSHELL_VERSION}' version. Falling back to 'latest'."
             POWERSHELL_VERSION="latest"
         fi
-    fi
-
+    fi    
+    
     # Source /etc/os-release to get OS info
     . /etc/os-release
     architecture="$(uname -m)"
