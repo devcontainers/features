@@ -17,6 +17,7 @@ POWERSHELL_MODULES="${MODULES:-""}"
 POWERSHELL_PROFILE_URL="${POWERSHELLPROFILEURL}"
 MICROSOFT_PACKAGES_MIRROR="${MICROSOFT_PACKAGES_MIRROR:-https://packages.microsoft.com}"
 GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
+GITHUB_USERCONTENT_URL="${GITHUB_USERCONTENT_MIRROR:-https://raw.githubusercontent.com}"
 
 MICROSOFT_GPG_KEYS_URI="${MICROSOFT_PACKAGES_MIRROR}/keys/microsoft.asc"
 #MICROSOFT_GPG_KEYS_URI=$(curl https://packages.microsoft.com/keys/microsoft.asc -o /usr/share/keyrings/microsoft-archive-keyring.gpg)
@@ -65,7 +66,7 @@ resolve_powershell_version() {
     
     if [ -z "${resolved_version}" ]; then
         # Fallback: fetch version from PowerShell metadata.json via GitHub
-        local metadata_url="${GITHUB_RELEASE_MIRROR:-https://raw.githubusercontent.com}/PowerShell/PowerShell/master/tools/metadata.json"
+        local metadata_url="${GITHUB_USERCONTENT_MIRROR}/PowerShell/PowerShell/master/tools/metadata.json"
         local metadata
         metadata=$(curl -sSL "${metadata_url}" 2>/dev/null || echo "")
         case "${version_tag}" in
