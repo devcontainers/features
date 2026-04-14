@@ -62,7 +62,7 @@ resolve_powershell_version() {
     resolved_url=$(curl -fsSL -o /dev/null -w '%{url_effective}' "${redirect_url}")
     set -e
 
-    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-[^/]+)?' || echo "")
+    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9-]+(\.[0-9]+)?)?' || echo "")
     if [ -n "${resolved_version}" ]; then
         echo "${resolved_version}"
         return 0
@@ -76,8 +76,10 @@ resolve_powershell_version() {
 resolve_powershell_version_from_release_metadata() {
     local version_tag="$1"
     local metadata_url
+    local curl_error
     local metadata=""
     local resolved_version=""
+    local metadata_fetched="false"
     local fallback_urls=(
         "${GITHUB_RELEASE_URL}/PowerShell/PowerShell/raw/master/tools/metadata.json"
         "https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/metadata.json"
@@ -90,13 +92,16 @@ resolve_powershell_version_from_release_metadata() {
         set -e
 
         if [ "${curl_exit_code}" = "0" ]; then
+            metadata_fetched="true"
             break
         else
-            echo "Warning: Failed to fetch PowerShell release metadata from ${metadata_url}: ${metadata}" >&2
+            curl_error="${metadata}"
+            metadata=""
+            echo "Warning: Failed to fetch PowerShell release metadata from ${metadata_url}: ${curl_error}" >&2
         fi
     done
 
-    if [ -z "${metadata}" ]; then
+    if [ "${metadata_fetched}" != "true" ] || [ -z "${metadata}" ]; then
         echo "Warning: Could not fetch PowerShell release metadata from fallback URLs." >&2
         return 1
     fi
@@ -111,6 +116,7 @@ resolve_powershell_version_from_release_metadata() {
         lts)
             resolved_version="$(echo "${metadata}" | grep -oP '"LTSReleaseTag"\s*:\s*\[\s*"v\K[^"]+' | head -n 1 || true)"
             if [ -z "${resolved_version}" ]; then
+                # LTSReleaseTag can be either an array or a string depending on metadata schema.
                 resolved_version="$(echo "${metadata}" | grep -oP '"LTSReleaseTag"\s*:\s*"v\K[^"]+' | head -n 1 || true)"
             fi
             ;;
