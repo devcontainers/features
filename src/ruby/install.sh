@@ -328,15 +328,6 @@ set_rvm_install_args() {
     fi
 }
 
-validate_mirror_url() {
-    local mirror_name="$1"
-    local mirror_url="$2"
-    if [ -n "${mirror_url}" ] && [[ ! "${mirror_url}" =~ ^https?:// ]]; then
-        echo "(!) ${mirror_name} must start with http:// or https://"
-        exit 1
-    fi
-}
-
 run_rvm_installer() {
     local install_args="$1"
     if [ -n "${RVM_INSTALL_MIRROR:-}" ]; then
@@ -344,7 +335,6 @@ run_rvm_installer() {
             echo "(!) RVM_INSTALL_MIRROR must not contain newlines."
             exit 1
         fi
-        validate_mirror_url "RVM_INSTALL_MIRROR" "${RVM_INSTALL_MIRROR}"
         local rvm_tmp_dir
         rvm_tmp_dir="$(mktemp -d)"
         git clone --depth=1 "${RVM_INSTALL_MIRROR}/rvm/rvm.git" "${rvm_tmp_dir}/rvm"
@@ -390,23 +380,11 @@ else
         echo "(!) Mirror values must not contain newlines."
         exit 1
     fi
-    validate_mirror_url "RUBY_SOURCE_MIRROR" "${RUBY_SOURCE_MIRROR:-}"
-    validate_mirror_url "RUBY_BINARIES_MIRROR" "${RUBY_BINARIES_MIRROR:-}"
-    if [ -n "${RUBY_SOURCE_MIRROR:-}" ]; then
-        ruby_source_mirror_escaped="$(printf "%s" "${RUBY_SOURCE_MIRROR}" | sed "s/'/'\"'\"'/g")"
-        ruby_source_line_quoted="rvm_rubies_url='${ruby_source_mirror_escaped}'"
-        ruby_source_line_plain="rvm_rubies_url=${RUBY_SOURCE_MIRROR}"
-        if ! grep -Fqx "${ruby_source_line_quoted}" /etc/rvmrc 2>/dev/null && ! grep -Fqx "${ruby_source_line_plain}" /etc/rvmrc 2>/dev/null; then
-            echo "${ruby_source_line_quoted}" >> /etc/rvmrc
-        fi
+    if [ -n "${RUBY_SOURCE_MIRROR:-}" ] && ! grep -Fqx "rvm_rubies_url=${RUBY_SOURCE_MIRROR}" /etc/rvmrc 2>/dev/null; then
+        echo "rvm_rubies_url=${RUBY_SOURCE_MIRROR}" >> /etc/rvmrc
     fi
-    if [ -n "${RUBY_BINARIES_MIRROR:-}" ]; then
-        ruby_binaries_mirror_escaped="$(printf "%s" "${RUBY_BINARIES_MIRROR}" | sed "s/'/'\"'\"'/g")"
-        ruby_binaries_line_quoted="rvm_binaries_url='${ruby_binaries_mirror_escaped}'"
-        ruby_binaries_line_plain="rvm_binaries_url=${RUBY_BINARIES_MIRROR}"
-        if ! grep -Fqx "${ruby_binaries_line_quoted}" /etc/rvmrc 2>/dev/null && ! grep -Fqx "${ruby_binaries_line_plain}" /etc/rvmrc 2>/dev/null; then
-            echo "${ruby_binaries_line_quoted}" >> /etc/rvmrc
-        fi
+    if [ -n "${RUBY_BINARIES_MIRROR:-}" ] && ! grep -Fqx "rvm_binaries_url=${RUBY_BINARIES_MIRROR}" /etc/rvmrc 2>/dev/null; then
+        echo "rvm_binaries_url=${RUBY_BINARIES_MIRROR}" >> /etc/rvmrc
     fi
     # Install rvm
     run_rvm_installer "${RVM_INSTALL_ARGS}" || install_previous_version

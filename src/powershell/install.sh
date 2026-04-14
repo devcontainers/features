@@ -50,6 +50,38 @@ clean_cache() {
         rm -rf /var/cache/dnf/*
     fi
 }
+# Function to resolve PowerShell version from Microsoft redirect URLs
+resolve_powershell_version() {
+    local version_tag="$1"
+    local redirect_url="https://aka.ms/powershell-release?tag=${version_tag}"
+    
+    # Follow the redirect and extract the version from the final URL
+    local resolved_url
+    resolved_url=$(curl -sSL -o /dev/null -w '%{url_effective}' "${redirect_url}")
+    
+    # Extract version from URL (e.g., https://github.com/PowerShell/PowerShell/releases/tag/v7.4.7 -> 7.4.7)
+    local resolved_version
+    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-\w+\.\d+)?' || echo "")
+    
+    if [ -z "${resolved_version}" ]; then
+        # Fallback: fetch version from PowerShell metadata.json via GitHub
+        local metadata_url="${GITHUB_RELEASE_MIRROR:-https://raw.githubusercontent.com}/PowerShell/PowerShell/master/tools/metadata.json"
+        local metadata
+        metadata=$(curl -sSL "${metadata_url}" 2>/dev/null || echo "")
+        case "${version_tag}" in
+            lts)     resolved_version=$(echo "${metadata}" | grep -oP '"LtsReleaseTag":\s*"v\K[^"]+') ;;
+            preview) resolved_version=$(echo "${metadata}" | grep -oP '"PreviewReleaseTag":\s*"v\K[^"]+') ;;
+            *)       resolved_version=$(echo "${metadata}" | grep -oP '"StableReleaseTag":\s*"v\K[^"]+') ;;
+        esac
+    fi
+
+    if [ -z "${resolved_version}" ]; then
+        echo "Failed to resolve version for tag: ${version_tag}" >&2
+        return 1
+    fi
+    
+    echo "${resolved_version}"
+}
 # Install dependencies for RHEL/CentOS/AlmaLinux (DNF-based systems)
 install_using_dnf() {
    dnf remove -y curl-minimal
@@ -412,7 +444,18 @@ install_using_github() {
 
 if ! type pwsh >/dev/null 2>&1; then
     export DEBIAN_FRONTEND=noninteractive
-
+    if [ "${POWERSHELL_VERSION}" = "lts" ] || [ "${POWERSHELL_VERSION}" = "stable" ] || [ "${POWERSHELL_VERSION}" = "preview" ]; then
+        echo "Resolving PowerShell '${POWERSHELL_VERSION}' version from Microsoft..."
+        resolved_version=$(resolve_powershell_version "${POWERSHELL_VERSION}")
+        if [ -n "${resolved_version}" ]; then
+            echo "Resolved '${POWERSHELL_VERSION}' to version: ${resolved_version}"
+            POWERSHELL_VERSION="${resolved_version}"
+        else
+            echo "Warning: Could not resolve '${POWERSHELL_VERSION}' version. Falling back to 'latest'."
+            POWERSHELL_VERSION="latest"
+        fi
+    fi    
+    
     # Source /etc/os-release to get OS info
     . /etc/os-release
     architecture="$(uname -m)"
