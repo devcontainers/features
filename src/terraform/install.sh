@@ -29,6 +29,7 @@ SENTINEL_SHA256="${SENTINEL_SHA256:-"automatic"}"
 TFSEC_SHA256="${TFSEC_SHA256:-"automatic"}"
 TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
 GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
+GITHUB_USERCONTENT_URL="${GITHUB_USERCONTENT_MIRROR:-https://raw.githubusercontent.com}"
 
 HASHICORP_RELEASES_URL="https://releases.hashicorp.com"
 if [ -n "${CUSTOM_DOWNLOAD_SERVER}" ]; then
@@ -36,7 +37,7 @@ if [ -n "${CUSTOM_DOWNLOAD_SERVER}" ]; then
 fi
 
 TERRAFORM_GPG_KEY="72D7468F"
-TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/v0.46.1/8CE69160EB3F2FE9.key"
+TFLINT_GPG_KEY_URI="${GITHUB_USERCONTENT_URL}/terraform-linters/tflint/v0.46.1/8CE69160EB3F2FE9.key"
 HASHICORP_KEY_URL="${HASHICORP_GPG_KEY_MIRROR:-https://keybase.io}/hashicorp/pgp_keys.asc"
 KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
 

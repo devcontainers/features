@@ -22,6 +22,7 @@ KUBECTL_MIRROR="${KUBECTL_MIRROR:-https://dl.k8s.io}"
 HELM_MIRROR="${HELM_MIRROR:-https://get.helm.sh}"
 MINIKUBE_MIRROR="${MINIKUBE_MIRROR:-https://storage.googleapis.com/minikube}"
 GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
+KUBECTL_GCS_MIRROR="${KUBECTL_GCS_MIRROR:-https://storage.googleapis.com/kubernetes-release}"
 
 KUBECTL_SHA256="${KUBECTL_SHA256:-"automatic"}"
 HELM_SHA256="${HELM_SHA256:-"automatic"}"
@@ -174,7 +175,7 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
         KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 "${KUBECTL_MIRROR}/release/stable.txt" 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
         if [ -z "${KUBECTL_VERSION}" ]; then
             echo "(!) Failed to fetch kubectl stable version from ${KUBECTL_MIRROR}, trying alternative URL..."
-            KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 https://storage.googleapis.com/kubernetes-release/release/stable.txt 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
+            KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 "${KUBECTL_GCS_MIRROR}/release/stable.txt" 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
         fi
         if [ -z "${KUBECTL_VERSION}" ]; then
             echo "(!) Failed to fetch kubectl stable version from both URLs. Using fallback version ${KUBECTL_FALLBACK_VERSION}"
