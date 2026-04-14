@@ -62,7 +62,7 @@ resolve_powershell_version() {
     resolved_url=$(curl -fsSL -o /dev/null -w '%{url_effective}' "${redirect_url}")
     set -e
 
-    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-\w+\.[0-9]+)?' || echo "")
+    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-[^/]+)?' || echo "")
     if [ -n "${resolved_version}" ]; then
         echo "${resolved_version}"
         return 0
@@ -84,9 +84,15 @@ resolve_powershell_version_from_release_metadata() {
     )
 
     for metadata_url in "${fallback_urls[@]}"; do
-        metadata="$(curl -fsSL "${metadata_url}" 2>/dev/null || true)"
-        if [ -n "${metadata}" ]; then
+        set +e
+        metadata="$(curl -fsSL "${metadata_url}" 2>&1)"
+        curl_exit_code=$?
+        set -e
+
+        if [ "${curl_exit_code}" = "0" ]; then
             break
+        else
+            echo "Warning: Failed to fetch PowerShell release metadata from ${metadata_url}: ${metadata}" >&2
         fi
     done
 
@@ -104,6 +110,9 @@ resolve_powershell_version_from_release_metadata() {
             ;;
         lts)
             resolved_version="$(echo "${metadata}" | grep -oP '"LTSReleaseTag"\s*:\s*\[\s*"v\K[^"]+' | head -n 1 || true)"
+            if [ -z "${resolved_version}" ]; then
+                resolved_version="$(echo "${metadata}" | grep -oP '"LTSReleaseTag"\s*:\s*"v\K[^"]+' | head -n 1 || true)"
+            fi
             ;;
     esac
 
