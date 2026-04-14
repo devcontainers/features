@@ -39,7 +39,7 @@
                 "8.19.4",
                 "none"
             ],
-            "default": "10.9.0",
+            "default": "none",
             "description": "Select or enter a specific NPM version to install globally. Use 'latest' for the latest version, 'none' to skip npm version update, or specify a version like '10.9.0'."
         },
         "pnpmVersion": {
