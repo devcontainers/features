@@ -66,7 +66,7 @@ resolve_powershell_version() {
     
     if [ -z "${resolved_version}" ]; then
         # Fallback: fetch version from PowerShell metadata.json via GitHub
-        local metadata_url="${GITHUB_USERCONTENT_MIRROR}/PowerShell/PowerShell/master/tools/metadata.json"
+        local metadata_url="${GITHUB_USERCONTENT_URL}/PowerShell/PowerShell/master/tools/metadata.json"
         local metadata
         metadata=$(curl -sSL "${metadata_url}" 2>/dev/null || echo "")
         case "${version_tag}" in
