@@ -64,6 +64,18 @@ resolve_powershell_version() {
     resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-\w+\.\d+)?' || echo "")
     
     if [ -z "${resolved_version}" ]; then
+        # Fallback: fetch version from PowerShell metadata.json via GitHub
+        local metadata_url="${GITHUB_RELEASE_MIRROR:-https://raw.githubusercontent.com}/PowerShell/PowerShell/master/tools/metadata.json"
+        local metadata
+        metadata=$(curl -sSL "${metadata_url}" 2>/dev/null || echo "")
+        case "${version_tag}" in
+            lts)     resolved_version=$(echo "${metadata}" | grep -oP '"LtsReleaseTag":\s*"v\K[^"]+') ;;
+            preview) resolved_version=$(echo "${metadata}" | grep -oP '"PreviewReleaseTag":\s*"v\K[^"]+') ;;
+            *)       resolved_version=$(echo "${metadata}" | grep -oP '"StableReleaseTag":\s*"v\K[^"]+') ;;
+        esac
+    fi
+
+    if [ -z "${resolved_version}" ]; then
         echo "Failed to resolve version for tag: ${version_tag}" >&2
         return 1
     fi
