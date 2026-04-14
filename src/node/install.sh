@@ -453,27 +453,25 @@ else
                 fi
             fi
             
-            # Use special upgrade method for npm 10.x to latest (only if not falling back)
-            if [ "$ORIGINAL_NPM_VERSION" = "latest" ] && [ "$NPM_VERSION" = "latest" ] && [ "$CURRENT_MAJOR" = "10" ]; then
-                echo "Using npmjs.org install script for npm upgrade"
-                curl -fsSL https://www.npmjs.com/install.sh | sh 2>/dev/null || true
-            fi
-            
-            # Try npm installation with retries
-            for i in {1..3}; do
-                echo "Attempt $i: Running npm install -g npm@$NPM_VERSION"
-                if npm install -g npm@$NPM_VERSION --force --no-audit --no-fund 2>&1; then
-                    NEW_VERSION=$(npm --version 2>/dev/null || echo 'unknown')
-                    echo "Successfully installed npm@${NPM_VERSION}, new version: $NEW_VERSION"
-                    break
-                else
-                    echo "Attempt $i failed, retrying..."
-                    sleep 2
-                    if [ $i -eq 3 ]; then
-                        echo "Failed to install npm@${NPM_VERSION} after 3 attempts. Keeping current npm version $(npm --version 2>/dev/null || echo 'unknown')."
+            if [ -z "$NPM_VERSION" ] || [ "$NPM_VERSION" = "none" ]; then
+                echo "Skipping npm installation because NPM_VERSION is '${NPM_VERSION:-empty}'."
+            else
+                # Try npm installation with retries
+                for i in {1..3}; do
+                    echo "Attempt $i: Running npm install -g npm@$NPM_VERSION"
+                    if npm install -g npm@$NPM_VERSION --force --no-audit --no-fund 2>&1; then
+                        NEW_VERSION=$(npm --version 2>/dev/null || echo 'unknown')
+                        echo "Successfully installed npm@${NPM_VERSION}, new version: $NEW_VERSION"
+                        break
+                    else
+                        echo "Attempt $i failed, retrying..."
+                        sleep 2
+                        if [ $i -eq 3 ]; then
+                            echo "Failed to install npm@${NPM_VERSION} after 3 attempts. Keeping current npm version $(npm --version 2>/dev/null || echo 'unknown')."
+                        fi
                     fi
-                fi
-            done
+                done
+            fi
         )
     else
         echo "Skip installing/updating npm because npm is not available"
