@@ -62,7 +62,7 @@ resolve_powershell_version() {
     resolved_url=$(curl -fsSL -o /dev/null -w '%{url_effective}' "${redirect_url}")
     set -e
 
-    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-\w+\.\d+)?' || echo "")
+    resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-\w+\.[0-9]+)?' || echo "")
     if [ -n "${resolved_version}" ]; then
         echo "${resolved_version}"
         return 0
@@ -96,7 +96,7 @@ resolve_powershell_version_from_release_metadata() {
     fi
 
     case "${version_tag}" in
-        stable|latest)
+        stable)
             resolved_version="$(echo "${metadata}" | grep -oP '"StableReleaseTag"\s*:\s*"v\K[^"]+' | head -n 1 || true)"
             ;;
         preview)
