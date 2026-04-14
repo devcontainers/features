@@ -12,4 +12,3 @@ check "conda-install-pytorch" bash -c "conda create --name pytorch-test-env -c c
 
 # Report result
 reportResults
-

@@ -152,6 +152,9 @@ if ! conda --version &> /dev/null ; then
     install_user_package cryptography
     # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-40897
     install_user_package setuptools
+
+    install_user_package pluggy
+
 fi
 
 # Display a notice on conda when not running in GitHub Codespaces

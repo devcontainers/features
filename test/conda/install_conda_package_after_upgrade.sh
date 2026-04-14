@@ -14,8 +14,8 @@ check "conda updated version" conda --version
 check "install pyopenssl" conda install -y -c defaults pyopenssl
 check "install cryptography" conda install -y -c defaults cryptography
 check "install scipy with bioconda" conda install -y -c bioconda scipy
+check "conda-forge" conda config --show channels | grep conda-forge
 check "if conda-notice.txt exists" cat /usr/local/etc/vscode-dev-containers/conda-notice.txt
 
 # Report result
 reportResults
-
