@@ -190,7 +190,7 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     curl -sSL -o /usr/local/bin/kubectl "${KUBECTL_MIRROR}/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl"
     chmod 0755 /usr/local/bin/kubectl
     if [ "$KUBECTL_SHA256" = "automatic" ]; then
-        KUBECTL_SHA256="$(curl -sSL "${KUBECTL_MIRROR}/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
+        KUBECTL_SHA256="$(curl -sSL "${KUBECTL_MIRROR}/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
     fi
     ([ "${KUBECTL_SHA256}" = "dev-mode" ] || (echo "${KUBECTL_SHA256} */usr/local/bin/kubectl" | sha256sum -c -))
     if ! type kubectl > /dev/null 2>&1; then
