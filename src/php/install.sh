@@ -167,7 +167,7 @@ find_prev_version_from_git_tags() {
 # Install PHP Composer
 addcomposer() {
     "${PHP_SRC}" -r "copy('${COMPOSER_MIRROR}/installer', 'composer-setup.php');"
-    HASH="$(wget -q -O - ${COMPOSER_SIG_MIRROR}/installer.sig)"
+    HASH="$(wget -q -O - "${COMPOSER_SIG_MIRROR}/installer.sig")"
     "${PHP_SRC}" -r "if (hash_file('sha384', 'composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
     "${PHP_SRC}" composer-setup.php --install-dir="/usr/local/bin" --filename=composer
     "${PHP_SRC}" -r "unlink('composer-setup.php');"

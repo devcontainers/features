@@ -22,6 +22,7 @@ KUBECTL_MIRROR="${KUBECTL_MIRROR:-https://dl.k8s.io}"
 HELM_MIRROR="${HELM_MIRROR:-https://get.helm.sh}"
 MINIKUBE_MIRROR="${MINIKUBE_MIRROR:-https://storage.googleapis.com/minikube}"
 GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
+GITHUB_USERCONTENT_URL="${GITHUB_USERCONTENT_MIRROR:-https://raw.githubusercontent.com}"
 KUBECTL_GCS_MIRROR="${KUBECTL_GCS_MIRROR:-https://storage.googleapis.com/kubernetes-release}"
 
 KUBECTL_SHA256="${KUBECTL_SHA256:-"automatic"}"
@@ -29,7 +30,7 @@ HELM_SHA256="${HELM_SHA256:-"automatic"}"
 MINIKUBE_SHA256="${MINIKUBE_SHA256:-"automatic"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
-HELM_GPG_KEYS_URI="https://raw.githubusercontent.com/helm/helm/main/KEYS"
+HELM_GPG_KEYS_URI="${GITHUB_USERCONTENT_URL}/helm/helm/main/KEYS"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
