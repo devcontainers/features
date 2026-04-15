@@ -409,9 +409,9 @@ else
 fi
 
 # Run whatever was passed in
-if [ -n "$1" ]; then
+if [ -n "\$1" ]; then
     log "Executing \"\$@\"."
-    exec "$@"
+    exec "\$@"
 else
     log "No command provided to execute."
 fi
