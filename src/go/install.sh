@@ -18,7 +18,7 @@ USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_GO_TOOLS="${INSTALL_GO_TOOLS:-"true"}"
 
 # https://www.google.com/linuxrepositories/
-GO_GPG_KEY_URI="https://dl.google.com/linux/linux_signing_key.pub"
+GO_GPG_KEY_URI="${GO_GPG_KEY_MIRROR:-https://dl.google.com/linux}/linux_signing_key.pub"
 
 set -e
 
