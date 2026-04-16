@@ -476,7 +476,6 @@ elif bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
     else
         echo "Skip installing/updating npm because npm is not available"
     fi
-fi
 
 # Install pnpm
 if [ ! -z "${PNPM_VERSION}" ] && [ "${PNPM_VERSION}" = "none" ]; then
