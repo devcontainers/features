@@ -15,6 +15,7 @@
             "description": "Select version of the GitHub Copilot CLI, if not latest."
         }
     },
+    "postStartCommand": "copilot update",
     "customizations": {
         "vscode": {
             "settings": {
