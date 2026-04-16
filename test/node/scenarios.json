@@ -221,7 +221,7 @@
         "image": "mcr.microsoft.com/devcontainers/base",
         "features": {
             "node": {
-                "version": "lts",
+                "version": "24",
                 "npmVersion": "none"
             }
         }

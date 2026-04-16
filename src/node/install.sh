@@ -383,10 +383,9 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
 fi
 
 # Install or update npm to specific version
-if [ ! -z "${NPM_VERSION}" ] && [ "${NPM_VERSION}" = "none" ]; then
+if [ -z "${NPM_VERSION}" ] || [ "${NPM_VERSION}" = "none" ]; then
     echo "Ignoring NPM version update"
-else
-    if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
+elif bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
         (
             . "${NVM_DIR}/nvm.sh"
             [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
@@ -453,8 +452,9 @@ else
                 fi
             fi
             
-            if [ -z "$NPM_VERSION" ] || [ "$NPM_VERSION" = "none" ]; then
-                echo "Skipping npm installation because NPM_VERSION is '${NPM_VERSION:-empty}'."
+            # Check if npm installation was cancelled due to compatibility issues
+            if [ "$NPM_VERSION" = "none" ]; then
+                echo "Skipping npm installation due to compatibility issues."
             else
                 # Try npm installation with retries
                 for i in {1..3}; do
