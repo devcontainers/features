@@ -9,7 +9,7 @@ on:
       baseImage:
         description: "Base image"
         required: true
-        default: "ubuntu:focal"
+        default: "ubuntu:noble"
       logLevel:
         description: "Log Level (info/debug/trace)"
         required: true
