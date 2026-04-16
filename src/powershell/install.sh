@@ -15,8 +15,11 @@ rm -rf /var/lib/apt/lists/*
 POWERSHELL_VERSION=${VERSION:-"latest"}
 POWERSHELL_MODULES="${MODULES:-""}"
 POWERSHELL_PROFILE_URL="${POWERSHELLPROFILEURL}"
+MICROSOFT_PACKAGES_MIRROR="${MICROSOFT_PACKAGES_MIRROR:-https://packages.microsoft.com}"
+GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
+GITHUB_USERCONTENT_URL="${GITHUB_USERCONTENT_MIRROR:-https://raw.githubusercontent.com}"
 
-MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
+MICROSOFT_GPG_KEYS_URI="${MICROSOFT_PACKAGES_MIRROR}/keys/microsoft.asc"
 #MICROSOFT_GPG_KEYS_URI=$(curl https://packages.microsoft.com/keys/microsoft.asc -o /usr/share/keyrings/microsoft-archive-keyring.gpg)
 POWERSHELL_ARCHIVE_ARCHITECTURES_UBUNTU="amd64"
 POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX="x86_64"
@@ -62,6 +65,18 @@ resolve_powershell_version() {
     resolved_version=$(echo "${resolved_url}" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-\w+\.\d+)?' || echo "")
     
     if [ -z "${resolved_version}" ]; then
+        # Fallback: fetch version from PowerShell metadata.json via GitHub
+        local metadata_url="${GITHUB_USERCONTENT_URL}/PowerShell/PowerShell/master/tools/metadata.json"
+        local metadata
+        metadata=$(curl -sSL "${metadata_url}" 2>/dev/null || echo "")
+        case "${version_tag}" in
+            lts)     resolved_version=$(echo "${metadata}" | grep -oP '"LtsReleaseTag":\s*"v\K[^"]+') ;;
+            preview) resolved_version=$(echo "${metadata}" | grep -oP '"PreviewReleaseTag":\s*"v\K[^"]+') ;;
+            *)       resolved_version=$(echo "${metadata}" | grep -oP '"StableReleaseTag":\s*"v\K[^"]+') ;;
+        esac
+    fi
+
+    if [ -z "${resolved_version}" ]; then
         echo "Failed to resolve version for tag: ${version_tag}" >&2
         return 1
     fi
@@ -83,14 +98,14 @@ install_powershell_dnf() {
     dnf install -y wget
 
     # Download Microsoft GPG key
-    curl https://packages.microsoft.com/keys/microsoft.asc -o /usr/share/keyrings/microsoft-archive-keyring.gpg
+    curl "${MICROSOFT_PACKAGES_MIRROR}/keys/microsoft.asc" -o /usr/share/keyrings/microsoft-archive-keyring.gpg
     ls -l /usr/share/keyrings/microsoft-archive-keyring.gpg
 
     # Install necessary dependencies
     dnf install -y krb5-libs libicu openssl-libs zlib
 
     # Add Microsoft PowerShell repository 
-        curl "https://packages.microsoft.com/config/rhel/9.0/prod.repo" > /etc/yum.repos.d/microsoft.repo
+        curl "${MICROSOFT_PACKAGES_MIRROR}/config/rhel/9.0/prod.repo" > /etc/yum.repos.d/microsoft.repo
     
     # Install PowerShell
      dnf install --assumeyes powershell
@@ -256,7 +271,7 @@ install_using_apt() {
     # Import key safely (new 'signed-by' method rather than deprecated apt-key approach) and install
    
     curl -sSL ${MICROSOFT_GPG_KEYS_URI} | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] ${MICROSOFT_PACKAGES_MIRROR}/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
     
 
     # Update lists
@@ -365,7 +380,7 @@ install_pwsh() {
     powershell_target_path="/opt/microsoft/powershell/$(echo ${POWERSHELL_VERSION} | grep -oE '[^\.]+' | head -n 1)"
     mkdir -p /tmp/pwsh "${powershell_target_path}"
     cd /tmp/pwsh
-    curl -sSL -o "${powershell_filename}" "https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}"
+    curl -sSL -o "${powershell_filename}" "${GITHUB_RELEASE_URL}/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}"
 }
 
 install_using_github() {
@@ -400,7 +415,7 @@ install_using_github() {
     fi
     
     # download the latest version of powershell and extracting the file to powershell directory
-    wget https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}
+    wget ${GITHUB_RELEASE_URL}/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${powershell_filename}
     mkdir ~/powershell
     tar -xvf ${powershell_filename} -C ~/powershell
 

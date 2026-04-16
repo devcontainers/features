@@ -18,13 +18,19 @@ KUBECTL_FALLBACK_VERSION="${KUBECTLFALLBACKVERSION:-"v1.35.1"}"
 KUBECTL_VERSION="${VERSION:-"latest"}"
 HELM_VERSION="${HELM:-"latest"}"
 MINIKUBE_VERSION="${MINIKUBE:-"latest"}" # latest is also valid
+KUBECTL_MIRROR="${KUBECTL_MIRROR:-https://dl.k8s.io}"
+HELM_MIRROR="${HELM_MIRROR:-https://get.helm.sh}"
+MINIKUBE_MIRROR="${MINIKUBE_MIRROR:-https://storage.googleapis.com/minikube}"
+GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
+GITHUB_USERCONTENT_URL="${GITHUB_USERCONTENT_MIRROR:-https://raw.githubusercontent.com}"
+KUBECTL_GCS_MIRROR="${KUBECTL_GCS_MIRROR:-https://storage.googleapis.com/kubernetes-release}"
 
 KUBECTL_SHA256="${KUBECTL_SHA256:-"automatic"}"
 HELM_SHA256="${HELM_SHA256:-"automatic"}"
 MINIKUBE_SHA256="${MINIKUBE_SHA256:-"automatic"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 
-HELM_GPG_KEYS_URI="https://raw.githubusercontent.com/helm/helm/main/KEYS"
+HELM_GPG_KEYS_URI="${GITHUB_USERCONTENT_URL}/helm/helm/main/KEYS"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -167,10 +173,10 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     # Install the kubectl, verify checksum
     echo "Downloading kubectl..."
     if [ "${KUBECTL_VERSION}" = "latest" ] || [ "${KUBECTL_VERSION}" = "lts" ] || [ "${KUBECTL_VERSION}" = "current" ] || [ "${KUBECTL_VERSION}" = "stable" ]; then
-        KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 https://dl.k8s.io/release/stable.txt 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
+        KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 "${KUBECTL_MIRROR}/release/stable.txt" 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
         if [ -z "${KUBECTL_VERSION}" ]; then
-            echo "(!) Failed to fetch kubectl stable version from dl.k8s.io, trying alternative URL..."
-            KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 https://storage.googleapis.com/kubernetes-release/release/stable.txt 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
+            echo "(!) Failed to fetch kubectl stable version from ${KUBECTL_MIRROR}, trying alternative URL..."
+            KUBECTL_VERSION="$(curl -fsSL --connect-timeout 10 --max-time 30 "${KUBECTL_GCS_MIRROR}/release/stable.txt" 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' || echo "")"
         fi
         if [ -z "${KUBECTL_VERSION}" ]; then
             echo "(!) Failed to fetch kubectl stable version from both URLs. Using fallback version ${KUBECTL_FALLBACK_VERSION}"
@@ -182,10 +188,10 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
     if [ "${KUBECTL_VERSION::1}" != 'v' ]; then
         KUBECTL_VERSION="v${KUBECTL_VERSION}"
     fi
-    curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl"
+    curl -sSL -o /usr/local/bin/kubectl "${KUBECTL_MIRROR}/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl"
     chmod 0755 /usr/local/bin/kubectl
     if [ "$KUBECTL_SHA256" = "automatic" ]; then
-        KUBECTL_SHA256="$(curl -sSL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
+        KUBECTL_SHA256="$(curl -sSL "${KUBECTL_MIRROR}/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl.sha256")"
     fi
     ([ "${KUBECTL_SHA256}" = "dev-mode" ] || (echo "${KUBECTL_SHA256} */usr/local/bin/kubectl" | sha256sum -c -))
     if ! type kubectl > /dev/null 2>&1; then
@@ -238,12 +244,17 @@ get_helm() {
     HELM_VERSION=$1
     helm_filename="helm-${HELM_VERSION}-linux-${architecture}.tar.gz"
     tmp_helm_filename="/tmp/helm/${helm_filename}"
-    curl -sSL "https://get.helm.sh/${helm_filename}" -o "${tmp_helm_filename}"
-    curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
+    curl -sSL "${HELM_MIRROR}/${helm_filename}" -o "${tmp_helm_filename}"
+    curl -sSL "${GITHUB_RELEASE_URL}/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.asc" -o "${tmp_helm_filename}.asc"
 }
 
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
+    if [ -n "${GPG_KEYSERVER:-}" ]; then
+        echo "keyserver ${GPG_KEYSERVER}"
+        return
+    fi
+
     declare -A keyservers_curl_map=(
         ["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
         ["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
@@ -304,8 +315,8 @@ if [ ${HELM_VERSION} != "none" ]; then
     fi
 
     if [ "${HELM_SHA256}" = "automatic" ]; then
-        curl -sSL "https://get.helm.sh/${helm_filename}.sha256" -o "${tmp_helm_filename}.sha256"
-        curl -sSL "https://github.com/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.sha256.asc" -o "${tmp_helm_filename}.sha256.asc"
+        curl -sSL "${HELM_MIRROR}/${helm_filename}.sha256" -o "${tmp_helm_filename}.sha256"
+        curl -sSL "${GITHUB_RELEASE_URL}/helm/helm/releases/download/${HELM_VERSION}/${helm_filename}.sha256.asc" -o "${tmp_helm_filename}.sha256.asc"
         if ! gpg --verify "${tmp_helm_filename}.sha256.asc" > /tmp/helm/gnupg/verify.log 2>&1; then
             echo "Verification failed!"
             cat /tmp/helm/gnupg/verify.log
@@ -347,10 +358,10 @@ if [ "${MINIKUBE_VERSION}" != "none" ]; then
         fi
     fi
     # latest is also valid in the download URLs 
-    curl -sSL -o /usr/local/bin/minikube "https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-${architecture}"    
+    curl -sSL -o /usr/local/bin/minikube "${MINIKUBE_MIRROR}/releases/${MINIKUBE_VERSION}/minikube-linux-${architecture}"    
     chmod 0755 /usr/local/bin/minikube
     if [ "$MINIKUBE_SHA256" = "automatic" ]; then
-        MINIKUBE_SHA256="$(curl -sSL "https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-${architecture}.sha256")"
+        MINIKUBE_SHA256="$(curl -sSL "${MINIKUBE_MIRROR}/releases/${MINIKUBE_VERSION}/minikube-linux-${architecture}.sha256")"
     fi
     ([ "${MINIKUBE_SHA256}" = "dev-mode" ] || (echo "${MINIKUBE_SHA256} */usr/local/bin/minikube" | sha256sum -c -))
     if ! type minikube > /dev/null 2>&1; then

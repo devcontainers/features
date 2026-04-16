@@ -376,11 +376,13 @@ else
         fi
         default_toolchain_arg="--default-toolchain ${RUST_VERSION}"
     fi
+    export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-https://static.rust-lang.org}"
+    export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-https://static.rust-lang.org/rustup}"
     echo "Installing Rust..."
     # Download and verify rustup sha
     mkdir -p /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/
-    curl -sSL --proto '=https' --tlsv1.2 "https://static.rust-lang.org/rustup/dist/${download_architecture}-unknown-linux-gnu/rustup-init" -o /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/rustup-init
-    curl -sSL --proto '=https' --tlsv1.2 "https://static.rust-lang.org/rustup/dist/${download_architecture}-unknown-linux-gnu/rustup-init.sha256" -o /tmp/rustup/rustup-init.sha256
+    curl -sSL --proto '=https' --tlsv1.2 "${RUSTUP_DIST_SERVER}/rustup/dist/${download_architecture}-unknown-linux-gnu/rustup-init" -o /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/rustup-init
+    curl -sSL --proto '=https' --tlsv1.2 "${RUSTUP_DIST_SERVER}/rustup/dist/${download_architecture}-unknown-linux-gnu/rustup-init.sha256" -o /tmp/rustup/rustup-init.sha256
     cd /tmp/rustup
     cp /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/rustup-init  /tmp/rustup/rustup-init
     sha256sum -c rustup-init.sha256
@@ -421,6 +423,8 @@ fi
 updaterc "$(cat << EOF
 export RUSTUP_HOME="${RUSTUP_HOME}"
 export CARGO_HOME="${CARGO_HOME}"
+export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER}"
+export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT}"
 if [[ "\${PATH}" != *"\${CARGO_HOME}/bin"* ]]; then export PATH="\${CARGO_HOME}/bin:\${PATH}"; fi
 EOF
 )"
