@@ -386,13 +386,7 @@ if [ ! -z "${PNPM_VERSION}" ] && [ "${PNPM_VERSION}" = "none" ]; then
     echo "Ignoring installation of PNPM"
 else
     if bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
-        (
-            . "${NVM_DIR}/nvm.sh"
-            [ ! -z "$http_proxy" ] && npm set proxy="$http_proxy"
-            [ ! -z "$https_proxy" ] && npm set https-proxy="$https_proxy"
-            [ ! -z "$no_proxy" ] && npm set noproxy="$no_proxy"
-            npm install -g pnpm@$PNPM_VERSION --force
-        )
+        su ${USERNAME} -c "umask 0002 && . '${NVM_DIR}/nvm.sh' && npm install -g pnpm@${PNPM_VERSION} --force"
     else
         echo "Skip installing pnpm because npm is missing"
     fi
