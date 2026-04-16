@@ -41,7 +41,6 @@ jobs:
             "terraform",
             "nix",
         ]
-        # ubuntu:focal reached EOL Apr 2025; Removed it now now.
         baseImage:
           [
             "ubuntu:jammy",
