@@ -457,7 +457,7 @@ elif bash -c ". '${NVM_DIR}/nvm.sh' && type npm >/dev/null 2>&1"; then
                 echo "Skipping npm installation due to compatibility issues."
             else
                 # Try npm installation with retries
-                for i in {1..3}; do
+                for i in 1 2 3; do
                     echo "Attempt $i: Running npm install -g npm@$NPM_VERSION"
                     if npm install -g npm@$NPM_VERSION --force --no-audit --no-fund 2>&1; then
                         NEW_VERSION=$(npm --version 2>/dev/null || echo 'unknown')
