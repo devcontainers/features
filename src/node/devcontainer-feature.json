@@ -1,6 +1,6 @@
 {
     "id": "node",
-    "version": "1.7.1",
+    "version": "2.0.0",
     "name": "Node.js (via nvm), yarn and pnpm.",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/node",
     "description": "Installs Node.js, nvm, yarn, pnpm, and needed dependencies.",
@@ -26,6 +26,21 @@
             "type": "string",
             "default": "/usr/local/share/nvm",
             "description": "The path where NVM will be installed."
+        },
+        "npmVersion": {
+            "type": "string",
+            "proposals": [
+                "lts",
+                "latest",
+                "10.9.0",
+                "10.8.0",
+                "10.7.0",
+                "9.9.3",
+                "8.19.4",
+                "none"
+            ],
+            "default": "none",
+            "description": "Select or enter a specific NPM version to install globally. Use 'latest' for the latest version, 'none' to skip npm version update, or specify a version like '10.9.0'."
         },
         "pnpmVersion": {
             "type": "string",
