@@ -43,7 +43,6 @@ jobs:
         ]
         baseImage:
           [
-            "ubuntu:focal",
             "ubuntu:jammy",
             "debian:11",
             "debian:12",

@@ -86,8 +86,21 @@ accept_anaconda_tos_if_needed() {
 
     for channel in "https://repo.anaconda.com/pkgs/main" "https://repo.anaconda.com/pkgs/r"; do
         echo "Accepting Conda Terms of Service for ${channel}..."
+        # Accept as root (for install-time commands)
         "${CONDA_DIR}/bin/conda" tos accept --override-channels --channel "${channel}"
+        # Accept as the target user (for runtime usage)
+        sudo_if "${CONDA_DIR}/bin/conda" tos accept --override-channels --channel "${channel}"
     done
+}
+
+clean_conda_cache() {
+    "${CONDA_DIR}/bin/conda" clean --all --yes
+    find "${CONDA_DIR}" -type f -name '*.pyc' -delete
+    find "${CONDA_DIR}" -type d -name '__pycache__' -exec rm -rf {} +
+    rm -rf "${CONDA_DIR}/pkgs/cache" /root/.cache/pip
+    if [ "${USERNAME}" != "root" ]; then
+        rm -rf "/home/${USERNAME}/.cache/pip"
+    fi
 }
 
 # Install Conda if it's missing
@@ -145,16 +158,7 @@ if ! conda --version &> /dev/null ; then
     
     find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
-    # Temporary fixes
-    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23491
-    install_user_package certifi
-    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-0286 and https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-23931
-    install_user_package cryptography
-    # Due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-40897
-    install_user_package setuptools
-
-    install_user_package pluggy
-
+    clean_conda_cache
 fi
 
 # Display a notice on conda when not running in GitHub Codespaces

@@ -1,6 +1,6 @@
 {
     "install_conda": {
-        "image": "ubuntu:noble",
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
             "conda": {
                 "version": "latest",
@@ -9,12 +9,24 @@
         }
     },
     "install_conda_package_after_upgrade": {
-        "image": "ubuntu:noble",
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
             "conda": {}
         }
     },
     "conda_channel_creation": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "conda": {}
+        }
+    },
+    "install_conda_package_after_upgrade_with_root": {
+        "image": "ubuntu:noble",
+        "features": {
+            "conda": {}
+        }
+    },
+    "conda_channel_creation_with_root": {
         "image": "ubuntu:noble",
         "features": {
             "conda": {}
