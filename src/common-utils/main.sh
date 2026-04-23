@@ -207,7 +207,10 @@ install_redhat_packages() {
             grep \
             which \
             man-db \
-            strace"
+            strace \
+            tree \
+            bzip2 \
+            dialog"
 
         # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
         # Install 'curl' for every OS except this rockylinux:9
@@ -235,6 +238,21 @@ install_redhat_packages() {
             ${install_cmd} -y install epel-release
             remove_epel="true"
         fi
+
+        # Install ncdu (and if not found try installing epel-release, then re-try)
+        if ! ${install_cmd} -q list ncdu >/dev/null 2>&1; then
+            # is epel-release present?
+            if ${install_cmd} -q list epel-release >/dev/null 2>&1; then
+                ${install_cmd} -y install epel-release
+                remove_epel="true"
+                # is ncdu now available?
+                if ${install_cmd} -q list ncdu >/dev/null 2>&1; then
+                    package_list="${package_list} ncdu"
+                fi
+            fi
+        else
+            package_list="${package_list} ncdu"
+        fi        
     fi
 
     # Install zsh if needed
