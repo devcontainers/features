@@ -10,6 +10,7 @@
 CLI_VERSION=${VERSION:-"latest"}
 INSTALL_DIRECTLY_FROM_GITHUB_RELEASE=${INSTALLDIRECTLYFROMGITHUBRELEASE:-"true"}
 EXTENSIONS=${EXTENSIONS:-""}
+GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
 
 GITHUB_CLI_ARCHIVE_GPG_KEY=23F3D4EA75716059
 
@@ -25,6 +26,11 @@ fi
 
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
+    if [ -n "${GPG_KEYSERVER:-}" ]; then
+        echo "keyserver ${GPG_KEYSERVER}"
+        return
+    fi
+
     declare -A keyservers_curl_map=(
         ["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
         ["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
@@ -196,14 +202,14 @@ install_deb_using_github() {
 
     mkdir -p /tmp/ghcli
     pushd /tmp/ghcli
-    wget -q --show-progress --progress=dot:giga https://github.com/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
+    wget -q --show-progress --progress=dot:giga ${GITHUB_RELEASE_URL}/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
     exit_code=$?
     set -e
     if [ "$exit_code" != "0" ]; then
         # Handle situation where git tags are ahead of what was is available to actually download
         echo "(!) github-cli version ${CLI_VERSION} failed to download. Attempting to fall back one version to retry..."
         find_prev_version_from_git_tags CLI_VERSION https://github.com/cli/cli
-        wget -q --show-progress --progress=dot:giga https://github.com/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
+        wget -q --show-progress --progress=dot:giga ${GITHUB_RELEASE_URL}/cli/cli/releases/download/v${CLI_VERSION}/${cli_filename}
     fi
 
     dpkg -i /tmp/ghcli/${cli_filename}

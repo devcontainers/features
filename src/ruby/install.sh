@@ -70,6 +70,11 @@ updaterc() {
 
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
+    if [ -n "${GPG_KEYSERVER:-}" ]; then
+        echo "keyserver ${GPG_KEYSERVER}"
+        return
+    fi
+
     declare -A keyservers_curl_map=(
         ["hkp://keyserver.ubuntu.com"]="http://keyserver.ubuntu.com:11371"
         ["hkp://keyserver.ubuntu.com:80"]="http://keyserver.ubuntu.com"
@@ -323,12 +328,29 @@ set_rvm_install_args() {
     fi
 }
 
+run_rvm_installer() {
+    local install_args="$1"
+    if [ -n "${RVM_INSTALL_MIRROR:-}" ]; then
+        if [[ "${RVM_INSTALL_MIRROR}" == *$'\n'* ]]; then
+            echo "(!) RVM_INSTALL_MIRROR must not contain newlines."
+            exit 1
+        fi
+        local rvm_tmp_dir
+        rvm_tmp_dir="$(mktemp -d)"
+        git clone --depth=1 "${RVM_INSTALL_MIRROR}/rvm/rvm.git" "${rvm_tmp_dir}/rvm"
+        "${rvm_tmp_dir}/rvm/binscripts/rvm-installer" stable --ignore-dotfiles ${install_args} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+        rm -rf "${rvm_tmp_dir}"
+    else
+        curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${install_args} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+    fi
+}
+
 install_previous_version() {
     if [[ $ORIGINAL_RUBY_VERSION == "latest" ]]; then
         repo_url=$(get_github_api_repo_url "$RUBY_URL")
         get_previous_version "${RUBY_URL}" "${repo_url}" RUBY_VERSION
         set_rvm_install_args $RUBY_VERSION
-        curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1
+        run_rvm_installer "${RVM_INSTALL_ARGS}"
     else 
         echo "Failed to install Ruby version $ORIGINAL_RUBY_VERSION. Exiting..."
     fi
@@ -354,8 +376,18 @@ else
     if ! cat /etc/group | grep -e "^rvm:" > /dev/null 2>&1; then
         groupadd -r rvm
     fi
+    if [[ "${RUBY_SOURCE_MIRROR:-}" == *$'\n'* ]] || [[ "${RUBY_BINARIES_MIRROR:-}" == *$'\n'* ]]; then
+        echo "(!) Mirror values must not contain newlines."
+        exit 1
+    fi
+    if [ -n "${RUBY_SOURCE_MIRROR:-}" ] && ! grep -Fqx "rvm_rubies_url=${RUBY_SOURCE_MIRROR}" /etc/rvmrc 2>/dev/null; then
+        echo "rvm_rubies_url=${RUBY_SOURCE_MIRROR}" >> /etc/rvmrc
+    fi
+    if [ -n "${RUBY_BINARIES_MIRROR:-}" ] && ! grep -Fqx "rvm_binaries_url=${RUBY_BINARIES_MIRROR}" /etc/rvmrc 2>/dev/null; then
+        echo "rvm_binaries_url=${RUBY_BINARIES_MIRROR}" >> /etc/rvmrc
+    fi
     # Install rvm
-    curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles ${RVM_INSTALL_ARGS} --with-default-gems="${DEFAULT_GEMS}" 2>&1 || install_previous_version
+    run_rvm_installer "${RVM_INSTALL_ARGS}" || install_previous_version
     usermod -aG rvm ${USERNAME}
     source /usr/local/rvm/scripts/rvm
     rvm fix-permissions system

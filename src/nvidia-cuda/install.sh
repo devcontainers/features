@@ -61,7 +61,7 @@ esac
 
 # Add NVIDIA's package repository to apt so that we can download packages
 # Updating the repo to ubuntu2204 as ubuntu 20.04 is going out of support. 
-NVIDIA_REPO_URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/$NVIDIA_ARCH"
+NVIDIA_REPO_URL="${NVIDIA_MIRROR:-https://developer.download.nvidia.com}/compute/cuda/repos/ubuntu2204/$NVIDIA_ARCH"
 
 
 if [ "${ID}" = "debian" ] && [ "${VERSION_CODENAME}" = "trixie" ]; then
@@ -91,7 +91,7 @@ if ! apt-cache show "$cuda_pkg"; then
     echo "The requested version of CUDA is not available: CUDA $CUDA_VERSION"
     if [ "$NVIDIA_ARCH" = "arm64" ]; then
         echo "Note: arm64 supports limited CUDA versions. Please check available versions:"
-        echo "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64"
+        echo "${NVIDIA_MIRROR:-https://developer.download.nvidia.com}/compute/cuda/repos/ubuntu2204/arm64"
     fi
     exit 1
 fi

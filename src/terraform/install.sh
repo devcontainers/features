@@ -28,6 +28,8 @@ TERRAGRUNT_SHA256="${TERRAGRUNT_SHA256:-"automatic"}"
 SENTINEL_SHA256="${SENTINEL_SHA256:-"automatic"}"
 TFSEC_SHA256="${TFSEC_SHA256:-"automatic"}"
 TERRAFORM_DOCS_SHA256="${TERRAFORM_DOCS_SHA256:-"automatic"}"
+GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
+GITHUB_USERCONTENT_URL="${GITHUB_USERCONTENT_MIRROR:-https://raw.githubusercontent.com}"
 
 HASHICORP_RELEASES_URL="https://releases.hashicorp.com"
 if [ -n "${CUSTOM_DOWNLOAD_SERVER}" ]; then
@@ -35,7 +37,8 @@ if [ -n "${CUSTOM_DOWNLOAD_SERVER}" ]; then
 fi
 
 TERRAFORM_GPG_KEY="72D7468F"
-TFLINT_GPG_KEY_URI="https://raw.githubusercontent.com/terraform-linters/tflint/v0.46.1/8CE69160EB3F2FE9.key"
+TFLINT_GPG_KEY_URI="${GITHUB_USERCONTENT_URL}/terraform-linters/tflint/v0.46.1/8CE69160EB3F2FE9.key"
+HASHICORP_KEY_URL="${HASHICORP_GPG_KEY_MIRROR:-https://keybase.io}/hashicorp/pgp_keys.asc"
 KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
 
 architecture="$(uname -m)"
@@ -61,6 +64,11 @@ fi
 
 # Get the list of GPG key servers that are reachable
 get_gpg_key_servers() {
+    if [ -n "${GPG_KEYSERVER:-}" ]; then
+        echo "keyserver ${GPG_KEYSERVER}"
+        return
+    fi
+
     declare -A keyservers_curl_map=(
         ["hkps://keyserver.ubuntu.com"]="https://keyserver.ubuntu.com"
         ["hkps://keys.openpgp.org"]="https://keys.openpgp.org"
@@ -114,7 +122,7 @@ receive_gpg_keys() {
     # Special handling for HashiCorp GPG key on Ubuntu Noble
     if [ "$IS_GPG_NEW" -eq 1 ] && [ "$keys" = "$TERRAFORM_GPG_KEY" ]; then
         echo "(*) Ubuntu Noble detected, using Keybase for HashiCorp GPG key import...."
-        curl -fsSL https://keybase.io/hashicorp/pgp_keys.asc | gpg --import
+        curl -fsSL "${HASHICORP_KEY_URL}" | gpg --import
         if ! gpg --list-keys "${TERRAFORM_GPG_KEY}" > /dev/null 2>&1; then
             gpg --list-keys
             echo "(*) Warning: HashiCorp GPG key not found in keyring after import."
@@ -332,7 +340,7 @@ install_cosign() {
     COSIGN_VERSION=$1
     local URL=$2
     cosign_filename="/tmp/cosign_${COSIGN_VERSION}_${architecture}.deb"
-    cosign_url="https://github.com/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb"
+    cosign_url="${GITHUB_RELEASE_URL}/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb"
     curl -L "${cosign_url}" -o $cosign_filename
     if grep -q "Not Found" "$cosign_filename"; then
         echo -e "\n(!) Failed to fetch the latest artifacts for cosign v${COSIGN_VERSION}..."
@@ -340,7 +348,7 @@ install_cosign() {
         get_previous_version "$URL" "$REPO_URL" COSIGN_VERSION
         echo -e "\nAttempting to install ${COSIGN_VERSION}"
         cosign_filename="/tmp/cosign_${COSIGN_VERSION}_${architecture}.deb"
-        cosign_url="https://github.com/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb"
+        cosign_url="${GITHUB_RELEASE_URL}/sigstore/cosign/releases/latest/download/cosign_${COSIGN_VERSION}_${architecture}.deb"
         curl -L "${cosign_url}" -o $cosign_filename
     fi
     dpkg -i $cosign_filename
@@ -457,7 +465,7 @@ mv -f terraform /usr/local/bin/
 
 install_tflint() {
     TFLINT_VERSION=$1
-    curl -sSL -o /tmp/tf-downloads/${TFLINT_FILENAME} https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/${TFLINT_FILENAME}
+    curl -sSL -o /tmp/tf-downloads/${TFLINT_FILENAME} ${GITHUB_RELEASE_URL}/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/${TFLINT_FILENAME}
 }
 
 if [ "${TFLINT_VERSION}" != "none" ]; then
@@ -473,16 +481,16 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
             echo "${TFLINT_SHA256} *${TFLINT_FILENAME}" > tflint_checksums.txt
             sha256sum --ignore-missing -c tflint_checksums.txt
         else
-            curl -sSL -o tflint_checksums.txt https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt
+            curl -sSL -o tflint_checksums.txt ${GITHUB_RELEASE_URL}/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt
 
             set +e
-            curl -sSL -o checksums.txt.keyless.sig https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.keyless.sig
+            curl -sSL -o checksums.txt.keyless.sig ${GITHUB_RELEASE_URL}/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.keyless.sig
             set -e
 
             # Check that checksums.txt.keyless.sig exists and is not empty
             if [ -s checksums.txt.keyless.sig ]; then
                 # Validate checksums with cosign
-                curl -sSL -o checksums.txt.pem https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.pem
+                curl -sSL -o checksums.txt.pem ${GITHUB_RELEASE_URL}/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.pem
                 ensure_cosign
                 cosign verify-blob \
                     --certificate=/tmp/tf-downloads/checksums.txt.pem \
@@ -496,7 +504,7 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
                 sha256sum --ignore-missing -c tflint_checksums.txt
             else
                 # Fallback to older, GPG-based verification (pre-0.47.0 of tflint)
-                curl -sSL -o tflint_checksums.txt.sig https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.sig
+                curl -sSL -o tflint_checksums.txt.sig ${GITHUB_RELEASE_URL}/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt.sig
                 curl -sSL -o tflint_key "${TFLINT_GPG_KEY_URI}"
                 gpg -q --import tflint_key
                 gpg --verify tflint_checksums.txt.sig tflint_checksums.txt
@@ -510,7 +518,7 @@ fi
 
 install_terragrunt() {
     TERRAGRUNT_VERSION=$1
-    curl -sSL -o /tmp/tf-downloads/${terragrunt_filename} https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/${terragrunt_filename}
+    curl -sSL -o /tmp/tf-downloads/${terragrunt_filename} ${GITHUB_RELEASE_URL}/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/${terragrunt_filename}
 }
 
 if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
@@ -523,7 +531,7 @@ if [ "${TERRAGRUNT_VERSION}" != "none" ]; then
     fi
     if [ "${TERRAGRUNT_SHA256}" != "dev-mode" ]; then
         if [ "${TERRAGRUNT_SHA256}" = "automatic" ]; then
-            curl -sSL -o terragrunt_SHA256SUMS https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/SHA256SUMS
+            curl -sSL -o terragrunt_SHA256SUMS ${GITHUB_RELEASE_URL}/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/SHA256SUMS
         else
             echo "${TERRAGRUNT_SHA256} *${terragrunt_filename}" > terragrunt_SHA256SUMS
         fi
@@ -576,7 +584,7 @@ fi
 install_tfsec() {
     local TFSEC_VERSION=$1
     tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
-    curl -sSL -o /tmp/tf-downloads/${tfsec_filename} https://github.com/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/${tfsec_filename}
+    curl -sSL -o /tmp/tf-downloads/${tfsec_filename} ${GITHUB_RELEASE_URL}/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/${tfsec_filename}
 }
 
 if [ "${INSTALL_TFSEC}" = "true" ]; then
@@ -592,7 +600,7 @@ if [ "${INSTALL_TFSEC}" = "true" ]; then
     fi
     if [ "${TFSEC_SHA256}" != "dev-mode" ]; then
         if [ "${TFSEC_SHA256}" = "automatic" ]; then
-            curl -sSL -o tfsec_SHA256SUMS https://github.com/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/tfsec_${TFSEC_VERSION}_checksums.txt
+            curl -sSL -o tfsec_SHA256SUMS ${GITHUB_RELEASE_URL}/aquasecurity/tfsec/releases/download/v${TFSEC_VERSION}/tfsec_${TFSEC_VERSION}_checksums.txt
         else
             echo "${TFSEC_SHA256} *${tfsec_filename}" > tfsec_SHA256SUMS
         fi
@@ -607,7 +615,7 @@ fi
 install_terraform_docs() {
     local TERRAFORM_DOCS_VERSION=$1
     tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
-    curl -sSL -o /tmp/tf-downloads/${tfdocs_filename} https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/${tfdocs_filename}
+    curl -sSL -o /tmp/tf-downloads/${tfdocs_filename} ${GITHUB_RELEASE_URL}/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/${tfdocs_filename}
 }
 
 if [ "${INSTALL_TERRAFORM_DOCS}" = "true" ]; then
@@ -623,7 +631,7 @@ if [ "${INSTALL_TERRAFORM_DOCS}" = "true" ]; then
     fi
     if [ "${TERRAFORM_DOCS_SHA256}" != "dev-mode" ]; then
         if [ "${TERRAFORM_DOCS_SHA256}" = "automatic" ]; then
-            curl -sSL -o tfdocs_SHA256SUMS https://github.com/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}.sha256sum
+            curl -sSL -o tfdocs_SHA256SUMS ${GITHUB_RELEASE_URL}/terraform-docs/terraform-docs/releases/download/v${TERRAFORM_DOCS_VERSION}/terraform-docs-v${TERRAFORM_DOCS_VERSION}.sha256sum
         else
             echo "${TERRAFORM_DOCS_SHA256} *${tfsec_filename}" > tfdocs_SHA256SUMS
         fi

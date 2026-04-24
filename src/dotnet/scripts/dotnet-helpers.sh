@@ -8,7 +8,7 @@
 # Maintainer: The Dev Container spec maintainers
 DOTNET_SCRIPTS=$(dirname "${BASH_SOURCE[0]}")
 DOTNET_INSTALL_SCRIPT="$DOTNET_SCRIPTS/vendor/dotnet-install.sh"
-DOTNET_RELEASES_INDEX_URL="https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json"
+DOTNET_RELEASES_INDEX_URL="${DOTNET_RELEASES_MIRROR:-https://builds.dotnet.microsoft.com/dotnet}/release-metadata/releases-index.json"
 
 # Prints the latest active dotnet version from the releases index.
 # Usage: fetch_latest_version [<target>]
@@ -86,6 +86,9 @@ install_sdk() {
     fi
     
     local cmd=("$DOTNET_INSTALL_SCRIPT" "--version" "$version" "--install-dir" "$DOTNET_ROOT")
+    if [ -n "${DOTNET_RELEASES_MIRROR:-}" ]; then
+        cmd+=("--azure-feed" "${DOTNET_RELEASES_MIRROR}")
+    fi
     if [ -n "$channel" ]; then
         cmd+=("--channel" "$channel")
     fi
@@ -125,6 +128,9 @@ install_runtime() {
     fi
 
     local cmd=("$DOTNET_INSTALL_SCRIPT" "--runtime" "$runtime" "--version" "$version" "--install-dir" "$DOTNET_ROOT" "--no-path")
+    if [ -n "${DOTNET_RELEASES_MIRROR:-}" ]; then
+        cmd+=("--azure-feed" "${DOTNET_RELEASES_MIRROR}")
+    fi
     if [ -n "$channel" ]; then
         cmd+=("--channel" "$channel")
     fi

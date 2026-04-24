@@ -17,8 +17,11 @@ DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"false"}"
-MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
-MICROSOFT_GPG_KEYS_ROLLING_URI="https://packages.microsoft.com/keys/microsoft-rolling.asc"
+MICROSOFT_PACKAGES_MIRROR="${MICROSOFT_PACKAGES_MIRROR:-https://packages.microsoft.com}"
+GITHUB_RELEASE_URL="${GITHUB_RELEASE_MIRROR:-https://github.com}"
+DOCKER_MIRROR="${DOCKER_MIRROR:-https://download.docker.com}"
+MICROSOFT_GPG_KEYS_URI="${MICROSOFT_PACKAGES_MIRROR}/keys/microsoft.asc"
+MICROSOFT_GPG_KEYS_ROLLING_URI="${MICROSOFT_PACKAGES_MIRROR}/keys/microsoft-rolling.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble"
 DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
@@ -329,7 +332,7 @@ if [ "${USE_MOBY}" = "true" ]; then
                 curl -sSL ${MICROSOFT_GPG_KEYS_URI}
                 curl -sSL ${MICROSOFT_GPG_KEYS_ROLLING_URI}
             } | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg
-            echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
+            echo "deb [arch=${architecture} signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] ${MICROSOFT_PACKAGES_MIRROR}/repos/microsoft-${ID}-${VERSION_CODENAME}-prod ${VERSION_CODENAME} main" > /etc/apt/sources.list.d/microsoft.list
             ;;
         rhel)
             echo "(*) ${ID} detected - checking for Moby packages..."
@@ -353,7 +356,7 @@ if [ "${USE_MOBY}" = "true" ]; then
                         cat > /etc/yum.repos.d/microsoft.repo << EOF
 [microsoft]
 name=Microsoft Repository
-baseurl=https://packages.microsoft.com/repos/microsoft-cbl-mariner-2.0-prod-base/
+baseurl=${MICROSOFT_PACKAGES_MIRROR}/repos/microsoft-cbl-mariner-2.0-prod-base/
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/microsoft.gpg
@@ -381,17 +384,17 @@ else
     cli_package_name="docker-ce-cli"
     case ${ADJUSTED_ID} in
         debian)
-            curl -fsSL https://download.docker.com/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
+            curl -fsSL ${DOCKER_MIRROR}/linux/${ID}/gpg | gpg --dearmor > /usr/share/keyrings/docker-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] ${DOCKER_MIRROR}/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
             ;;
         rhel)
             # Docker CE repository setup for RHEL-based systems
             setup_docker_ce_repo() {
-                curl -fsSL https://download.docker.com/linux/centos/gpg > /etc/pki/rpm-gpg/docker-ce.gpg
+                curl -fsSL ${DOCKER_MIRROR}/linux/centos/gpg > /etc/pki/rpm-gpg/docker-ce.gpg
                 cat > /etc/yum.repos.d/docker-ce.repo << EOF  
 [docker-ce-stable]
 name=Docker CE Stable
-baseurl=https://download.docker.com/linux/centos/9/\$basearch/stable
+baseurl=${DOCKER_MIRROR}/linux/centos/9/\$basearch/stable
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/docker-ce.gpg
@@ -436,9 +439,9 @@ EOF
                 *)     
                     # Standard RHEL/CentOS/Fedora approach
                     if command -v dnf >/dev/null 2>&1; then
-                        dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+                        dnf config-manager --add-repo ${DOCKER_MIRROR}/linux/centos/docker-ce.repo
                     elif command -v yum-config-manager >/dev/null 2>&1; then
-                        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+                        yum-config-manager --add-repo ${DOCKER_MIRROR}/linux/centos/docker-ce.repo
                     else  
                         # Manual fallback
                         setup_docker_ce_repo
@@ -608,7 +611,7 @@ else
                         echo "(*) Downloading Docker CE packages manually..."
                         
                         # Get the repository baseurl
-                        repo_baseurl="https://download.docker.com/linux/centos/9/x86_64/stable"
+                        repo_baseurl="${DOCKER_MIRROR}/linux/centos/9/x86_64/stable"
                         
                         # Download packages directly
                         cd /tmp/docker-ce-install
@@ -685,7 +688,7 @@ fallback_compose(){
     echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..."
     get_previous_version "${url}" "${repo_url}" compose_version
     echo -e "\nAttempting to install v${compose_version}"
-    curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
+    curl -fsSL "${GITHUB_RELEASE_URL}/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path}
 }
 
 # If 'docker-compose' command is to be included
@@ -705,11 +708,11 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
 
         if [ "${target_compose_arch}" = "x86_64" ]; then
             echo "(*) Installing docker compose v1..."
-            curl -fsSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64" -o ${docker_compose_path}
+            curl -fsSL "${GITHUB_RELEASE_URL}/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64" -o ${docker_compose_path}
             chmod +x ${docker_compose_path}
 
             # Download the SHA256 checksum
-            DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64.sha256" | awk '{print $1}')"
+            DOCKER_COMPOSE_SHA256="$(curl -sSL "${GITHUB_RELEASE_URL}/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64.sha256" | awk '{print $1}')"
             echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
             sha256sum -c docker-compose.sha256sum --ignore-missing
         elif [ "${VERSION_CODENAME}" = "bookworm" ]; then
@@ -727,7 +730,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         docker_compose_url="https://github.com/docker/compose"
         find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
         echo "(*) Installing docker-compose ${compose_version}..."
-        curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
+        curl -fsSL "${GITHUB_RELEASE_URL}/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
                  echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..." 
                  fallback_compose "$docker_compose_url"
         }
@@ -735,7 +738,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
         chmod +x ${docker_compose_path}
 
         # Download the SHA256 checksum
-        DOCKER_COMPOSE_SHA256="$(curl -sSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}.sha256" | awk '{print $1}')"
+        DOCKER_COMPOSE_SHA256="$(curl -sSL "${GITHUB_RELEASE_URL}/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}.sha256" | awk '{print $1}')"
         echo "${DOCKER_COMPOSE_SHA256}  ${docker_compose_path}" > docker-compose.sha256sum
         sha256sum -c docker-compose.sha256sum --ignore-missing
 
@@ -751,7 +754,7 @@ fallback_compose-switch() {
     echo -e "\n(!) Failed to fetch the latest artifacts for compose-switch v${compose_switch_version}..."
     get_previous_version "$url" "$repo_url" compose_switch_version
     echo -e "\nAttempting to install v${compose_switch_version}"
-    curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${target_switch_arch}" -o /usr/local/bin/compose-switch
+    curl -fsSL "${GITHUB_RELEASE_URL}/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${target_switch_arch}" -o /usr/local/bin/compose-switch
 }
 # Install docker-compose switch if not already installed - https://github.com/docker/compose-switch#manual-installation
 if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /dev/null 2>&1; then
@@ -776,7 +779,7 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
             arm64|aarch64) target_switch_arch=arm64 ;;
             *) target_switch_arch=${architecture} ;;
         esac
-        curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${target_switch_arch}" -o /usr/local/bin/compose-switch || fallback_compose-switch "$compose_switch_url"
+        curl -fsSL "${GITHUB_RELEASE_URL}/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${target_switch_arch}" -o /usr/local/bin/compose-switch || fallback_compose-switch "$compose_switch_url"
         chmod +x /usr/local/bin/compose-switch
         # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11
         # Setup v1 CLI as alternative in addition to compose-switch (which maps to v2)
@@ -811,7 +814,7 @@ fallback_buildx() {
     get_previous_version "$url" "$repo_url" buildx_version
     buildx_file_name="buildx-v${buildx_version}.linux-${target_buildx_arch}"
     echo -e "\nAttempting to install v${buildx_version}"
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
+    wget ${GITHUB_RELEASE_URL}/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name}
 }
  
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
@@ -830,7 +833,7 @@ if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_file_name="buildx-v${buildx_version}.linux-${target_buildx_arch}"
 
     cd /tmp
-    wget https://github.com/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || fallback_buildx "$docker_buildx_url"
+    wget ${GITHUB_RELEASE_URL}/docker/buildx/releases/download/v${buildx_version}/${buildx_file_name} || fallback_buildx "$docker_buildx_url"
     
     docker_home="/usr/libexec/docker"
     cli_plugins_dir="${docker_home}/cli-plugins"
