@@ -310,6 +310,7 @@ if [ "${ADJUSTED_ID}" = "debian" ] && command -v update-ca-certificates > /dev/n
     update-ca-certificates
 fi
 
+# Swap to legacy iptables for compatibility (Debian only)
 if [ "${ADJUSTED_ID}" = "debian" ] && type iptables-legacy > /dev/null 2>&1; then
     # Check if host kernel supports ip_tables/iptable_nat
     if iptables-legacy -t nat -L > /dev/null 2>&1; then
