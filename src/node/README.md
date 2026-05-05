@@ -1,5 +1,5 @@
 
-# Node.js (via nvm), yarn and pnpm (node)
+# Node.js (via nvm), yarn and pnpm. (node)
 
 Installs Node.js, nvm, yarn, pnpm, and needed dependencies.
 
@@ -7,7 +7,7 @@ Installs Node.js, nvm, yarn, pnpm, and needed dependencies.
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/node:1": {}
+    "ghcr.io/devcontainers/features/node:2": {}
 }
 ```
 
@@ -18,6 +18,7 @@ Installs Node.js, nvm, yarn, pnpm, and needed dependencies.
 | version | Select or enter a Node.js version to install | string | lts |
 | nodeGypDependencies | Install dependencies to compile native node modules (node-gyp)? | boolean | true |
 | nvmInstallPath | The path where NVM will be installed. | string | /usr/local/share/nvm |
+| npmVersion | Select or enter a specific NPM version to install globally. Use 'latest' for the latest version, 'none' to skip npm version update, or specify a version like '10.9.0'. | string | none |
 | pnpmVersion | Select or enter the PNPM version to install | string | latest |
 | nvmVersion | Version of NVM to install. | string | latest |
 | installYarnUsingApt | On Debian and Ubuntu systems, you have the option to install Yarn globally via APT. If you choose not to use this option, Yarn will be set up using Corepack instead. This choice is specific to Debian and Ubuntu; for other Linux distributions, Yarn is always installed using Corepack, with a fallback to installation via NPM if an error occurs. | boolean | false |
