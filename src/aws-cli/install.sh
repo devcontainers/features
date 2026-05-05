@@ -119,16 +119,14 @@ install() {
     
     ./aws/install
 
-    # kubectl bash completion
+    # AWS bash completion
     mkdir -p /etc/bash_completion.d
     cp ./scripts/vendor/aws_bash_completer /etc/bash_completion.d/aws
 
-    # kubectl zsh completion
-    if [ -e "${USERHOME}/.oh-my-zsh" ]; then
-        mkdir -p "${USERHOME}/.oh-my-zsh/completions"
-        cp ./scripts/vendor/aws_zsh_completer.sh "${USERHOME}/.oh-my-zsh/completions/_aws"
-        chown -R "${USERNAME}" "${USERHOME}/.oh-my-zsh"
-    fi
+    # AWS zsh completion
+    mkdir -p /usr/local/share/zsh/site-functions/
+    cp ./scripts/vendor/aws_zsh_completer.sh /usr/local/share/zsh/site-functions/_aws
+    sed -i '1s/^/#compdef aws\n/' /usr/local/share/zsh/site-functions/_aws
 
     rm -rf ./aws
 }
