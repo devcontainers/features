@@ -154,8 +154,8 @@
             }
         }
     },
-    "docker_build_ubuntu_plucky": {
-        "image": "ubuntu:plucky",
+    "docker_build_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
         "features": {
             "docker-in-docker": {
                 "version": "latest",
