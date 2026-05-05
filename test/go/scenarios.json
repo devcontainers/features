@@ -62,6 +62,16 @@
             }
         }
     },
+    "install_go_tool_in_postCreate": {
+        "image": "ubuntu:noble",
+        "features": {
+            "go": {
+                "version": "latest",
+                "golangciLintVersion": "1.50.0"
+            }
+        },
+        "postCreateCommand": "go install filippo.io/mkcert@v1.4.2"
+    },
     "install_go_tool_in_postCreate_rhel": {
         "image": "almalinux:8",
         "features": {
