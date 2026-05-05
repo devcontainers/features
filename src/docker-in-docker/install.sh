@@ -19,8 +19,8 @@ INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"false"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 MICROSOFT_GPG_KEYS_ROLLING_URI="https://packages.microsoft.com/keys/microsoft-rolling.asc"
-DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble"
-DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble"
+DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble plucky"
+DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble plucky"
 DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
 
 # Default: Exit on any failure.
@@ -311,9 +311,14 @@ if [ "${ADJUSTED_ID}" = "debian" ] && command -v update-ca-certificates > /dev/n
 fi
 
 # Swap to legacy iptables for compatibility (Debian only)
-if [ "${ADJUSTED_ID}" = "debian" ] && type iptables-legacy > /dev/null 2>&1; then
-    update-alternatives --set iptables /usr/sbin/iptables-legacy
-    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+if [ "${ADJUSTED_ID}" = "debian" ]; then
+    if type iptables-legacy > /dev/null 2>&1 && iptables-legacy -nL > /dev/null 2>&1; then
+        update-alternatives --set iptables /usr/sbin/iptables-legacy
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+    elif type iptables-nft > /dev/null 2>&1; then
+        update-alternatives --set iptables /usr/sbin/iptables-nft
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
+    fi
 fi
 
 # Set up the necessary repositories

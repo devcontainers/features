@@ -154,6 +154,16 @@
             }
         }
     },
+    "docker_build_ubuntu_plucky": {
+        "image": "ubuntu:plucky",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "v2"
+            }
+        }
+    },
     "docker_specific_moby_buildx": {
         "image": "ubuntu:noble",
         "features": {
