@@ -315,7 +315,7 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
     if type iptables-legacy > /dev/null 2>&1 && iptables-legacy -nL > /dev/null 2>&1; then
         update-alternatives --set iptables /usr/sbin/iptables-legacy
         update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
-    elif type iptables-nft > /dev/null 2>&1; then
+    elif type iptables-nft > /dev/null 2>&1 && iptables-nft -nL > /dev/null 2>&1; then
         update-alternatives --set iptables /usr/sbin/iptables-nft
         update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
     fi
