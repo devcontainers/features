@@ -284,5 +284,18 @@
         "features": {
             "common-utils": {}
         }
+    },
+    "devcontainer-custom-user": {
+        "build": {
+            "dockerfile": "Dockerfile"
+        },
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "username": "vscode",
+                "userUid": "1000",
+                "userGid": "100" // Test GID 100 conflict resolution (users group)
+            }
+        }
     }
 }
