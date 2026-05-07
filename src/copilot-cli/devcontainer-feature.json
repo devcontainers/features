@@ -1,6 +1,6 @@
 {
     "id": "copilot-cli",
-    "version": "1.0.0",
+    "version": "1.1.2",
     "name": "GitHub Copilot CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/copilot-cli",
     "description": "Installs the GitHub Copilot CLI.",
@@ -15,6 +15,7 @@
             "description": "Select version of the GitHub Copilot CLI, if not latest."
         }
     },
+    "postStartCommand": "[ -f /etc/devcontainer-copilot-cli/auto-update ] && copilot update || true",
     "customizations": {
         "vscode": {
             "settings": {

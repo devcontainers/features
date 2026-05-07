@@ -7,7 +7,7 @@ A cross-platform, language-agnostic binary package manager
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/conda:1": {}
+    "ghcr.io/devcontainers/features/conda:2": {}
 }
 ```
 

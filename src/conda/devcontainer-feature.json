@@ -1,6 +1,6 @@
 {
   "id": "conda",
-  "version": "1.2.5",
+  "version": "2.0.1",
   "name": "Conda",
   "description": "A cross-platform, language-agnostic binary package manager",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/conda",
@@ -9,8 +9,8 @@
       "type": "string",
       "proposals": [
         "latest",
-        "4.11.0",
-        "4.12.0"
+        "24.11.3",
+        "24.7.1"
       ],
       "default": "latest",
       "description": "Select or enter a conda version."

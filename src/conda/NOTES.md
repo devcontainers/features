@@ -15,6 +15,6 @@ conda install python=3.7
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed. Both `x86_64` and `aarch64` architectures are supported.
 
 `bash` is required to execute the `install.sh` script.

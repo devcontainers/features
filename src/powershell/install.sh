@@ -126,7 +126,7 @@ find_preview_version_from_git_tags() {
     local requested_version=${!variable_name}
     local repository_url=$2
 
-    if [ -z "${googlegit_cmd_name}" ]; then
+    if [ -z "${git_cmd_name}" ]; then
         if type git > /dev/null 2>&1; then
             git_cmd_name="git"
         else
@@ -135,22 +135,22 @@ find_preview_version_from_git_tags() {
         fi
     fi
 
-    # Fetch tags from remote repository
+    # Fetch tags from remote repository (match both -preview.X and -rc.X tags)
     local tags
-    tags=$(git ls-remote --tags "${repository_url}" 2>/dev/null | grep -oP 'refs/tags/v\K[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+' | sort -V)
+    tags=$(git ls-remote --tags "${repository_url}" 2>/dev/null | grep -oP 'refs/tags/v\K[0-9]+\.[0-9]+\.[0-9]+-(preview|rc)\.[0-9]+' | sort -V)
 
     if [ -z "${tags}" ]; then
-        echo "No preview tags found in repository."
+        echo "No preview/rc tags found in repository."
         return 1
     fi
 
     local version=""
 
     if [ "${requested_version}" = "preview" ] || [ "${requested_version}" = "latest" ]; then
-        # Get the latest preview version
+        # Get the latest preview/rc version
         version=$(echo "${tags}" | tail -n 1)
     elif [[ "${requested_version}" =~ ^[0-9]+\.[0-9]+$ ]]; then
-        # Partial version provided (e.g., "7.6"), find latest preview matching that major.minor
+        # Partial version provided (e.g., "7.6"), find latest preview/rc matching that major.minor
         version=$(echo "${tags}" | grep "^${requested_version}\." | tail -n 1)
     elif [[ "${requested_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-preview$ ]]; then
         # Version like "7.6.0-preview" provided, find latest preview for that version
@@ -158,6 +158,11 @@ find_preview_version_from_git_tags() {
         version=$(echo "${tags}" | grep "^${base_version}-preview\." | tail -n 1)
     elif [[ "${requested_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+$ ]]; then
         # Exact preview version provided, verify it exists
+        if echo "${tags}" | grep -q "^${requested_version}$"; then
+            version="${requested_version}"
+        fi
+    elif [[ "${requested_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
+        # Exact RC version provided, verify it exists
         if echo "${tags}" | grep -q "^${requested_version}$"; then
             version="${requested_version}"
         fi
@@ -382,7 +387,7 @@ install_using_github() {
     fi
     pwsh_url="https://github.com/PowerShell/PowerShell"
     # Check if we need to find a preview version or stable version
-    if [[ "${POWERSHELL_VERSION}" == *"preview"* ]] || [ "${POWERSHELL_VERSION}" = "preview" ]; then
+    if [[ "${POWERSHELL_VERSION}" == *"preview"* ]] || [ "${POWERSHELL_VERSION}" = "preview" ] || [[ "${POWERSHELL_VERSION}" == *"-rc."* ]]; then
         echo "Finding preview version..."
         find_preview_version_from_git_tags POWERSHELL_VERSION "${pwsh_url}"
     else
@@ -446,9 +451,9 @@ if ! type pwsh >/dev/null 2>&1; then
         POWERSHELL_ARCHIVE_ARCHITECTURES="${POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX}"
     fi
 
-    if [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${POWERSHELL_ARCHIVE_ARCHITECTURES_UBUNTU}"* ]] && [[  "${POWERSHELL_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${POWERSHELL_VERSION}" != *"preview"* ]]; then
+    if [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${POWERSHELL_ARCHIVE_ARCHITECTURES_UBUNTU}"* ]] && [[  "${POWERSHELL_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]] && [[ "${POWERSHELL_VERSION}" != *"preview"* ]] && [[ "${POWERSHELL_VERSION}" != *"-rc."* ]]; then
         install_using_apt || use_github="true"
-    elif [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX}"* ]] && [[ "${POWERSHELL_VERSION}" != *"preview"* ]]; then 
+    elif [[ "${POWERSHELL_ARCHIVE_ARCHITECTURES}" = *"${POWERSHELL_ARCHIVE_ARCHITECTURES_ALMALINUX}"* ]] && [[ "${POWERSHELL_VERSION}" != *"preview"* ]] && [[ "${POWERSHELL_VERSION}" != *"-rc."* ]]; then 
         install_using_dnf && install_powershell_dnf || use_github="true"
     else 
        use_github="true"
