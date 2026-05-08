@@ -34,6 +34,7 @@ install_debian_packages() {
         package_list="${package_list} \
         apt-utils \
         bash-completion \
+        bubblewrap \
         openssh-client \
         gnupg2 \
         dirmngr \
@@ -70,6 +71,7 @@ install_debian_packages() {
         locales \
         sudo \
         ncdu \
+        socat \
         man-db \
         strace \
         manpages \
@@ -181,6 +183,7 @@ install_redhat_packages() {
         package_list="${package_list} \
             gawk \
             bash-completion \
+            bubblewrap \
             openssh-clients \
             gnupg2 \
             iproute \
@@ -203,6 +206,7 @@ install_redhat_packages() {
             libicu \
             zlib \
             sudo \
+            socat \
             sed \
             grep \
             which \
@@ -273,6 +277,7 @@ install_alpine_packages() {
         apk add --no-cache \
             openssh-client \
             bash-completion \
+            bubblewrap \
             gnupg \
             procps \
             lsof \
@@ -299,6 +304,7 @@ install_alpine_packages() {
             userspace-rcu \
             zlib \
             sudo \
+            socat \
             coreutils \
             sed \
             grep \
