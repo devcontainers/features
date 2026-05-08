@@ -158,10 +158,7 @@
         "image": "ubuntu:resolute",
         "features": {
             "docker-in-docker": {
-                "moby": false,
-                "version": "latest",
-                "installDockerBuildx": true,
-                "dockerDashComposeVersion": "v2"
+                "moby": false
             }
         }
     },
