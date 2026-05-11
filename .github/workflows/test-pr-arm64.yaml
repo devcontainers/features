@@ -8,6 +8,8 @@ on:
     paths:
       - "src/powershell/**"
       - "test/powershell/**"
+      - "src/docker-in-docker/**"
+      - "test/docker-in-docker/**"      
 
 jobs:
   detect-changes:
@@ -23,6 +25,7 @@ jobs:
           #   <feature-name>: ./**/<feature-name>/**
           filters: |
             powershell: ./**/powershell/**
+            docker-in-docker: ./**/docker-in-docker/**
 
   test:
     needs: [detect-changes]
