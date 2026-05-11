@@ -128,14 +128,21 @@ install_debian_packages() {
         package_list="${package_list} manpages-posix manpages-posix-dev"
     fi
 
-    # Always install bubblewrap and socat (even if packages were previously installed)
-    package_list="${package_list} bubblewrap socat"
+    # Ensure bubblewrap and socat are installed (if missing)
+    if ! dpkg-query -W -f='${Status}' bubblewrap 2>/dev/null | grep -q "install ok installed"; then
+        package_list="${package_list} bubblewrap"
+    fi
+    if ! dpkg-query -W -f='${Status}' socat 2>/dev/null | grep -q "install ok installed"; then
+        package_list="${package_list} socat"
+    fi
 
-    # Install the list of packages
-    echo "Packages to verify are installed: ${package_list}"
-    rm -rf /var/lib/apt/lists/*
-    apt-get update -y
-    apt-get -y install --no-install-recommends ${package_list} 2> >( grep -v 'debconf: delaying package configuration, since apt-utils is not installed' >&2 )
+    # Install the list of missing packages
+    if [ -n "${package_list// }" ]; then
+        echo "Packages to verify are installed: ${package_list}"
+        rm -rf /var/lib/apt/lists/*
+        apt-get update -y
+        apt-get -y install --no-install-recommends ${package_list} 2> >( grep -v 'debconf: delaying package configuration, since apt-utils is not installed' >&2 )
+    fi
 
     # Install zsh (and recommended packages) if needed
     if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
@@ -245,8 +252,13 @@ install_redhat_packages() {
         package_list="${package_list} zsh"
     fi
 
-    # Always install bubblewrap and socat (even if packages were previously installed)
-    package_list="${package_list} bubblewrap socat"
+    # Ensure bubblewrap and socat are installed (if missing)
+    if ! rpm -q bubblewrap >/dev/null 2>&1; then
+        package_list="${package_list} bubblewrap"
+    fi
+    if ! rpm -q socat >/dev/null 2>&1; then
+        package_list="${package_list} socat"
+    fi
 
     if [ -n "${package_list}" ]; then
         echo "Packages to verify are installed: ${package_list}"
@@ -337,8 +349,17 @@ install_alpine_packages() {
         apk add --no-cache zsh
     fi
 
-    # Always install bubblewrap and socat (even if packages were previously installed)
-    apk add --no-cache bubblewrap socat
+    # Ensure bubblewrap and socat are installed (if missing)
+    local missing_packages=""
+    if ! apk info -e bubblewrap >/dev/null 2>&1; then
+        missing_packages="${missing_packages} bubblewrap"
+    fi
+    if ! apk info -e socat >/dev/null 2>&1; then
+        missing_packages="${missing_packages} socat"
+    fi
+    if [ -n "${missing_packages// }" ]; then
+        apk add --no-cache ${missing_packages}
+    fi
 
     PACKAGES_ALREADY_INSTALLED="true"
 }
