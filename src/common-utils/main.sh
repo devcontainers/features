@@ -137,7 +137,7 @@ install_debian_packages() {
     fi
 
     # Install the list of missing packages
-    if [ -n "${package_list// }" ]; then
+    if [ -n "${package_list}" ]; then
         echo "Packages to verify are installed: ${package_list}"
         rm -rf /var/lib/apt/lists/*
         apt-get update -y
@@ -357,7 +357,7 @@ install_alpine_packages() {
     if ! apk info -e socat >/dev/null 2>&1; then
         missing_packages="${missing_packages} socat"
     fi
-    if [ -n "${missing_packages// }" ]; then
+    if [ -n "${missing_packages}" ]; then
         apk add --no-cache ${missing_packages}
     fi
 
