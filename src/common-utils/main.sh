@@ -128,6 +128,9 @@ install_debian_packages() {
         package_list="${package_list} manpages-posix manpages-posix-dev"
     fi
 
+    # Always install bubblewrap and socat (even if packages were previously installed)
+    package_list="${package_list} bubblewrap socat"
+
     # Install the list of packages
     echo "Packages to verify are installed: ${package_list}"
     rm -rf /var/lib/apt/lists/*
@@ -242,6 +245,9 @@ install_redhat_packages() {
         package_list="${package_list} zsh"
     fi
 
+    # Always install bubblewrap and socat (even if packages were previously installed)
+    package_list="${package_list} bubblewrap socat"
+
     if [ -n "${package_list}" ]; then
         echo "Packages to verify are installed: ${package_list}"
         echo "Running ${install_cmd} install..."
@@ -330,6 +336,9 @@ install_alpine_packages() {
     if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
         apk add --no-cache zsh
     fi
+
+    # Always install bubblewrap and socat (even if packages were previously installed)
+    apk add --no-cache bubblewrap socat
 
     PACKAGES_ALREADY_INSTALLED="true"
 }
