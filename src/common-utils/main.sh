@@ -129,8 +129,10 @@ install_debian_packages() {
     fi
 
     local missing_package_list=""
-    for package in ${package_list}; do
-        if ! dpkg-query -W -f='${db:Status-Abbrev}' "${package}" 2>/dev/null | grep -q '^ii'; then
+    local packages=()
+    read -r -a packages <<< "${package_list}"
+    for package in "${packages[@]}"; do
+        if ! dpkg-query -W -f='${db:Status-Abbrev}\n' "${package}" 2>/dev/null | grep -q '^ii'; then
             missing_package_list="${missing_package_list} ${package}"
         fi
     done
@@ -160,8 +162,6 @@ install_debian_packages() {
         locale-gen
         LOCALE_ALREADY_SET="true"
     fi
-
-    PACKAGES_ALREADY_INSTALLED="true"
 
     # Clean up
     apt-get -y clean
@@ -252,7 +252,9 @@ install_redhat_packages() {
     fi
 
     local missing_package_list=""
-    for package in ${package_list}; do
+    local packages=()
+    read -r -a packages <<< "${package_list}"
+    for package in "${packages[@]}"; do
         if ! rpm -q "${package}" >/dev/null 2>&1; then
             missing_package_list="${missing_package_list} ${package}"
         fi
@@ -277,8 +279,6 @@ install_redhat_packages() {
     if [[ "${remove_epel}" = "true" ]]; then
         ${install_cmd} -y remove epel-release
     fi
-
-    PACKAGES_ALREADY_INSTALLED="true"
 }
 
 # Alpine Linux packages
@@ -349,7 +349,9 @@ install_alpine_packages() {
     fi
 
     local missing_package_list=""
-    for package in ${package_list}; do
+    local packages=()
+    read -r -a packages <<< "${package_list}"
+    for package in "${packages[@]}"; do
         if ! apk info -e "${package}" >/dev/null 2>&1; then
             missing_package_list="${missing_package_list} ${package}"
         fi
@@ -357,8 +359,6 @@ install_alpine_packages() {
     if [ -n "${missing_package_list}" ]; then
         apk add --no-cache ${missing_package_list}
     fi
-
-    PACKAGES_ALREADY_INSTALLED="true"
 }
 
 # ******************
@@ -636,7 +636,6 @@ if [ ! -d "/usr/local/etc/vscode-dev-containers" ]; then
     mkdir -p "$(dirname "${MARKER_FILE}")"
 fi
 echo -e "\
-    PACKAGES_ALREADY_INSTALLED=${PACKAGES_ALREADY_INSTALLED}\n\
     LOCALE_ALREADY_SET=${LOCALE_ALREADY_SET}\n\
     EXISTING_NON_ROOT_USER=${EXISTING_NON_ROOT_USER}\n\
     RC_SNIPPET_ALREADY_ADDED=${RC_SNIPPET_ALREADY_ADDED}\n\
