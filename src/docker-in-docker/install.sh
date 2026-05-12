@@ -287,10 +287,13 @@ else
 fi
 
 # Install base dependencies
+# Note: erofs-utils provides mkfs.erofs, required by containerd >= 2.3.x snapshotter
+# to avoid "failed to check mkfs.erofs availability" errors at dockerd startup
+# (see https://github.com/devcontainers/features/issues/1642).
 base_packages="curl ca-certificates pigz iptables gnupg2 wget jq"
 case ${ADJUSTED_ID} in
     debian)
-        check_packages apt-transport-https $base_packages dirmngr
+        check_packages apt-transport-https $base_packages dirmngr erofs-utils
         ;;
     rhel)
         check_packages $base_packages tar gawk shadow-utils policycoreutils  procps-ng systemd-libs systemd-devel
