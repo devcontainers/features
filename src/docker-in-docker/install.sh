@@ -719,11 +719,21 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
             err "Docker compose v1 is unavailable for 'bookworm' on Arm64. Kindly switch to use v2"
             exit 1
         else
-            # Use pip to get a version that runs on this architecture
+            # Use pip (inside an isolated venv) to get a version that runs on this architecture.
+            # A dedicated venv avoids PEP 668 "externally-managed-environment" errors on newer
+            # distros (Debian trixie, Ubuntu noble, etc.) and guarantees we do not modify or
+            # shadow the distro-managed system Python site-packages.
             check_packages python3-minimal python3-pip libffi-dev python3-venv
-            echo "(*) Installing docker compose v1 via pip..."
-            export PYTHONUSERBASE=/usr/local
-            pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
+            echo "(*) Installing docker compose v1 via pip into an isolated virtualenv..."
+
+            compose_v1_venv="/usr/local/share/docker-compose-v1-venv"
+            python3 -m venv "${compose_v1_venv}"
+            "${compose_v1_venv}/bin/pip" install --disable-pip-version-check --no-cache-dir --upgrade pip setuptools wheel
+            "${compose_v1_venv}/bin/pip" install --disable-pip-version-check --no-cache-dir "Cython<3.0" pyyaml docker-compose --no-build-isolation
+
+            # Expose the venv's docker-compose entrypoint on PATH at the expected location.
+            ln -sf "${compose_v1_venv}/bin/docker-compose" "${docker_compose_path}"
+            chmod +x "${docker_compose_path}"
         fi
     else
         compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
