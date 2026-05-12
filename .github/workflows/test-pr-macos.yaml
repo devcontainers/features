@@ -1,0 +1,56 @@
+name: "PR - Test Updated Features (macOS)"
+on:
+  pull_request:
+    # NOTE: To extend this workflow to other features, add path entries below
+    # following the same pattern, e.g.:
+    #   - "src/<feature-name>/**"
+    #   - "test/<feature-name>/**"
+    paths:
+      - "src/docker-in-docker/**"
+      - "test/docker-in-docker/**"
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      features: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          # NOTE: To extend this workflow to other features, add filter entries below
+          # following the same pattern, e.g.:
+          #   <feature-name>: ./**/<feature-name>/**
+          filters: |
+            docker-in-docker: ./**/docker-in-docker/**
+
+  test:
+    needs: [detect-changes]
+    runs-on: macos-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        features: ${{ fromJSON(needs.detect-changes.outputs.features) }}
+        baseImage:
+          [
+            "ubuntu:noble",
+            "debian:12",
+            "mcr.microsoft.com/devcontainers/base:ubuntu",
+            "mcr.microsoft.com/devcontainers/base:debian",
+            "mcr.microsoft.com/devcontainers/base:noble"
+          ]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: "Install Docker on macOS runner"
+        run: |
+          brew update
+          brew install docker colima
+          colima start
+          docker version
+
+      - name: "Install latest devcontainer CLI"
+        run: npm install -g @devcontainers/cli
+
+      - name: "Generating tests for '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+        run: devcontainer features test --skip-scenarios -f ${{ matrix.features }} -i ${{ matrix.baseImage }} .
