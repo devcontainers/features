@@ -874,6 +874,28 @@ if [ "$DISABLE_IP6_TABLES" == true ]; then
     fi
 fi
 
+# Workaround for https://github.com/devcontainers/features/issues/1642
+# containerd >= 2.3 ships an erofs snapshotter that requires mkfs.erofs >= 1.7.
+# Older distros (Debian 12, Ubuntu 22.04) ship erofs-utils 1.4/1.5, so when the
+# host kernel exposes the 'erofs' filesystem the snapshotter fails to initialize
+# and dockerd times out waiting for containerd. Disable the plugin so containerd
+# always uses overlayfs regardless of distro / mkfs.erofs version.
+if command -v containerd >/dev/null 2>&1; then
+    mkdir -p /etc/containerd
+    if [ ! -f /etc/containerd/config.toml ]; then
+        containerd config default > /etc/containerd/config.toml 2>/dev/null || echo "" > /etc/containerd/config.toml
+    fi
+    if ! grep -q "io.containerd.snapshotter.v1.erofs" /etc/containerd/config.toml; then
+        cat >> /etc/containerd/config.toml <<'EOF'
+
+# Added by devcontainers/features docker-in-docker: disable erofs snapshotter
+# to avoid mkfs.erofs version requirements (containerd >= 2.3).
+[plugins.'io.containerd.snapshotter.v1.erofs']
+  disable = true
+EOF
+    fi
+fi
+
 if [ ! -d /usr/local/share ]; then
     mkdir -p /usr/local/share
 fi
