@@ -154,6 +154,14 @@
             }
         }
     },
+    "docker_build_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
+        "features": {
+            "docker-in-docker": {
+                "moby": false
+            }
+        }
+    },
     "docker_specific_moby_buildx": {
         "image": "ubuntu:noble",
         "features": {
