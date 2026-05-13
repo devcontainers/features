@@ -51,6 +51,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: "Load erofs module and verify"
+        run: sudo modprobe erofs && grep erofs /proc/filesystems
+
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
 
