@@ -877,23 +877,53 @@ fi
 # Workaround for https://github.com/devcontainers/features/issues/1642
 # containerd >= 2.3 ships an erofs snapshotter that requires mkfs.erofs >= 1.7.
 # Older distros (Debian 12, Ubuntu 22.04) ship erofs-utils 1.4/1.5, so when the
-# host kernel exposes the 'erofs' filesystem the snapshotter fails to initialize
-# and dockerd times out waiting for containerd. Disable the plugin so containerd
-# always uses overlayfs regardless of distro / mkfs.erofs version.
-if command -v containerd >/dev/null 2>&1; then
-    mkdir -p /etc/containerd
-    if [ ! -f /etc/containerd/config.toml ]; then
-        containerd config default > /etc/containerd/config.toml 2>/dev/null || echo "" > /etc/containerd/config.toml
+# host kernel exposes the 'erofs' filesystem the snapshotter fails to
+# initialize and dockerd times out waiting for containerd. Disable the plugin
+# via the top-level `disabled_plugins` list so containerd always uses
+# overlayfs, regardless of distro / mkfs.erofs version.
+mkdir -p /etc/containerd
+if [ ! -s /etc/containerd/config.toml ]; then
+    if command -v containerd >/dev/null 2>&1; then
+        containerd config default > /etc/containerd/config.toml 2>/dev/null || : > /etc/containerd/config.toml
+    elif [ -x /usr/sbin/containerd ]; then
+        /usr/sbin/containerd config default > /etc/containerd/config.toml 2>/dev/null || : > /etc/containerd/config.toml
+    elif [ -x /usr/bin/containerd ]; then
+        /usr/bin/containerd config default > /etc/containerd/config.toml 2>/dev/null || : > /etc/containerd/config.toml
+    else
+        : > /etc/containerd/config.toml
     fi
-    if ! grep -q "io.containerd.snapshotter.v1.erofs" /etc/containerd/config.toml; then
-        cat >> /etc/containerd/config.toml <<'EOF'
+fi
 
-# Added by devcontainers/features docker-in-docker: disable erofs snapshotter
-# to avoid mkfs.erofs version requirements (containerd >= 2.3).
-[plugins.'io.containerd.snapshotter.v1.erofs']
-  disable = true
-EOF
+EROFS_PLUGIN_URI='io.containerd.snapshotter.v1.erofs'
+EROFS_MARKER='# devcontainers-features:disable-erofs'
+
+if ! grep -qF "${EROFS_MARKER}" /etc/containerd/config.toml; then
+    if grep -qE '^[[:space:]]*disabled_plugins[[:space:]]*=' /etc/containerd/config.toml; then
+        # Add erofs URI to the existing top-level disabled_plugins list.
+        # Branches are mutually exclusive and guarded so we never produce
+        # duplicate entries on re-runs.
+        if grep -qE '^[[:space:]]*disabled_plugins[[:space:]]*=[[:space:]]*\[[[:space:]]*\]' /etc/containerd/config.toml; then
+            # disabled_plugins = []  ->  insert URI as the only entry.
+            sed -i -E \
+              "s|^([[:space:]]*disabled_plugins[[:space:]]*=[[:space:]]*\[)[[:space:]]*\]|\1\"${EROFS_PLUGIN_URI}\"]|" \
+              /etc/containerd/config.toml
+        elif ! grep -qF "\"${EROFS_PLUGIN_URI}\"" /etc/containerd/config.toml; then
+            # disabled_plugins = ["existing", ...]  ->  append URI.
+            sed -i -E \
+              "s|^([[:space:]]*disabled_plugins[[:space:]]*=[[:space:]]*\[)([^]]*[^],[:space:]])[[:space:]]*\]|\1\2, \"${EROFS_PLUGIN_URI}\"]|" \
+              /etc/containerd/config.toml
+        fi
+    else
+        # No disabled_plugins key in the config: prepend one.
+        tmp_cfg="$(mktemp)"
+        {
+            printf 'disabled_plugins = ["%s"]\n\n' "${EROFS_PLUGIN_URI}"
+            cat /etc/containerd/config.toml
+        } > "${tmp_cfg}"
+        mv "${tmp_cfg}" /etc/containerd/config.toml
     fi
+    # Idempotency marker
+    printf '\n%s\n' "${EROFS_MARKER}" >> /etc/containerd/config.toml
 fi
 
 if [ ! -d /usr/local/share ]; then
@@ -994,8 +1024,42 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
     fi
 
+
+    # Start our own containerd so it picks up /etc/containerd/config.toml
+    # (notably the disabled_plugins entry for the erofs snapshotter, see
+    # https://github.com/devcontainers/features/issues/1642). dockerd's
+    # built-in containerd child uses an auto-generated config that ignores
+    # /etc/containerd/config.toml, so we must run containerd ourselves and
+    # point dockerd at it via --containerd.
+    CONTAINERD_SOCK="/run/containerd/containerd.sock"
+    CONTAINERD_BIN=""
+    for candidate in /usr/local/bin/containerd /usr/bin/containerd /usr/sbin/containerd; do
+        if [ -x "$candidate" ]; then
+            CONTAINERD_BIN="$candidate"
+            break
+        fi
+    done
+    DOCKERD_CONTAINERD_ARG=""
+    if [ -n "$CONTAINERD_BIN" ] && [ -f /etc/containerd/config.toml ]; then
+        mkdir -p /run/containerd
+        if ! pgrep -x containerd > /dev/null 2>&1; then
+            ( "$CONTAINERD_BIN" --config /etc/containerd/config.toml > /tmp/containerd.log 2>&1 ) &
+        fi
+        # Wait up to ~5s for the socket to appear
+        i=0
+        while [ $i -lt 50 ] && [ ! -S "$CONTAINERD_SOCK" ]; do
+            sleep 0.1
+            i=$((i + 1))
+        done
+        if [ -S "$CONTAINERD_SOCK" ]; then
+            DOCKERD_CONTAINERD_ARG="--containerd $CONTAINERD_SOCK"
+        else
+            echo "(*) containerd socket not ready; letting dockerd spawn its own containerd."
+        fi
+    fi
+
     # Start docker/moby engine
-    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DOCKER_DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
+    ( dockerd $DOCKERD_CONTAINERD_ARG $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DOCKER_DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
 )"
 
