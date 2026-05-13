@@ -9,6 +9,8 @@ source dev-container-features-test-lib
 . /etc/os-release
 check "non-root user" test "$(whoami)" = "devcontainer"
 check "distro" test "${VERSION_CODENAME}" = "jammy"
+check "bubblewrap" bwrap --version
+check "socat" socat -V
 
 # Report result
 reportResults
