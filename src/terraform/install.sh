@@ -249,7 +249,7 @@ find_sentinel_version_from_url() {
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local prefix='sentinel_'
         local regex="${prefix}\d.\d{2}.\d(?:-\w*)?"
-        local version_list="$(wget -q $2 -O - | grep -oP ${regex} | tr -d ${prefix} | sort -rV)"
+        local version_list="$(wget -q $2 -O - | grep -oP ${regex} | sed "s/^${prefix}//" | sort -rV)"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
             declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
         else
