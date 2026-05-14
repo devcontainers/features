@@ -624,9 +624,19 @@ else
                         
                         # Download packages manually using curl since tdnf doesn't support download
                         echo "(*) Downloading Docker CE packages manually..."
-                        
+
+                        # Derive repo arch from the current platform. The Docker CE centos
+                        # repo uses 'x86_64' and 'aarch64' as the per-arch directory names,
+                        # which matches the values produced by `rpm --eval '%{_arch}'` /
+                        # `uname -m` for those platforms.
+                        case "${architecture}" in
+                            amd64|x86_64) repo_arch="x86_64" ;;
+                            arm64|aarch64) repo_arch="aarch64" ;;
+                            *) repo_arch="${architecture}" ;;
+                        esac
+
                         # Get the repository baseurl
-                        repo_baseurl="https://download.docker.com/linux/centos/9/x86_64/stable"
+                        repo_baseurl="https://download.docker.com/linux/centos/9/${repo_arch}/stable"
                         
                         # Download packages directly
                         cd /tmp/docker-ce-install
@@ -643,12 +653,12 @@ else
                         echo "(*) Attempting to download Docker CE packages from repository..."
                         
                         # Try to download latest packages if specific version fails
-                        if ! curl -fsSL "${repo_baseurl}/Packages/docker-ce-${docker_ce_version}.el9.x86_64.rpm" -o docker-ce.rpm 2>/dev/null; then
+                        if ! curl -fsSL "${repo_baseurl}/Packages/docker-ce-${docker_ce_version}.el9.${repo_arch}.rpm" -o docker-ce.rpm 2>/dev/null; then
                             # Fallback: try to get latest available version
                             echo "(*) Specific version not found, trying latest..."
-                            latest_docker=$(curl -s "${repo_baseurl}/Packages/" | grep -o 'docker-ce-[0-9][^"]*\.el9\.x86_64\.rpm' | head -1)
-                            latest_cli=$(curl -s "${repo_baseurl}/Packages/" | grep -o 'docker-ce-cli-[0-9][^"]*\.el9\.x86_64\.rpm' | head -1)
-                            latest_containerd=$(curl -s "${repo_baseurl}/Packages/" | grep -o 'containerd\.io-[0-9][^"]*\.el9\.x86_64\.rpm' | head -1)
+                            latest_docker=$(curl -s "${repo_baseurl}/Packages/" | grep -o "docker-ce-[0-9][^\"]*\.el9\.${repo_arch}\.rpm" | head -1)
+                            latest_cli=$(curl -s "${repo_baseurl}/Packages/" | grep -o "docker-ce-cli-[0-9][^\"]*\.el9\.${repo_arch}\.rpm" | head -1)
+                            latest_containerd=$(curl -s "${repo_baseurl}/Packages/" | grep -o "containerd\.io-[0-9][^\"]*\.el9\.${repo_arch}\.rpm" | head -1)
                             
                             if [ -n "${latest_docker}" ]; then
                                 curl -fsSL "${repo_baseurl}/Packages/${latest_docker}" -o docker-ce.rpm
