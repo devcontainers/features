@@ -9,5 +9,7 @@ source dev-container-features-test-lib
 check "ruby version" ruby  --version
 check "gem version" gem --version
 
+check "ruby version uses dot separator" bash -c "ruby --version | grep -oP '\d+\.\d+\.\d+'"
+
 # Report result
 reportResults
