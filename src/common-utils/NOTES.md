@@ -2,6 +2,13 @@
 
 This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, RockyLinux, and Alpine Linux.
 
+## Included utilities
+
+In addition to the common CLI tools (curl, wget, git, jq, nano, vim, etc.), this Feature installs:
+
+- **bubblewrap** (`bwrap`) — a lightweight sandboxing tool used as a dependency by some desktop and container tooling.
+- **socat** — a multipurpose relay for bidirectional data transfer between two independent data channels (e.g., sockets, files, pipes).
+
 ## Using with dev container images
 
 This Feature is used in many of the [dev container images](https://github.com/search?q=repo%3Adevcontainers%2Fimages+%22ghcr.io%2Fdevcontainers%2Ffeatures%2Fcommon-utils%22&type=code), as a result
