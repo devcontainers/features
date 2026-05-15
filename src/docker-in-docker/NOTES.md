@@ -15,4 +15,6 @@ This Feature should work on recent versions of Debian/Ubuntu-based distributions
 
 Debian Trixie (13) does not include moby-cli and related system packages, so the feature cannot install with "moby": "true". To use this feature on Trixie, please set "moby": "false" or choose a different base image (for example, Ubuntu 24.04).
 
+Ubuntu 26.04 (Resolute) does not currently have moby packages available, so the feature cannot install with "moby": "true". To use this feature on Resolute, please set "moby": "false". Additionally, the kernel on Ubuntu 26.04 no longer supports legacy iptables NAT tables, so the feature automatically falls back to `iptables-nft` when `iptables-legacy` is not functional.
+
 `bash` is required to execute the `install.sh` script.

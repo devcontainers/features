@@ -20,7 +20,7 @@ INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"false"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 MICROSOFT_GPG_KEYS_ROLLING_URI="https://packages.microsoft.com/keys/microsoft-rolling.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble"
-DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble"
+DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble resolute"
 DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
 
 # Default: Exit on any failure.
@@ -249,10 +249,10 @@ if [ "${ID}" = "azurelinux" ]; then
     VERSION_CODENAME="azurelinux${VERSION_ID}"
 fi
 
-# Prevent attempting to install Moby on Debian trixie (packages removed)
-if [ "${USE_MOBY}" = "true" ] && [ "${ID}" = "debian" ] && [ "${VERSION_CODENAME}" = "trixie" ]; then
-    err "The 'moby' option is not supported on Debian 'trixie' because 'moby-cli' and related system packages have been removed from that distribution."
-    err "To continue, either set the feature option '\"moby\": false' or use a different base image (for example: 'debian:bookworm' or 'ubuntu-24.04')."
+# Prevent attempting to install Moby on Debian trixie/resolute (packages removed)
+if [ "${USE_MOBY}" = "true" ] && [ "${ADJUSTED_ID}" = "debian" ] && ([ "${VERSION_CODENAME}" = "trixie" ] || [ "${VERSION_CODENAME}" = "resolute" ]); then
+    err "The 'moby' option is not supported on ${ID} '${VERSION_CODENAME}' because 'moby-cli' and related system packages are not available in that distribution."
+    err "To continue, either set the feature option '\"moby\": false' or use a different base image."
     exit 1
 fi
 
@@ -311,9 +311,24 @@ if [ "${ADJUSTED_ID}" = "debian" ] && command -v update-ca-certificates > /dev/n
 fi
 
 # Swap to legacy iptables for compatibility (Debian only)
-if [ "${ADJUSTED_ID}" = "debian" ] && type iptables-legacy > /dev/null 2>&1; then
-    update-alternatives --set iptables /usr/sbin/iptables-legacy
-    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+if [ "${ADJUSTED_ID}" = "debian" ]; then
+    # On distros where legacy iptables is no longer kernel-supported (e.g. Ubuntu 26.04 / resolute),
+    # prefer iptables-nft. Otherwise prefer legacy for backward compatibility.
+    use_nft=false
+    case "${VERSION_CODENAME}" in
+        resolute) use_nft=true ;;
+    esac
+
+    if [ "${use_nft}" = "true" ] && type iptables-nft > /dev/null 2>&1; then
+        update-alternatives --set iptables /usr/sbin/iptables-nft || true
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
+    elif type iptables-legacy > /dev/null 2>&1; then
+        update-alternatives --set iptables /usr/sbin/iptables-legacy || true
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
+    elif type iptables-nft > /dev/null 2>&1; then
+        update-alternatives --set iptables /usr/sbin/iptables-nft || true
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
+    fi
 fi
 
 # Set up the necessary repositories
