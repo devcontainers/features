@@ -181,6 +181,14 @@
             }
         }
     },
+    "install_on_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false
+            }
+        }
+    },
     "rootless_docker_socket": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
