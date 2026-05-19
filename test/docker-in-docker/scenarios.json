@@ -117,7 +117,7 @@
         }
     },
     "docker_python_bookworm": {
-        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+        "image": "mcr.microsoft.com/devcontainers/base:2.1.8-bookworm",
         "features": {
             "docker-in-docker": {
                 "moby": true,
