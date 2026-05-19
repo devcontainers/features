@@ -1,4 +1,13 @@
 {
+    "overlayfs_containerd_root": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": true
+            }
+        }
+    },    
     "docker_build_fallback_compose": {
         "image": "ubuntu:noble",
         "features": {
