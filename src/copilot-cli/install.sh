@@ -63,7 +63,7 @@ install_using_github() {
     if [ "${CLI_VERSION}" = "latest" ]; then
         download_from_github "https://github.com/github/copilot-cli/releases/latest/download/${cli_filename}"
     elif [ "${CLI_VERSION}" = "prerelease" ]; then
-        prerelease_version="$(git ls-remote --tags https://github.com/github/copilot-cli | tail -1 | awk -F/ '{print $NF}')"
+        prerelease_version="$(git ls-remote --tags https://github.com/github/copilot-cli | awk '{print $2}' | sed 's|refs/tags/||' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?' | sort -V | tail -n1)"
         download_from_github "https://github.com/github/copilot-cli/releases/download/${prerelease_version}/${cli_filename}"
     else
         # Install specific version
