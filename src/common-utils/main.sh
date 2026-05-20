@@ -216,8 +216,12 @@ install_redhat_packages() {
         which \
         man-db \
         strace \
-        bubblewrap \
         socat"
+
+    # Install bubblewrap if available (not present in UBI repositories)
+    if ${install_cmd} -q list bubblewrap >/dev/null 2>&1; then
+        package_list="${package_list} bubblewrap"
+    fi
 
     # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
     # Install 'curl' for every OS except this rockylinux:9
