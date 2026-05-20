@@ -47,7 +47,9 @@ jobs:
           ]
         exclude:
           - features: docker-in-docker
-            baseImage: mcr.microsoft.com/devcontainers/base:debian           
+            baseImage: mcr.microsoft.com/devcontainers/base:debian
+          - features: docker-in-docker
+            baseImage: mcr.microsoft.com/devcontainers/base:ubuntu       
     steps:
       - uses: actions/checkout@v6
 
