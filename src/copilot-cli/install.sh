@@ -45,6 +45,21 @@ download_from_github() {
     rm -rf /tmp/copilotcli
 }
 
+# Resolves the latest prerelease version tag from git ls-remote output.
+# Filters to well-formed vX.Y.Z or vX.Y.Z-N tags and sorts by version.
+# Reads ls-remote formatted lines from stdin if no arguments are provided,
+# otherwise runs git ls-remote --tags against the given repository URL.
+resolve_prerelease_version() {
+    local repo_url="${1:-}"
+    if [ -n "${repo_url}" ]; then
+        git ls-remote --tags "${repo_url}"
+    else
+        cat
+    fi | awk '{print $2}' | sed 's|refs/tags/||' \
+      | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$' \
+      | sort -V | tail -n1
+}
+
 install_using_github() {
     check_packages wget tar ca-certificates git
     echo "Finished setting up dependencies"
@@ -63,7 +78,7 @@ install_using_github() {
     if [ "${CLI_VERSION}" = "latest" ]; then
         download_from_github "https://github.com/github/copilot-cli/releases/latest/download/${cli_filename}"
     elif [ "${CLI_VERSION}" = "prerelease" ]; then
-        prerelease_version="$(git ls-remote --tags https://github.com/github/copilot-cli | awk '{print $2}' | sed 's|refs/tags/||' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?' | sort -V | tail -n1)"
+        prerelease_version="$(resolve_prerelease_version "https://github.com/github/copilot-cli")"
         download_from_github "https://github.com/github/copilot-cli/releases/download/${prerelease_version}/${cli_filename}"
     else
         # Install specific version
