@@ -45,17 +45,12 @@ download_from_github() {
     rm -rf /tmp/copilotcli
 }
 
-# Resolves the latest prerelease version tag from git ls-remote output.
+# Resolves the latest prerelease version tag from a remote repository.
 # Filters to well-formed vX.Y.Z or vX.Y.Z-N tags and sorts by version.
-# Reads ls-remote formatted lines from stdin if no arguments are provided,
-# otherwise runs git ls-remote --tags against the given repository URL.
 resolve_prerelease_version() {
-    local repo_url="${1:-}"
-    if [ -n "${repo_url}" ]; then
-        git ls-remote --tags "${repo_url}"
-    else
-        cat
-    fi | awk '{print $2}' | sed 's|refs/tags/||' \
+    local repo_url="${1:?resolve_prerelease_version requires a repository URL}"
+    git ls-remote --tags "${repo_url}" \
+      | awk '{print $2}' | sed 's|refs/tags/||' \
       | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$' \
       | sort -V | tail -n1
 }
