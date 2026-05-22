@@ -31,6 +31,14 @@ check_packages() {
     fi
 }
 
+resolve_prerelease_version() {
+    local repo_versions="${1:?resolve_prerelease_version requires the copilot-cli repo tags as input}"
+    printf '%s\n' "${repo_versions}" \
+      | awk '{print $2}' | sed 's|refs/tags/||' \
+      | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$' \
+      | sort -V | tail -n1
+}
+
 download_from_github() {
     local release_url=$1
     echo "Downloading GitHub Copilot CLI from ${release_url}..."
@@ -63,11 +71,10 @@ install_using_github() {
     if [ "${CLI_VERSION}" = "latest" ]; then
         download_from_github "https://github.com/github/copilot-cli/releases/latest/download/${cli_filename}"
     elif [ "${CLI_VERSION}" = "prerelease" ]; then
-        prerelease_version="$(git ls-remote --tags https://github.com/github/copilot-cli \
-            | awk '{print $2}' | sed 's|refs/tags/||' \
-            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$' \
-            | sort -V | tail -n1)"
+
+        prerelease_version="$(resolve_prerelease_version "$(git ls-remote --tags https://github.com/github/copilot-cli)")"
         download_from_github "https://github.com/github/copilot-cli/releases/download/${prerelease_version}/${cli_filename}"
+        
     else
         # Install specific version
         # Add leading v to version if it doesn't start with v
