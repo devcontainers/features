@@ -10,6 +10,8 @@ source dev-container-features-test-lib
 check "non-root user" test "$(whoami)" = "devcontainer"
 check "distro" test "${ID}" = "fedora"
 check "jq" jq  --version
+check "bubblewrap" bwrap --version
+check "socat" socat -V
 
 # Report result
 reportResults
