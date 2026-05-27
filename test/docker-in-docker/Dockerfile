@@ -1,1 +1,1 @@
-FROM ubuntu:focal
+FROM ubuntu:noble
