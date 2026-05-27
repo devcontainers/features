@@ -1,4 +1,40 @@
 {
+    "docker_without_iptables": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
+    },
+    "docker_with_iptables": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },
+    "docker_without_iptables_ubuntu": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
+    },
+    "docker_with_iptables_ubuntu": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },        
     "overlayfs_containerd_root": {
         "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
