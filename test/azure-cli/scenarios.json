@@ -111,5 +111,14 @@
         "version": "latest"
       }
     }
+  },
+  "install_fallback_pip_ubuntu_plucky": {
+    "image": "mcr.microsoft.com/devcontainers/base:plucky",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest"
+      }
+    }
   }
 }
