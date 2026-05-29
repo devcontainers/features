@@ -19,7 +19,7 @@ AZ_BICEPVERSION=${BICEPVERSION:-latest}
 INSTALL_USING_PYTHON=${INSTALLUSINGPYTHON:-false}
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 AZCLI_ARCHIVE_ARCHITECTURES="amd64 arm64"
-AZCLI_ARCHIVE_VERSION_CODENAMES="stretch bookworm buster bullseye bionic focal jammy noble trixie"
+AZCLI_ARCHIVE_VERSION_CODENAMES="stretch bookworm buster bullseye bionic focal jammy noble trixie resolute"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -200,6 +200,9 @@ CACHED_AZURE_VERSION="${AZ_VERSION}" # In case we need to fallback to pip and th
 if [ "${INSTALL_USING_PYTHON}" != "true" ]; then
     if [[ "${AZCLI_ARCHIVE_ARCHITECTURES}" = *"${architecture}"* ]] && [[  "${AZCLI_ARCHIVE_VERSION_CODENAMES}" = *"${VERSION_CODENAME}"* ]]; then
         install_using_apt || use_pip="true"
+    else
+        echo "(*) Codename '${VERSION_CODENAME}' or architecture '${architecture}' not in apt archive list, falling back to pip installation."
+        use_pip="true"
     fi
 else
     use_pip="true"
