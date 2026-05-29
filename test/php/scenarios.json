@@ -40,5 +40,23 @@
                 "version": "latest"
             }
         }
+    },
+    "install_builtin_extensions": {
+        "image": "ubuntu:noble",
+        "features": {
+            "php": {
+                "version": "latest",
+                "extensions": "intl zip pdo_pgsql ldap"
+            }
+        }
+    },
+    "install_pecl_extensions": {
+        "image": "ubuntu:noble",
+        "features": {
+            "php": {
+                "version": "latest",
+                "extensions": "xdebug redis"
+            }
+        }
     }
 }

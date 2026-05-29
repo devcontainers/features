@@ -14,9 +14,10 @@
 ## Options
 
 | Options Id | Description | Type | Default Value |
-|-----|-----|-----|-----|
+|-----|-----|-----|------|
 | version | Select or enter a PHP version | string | latest |
 | installComposer | Install PHP Composer? | boolean | true |
+| extensions | Space separateed list of extensions | string | empty|
 
 ## Customizations
 

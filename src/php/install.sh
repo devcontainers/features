@@ -12,8 +12,11 @@ set -eux
 rm -rf /var/lib/apt/lists/*
 
 PHP_VERSION="${VERSION:-"latest"}"
+read -r -a PHP_EXTENSIONS <<< "${EXTENSIONS-""}"
 INSTALL_COMPOSER="${INSTALLCOMPOSER:-"true"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
+
+PHP_EXTENSIONS+=("openssl" "curl" "zlib" "mbstring")
 
 export PHP_DIR="${PHP_DIR:-"/usr/local/php"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -75,12 +78,13 @@ updaterc() {
 
 # Checks if packages are installed and installs them if not
 check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
+    local packages=("$@")
+    if ! dpkg -s "${packages[@]}" > /dev/null 2>&1; then
         if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
             echo "Running apt-get update..."
             apt-get update -y
         fi
-        apt-get -y install --no-install-recommends "$@"
+        apt-get -y install --no-install-recommends "${packages[@]}"
     fi
 }
 
@@ -217,6 +221,13 @@ install_php() {
     tar -xf $PHP_SRC_DIR/php.tar.xz -C "$PHP_SRC_DIR" --strip-components=1
     cd $PHP_SRC_DIR;
 
+    CONFIGURE_ARGS=(
+        "--prefix=${PHP_INSTALL_DIR}"
+        "--with-config-file-path=${PHP_INI_DIR}"
+        "--with-config-file-scan-dir=${CONF_DIR}"
+        "--enable-option-checking=fatal"
+    )
+
     # PHP 7.4+, the pecl/pear installers are officially deprecated and are removed in PHP 8+
     # Thus, requiring an explicit "--with-pear"
     IFS="."
@@ -224,12 +235,15 @@ install_php() {
     PHP_MAJOR_VERSION=${versions[0]}
     PHP_MINOR_VERSION=${versions[1]}
 
-    VERSION_CONFIG=""
-    if (( $(($PHP_MAJOR_VERSION)) >= 8 )) || (( $(($PHP_MAJOR_VERSION)) == 7 && $(($PHP_MINOR_VERSION)) >= 4 )); then 
-        VERSION_CONFIG="--with-pear"
+    if (( $(($PHP_MAJOR_VERSION)) >= 8 )) || (( $(($PHP_MAJOR_VERSION)) == 7 && $(($PHP_MINOR_VERSION)) >= 4 )); then
+        CONFIGURE_ARGS+=("--with-pear")
     fi
 
-    ./configure --prefix="${PHP_INSTALL_DIR}" --with-config-file-path="$PHP_INI_DIR" --with-config-file-scan-dir="$CONF_DIR" --enable-option-checking=fatal --with-curl --with-libedit --enable-mbstring --with-openssl --with-zlib --with-password-argon2 --with-sodium=shared "$VERSION_CONFIG" EXTENSION_DIR="$PHP_EXT_DIR";
+    mapfile -t BUILTIN_ARGS < <(get_builtin_configure_flags "${PHP_EXTENSIONS[@]}")
+    CONFIGURE_ARGS+=("${BUILTIN_ARGS[@]}")
+    CONFIGURE_ARGS+=("EXTENSION_DIR=${PHP_EXT_DIR}")
+
+    ./configure "${CONFIGURE_ARGS[@]}"
 
     make -j "$(nproc)"
     find -type f -name '*.a' -delete
@@ -240,36 +254,297 @@ install_php() {
     cp -v $PHP_SRC_DIR/php.ini-* "$PHP_INI_DIR/";
     cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-    # Install xdebug
-    "${PHP_INSTALL_DIR}/bin/pecl" install xdebug
-    XDEBUG_INI="${CONF_DIR}/xdebug.ini"
-
-    echo "zend_extension=${PHP_EXT_DIR}/xdebug.so" > "${XDEBUG_INI}"
-    echo "xdebug.mode = debug" >> "${XDEBUG_INI}"
-    echo "xdebug.start_with_request = yes" >> "${XDEBUG_INI}"
-    echo "xdebug.client_port = 9003" >> "${XDEBUG_INI}"
+    install_pecl_extensions "${PHP_EXTENSIONS[@]}"
 }
 
-if [ "${PHP_VERSION}" != "none" ]; then
-    # Persistent / runtime dependencies
-    RUNTIME_DEPS="wget ca-certificates git build-essential xz-utils curl"
+is_pecl_extension() {
+    local extension=$1
+    local extensions=()
+    mapfile -t extensions < <(pecl_extensions)
 
-    # PHP dependencies
-    PHP_DEPS="libssl-dev libcurl4-openssl-dev libedit-dev libsqlite3-dev libxml2-dev zlib1g-dev libsodium-dev libonig-dev"
+    for item in "${extensions[@]}"; do
+        if [[ "${item}" == "${extension}" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+pecl_extensions() {
+    local packages=("xdebug" "redis" "apcu")
+
+    printf '%s\n' "${packages[@]}"
+}
+
+is_builtin_extension() {
+    local extension=$1
+    local extensions=()
+    mapfile -t extensions < <(builtin_extensions)
+
+    for item in "${extensions[@]}"; do
+        if [[ "$item" == "$extension" ]]; then
+            return 1
+        fi
+    done
+
+    return 0
+}
+
+builtin_extensions() {
+    local packages=(
+        "bcmath"
+        "bz2"
+        "calendar"
+        "exif"
+        "ftp"
+        "gd"
+        "gettext"
+        "gmp"
+        "intl"
+        "ldap"
+        "mbstring"
+        "mysqli"
+        "openssl"
+        "password-argon2"
+        "pcntl"
+        "pdo"
+        "pdo_dblib"
+        "pdo_firebird"
+        "pdo_oci"
+        "pdo_odbc"
+        "pdo_pgsql"
+        "pdo_mysql"
+        "pdo_sqlite"
+        "soap"
+        "sockets"
+        "zip"
+        "zlib"
+    )
+
+    printf '%s\n' "${packages[@]}"
+}
+
+get_builtin_configure_flags() {
+    local extensions=("$@")
+    local flags=()
+
+    for ext in "${extensions[@]}"; do
+        case "$ext" in
+            password-argon2)
+                flags+=("--with-password-argon2")
+                ;;
+            bcmath)
+                flags+=("--enable-bcmath")
+                ;;
+            bz2)
+                flags+=("--with-bz2")
+                ;;
+            calendar)
+                flags+=("--enable-calendar")
+                ;;
+            curl)
+                flags+=("--with-curl")
+                ;;
+            exif)
+                flags+=("--enable-exif")
+                ;;
+            ftp)
+                flags+=("--enable-ftp")
+                ;;
+            gd)
+                flags+=("--with-gd")
+                ;;
+            gettext)
+                flags+=("--with-gettext")
+                ;;
+            gmp)
+                flags+=("--with-gmp")
+                ;;
+            intl)
+                flags+=("--enable-intl")
+                ;;
+            ldap)
+                flags+=("--with-ldap")
+                ;;
+            mbstring)
+                flags+=("--enable-mbstring")
+                ;;
+            mysqli)
+                flags+=("--with-mysqli")
+                ;;
+            openssl)
+                flags+=("--with-openssl")
+                ;;
+            pcntl)
+                flags+=("--enable-pcntl")
+                ;;
+            pdo)
+                flags+=("--enable-pdo")
+                ;;
+            pdo_dblib)
+                flags+=("--with-pdo-dblib")
+                ;;
+            pdo_firebird)
+                flags+=("--with-pdo-firebird")
+                ;;
+            pdo_mysql)
+                flags+=("--with-pdo-mysql")
+                ;;
+            pdo_oci)
+                flags+=("--with-pdo-oci")
+                ;;
+            pdo_odbc)
+                flags+=("--with-pdo-odbc")
+                ;;
+            pdo_pgsql)
+                flags+=("--with-pdo-pgsql")
+                ;;
+            pdo_sqlite)
+                flags+=("--with-pdo-sqlite")
+                ;;
+            soap)
+                flags+=("--enable-soap")
+                ;;
+            sockets)
+                flags+=("--enable-sockets")
+                ;;
+            zip)
+                flags+=("--with-zip")
+                ;;
+            zlib)
+                flags+=("--with-zlib")
+                ;;
+        esac
+    done
+
+    printf '%s\n' "${flags[@]}"
+}
+
+get_extension_apt_packages() {
+    local extensions=("$@")
+    local packages=()
 
     . /etc/os-release
 
-    if [ "${VERSION_CODENAME}" = "bionic" ]; then
-        PHP_DEPS="${PHP_DEPS} libargon2-0-dev"
-    else
-        PHP_DEPS="${PHP_DEPS} libargon2-dev"
-    fi
+    for ext in "${extensions[@]}"; do
+        case "$ext" in
+            intl)
+                packages+=("libicu-dev")
+                ;;
+            openssl)
+                packages+=("libssl-dev")
+                ;;
+            zip)
+                packages+=("libzip-dev")
+                ;;
+            gd)
+                packages+=("libpng-dev" "libjpeg-dev" "libfreetype6-dev")
+                ;;
+            gmp)
+                packages+=("libgmp-dev")
+                ;;
+            bz2)
+                packages+=("libbz2-dev")
+                ;;
+            gettext)
+                packages+=("gettext")
+                ;;
+            soap)
+                # libxml2-dev already present
+                ;;
+            imagick)
+                packages+=("libmagickwand-dev")
+                ;;
+            curl)
+                packages+=("libcurl4-openssl-dev")
+                ;;
+            mbstring)
+                packages+=("libonig-dev")
+                ;;
+            zlib)
+                packages+=("zlib1g-dev")
+                ;;
+            password-argon2)
+                if [ "${VERSION_CODENAME}" = "bionic" ]; then
+                    packages+=("libargon2-0-dev")
+                else
+                    packages+=("libargon2-dev")
+                fi
+                ;;
+            pdo_pgsql)
+                packages+=("libpq-dev")
+                ;;
+            pdo_sqlite)
+                packages+=("libsqlite3-dev")
+                ;;
+            pdo_odbc)
+                packages+=("unixodbc-dev")
+                ;;
+            pdo_dblib)
+                packages+=("freetds-dev")
+                ;;
+            ldap)
+                packages+=("libldap2-dev")
+                ;;
+        esac
+    done
+
+    printf '%s\n' "${packages[@]}" | sort -u
+}
+
+install_pecl_extensions() {
+    local extensions=("$@")
+    mapfile -t known_pecl_extensions < <(pecl_extensions)
+
+    local pecl_extensions=()
+    for known_pecl in "${known_pecl_extensions[@]}"; do
+        for ext in "${extensions[@]}"; do
+            if [[ "${known_pecl}" = "${ext}" ]]; then
+                pecl_extensions+=("${ext}")
+            fi
+        done
+    done
+
+    for ext in "${pecl_extensions[@]}"; do
+        local ini_file="${CONF_DIR}/${ext}.ini"
+        "${PHP_INSTALL_DIR}/bin/pecl" install "$ext"
+
+        case "$ext" in
+            xdebug)
+                echo "zend_extension=${PHP_EXT_DIR}/xdebug.so" > "${ini_file}"
+                echo "xdebug.mode=debug" >> "${ini_file}"
+                echo "xdebug.start_with_request=yes" >> "${ini_file}"
+                echo "xdebug.client_port=9003" >> "${ini_file}"
+                ;;
+            *)
+                echo "extension=${ext}.so" > "${ini_file}"
+                ;;
+        esac
+    done
+}
+
+if [ "${PHP_VERSION}" != "none" ]; then
+    APT_PACKAGES=()
+    # Persistent / runtime dependencies
+    RUNTIME_DEPS=("wget" "ca-certificates" "git" "build-essential" "xz-utils" "curl")
+    APT_PACKAGES+=("${RUNTIME_DEPS[@]}")
+
+    # PHP dependencies
+    # PHP_DEPS="libedit-dev"
+    PHP_DEPS=("libxml2-dev" "libsqlite3-dev")
+    APT_PACKAGES+=("${PHP_DEPS[@]}")
 
     # Dependencies required for running "phpize"
-    PHPIZE_DEPS="autoconf dpkg-dev file g++ gcc libc-dev make pkg-config re2c"
+    # PHPIZE_DEPS="autoconf dpkg-dev file g++ gcc libc-dev make pkg-config re2c"
+    PHPIZE_DEPS=("autoconf" "pkg-config")
+    APT_PACKAGES+=("${PHPIZE_DEPS[@]}")
+
+    mapfile -t BUILTIN_PACKAGE_DEPS < <(get_extension_apt_packages "${PHP_EXTENSIONS[@]}")
+    APT_PACKAGES+=("${BUILTIN_PACKAGE_DEPS[@]}")
 
     # Install dependencies
-    check_packages $RUNTIME_DEPS $PHP_DEPS $PHPIZE_DEPS
+    check_packages "${APT_PACKAGES[@]}"
 
     # storing value of PHP_VERSION before it changes
     ORIGINAL_PHP_VERSION=$PHP_VERSION
