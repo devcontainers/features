@@ -323,12 +323,15 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
     esac
 
     if [ "${use_nft}" = "true" ] && type iptables-nft > /dev/null 2>&1; then
+        echo "(*) Setting iptables alternatives to nft for better compatibility with newer kernels"
         update-alternatives --set iptables /usr/sbin/iptables-nft || true
         update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
     elif type iptables-legacy > /dev/null 2>&1; then
+        echo "(*) Setting iptables alternatives to legacy for better compatibility with Docker and older kernels"
         update-alternatives --set iptables /usr/sbin/iptables-legacy || true
         update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
     elif type iptables-nft > /dev/null 2>&1; then
+        echo "(*) Setting iptables alternatives to nft for better compatibility with newer kernels for non resolute"
         update-alternatives --set iptables /usr/sbin/iptables-nft || true
         update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
     fi
