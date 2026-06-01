@@ -314,28 +314,28 @@ if [ "${ADJUSTED_ID}" = "debian" ] && command -v update-ca-certificates > /dev/n
 fi
 
 # Swap to legacy iptables for compatibility (Debian only)
-if [ "${ADJUSTED_ID}" = "debian" ]; then
+#if [ "${ADJUSTED_ID}" = "debian" ]; then
     # On distros where legacy iptables is no longer kernel-supported (e.g. Ubuntu 26.04 / resolute),
     # prefer iptables-nft. Otherwise prefer legacy for backward compatibility.
-    use_nft=false
-    case "${VERSION_CODENAME}" in
-        resolute) use_nft=true ;;
-    esac
+#    use_nft=false
+#    case "${VERSION_CODENAME}" in
+#        resolute) use_nft=true ;;
+#    esac
 
-    if [ "${use_nft}" = "true" ] && type iptables-nft > /dev/null 2>&1; then
-        echo "(*) Setting iptables alternatives to nft for better compatibility with newer kernels"
-        update-alternatives --set iptables /usr/sbin/iptables-nft || true
-        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
-    elif type iptables-legacy > /dev/null 2>&1 && iptables-legacy -L > /dev/null 2>&1; then
-        echo "(*) Setting iptables alternatives to legacy for better compatibility with Docker and older kernels"
-        update-alternatives --set iptables /usr/sbin/iptables-legacy || true
-        update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
-    elif type iptables-nft > /dev/null 2>&1; then
-        echo "(*) Setting iptables alternatives to nft for better compatibility with newer kernels for non resolute"
-        update-alternatives --set iptables /usr/sbin/iptables-nft || true
-        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
-    fi
-fi
+#    if [ "${use_nft}" = "true" ] && type iptables-nft > /dev/null 2>&1; then
+#        echo "(*) Setting iptables alternatives to nft for better compatibility with newer kernels"
+#        update-alternatives --set iptables /usr/sbin/iptables-nft || true
+#        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
+#    elif type iptables-legacy > /dev/null 2>&1 && iptables-legacy -L > /dev/null 2>&1; then
+#        echo "(*) Setting iptables alternatives to legacy for better compatibility with Docker and older kernels"
+#        update-alternatives --set iptables /usr/sbin/iptables-legacy || true
+#        update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
+#    elif type iptables-nft > /dev/null 2>&1; then
+#        echo "(*) Setting iptables alternatives to nft for better compatibility with newer kernels for non resolute"
+#        update-alternatives --set iptables /usr/sbin/iptables-nft || true
+#        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
+#    fi
+#fi
 
 # Set up the necessary repositories
 if [ "${USE_MOBY}" = "true" ]; then
@@ -972,6 +972,22 @@ AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION}
 DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL}
 DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES}
 EOF
+
+# On Debian-based images, re-assert the iptables alternative at container start.
+# The base image may have switched it after this feature ran, so we re-apply
+# the preferred backend (legacy if functional, otherwise nft) before dockerd starts.
+if [ "${ADJUSTED_ID}" = "debian" ]; then
+    tee -a /usr/local/share/docker-init.sh > /dev/null \
+<< 'EOF'
+if type iptables-legacy > /dev/null 2>&1 && iptables-legacy -nL > /dev/null 2>&1; then
+    update-alternatives --set iptables /usr/sbin/iptables-legacy
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+elif type iptables-nft > /dev/null 2>&1; then
+    update-alternatives --set iptables /usr/sbin/iptables-nft
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
+fi
+EOF
+fi
 
 tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
