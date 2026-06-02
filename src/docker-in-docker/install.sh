@@ -974,16 +974,19 @@ DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES}
 EOF
 
 # On Debian-based images, re-assert the iptables alternative at container start.
-# The base image may have switched it after this feature ran, so we re-apply
-# the preferred backend (legacy if functional, otherwise nft) before dockerd starts.
 if [ "${ADJUSTED_ID}" = "debian" ]; then
     tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
-if type iptables-legacy > /dev/null 2>&1 && iptables-legacy -nL > /dev/null 2>&1; then
-    update-alternatives --set iptables /usr/sbin/iptables-legacy
+# Prefer legacy only when the ip_tables kernel module is actually present.
+# (Do NOT call `iptables-legacy -L/-nL` to test this — it auto-modprobes ip_tables
+# and would defeat hosts/scenarios where the module is intentionally absent.)
+if type iptables-legacy > /dev/null 2>&1 \
+   && { grep -qE '^(ip_tables)\b' /proc/modules \
+        || [ -d /sys/module/ip_tables ]; }; then
+    update-alternatives --set iptables  /usr/sbin/iptables-legacy
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 elif type iptables-nft > /dev/null 2>&1; then
-    update-alternatives --set iptables /usr/sbin/iptables-nft
+    update-alternatives --set iptables  /usr/sbin/iptables-nft
     update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
 fi
 EOF
