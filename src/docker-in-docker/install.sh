@@ -982,12 +982,14 @@ if [ "${ADJUSTED_ID}" = "debian" ]; then
 # and would defeat hosts/scenarios where the module is intentionally absent.)
 if type iptables-legacy > /dev/null 2>&1 \
    && { grep -qE '^(ip_tables)\b' /proc/modules \
-        || [ -d /sys/module/ip_tables ]; }; then
-    update-alternatives --set iptables  /usr/sbin/iptables-legacy
-    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
-elif type iptables-nft > /dev/null 2>&1; then
-    update-alternatives --set iptables  /usr/sbin/iptables-nft
-    update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
+        || [ -d /sys/module/ip_tables ]; } \
+   && update-alternatives --list iptables 2>/dev/null | grep -q '/usr/sbin/iptables-legacy'; then
+    update-alternatives --set iptables  /usr/sbin/iptables-legacy || true
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
+elif type iptables-nft > /dev/null 2>&1 \
+     && update-alternatives --list iptables 2>/dev/null | grep -q '/usr/sbin/iptables-nft'; then
+    update-alternatives --set iptables  /usr/sbin/iptables-nft  || true
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
 fi
 EOF
 fi
