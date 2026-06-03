@@ -60,4 +60,14 @@ This Feature should work on recent versions of Debian/Ubuntu-based distributions
 
 Debian Trixie (13) does not include moby-cli and related system packages, so the feature cannot install with "moby": "true". To use this feature on Trixie, please set "moby": "false" or choose a different base image (for example, Ubuntu 24.04).
 
+Ubuntu 26.04 LTS (Resolute) does not have moby-cli packages available, so the feature only supports installation with `"moby": false`. To use this feature on Ubuntu 26.04, set `"moby": false` in your feature configuration:
+
+```json
+"features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+        "moby": false
+    }
+}
+```
+
 `bash` is required to execute the `install.sh` script.

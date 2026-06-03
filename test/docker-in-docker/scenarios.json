@@ -1,4 +1,13 @@
 {
+    "overlayfs_containerd_root": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": true
+            }
+        }
+    },     
     "docker_build_fallback_compose": {
         "image": "ubuntu:noble",
         "features": {
@@ -108,7 +117,7 @@
         }
     },
     "docker_python_bookworm": {
-        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+        "image": "mcr.microsoft.com/devcontainers/base:2.1.8-bookworm",
         "features": {
             "docker-in-docker": {
                 "moby": true,
@@ -148,6 +157,14 @@
     },
     "install_on_debian_trixie": {
         "image": "debian:trixie",
+        "features": {
+            "docker-in-docker": {
+                "moby": false
+            }
+        }
+    },
+    "docker_build_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
         "features": {
             "docker-in-docker": {
                 "moby": false

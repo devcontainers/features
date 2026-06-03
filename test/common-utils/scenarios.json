@@ -305,5 +305,12 @@
                 "configureZshAsDefaultShell": true
             }
         }
+    },
+    "ubi-8": {
+        "image": "registry.access.redhat.com/ubi8/ubi:8.10",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
     }
 }

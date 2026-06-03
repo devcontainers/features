@@ -20,7 +20,7 @@ INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"false"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 MICROSOFT_GPG_KEYS_ROLLING_URI="https://packages.microsoft.com/keys/microsoft-rolling.asc"
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble"
-DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble"
+DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble resolute"
 DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
 
 # Default: Exit on any failure.
@@ -249,10 +249,10 @@ if [ "${ID}" = "azurelinux" ]; then
     VERSION_CODENAME="azurelinux${VERSION_ID}"
 fi
 
-# Prevent attempting to install Moby on Debian trixie (packages removed)
-if [ "${USE_MOBY}" = "true" ] && [ "${ID}" = "debian" ] && [ "${VERSION_CODENAME}" = "trixie" ]; then
-    err "The 'moby' option is not supported on Debian 'trixie' because 'moby-cli' and related system packages have been removed from that distribution."
-    err "To continue, either set the feature option '\"moby\": false' or use a different base image (for example: 'debian:bookworm' or 'ubuntu-24.04')."
+# Prevent attempting to install Moby on Debian trixie/resolute (packages removed)
+if [ "${USE_MOBY}" = "true" ] && [ "${ADJUSTED_ID}" = "debian" ] && ([ "${VERSION_CODENAME}" = "trixie" ] || [ "${VERSION_CODENAME}" = "resolute" ]); then
+    err "The 'moby' option is not supported on ${ID} '${VERSION_CODENAME}' because 'moby-cli' and related system packages are not available in that distribution."
+    err "To continue, either set the feature option '\"moby\": false' or use a different base image."
     exit 1
 fi
 
@@ -287,10 +287,13 @@ else
 fi
 
 # Install base dependencies
+# Note: erofs-utils provides mkfs.erofs, required by containerd >= 2.3.x snapshotter
+# to avoid "failed to check mkfs.erofs availability" errors at dockerd startup
+# (see https://github.com/devcontainers/features/issues/1642).
 base_packages="curl ca-certificates pigz iptables gnupg2 wget jq"
 case ${ADJUSTED_ID} in
     debian)
-        check_packages apt-transport-https $base_packages dirmngr
+        check_packages apt-transport-https $base_packages dirmngr erofs-utils
         ;;
     rhel)
         check_packages $base_packages tar gawk shadow-utils policycoreutils  procps-ng systemd-libs systemd-devel
@@ -311,9 +314,24 @@ if [ "${ADJUSTED_ID}" = "debian" ] && command -v update-ca-certificates > /dev/n
 fi
 
 # Swap to legacy iptables for compatibility (Debian only)
-if [ "${ADJUSTED_ID}" = "debian" ] && type iptables-legacy > /dev/null 2>&1; then
-    update-alternatives --set iptables /usr/sbin/iptables-legacy
-    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+if [ "${ADJUSTED_ID}" = "debian" ]; then
+    # On distros where legacy iptables is no longer kernel-supported (e.g. Ubuntu 26.04 / resolute),
+    # prefer iptables-nft. Otherwise prefer legacy for backward compatibility.
+    use_nft=false
+    case "${VERSION_CODENAME}" in
+        resolute) use_nft=true ;;
+    esac
+
+    if [ "${use_nft}" = "true" ] && type iptables-nft > /dev/null 2>&1; then
+        update-alternatives --set iptables /usr/sbin/iptables-nft || true
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
+    elif type iptables-legacy > /dev/null 2>&1; then
+        update-alternatives --set iptables /usr/sbin/iptables-legacy || true
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
+    elif type iptables-nft > /dev/null 2>&1; then
+        update-alternatives --set iptables /usr/sbin/iptables-nft || true
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
+    fi
 fi
 
 # Set up the necessary repositories
@@ -606,9 +624,19 @@ else
                         
                         # Download packages manually using curl since tdnf doesn't support download
                         echo "(*) Downloading Docker CE packages manually..."
-                        
+
+                        # Derive repo arch from the current platform. The Docker CE centos
+                        # repo uses 'x86_64' and 'aarch64' as the per-arch directory names,
+                        # which matches the values produced by `rpm --eval '%{_arch}'` /
+                        # `uname -m` for those platforms.
+                        case "${architecture}" in
+                            amd64|x86_64) repo_arch="x86_64" ;;
+                            arm64|aarch64) repo_arch="aarch64" ;;
+                            *) repo_arch="${architecture}" ;;
+                        esac
+
                         # Get the repository baseurl
-                        repo_baseurl="https://download.docker.com/linux/centos/9/x86_64/stable"
+                        repo_baseurl="https://download.docker.com/linux/centos/9/${repo_arch}/stable"
                         
                         # Download packages directly
                         cd /tmp/docker-ce-install
@@ -625,12 +653,12 @@ else
                         echo "(*) Attempting to download Docker CE packages from repository..."
                         
                         # Try to download latest packages if specific version fails
-                        if ! curl -fsSL "${repo_baseurl}/Packages/docker-ce-${docker_ce_version}.el9.x86_64.rpm" -o docker-ce.rpm 2>/dev/null; then
+                        if ! curl -fsSL "${repo_baseurl}/Packages/docker-ce-${docker_ce_version}.el9.${repo_arch}.rpm" -o docker-ce.rpm 2>/dev/null; then
                             # Fallback: try to get latest available version
                             echo "(*) Specific version not found, trying latest..."
-                            latest_docker=$(curl -s "${repo_baseurl}/Packages/" | grep -o 'docker-ce-[0-9][^"]*\.el9\.x86_64\.rpm' | head -1)
-                            latest_cli=$(curl -s "${repo_baseurl}/Packages/" | grep -o 'docker-ce-cli-[0-9][^"]*\.el9\.x86_64\.rpm' | head -1)
-                            latest_containerd=$(curl -s "${repo_baseurl}/Packages/" | grep -o 'containerd\.io-[0-9][^"]*\.el9\.x86_64\.rpm' | head -1)
+                            latest_docker=$(curl -s "${repo_baseurl}/Packages/" | grep -o "docker-ce-[0-9][^\"]*\.el9\.${repo_arch}\.rpm" | head -1)
+                            latest_cli=$(curl -s "${repo_baseurl}/Packages/" | grep -o "docker-ce-cli-[0-9][^\"]*\.el9\.${repo_arch}\.rpm" | head -1)
+                            latest_containerd=$(curl -s "${repo_baseurl}/Packages/" | grep -o "containerd\.io-[0-9][^\"]*\.el9\.${repo_arch}\.rpm" | head -1)
                             
                             if [ -n "${latest_docker}" ]; then
                                 curl -fsSL "${repo_baseurl}/Packages/${latest_docker}" -o docker-ce.rpm
@@ -716,11 +744,21 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
             err "Docker compose v1 is unavailable for 'bookworm' on Arm64. Kindly switch to use v2"
             exit 1
         else
-            # Use pip to get a version that runs on this architecture
+            # Use pip (inside an isolated venv) to get a version that runs on this architecture.
+            # A dedicated venv avoids PEP 668 "externally-managed-environment" errors on newer
+            # distros (Debian trixie, Ubuntu noble, etc.) and guarantees we do not modify or
+            # shadow the distro-managed system Python site-packages.
             check_packages python3-minimal python3-pip libffi-dev python3-venv
-            echo "(*) Installing docker compose v1 via pip..."
-            export PYTHONUSERBASE=/usr/local
-            pip3 install --disable-pip-version-check --no-cache-dir --user "Cython<3.0" pyyaml wheel docker-compose --no-build-isolation
+            echo "(*) Installing docker compose v1 via pip into an isolated virtualenv..."
+
+            compose_v1_venv="/usr/local/share/docker-compose-v1-venv"
+            python3 -m venv "${compose_v1_venv}"
+            "${compose_v1_venv}/bin/pip" install --disable-pip-version-check --no-cache-dir --upgrade pip setuptools wheel
+            "${compose_v1_venv}/bin/pip" install --disable-pip-version-check --no-cache-dir "Cython<3.0" pyyaml docker-compose --no-build-isolation
+
+            # Expose the venv's docker-compose entrypoint on PATH at the expected location.
+            ln -sf "${compose_v1_venv}/bin/docker-compose" "${docker_compose_path}"
+            chmod +x "${docker_compose_path}"
         fi
     else
         compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
@@ -861,6 +899,58 @@ if [ "$DISABLE_IP6_TABLES" == true ]; then
     fi
 fi
 
+# Workaround for https://github.com/devcontainers/features/issues/1642
+# containerd >= 2.3 ships an erofs snapshotter that requires mkfs.erofs >= 1.7.
+# Older distros (Debian 12, Ubuntu 22.04) ship erofs-utils 1.4/1.5, so when the
+# host kernel exposes the 'erofs' filesystem the snapshotter fails to
+# initialize and dockerd times out waiting for containerd. Disable the plugin
+# via the top-level `disabled_plugins` list so containerd always uses
+# overlayfs, regardless of distro / mkfs.erofs version.
+mkdir -p /etc/containerd
+if [ ! -s /etc/containerd/config.toml ]; then
+    if command -v containerd >/dev/null 2>&1; then
+        containerd config default > /etc/containerd/config.toml 2>/dev/null || : > /etc/containerd/config.toml
+    elif [ -x /usr/sbin/containerd ]; then
+        /usr/sbin/containerd config default > /etc/containerd/config.toml 2>/dev/null || : > /etc/containerd/config.toml
+    elif [ -x /usr/bin/containerd ]; then
+        /usr/bin/containerd config default > /etc/containerd/config.toml 2>/dev/null || : > /etc/containerd/config.toml
+    else
+        : > /etc/containerd/config.toml
+    fi
+fi
+
+EROFS_PLUGIN_URI='io.containerd.snapshotter.v1.erofs'
+EROFS_MARKER='# devcontainers-features:disable-erofs'
+
+if ! grep -qF "${EROFS_MARKER}" /etc/containerd/config.toml; then
+    if grep -qE '^[[:space:]]*disabled_plugins[[:space:]]*=' /etc/containerd/config.toml; then
+        # Add erofs URI to the existing top-level disabled_plugins list.
+        # Branches are mutually exclusive and guarded so we never produce
+        # duplicate entries on re-runs.
+        if grep -qE '^[[:space:]]*disabled_plugins[[:space:]]*=[[:space:]]*\[[[:space:]]*\]' /etc/containerd/config.toml; then
+            # disabled_plugins = []  ->  insert URI as the only entry.
+            sed -i -E \
+              "s|^([[:space:]]*disabled_plugins[[:space:]]*=[[:space:]]*\[)[[:space:]]*\]|\1\"${EROFS_PLUGIN_URI}\"]|" \
+              /etc/containerd/config.toml
+        elif ! grep -qF "\"${EROFS_PLUGIN_URI}\"" /etc/containerd/config.toml; then
+            # disabled_plugins = ["existing", ...]  ->  append URI.
+            sed -i -E \
+              "s|^([[:space:]]*disabled_plugins[[:space:]]*=[[:space:]]*\[)([^]]*[^],[:space:]])[[:space:]]*\]|\1\2, \"${EROFS_PLUGIN_URI}\"]|" \
+              /etc/containerd/config.toml
+        fi
+    else
+        # No disabled_plugins key in the config: prepend one.
+        tmp_cfg="$(mktemp)"
+        {
+            printf 'disabled_plugins = ["%s"]\n\n' "${EROFS_PLUGIN_URI}"
+            cat /etc/containerd/config.toml
+        } > "${tmp_cfg}"
+        mv "${tmp_cfg}" /etc/containerd/config.toml
+    fi
+    # Idempotency marker
+    printf '\n%s\n' "${EROFS_MARKER}" >> /etc/containerd/config.toml
+fi
+
 if [ ! -d /usr/local/share ]; then
     mkdir -p /usr/local/share
 fi
@@ -959,8 +1049,42 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
         DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
     fi
 
+
+    # Start our own containerd so it picks up /etc/containerd/config.toml
+    # (notably the disabled_plugins entry for the erofs snapshotter, see
+    # https://github.com/devcontainers/features/issues/1642). dockerd's
+    # built-in containerd child uses an auto-generated config that ignores
+    # /etc/containerd/config.toml, so we must run containerd ourselves and
+    # point dockerd at it via --containerd.
+    CONTAINERD_SOCK="/run/containerd/containerd.sock"
+    CONTAINERD_BIN=""
+    for candidate in /usr/local/bin/containerd /usr/bin/containerd /usr/sbin/containerd; do
+        if [ -x "$candidate" ]; then
+            CONTAINERD_BIN="$candidate"
+            break
+        fi
+    done
+    DOCKERD_CONTAINERD_ARG=""
+    if [ -n "$CONTAINERD_BIN" ] && [ -f /etc/containerd/config.toml ]; then
+        mkdir -p /run/containerd
+        if ! pgrep -x containerd > /dev/null 2>&1; then
+            ( "$CONTAINERD_BIN" --config /etc/containerd/config.toml > /tmp/containerd.log 2>&1 ) &
+        fi
+        # Wait up to ~5s for the socket to appear
+        i=0
+        while [ $i -lt 50 ] && [ ! -S "$CONTAINERD_SOCK" ]; do
+            sleep 0.1
+            i=$((i + 1))
+        done
+        if [ -S "$CONTAINERD_SOCK" ]; then
+            DOCKERD_CONTAINERD_ARG="--containerd $CONTAINERD_SOCK"
+        else
+            echo "(*) containerd socket not ready; letting dockerd spawn its own containerd."
+        fi
+    fi
+
     # Start docker/moby engine
-    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DOCKER_DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
+    ( dockerd $DOCKERD_CONTAINERD_ARG $CUSTOMDNS $DEFAULT_ADDRESS_POOL $DOCKER_DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
 )"
 
