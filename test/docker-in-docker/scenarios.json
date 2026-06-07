@@ -260,11 +260,23 @@
         "features": {
             "docker-in-docker": {
                 "version": "latest",
-                "moby": "false"
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
             }
         },
         "remoteUser": "vscode",
         "onCreateCommand": "docker ps && sleep 5s && docker ps"
+    },
+    // DO NOT REMOVE: This scenario is used by the docker-in-docker-stress-test workflow
+    "docker_stress_iptables_runtime": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        }
     },
     "azure_linux": {
         "image": "mcr.microsoft.com/azurelinux/base/core:3.0",
