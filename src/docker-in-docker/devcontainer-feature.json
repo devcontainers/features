@@ -60,6 +60,11 @@
       "type": "boolean",
       "default": false,
       "description": "Disable ip6tables (this option is only applicable for Docker versions 27 and greater)"
+    },
+    "iptablesSwitchAtRuntime": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, the iptables alternative is selected at container start (inside docker-init.sh) instead of at image build time. Useful when the desired iptables backend depends on the host kernel at runtime rather than at build time."
     }
   },
   "entrypoint": "/usr/local/share/docker-init.sh",

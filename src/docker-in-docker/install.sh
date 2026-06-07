@@ -22,6 +22,7 @@ MICROSOFT_GPG_KEYS_ROLLING_URI="https://packages.microsoft.com/keys/microsoft-ro
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble resolute"
 DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
+IPTABLES_SWITCH_AT_RUNTIME="${IPTABLESSWITCHATRUNTIME:-false}"
 
 # Default: Exit on any failure.
 set -e
@@ -313,29 +314,31 @@ if [ "${ADJUSTED_ID}" = "debian" ] && command -v update-ca-certificates > /dev/n
     update-ca-certificates
 fi
 
-# Swap to legacy iptables for compatibility (Debian only)
-#if [ "${ADJUSTED_ID}" = "debian" ]; then
+# Swap to legacy iptables for compatibility (Debian only) - install-time path.
+# When IPTABLES_SWITCH_AT_RUNTIME=true the same logic is emitted into
+# docker-init.sh and runs at container start instead.
+if [ "${IPTABLES_SWITCH_AT_RUNTIME}" != "true" ] && [ "${ADJUSTED_ID}" = "debian" ]; then
     # On distros where legacy iptables is no longer kernel-supported (e.g. Ubuntu 26.04 / resolute),
     # prefer iptables-nft. Otherwise prefer legacy for backward compatibility.
-#    use_nft=false
-#    case "${VERSION_CODENAME}" in
-#        resolute) use_nft=true ;;
-#    esac
+    use_nft=false
+    case "${VERSION_CODENAME}" in
+        resolute) use_nft=true ;;
+    esac
 
-#    if [ "${use_nft}" = "true" ] && type iptables-nft > /dev/null 2>&1; then
-#        echo "(*) Setting iptables alternatives to nft for better compatibility with newer kernels"
-#        update-alternatives --set iptables /usr/sbin/iptables-nft || true
-#        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
-#    elif type iptables-legacy > /dev/null 2>&1 && iptables-legacy -L > /dev/null 2>&1; then
-#        echo "(*) Setting iptables alternatives to legacy for better compatibility with Docker and older kernels"
-#        update-alternatives --set iptables /usr/sbin/iptables-legacy || true
-#        update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
-#    elif type iptables-nft > /dev/null 2>&1; then
-#        echo "(*) Setting iptables alternatives to nft for better compatibility with newer kernels for non resolute"
-#        update-alternatives --set iptables /usr/sbin/iptables-nft || true
-#        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
-#    fi
-#fi
+    if [ "${use_nft}" = "true" ] && type iptables-nft > /dev/null 2>&1; then
+        echo "(*) Setting iptables alternatives to nft for better compatibility with newer kernels"
+        update-alternatives --set iptables /usr/sbin/iptables-nft || true
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
+    elif type iptables-legacy > /dev/null 2>&1 && iptables-legacy -L > /dev/null 2>&1; then
+        echo "(*) Setting iptables alternatives to legacy for better compatibility with Docker and older kernels"
+        update-alternatives --set iptables /usr/sbin/iptables-legacy || true
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
+    elif type iptables-nft > /dev/null 2>&1; then
+        echo "(*) Setting iptables alternatives to nft for better compatibility with newer kernels for non resolute"
+        update-alternatives --set iptables /usr/sbin/iptables-nft || true
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
+    fi
+fi
 
 # Set up the necessary repositories
 if [ "${USE_MOBY}" = "true" ]; then
@@ -973,13 +976,15 @@ DOCKER_DEFAULT_ADDRESS_POOL=${DOCKER_DEFAULT_ADDRESS_POOL}
 DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES}
 EOF
 
-# On Debian-based images, re-assert the iptables alternative at container start.
-if [ "${ADJUSTED_ID}" = "debian" ]; then
+# On Debian-based images, re-assert the iptables alternative at container start
+# (only when the user opted into runtime switching via iptablesSwitchAtRuntime=true).
+if [ "${IPTABLES_SWITCH_AT_RUNTIME}" = "true" ] && [ "${ADJUSTED_ID}" = "debian" ]; then
     tee -a /usr/local/share/docker-init.sh > /dev/null \
 << 'EOF'
 # Prefer legacy only when the ip_tables kernel module is actually present.
 # (Do NOT call `iptables-legacy -L/-nL` to test this — it auto-modprobes ip_tables
-# and would defeat hosts/scenarios where the module is intentionally absent.)
+# and would defeat hosts/scenarios where the module is intentionally absent 
+# such as the newer kernels which leaves out ip_tables legacy.)
 if type iptables-legacy > /dev/null 2>&1 \
    && { grep -qE '^(ip_tables)\b' /proc/modules \
         || [ -d /sys/module/ip_tables ]; } \

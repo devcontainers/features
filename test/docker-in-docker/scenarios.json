@@ -1,14 +1,5 @@
 {
-    "docker_without_iptables": {
-        "image": "mcr.microsoft.com/devcontainers/base:debian",
-        "features": {
-            "docker-in-docker": {
-                "moby": "false"
-            }
-        },
-        "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
-    },
-    "docker_with_iptables": {
+    "docker_iptables_switch_at_install": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
             "docker-in-docker": {
@@ -17,11 +8,42 @@
         },
         "initializeCommand": "sudo modprobe ip_tables"
     },
+    "docker_iptables_switch_at_runtime": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },
+    "docker_without_iptables": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        },
+        "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
+    },
+    "docker_with_iptables": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },
     "docker_without_iptables_ubuntu": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "features": {
             "docker-in-docker": {
-                "moby": "false"
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
             }
         },
         "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
@@ -30,7 +52,8 @@
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "features": {
             "docker-in-docker": {
-                "moby": "false"
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
             }
         },
         "initializeCommand": "sudo modprobe ip_tables"
