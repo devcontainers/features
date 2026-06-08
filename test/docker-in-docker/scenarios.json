@@ -205,6 +205,26 @@
             }
         }
     },
+    "docker_compose_latest_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "latest"
+            }
+        }
+    },
+    "docker_compose_latest_no_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "moby": false,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "latest"
+            }
+        }
+    },
     "docker_build_fallback_buildx": {
         "image": "ubuntu:noble",
         "features": {
