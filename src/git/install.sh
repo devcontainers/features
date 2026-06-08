@@ -275,7 +275,7 @@ elif [ "${ADJUSTED_ID}" = "rhel" ]; then
     fi
     if ! type awk > /dev/null 2>&1; then
         check_packages gawk
-    fi        
+    fi
     if [ $ID = "mariner" ]; then
         check_packages glibc-devel kernel-headers binutils
     fi
@@ -312,7 +312,7 @@ if [ "$(echo "${GIT_VERSION}" | grep -o '\.' | wc -l)" != "2" ]; then
 fi
 
 echo "Downloading source for ${GIT_VERSION}..."
-curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar -xzC /tmp 2>&1
+curl -sL https://github.com/git/git/archive/v${GIT_VERSION}.tar.gz | tar --no-same-owner -xzC /tmp 2>&1
 echo "Building..."
 cd /tmp/git-${GIT_VERSION}
 git_options=("prefix=/usr/local")
