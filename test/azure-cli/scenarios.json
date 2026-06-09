@@ -1,4 +1,12 @@
 {
+  "install_fallback_pip_ubuntu_plucky": {
+    "image": "ubuntu:plucky",
+    "features": {
+      "azure-cli": {
+        "version": "latest"
+      }
+    }
+  },  
   "install_extensions_trixie": {
     "image": "mcr.microsoft.com/devcontainers/base:trixie",
     "user": "vscode",
@@ -100,6 +108,15 @@
       },
       "docker-in-docker": {
         "moby": false
+      }
+    }
+  },
+  "install_in_ubuntu_resolute": {
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest"
       }
     }
   }
