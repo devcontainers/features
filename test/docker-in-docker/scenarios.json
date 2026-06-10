@@ -1,4 +1,63 @@
 {
+    "docker_iptables_switch_at_install": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },
+    "docker_iptables_switch_at_runtime": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },
+    "docker_without_iptables": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        },
+        "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
+    },
+    "docker_with_iptables": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },
+    "docker_without_iptables_ubuntu": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        },
+        "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
+    },
+    "docker_with_iptables_ubuntu": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },        
     "overlayfs_containerd_root": {
         "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
@@ -146,6 +205,26 @@
             }
         }
     },
+    "docker_compose_latest_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "latest"
+            }
+        }
+    },
+    "docker_compose_latest_no_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "moby": false,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "latest"
+            }
+        }
+    },
     "docker_build_fallback_buildx": {
         "image": "ubuntu:noble",
         "features": {
@@ -201,11 +280,23 @@
         "features": {
             "docker-in-docker": {
                 "version": "latest",
-                "moby": "false"
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
             }
         },
         "remoteUser": "vscode",
         "onCreateCommand": "docker ps && sleep 5s && docker ps"
+    },
+    // DO NOT REMOVE: This scenario is used by the docker-in-docker-stress-test workflow
+    "docker_stress_iptables_runtime": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        }
     },
     "azure_linux": {
         "image": "mcr.microsoft.com/azurelinux/base/core:3.0",

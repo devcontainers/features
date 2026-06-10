@@ -1,6 +1,6 @@
 {
   "id": "docker-in-docker",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "name": "Docker (Docker-in-Docker)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
   "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -29,11 +29,12 @@
       "type": "string",
       "enum": [
         "none",
+        "latest",
         "v1",
         "v2"
       ],
-      "default": "v2",
-      "description": "Default version of Docker Compose (v1, v2 or none)"
+      "default": "latest",
+      "description": "Default version of Docker Compose (v1, v2, latest or none)"
     },
     "azureDnsAutoDetection": {
       "type": "boolean",
@@ -60,6 +61,11 @@
       "type": "boolean",
       "default": false,
       "description": "Disable ip6tables (this option is only applicable for Docker versions 27 and greater)"
+    },
+    "iptablesSwitchAtRuntime": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, the iptables alternative is selected at container start (inside docker-init.sh) instead of at image build time. Useful when the desired iptables backend depends on the host kernel at runtime rather than at build time."
     }
   },
   "entrypoint": "/usr/local/share/docker-init.sh",
