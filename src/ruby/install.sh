@@ -147,17 +147,17 @@ find_version_from_git_tags() {
     local repository=$2
     local prefix=${3:-"tags/v"}
     local separator=${4:-"."}
-    local last_part_optional=${5:-"false"}    
+    local last_part_optional=${5:-"false"}
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
-        local escaped_separator=${separator//./\\.}
         local last_part
         if [ "${last_part_optional}" = "true" ]; then
-            last_part="(${escaped_separator}[0-9]+)?"
+            last_part="(\\.[0-9]+)?"
         else
-            last_part="${escaped_separator}[0-9]+"
+            last_part="\\.[0-9]+"
         fi
-        local regex="${prefix}\\K[0-9]+${escaped_separator}[0-9]+${last_part}$"
-        local version_list="$(git ls-remote --tags ${repository} | grep -oP "${regex}" | tr -d ' ' | tr "${separator}" "." | sort -rV)"
+        local regex="${prefix}\\K[0-9]+\\.[0-9]+${last_part}$"
+        # ruby/ruby switched its tag separator from "_" (v3_4_5) to "." (v4.0.0) at v4.0.0
+        local version_list="$(git ls-remote --tags ${repository} | tr "_" "." | grep -oP "${regex}" | tr -d ' ' | sort -rV)"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
             declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
         else
@@ -280,7 +280,7 @@ get_previous_version() {
     if [[ $message == "API rate limit exceeded"* ]]; then
         echo -e "\nAn attempt to find latest version using GitHub Api Failed... \nReason: ${message}"
         echo -e "\nAttempting to find latest version using GitHub tags."
-        find_prev_version_from_git_tags prev_version "$url" "tags/v" "_"
+        find_prev_version_from_git_tags prev_version "$url" "tags/v"
         declare -g ${variable_name}="${prev_version}"
     else 
         echo -e "\nAttempting to find latest version using GitHub Api."
@@ -299,7 +299,7 @@ get_github_api_repo_url() {
 # Figure out correct version of a three part version number is not passed
 RUBY_URL="https://github.com/ruby/ruby"
 ORIGINAL_RUBY_VERSION=$RUBY_VERSION
-find_version_from_git_tags RUBY_VERSION $RUBY_URL "tags/v" "_"
+find_version_from_git_tags RUBY_VERSION $RUBY_URL "tags/v"
 
 set_rvm_install_args() {
     RUBY_VERSION=$1
@@ -379,7 +379,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
             # Figure out correct version of a three part version number is not passed
-            find_version_from_git_tags version $RUBY_URL "tags/v" "_"
+            find_version_from_git_tags version $RUBY_URL "tags/v"
             source /usr/local/rvm/scripts/rvm
             rvm install ruby ${version}
         done
