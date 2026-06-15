@@ -1,5 +1,5 @@
 
-# Node.js (via nvm), yarn and pnpm (node)
+# Node.js (via nvm), yarn and pnpm. (node)
 
 Installs Node.js, nvm, yarn, pnpm, and needed dependencies.
 
@@ -8,15 +8,6 @@ Installs Node.js, nvm, yarn, pnpm, and needed dependencies.
 ```json
 "features": {
     "ghcr.io/devcontainers/features/node:2": {}
-}
-```
-
-```json
-"features": {
-    "ghcr.io/devcontainers/features/node:2": {
-        "version": "20",
-        "npmVersion": "10.8.0"
-    }
 }
 ```
 
