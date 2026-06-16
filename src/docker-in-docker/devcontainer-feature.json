@@ -29,12 +29,11 @@
       "type": "string",
       "enum": [
         "none",
-        "latest",
         "v1",
         "v2"
       ],
-      "default": "latest",
-      "description": "Default version of Docker Compose (v1, v2, latest or none)"
+      "default": "v2",
+      "description": "Default version of Docker Compose (v1, v2 or none)"
     },
     "azureDnsAutoDetection": {
       "type": "boolean",
