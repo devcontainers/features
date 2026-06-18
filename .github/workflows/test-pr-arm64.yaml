@@ -80,7 +80,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y jq
           sed 's://.*$::' test/docker-in-docker/scenarios.json \
-            | jq 'del(.docker_without_iptables, .docker_without_iptables_ubuntu)' \
+            | jq 'del(.docker_with_default_iptables, .docker_with_default_iptables_ubuntu)' \
             > test/docker-in-docker/scenarios.json.tmp
           mv test/docker-in-docker/scenarios.json.tmp test/docker-in-docker/scenarios.json
 

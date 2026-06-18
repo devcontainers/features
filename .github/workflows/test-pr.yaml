@@ -92,12 +92,12 @@ jobs:
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
 
-      - name: "Exclude iptables-isolation scenarios from docker-in-docker"
+      - name: "Exclude iptables-isolation scenarios from docker-in-docker (run in separate 'iptables-isolation' job)"
         if: matrix.features == 'docker-in-docker'
         run: |
           sudo apt-get update && sudo apt-get install -y jq
           sed 's://.*$::' test/docker-in-docker/scenarios.json \
-            | jq 'del(.docker_without_iptables, .docker_without_iptables_ubuntu)' \
+            | jq 'del(.docker_with_default_iptables, .docker_with_default_iptables_ubuntu)' \
             > test/docker-in-docker/scenarios.json.tmp
           mv test/docker-in-docker/scenarios.json.tmp test/docker-in-docker/scenarios.json
 
@@ -113,8 +113,8 @@ jobs:
       fail-fast: false
       matrix:
         scenario:
-          - docker_without_iptables
-          - docker_without_iptables_ubuntu
+          - docker_with_default_iptables
+          - docker_with_default_iptables_ubuntu
     steps:
       - uses: actions/checkout@v6
 

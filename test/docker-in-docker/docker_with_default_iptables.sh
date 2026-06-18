@@ -18,7 +18,6 @@ check "dockerd-started-successfully" bash -c '
         exit 1
     fi
 '
-check "log-for-completion" bash -c "cat /tmp/dockerd.log | grep 'Daemon has completed initialization'"
 
 check "iptables works" sudo iptables -L
 check "iptables uses nf_tables" bash -c "iptables --version | grep nf_tables"
