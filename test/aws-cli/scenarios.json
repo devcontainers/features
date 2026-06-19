@@ -4,5 +4,14 @@
         "features": {
             "aws-cli": {}
         }
+    },
+    "zsh_completion": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "common-utils": {
+                "installZsh": true
+            },
+            "aws-cli": {}
+        }
     }
 }

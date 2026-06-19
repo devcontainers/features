@@ -1,4 +1,13 @@
 {
+    "overlayfs_containerd_root": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": true
+            }
+        }
+    },     
     "docker_build_fallback_compose": {
         "image": "ubuntu:noble",
         "features": {
@@ -108,7 +117,7 @@
         }
     },
     "docker_python_bookworm": {
-        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+        "image": "mcr.microsoft.com/devcontainers/base:2.1.8-bookworm",
         "features": {
             "docker-in-docker": {
                 "moby": true,
@@ -137,6 +146,26 @@
             }
         }
     },
+    "docker_compose_latest_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "latest"
+            }
+        }
+    },
+    "docker_compose_latest_no_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "moby": false,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "latest"
+            }
+        }
+    },
     "docker_build_fallback_buildx": {
         "image": "ubuntu:noble",
         "features": {
@@ -148,6 +177,14 @@
     },
     "install_on_debian_trixie": {
         "image": "debian:trixie",
+        "features": {
+            "docker-in-docker": {
+                "moby": false
+            }
+        }
+    },
+    "docker_build_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
         "features": {
             "docker-in-docker": {
                 "moby": false
