@@ -20,6 +20,7 @@ SOURCE_FILE="${REPO_ROOT}/scripts/lib/common-setup.sh"
 
 # Features that use the common-setup helper
 # Note: common-utils is excluded because it creates users (different semantics)
+# Note: ruby is excluded because it was rewritten in v2.0.0 with different logic
 FEATURES=(
     "anaconda"
     "conda"
@@ -34,7 +35,6 @@ FEATURES=(
     "oryx"
     "php"
     "python"
-    "ruby"
     "rust"
     "sshd"
 )
