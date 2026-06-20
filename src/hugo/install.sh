@@ -88,8 +88,8 @@ if [ "${VERSION}" = "latest" ] || [ "${VERSION}" = "lts" ]; then
     export VERSION=$(curl -s https://api.github.com/repos/gohugoio/hugo/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4)}')
 fi
 
-# Install Hugo if it's missing
-if ! hugo version &> /dev/null ; then
+# Install Hugo if it's missing or not requested version
+if ! hugo version &> /dev/null || [ "$(hugo version | awk '{ print $2 }' | awk -F- '{ print $1 }')" != "$VERSION" ]; then 
     if ! cat /etc/group | grep -e "^hugo:" > /dev/null 2>&1; then
         groupadd -r hugo
     fi
