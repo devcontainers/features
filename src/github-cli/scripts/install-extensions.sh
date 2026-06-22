@@ -4,35 +4,48 @@
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
 #-------------------------------------------------------------------------------------------------------------
 
-set -e
+set -euo pipefail
 
 EXTENSIONS=${EXTENSIONS:-""}
 INSTALL_EXTENSIONS=${INSTALL_EXTENSIONS:-"true"}
+INSTALL_EXTENSIONS_FROM_GIT=${INSTALL_EXTENSIONS_FROM_GIT:-"false"}
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly GH_EXTENSION_INSTALLER_SCRIPT="${SCRIPT_DIR}/install-extension-from-gh.sh"
+readonly GIT_EXTENSION_INSTALLER_SCRIPT="${SCRIPT_DIR}/install-extension-from-git.sh"
 
-trim() {
-    local value="$1"
-    value="${value#${value%%[![:space:]]*}}"
-    value="${value%${value##*[![:space:]]}}"
-    echo "${value}"
+# shellcheck source=./utils.sh
+source "${SCRIPT_DIR}/utils.sh"
+
+ensure_helper_scripts_exist() {
+	if [ ! -x "${GIT_EXTENSION_INSTALLER_SCRIPT}" ] || [ ! -x "${GH_EXTENSION_INSTALLER_SCRIPT}" ]; then
+		die "Missing GitHub CLI extension helper scripts in '${SCRIPT_DIR}'."
+	fi
+}
+
+install_with_gh() {
+	local extension="$1"
+	EXTENSION="${extension}" bash "${GH_EXTENSION_INSTALLER_SCRIPT}"
+}
+
+install_with_git() {
+	local extension="$1"
+	EXTENSION="${extension}" bash "${GIT_EXTENSION_INSTALLER_SCRIPT}"
 }
 
 install_extension() {
-    local extension="$1"
-    local extensions_root
-    local repo_name
+	local extension="$1"
 
-    extensions_root="${XDG_DATA_HOME:-"${HOME}/.local/share"}/gh/extensions"
-    repo_name="${extension##*/}"
+	if is_true "${INSTALL_EXTENSIONS_FROM_GIT}"; then
+		install_with_git "${extension}"
+		return
+	fi
 
-    mkdir -p "${extensions_root}"
-    if [ ! -d "${extensions_root}/${repo_name}" ]; then
-        if ! gh extension install "${extension}"; then
-            git \
-                -c credential.helper= \
-                -c credential.helper='!gh auth git-credential' \
-                clone --depth 1 "https://github.com/${extension}.git" "${extensions_root}/${repo_name}"
-        fi
-    fi
+	if install_with_gh "${extension}"; then
+		return
+	fi
+
+	err "'gh extension install ${extension}' is unavailable, falling back to git clone."
+	install_with_git "${extension}"
 }
 
 ensure_gh_extension_list_wrapper() {
@@ -99,21 +112,58 @@ EOF
     chmod +x /usr/local/bin/gh
 }
 
-if [ "${INSTALL_EXTENSIONS}" = "true" ]; then
-    if [ -z "${EXTENSIONS}" ]; then
-        exit 0
-    fi
 
-    echo "Installing GitHub CLI extensions: ${EXTENSIONS}"
-    IFS=',' read -r -a extension_list <<< "${EXTENSIONS}"
-    for extension in "${extension_list[@]}"; do
-        extension="$(trim "${extension}")"
-        if [ -z "${extension}" ]; then
-            continue
-        fi
+run_as_target_user_if_needed() {
+	local target_username
+	local extensions_escaped
+	local install_extensions_from_git_escaped
+	local username_escaped
+	local script_escaped
 
-        install_extension "${extension}"
-    done
-fi
+	if [ "$(id -u)" -ne 0 ]; then
+		return
+	fi
 
-ensure_gh_extension_list_wrapper
+	target_username="$(resolve_target_username)"
+	if [ "${target_username}" = "root" ]; then
+		return
+	fi
+
+	extensions_escaped="$(printf '%q' "${EXTENSIONS}")"
+	install_extensions_from_git_escaped="$(printf '%q' "${INSTALL_EXTENSIONS_FROM_GIT}")"
+	username_escaped="$(printf '%q' "${target_username}")"
+	script_escaped="$(printf '%q' "${BASH_SOURCE[0]}")"
+	su --login --whitelist-environment=GH_TOKEN,GITHUB_TOKEN "${target_username}" -c "EXTENSIONS=${extensions_escaped} INSTALL_EXTENSIONS_FROM_GIT=${install_extensions_from_git_escaped} USERNAME=${username_escaped} bash ${script_escaped}"
+	exit 0
+}
+
+main() {
+	local extension
+	local extension_list
+
+	if ! is_true "${INSTALL_EXTENSIONS}"; then
+		ensure_gh_extension_list_wrapper
+		return
+	fi
+
+	if [ -z "${EXTENSIONS}" ]; then
+		exit 0
+	fi
+
+	ensure_helper_scripts_exist
+	ensure_gh_extension_list_wrapper
+	run_as_target_user_if_needed
+
+	echo "Installing GitHub CLI extensions: ${EXTENSIONS}"
+	IFS=',' read -r -a extension_list <<< "${EXTENSIONS}"
+	for extension in "${extension_list[@]}"; do
+		extension="$(trim "${extension}")"
+		if [ -z "${extension}" ]; then
+			continue
+		fi
+
+		install_extension "${extension}"
+	done
+}
+
+main "$@"
