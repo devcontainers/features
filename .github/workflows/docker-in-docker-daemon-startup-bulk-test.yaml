@@ -1,4 +1,4 @@
-name: "Stress test - Docker in Docker"
+name: "Test Docker daemon startup in bulk - Docker in Docker"
 on:
   pull_request:
     paths:

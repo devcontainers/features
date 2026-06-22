@@ -8,7 +8,7 @@
         },
         "initializeCommand": "sudo modprobe ip_tables"
     },
-    // DO NOT REMOVE: This scenario is used by the docker-in-docker-stress-test workflow
+    // DO NOT REMOVE: This scenario is used by the docker-in-docker-daemon-startup-bulk-test workflow
     "docker_iptables_switch_at_runtime": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
@@ -29,7 +29,7 @@
         },
         "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
     },
-    "docker_with_iptables": {
+    "docker_with_legacy_iptables": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
             "docker-in-docker": {
@@ -49,7 +49,7 @@
         },
         "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
     },
-    "docker_with_iptables_ubuntu": {
+    "docker_with_legacy_iptables_ubuntu": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "features": {
             "docker-in-docker": {
@@ -275,7 +275,7 @@
             }
         }
     },
-    // DO NOT REMOVE: This scenario is used by the docker-in-docker-stress-test workflow
+    // DO NOT REMOVE: This scenario is used by the docker-in-docker-daemon-startup-bulk-test workflow
     "docker_with_on_create_command": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
