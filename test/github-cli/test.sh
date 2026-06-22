@@ -96,5 +96,7 @@ CLI_VERSION="2.0.0"
 find_prev_version_from_git_tags CLI_VERSION https://github.com/cli/cli
 check "pre-version-to-2.0.0" bash -c "echo ${CLI_VERSION} | grep '1.14.0'"
 
+check "extensions-config-requires-auth-or-git" /bin/bash "$(dirname "$0")/validate_extensions_configuration.sh"
+
 # Report result
 reportResults
