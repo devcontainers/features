@@ -9,6 +9,7 @@ on:
       - "scripts/version-resolution.sh"
       - "scripts/sync-version-resolution.sh"
       - "src/**/install.sh"
+      - "src/github-cli/scripts/install-github-cli.sh"
       - "src/**/scripts/version-resolution.sh"
       - "test/_global/version-resolution/**"
   pull_request:
@@ -17,6 +18,7 @@ on:
       - "scripts/version-resolution.sh"
       - "scripts/sync-version-resolution.sh"
       - "src/**/install.sh"
+      - "src/github-cli/scripts/install-github-cli.sh"
       - "src/**/scripts/version-resolution.sh"
       - "test/_global/version-resolution/**"
 

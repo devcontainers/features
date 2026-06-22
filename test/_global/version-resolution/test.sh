@@ -280,6 +280,9 @@ pass "fallback matrix covers all ${#required_features[@]} required features"
 for test_case in "${VERSION_RESOLUTION_CASES[@]}"; do
     IFS='|' read -r feature label known_good_variable repository prefix last_part_optional suffix_regex request <<< "${test_case}"
     installer="${ROOT_DIR}/src/${feature}/install.sh"
+    if [ "${feature}" = "github-cli" ]; then
+        installer="${ROOT_DIR}/src/github-cli/scripts/install-github-cli.sh"
+    fi
     expected="$(sed -n "s/^${known_good_variable}=\"\(.*\)\"$/\1/p" "${installer}")"
     if [ -z "${expected}" ]; then
         fail "${feature}/${label}: ${known_good_variable} is declared at the top level"
