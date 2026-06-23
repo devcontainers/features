@@ -7,7 +7,7 @@
 set -euo pipefail
 
 EXTENSIONS=${EXTENSIONS:-""}
-INSTALL_EXTENSIONS_FROM_GIT=${INSTALL_EXTENSIONS_FROM_GIT:-"false"}
+INSTALL_EXTENSIONS_FROM_GIT=${INSTALL_EXTENSIONS_FROM_GIT:-${INSTALLEXTENSIONSFROMGIT:-"false"}}
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly GH_EXTENSION_INSTALLER_SCRIPT="${SCRIPT_DIR}/install-extension-from-gh.sh"
 readonly GIT_EXTENSION_INSTALLER_SCRIPT="${SCRIPT_DIR}/install-extension-from-git.sh"
