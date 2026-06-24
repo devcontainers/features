@@ -22,7 +22,7 @@ MICROSOFT_GPG_KEYS_ROLLING_URI="https://packages.microsoft.com/keys/microsoft-ro
 DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble resolute"
 DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
-IPTABLES_SWITCH_AT_RUNTIME="${IPTABLESSWITCHATRUNTIME:-false}"
+IPTABLES_SWITCH_AT_RUNTIME="${IPTABLESSWITCHATRUNTIME:-true}"
 
 # Default: Exit on any failure.
 set -e

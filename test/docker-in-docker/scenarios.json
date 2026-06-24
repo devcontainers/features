@@ -3,7 +3,8 @@
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
             "docker-in-docker": {
-                "moby": "false"
+                "moby": "false",
+                "iptablesSwitchAtRuntime": false
             }
         },
         "initializeCommand": "sudo modprobe ip_tables"
@@ -23,8 +24,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
             "docker-in-docker": {
-                "moby": "false",
-                "iptablesSwitchAtRuntime": true
+                "moby": "false"
             }
         },
         "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
@@ -33,8 +33,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
             "docker-in-docker": {
-                "moby": "false",
-                "iptablesSwitchAtRuntime": true
+                "moby": "false"
             }
         },
         "initializeCommand": "sudo modprobe ip_tables"
@@ -43,8 +42,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "features": {
             "docker-in-docker": {
-                "moby": "false",
-                "iptablesSwitchAtRuntime": true
+                "moby": "false"
             }
         },
         "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
@@ -53,8 +51,7 @@
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "features": {
             "docker-in-docker": {
-                "moby": "false",
-                "iptablesSwitchAtRuntime": true
+                "moby": "false"
             }
         },
         "initializeCommand": "sudo modprobe ip_tables"
@@ -281,8 +278,7 @@
         "features": {
             "docker-in-docker": {
                 "version": "latest",
-                "moby": "false",
-                "iptablesSwitchAtRuntime": true
+                "moby": "false"
             }
         },
         "remoteUser": "vscode",

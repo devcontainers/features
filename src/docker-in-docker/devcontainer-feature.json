@@ -1,6 +1,6 @@
 {
   "id": "docker-in-docker",
-  "version": "3.2.0",
+  "version": "4.0.0",
   "name": "Docker (Docker-in-Docker)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
   "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -64,7 +64,7 @@
     },
     "iptablesSwitchAtRuntime": {
       "type": "boolean",
-      "default": false,
+      "default": true,
       "description": "If true, the iptables alternative is selected at container start (inside docker-init.sh) instead of at image build time. Useful when the desired iptables backend depends on the host kernel at runtime rather than at build time."
     }
   },
