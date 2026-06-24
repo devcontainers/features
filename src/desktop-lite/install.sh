@@ -168,6 +168,19 @@ check_packages() {
     fi
 }
 
+find_available_package() {
+    local candidate
+    local package_name
+    for package_name in "$@"; do
+        candidate="$(apt-cache policy "${package_name}" | awk '/Candidate:/ {print $2}')"
+        if [ -n "${candidate}" ] && [ "${candidate}" != "(none)" ]; then
+            echo "${package_name}"
+            return 0
+        fi
+    done
+    return 1
+}
+
 ##########################
 #  Install starts here   #
 ##########################
@@ -199,15 +212,12 @@ fi
 # Install X11, fluxbox and VS Code dependencies
 check_packages ${package_list}
 
-# if Ubuntu-24.04, noble(numbat) / Debian-13, trixie found, then will install libasound2-dev instead of libasound2.
-# this change is temporary, https://packages.ubuntu.com/noble/libasound2 will switch to libasound2 once it is available for Ubuntu-24.04, noble(numbat)
-. /etc/os-release
-if { [ "${ID}" = "ubuntu" ] && [ "${VERSION_CODENAME}" = "noble" ]; } || { [ "${ID}" = "debian" ] && [ "${VERSION_CODENAME}" = "trixie" ]; }; then
-    echo "Detected Noble (Ubuntu 24.04) or Trixie (Debian). Installing libasound2-dev package..."
-    check_packages "libasound2-dev"
-else
-    check_packages "libasound2"
+if ! alsa_package="$(find_available_package libasound2 libasound2t64 libasound2-dev)"; then
+    echo "(!) No supported ALSA package found. Tried: libasound2, libasound2t64, libasound2-dev." >&2
+    exit 1
 fi
+echo "Installing ${alsa_package} package..."
+check_packages "${alsa_package}"
 
 # On newer versions of Ubuntu (22.04), 
 # we need an additional package that isn't provided in earlier versions
