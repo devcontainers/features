@@ -212,7 +212,7 @@ fi
 # Install X11, fluxbox and VS Code dependencies
 check_packages ${package_list}
 
-if ! alsa_package="$(find_available_package libasound2 libasound2t64 libasound2-dev)"; then
+if ! alsa_package="$(find_available_package libasound2t64 libasound2 libasound2-dev)"; then
     echo "(!) No supported ALSA package found. Tried: libasound2, libasound2t64, libasound2-dev." >&2
     exit 1
 fi
