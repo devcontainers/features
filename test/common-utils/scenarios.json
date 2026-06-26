@@ -126,6 +126,15 @@
             }
         }
     },
+    "add-groups": {
+        "image": "debian:bullseye",
+        "features": {
+            "common-utils": {
+                "username": "alternate",
+                "addGroups": "dialout,plugdev"
+            }
+        }
+    },
     "username-default": {
         "image": "debian:bullseye",
         "features": {
@@ -283,6 +292,18 @@
         "image": "mcr.microsoft.com/dotnet/sdk:8.0-azurelinux3.0",
         "features": {
             "common-utils": {}
+        }
+    },
+    "custom-zsh-theme": {
+        "image": "ubuntu:jammy",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {
+                "installZsh": true,
+                "installOhMyZsh": true,
+                "ohMyZshTheme": "fino",
+                "configureZshAsDefaultShell": true
+            }
         }
     },
     "ubi-8": {
