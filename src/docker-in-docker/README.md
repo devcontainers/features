@@ -7,7 +7,7 @@ Create child containers *inside* a container, independent from the host's docker
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:3": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {}
 }
 ```
 
@@ -24,6 +24,7 @@ Create child containers *inside* a container, independent from the host's docker
 | installDockerBuildx | Install Docker Buildx | boolean | true |
 | installDockerComposeSwitch | Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter. | boolean | false |
 | disableIp6tables | Disable ip6tables (this option is only applicable for Docker versions 27 and greater) | boolean | false |
+| iptablesSwitchAtRuntime | If true, the iptables alternative is selected at container start (inside docker-init.sh) instead of at image build time. Useful when the desired iptables backend depends on the host kernel at runtime rather than at build time. | boolean | true |
 
 ## Customizations
 
