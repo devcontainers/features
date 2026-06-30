@@ -5,21 +5,8 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-# Resolves the latest stable git version from GitHub
-get_latest_git_version() {
-    curl -sSL -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/git/git/tags" \
-        | grep -oP '"name":\s*"v\K[0-9]+\.[0-9]+\.[0-9]+(?=")' \
-        | sort -rV \
-        | head -n 1
-}
-
-# Verifies the installed git version matches the latest stable version on GitHub
-check_git_is_latest_version() {
-    local latest_version installed_version
-    latest_version="$(get_latest_git_version)"
-    installed_version="$(git --version | awk '{print $3}')"
-    [ -n "$latest_version" ] && [ "$installed_version" = "$latest_version" ]
-}
+# Import shared helper functions
+source "$(dirname "$0")/utils.sh"
 
 # Definition specific tests
 check "version" git --version
