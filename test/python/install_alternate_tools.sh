@@ -15,6 +15,7 @@ check "bandit" bandit --version
 check "mypy" mypy --version
 check "pipenv" pipenv --version
 check "pytest" pytest --version
+check "uv" uv --version
 check "ruff" ruff --version
 check "virtualenv" virtualenv --version
 
@@ -25,6 +26,7 @@ check "which bandit" bash -c "which bandit | grep /usr/local/py-utils/bin/bandit
 check "which mypy" bash -c "which mypy | grep /usr/local/py-utils/bin/mypy"
 check "which pipenv" bash -c "which pipenv | grep /usr/local/py-utils/bin/pipenv"
 check "which pytest" bash -c "which pytest | grep /usr/local/py-utils/bin/pytest"
+check "which uv" bash -c "which uv | grep /usr/local/py-utils/bin/uv"
 check "which ruff" bash -c "which ruff | grep /usr/local/py-utils/bin/ruff"
 check "which virtualenv" bash -c "which virtualenv | grep /usr/local/py-utils/bin/virtualenv"
 
