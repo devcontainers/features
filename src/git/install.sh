@@ -263,10 +263,10 @@ elif [ "${ADJUSTED_ID}" = "alpine" ]; then
     ${INSTALL_CMD} add --no-cache --update curl grep make zlib-dev
 
     # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L62>
-    check_packages asciidoc curl-dev expat-dev g++ gcc openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto
+    check_packages asciidoc curl-dev expat-dev g++ gcc linux-headers openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto
 
 elif [ "${ADJUSTED_ID}" = "rhel" ]; then
-    check_packages gcc libcurl-devel expat-devel gettext-devel openssl-devel perl-devel zlib-devel cmake pcre2-devel tar gzip ca-certificates
+    check_packages gcc make libcurl-devel expat-devel gettext-devel openssl-devel perl-devel zlib-devel cmake pcre2-devel tar gzip ca-certificates
     if ! type curl > /dev/null 2>&1; then
         check_packages curl
     fi
@@ -318,12 +318,18 @@ cd /tmp/git-${GIT_VERSION}
 git_options=("prefix=/usr/local")
 git_options+=("sysconfdir=/etc")
 git_options+=("USE_LIBPCRE=YesPlease")
+git_options+=("NO_RUST=YesPlease")
 if [ "${ADJUSTED_ID}" = "alpine" ]; then
     # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L126>
     git_options+=("NO_REGEX=YesPlease")
     git_options+=("NO_GETTEXT=YesPlease")
 fi
 make -s "${git_options[@]}" all && make -s "${git_options[@]}" install 2>&1
+build_result=$?
 rm -rf /tmp/git-${GIT_VERSION}
 clean_up
+if [ "${build_result}" -ne 0 ]; then
+    echo "(!) Failed to build and install git ${GIT_VERSION}." >&2
+    exit 1
+fi
 echo "Done!"
