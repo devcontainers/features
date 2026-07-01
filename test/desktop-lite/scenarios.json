@@ -45,6 +45,18 @@
             "desktop-lite": {}
         }
     },
+    "test_asound_package_ubuntu_2204": {
+        "image": "ubuntu:22.04",
+        "features": {
+            "desktop-lite": {}
+        }
+    },
+    "test_asound_package_ubuntu_2604": {
+        "image": "ubuntu:26.04",
+        "features": {
+            "desktop-lite": {}
+        }
+    },
     "test_desktop_init_exec_passthrough": {
         "image": "ubuntu:noble",
         "features": {
