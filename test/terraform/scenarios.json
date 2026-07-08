@@ -32,7 +32,7 @@
         }
     },
     "install_in_ubuntu_resolute": {
-        "image": "ubuntu:resolute",
+        "image": "mcr.microsoft.com/devcontainers/base:resolute",
         "features": {
             "terraform": {
                 "version": "latest"
@@ -40,7 +40,7 @@
         }
     },
     "install_in_ubuntu_resolute_sentinel": {
-        "image": "ubuntu:resolute",
+        "image": "mcr.microsoft.com/devcontainers/base:resolute",
         "features": {
             "terraform": {
                 "installSentinel": true
