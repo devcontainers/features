@@ -19,8 +19,8 @@ INSTALL_SENTINEL=${INSTALLSENTINEL:-false}
 INSTALL_TFSEC=${INSTALLTFSEC:-false}
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
 CUSTOM_DOWNLOAD_SERVER="${CUSTOMDOWNLOADSERVER:-""}"
-# This is because ubuntu noble and debian trixie don't support the old format of GPG keys and validation 
-NEW_GPG_CODENAMES="trixie noble"
+# This is because ubuntu noble, ubuntu resolute and debian trixie don't support the old format of GPG keys and validation 
+NEW_GPG_CODENAMES="trixie noble resolute"
 
 TERRAFORM_SHA256="${TERRAFORM_SHA256:-"automatic"}"
 TFLINT_SHA256="${TFLINT_SHA256:-"automatic"}"
@@ -52,7 +52,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Detect Ubuntu Noble or Debian Trixie and use new repo setup, else use legacy GPG logic
+# Detect Ubuntu Noble, Ubuntu Resolute or Debian Trixie and use new repo setup, else use legacy GPG logic
 IS_GPG_NEW=0
 . /etc/os-release
 if [[ "${NEW_GPG_CODENAMES}" == *"${VERSION_CODENAME}"* ]]; then
