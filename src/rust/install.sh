@@ -58,8 +58,10 @@ elif command -v microdnf >/dev/null 2>&1; then
     PKG_MANAGER="microdnf"
 elif command -v tdnf >/dev/null 2>&1; then
     PKG_MANAGER="tdnf"
+elif command -v apk >/dev/null 2>&1; then
+    PKG_MANAGER="apk"
 else
-    echo "No supported package manager found. Supported: apt, dnf, yum, microdnf, tdnf"
+    echo "No supported package manager found. Supported: apt, dnf, yum, microdnf, tdnf, apk"
     exit 1
 fi
 
@@ -84,6 +86,11 @@ clean_package_cache() {
             ;;
         tdnf)
             tdnf clean all
+            ;;
+        apk)
+            if [ "$(ls -1 /var/cache/apk/ 2>/dev/null | wc -l)" -gt 0 ]; then
+                rm -rf /var/cache/apk/*
+            fi
             ;;
     esac
 }
@@ -217,6 +224,12 @@ pkg_mgr_update() {
         tdnf)
             tdnf makecache || true
             ;;
+        apk)
+            if [ "$(find /var/cache/apk/* | wc -l)" = "0" ]; then
+                echo "Running apk update..."
+                apk update
+            fi
+            ;;
     esac
 }
 
@@ -229,6 +242,9 @@ is_package_installed() {
             ;;
         dnf|yum|microdnf|tdnf)
             rpm -q "$package" >/dev/null 2>&1
+            ;;
+        apk)
+            apk info --installed "$package" >/dev/null 2>&1
             ;;
     esac
 }
@@ -266,6 +282,14 @@ check_packages() {
                     "gnupg2") packages[$i]="gnupg" ;;
                 esac
                 ;;
+            apk)
+                case "${packages[$i]}" in
+                    "libc6-dev") packages[$i]="libc-dev" ;;
+                    "python3-minimal") packages[$i]="python3" ;;
+                    "libpython3.*") packages[$i]="python3-dev" ;;
+                    "gnupg2") packages[$i]="gnupg" ;;
+                esac
+                ;;
         esac
     done
 
@@ -295,6 +319,9 @@ check_packages() {
             tdnf)
                 tdnf install -y "${missing_packages[@]}"
                 ;;
+            apk)
+                apk add --no-cache "${missing_packages[@]}"
+                ;;
         esac
     fi
 }
@@ -316,6 +343,9 @@ case "$PKG_MANAGER" in
     tdnf)
         check_packages python3 python3-devel || true
         # LLDB might not be available in Photon/Mariner
+        ;;
+    apk)
+        check_packages lldb python3 python3-dev || true
         ;;
 esac
 
@@ -348,6 +378,11 @@ case ${download_architecture} in
     ;;
 esac
 
+clibtype="gnu"
+if ldd --version 2>&1 | grep -q 'musl'; then
+    clibtype="musl"
+fi
+
 # Install Rust
 umask 0002
 if ! grep -e "^rustlang:" /etc/group > /dev/null 2>&1; then
@@ -378,14 +413,14 @@ else
     fi
     echo "Installing Rust..."
     # Download and verify rustup sha
-    mkdir -p /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/
-    curl -sSL --proto '=https' --tlsv1.2 "https://static.rust-lang.org/rustup/dist/${download_architecture}-unknown-linux-gnu/rustup-init" -o /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/rustup-init
-    curl -sSL --proto '=https' --tlsv1.2 "https://static.rust-lang.org/rustup/dist/${download_architecture}-unknown-linux-gnu/rustup-init.sha256" -o /tmp/rustup/rustup-init.sha256
+    mkdir -p /tmp/rustup/target/${download_architecture}-unknown-linux-${clibtype}/release/
+    curl -sSL --proto '=https' --tlsv1.2 "https://static.rust-lang.org/rustup/dist/${download_architecture}-unknown-linux-${clibtype}/rustup-init" -o /tmp/rustup/target/${download_architecture}-unknown-linux-${clibtype}/release/rustup-init
+    curl -sSL --proto '=https' --tlsv1.2 "https://static.rust-lang.org/rustup/dist/${download_architecture}-unknown-linux-${clibtype}/rustup-init.sha256" -o /tmp/rustup/rustup-init.sha256
     cd /tmp/rustup
-    cp /tmp/rustup/target/${download_architecture}-unknown-linux-gnu/release/rustup-init  /tmp/rustup/rustup-init
+    cp /tmp/rustup/target/${download_architecture}-unknown-linux-${clibtype}/release/rustup-init  /tmp/rustup/rustup-init
     sha256sum -c rustup-init.sha256
-    chmod +x target/${download_architecture}-unknown-linux-gnu/release/rustup-init
-    target/${download_architecture}-unknown-linux-gnu/release/rustup-init -y --no-modify-path --profile "${RUSTUP_PROFILE}" ${default_toolchain_arg}
+    chmod +x target/${download_architecture}-unknown-linux-${clibtype}/release/rustup-init
+    target/${download_architecture}-unknown-linux-${clibtype}/release/rustup-init -y --no-modify-path --profile "${RUSTUP_PROFILE}" ${default_toolchain_arg}
     cd ~
     rm -rf /tmp/rustup
 fi
