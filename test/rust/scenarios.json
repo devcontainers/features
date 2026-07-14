@@ -134,5 +134,15 @@
                 "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"                
             }
         }
+    },
+    "rust_with_azurelinux": {
+        "image": "mcr.microsoft.com/azurelinux/base/core:3.0",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu",
+                "components": "rust-analyzer,rust-src,rustfmt,clippy,rust-docs"                
+            }
+        }
     }                                                                
 }
