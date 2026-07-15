@@ -19,6 +19,14 @@
             }
         }
     },
+    "noLfsFiles": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "initializeCommand": "git init && git config user.email 'test@example.com' && git config user.name 'Test User' && echo 'regular file content' > regular.txt && git add regular.txt && git commit -m 'Initial commit without LFS'",
+        "remoteUser": "vscode",
+        "features": {
+            "git-lfs": {}
+        }
+    },
     "use_github": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "remoteUser": "vscode",
