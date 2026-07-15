@@ -26,6 +26,7 @@ jobs:
             "git-lfs",
             "github-cli",
             "go",
+            "haskell",
             "hugo",
             "java",
             "kubectl-helm-minikube",
