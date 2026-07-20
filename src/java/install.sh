@@ -215,7 +215,7 @@ run_with_retries() {
 }
 
 install_sdkman_cli() {
-    bash -o pipefail -c 'curl -sSL "https://get.sdkman.io?rcupdate=false" | bash'
+    bash -o pipefail -c 'curl -fsSL "https://get.sdkman.io?rcupdate=false" | bash'
 }
 
 find_version_list() {
