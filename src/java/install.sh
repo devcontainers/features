@@ -195,6 +195,29 @@ updaterc() {
     fi
 }
 
+run_with_retries() {
+    local max_attempts="$1"
+    local wait_seconds="$2"
+    local operation="$3"
+    local attempt=1
+    shift 3
+
+    until "$@"; do
+        if [ "${attempt}" -ge "${max_attempts}" ]; then
+            echo "(!) ${operation} failed after ${max_attempts} attempts."
+            return 1
+        fi
+
+        echo "(*) ${operation} failed on attempt ${attempt}. Retrying in ${wait_seconds}s..."
+        attempt=$((attempt + 1))
+        sleep "${wait_seconds}"
+    done
+}
+
+install_sdkman_cli() {
+    bash -o pipefail -c 'curl -sSL "https://get.sdkman.io?rcupdate=false" | bash'
+}
+
 find_version_list() {
     prefix="$1"
     suffix="$2"
@@ -284,7 +307,8 @@ sdk_install() {
         JAVA_VERSION=${requested_version}
     fi
 
-    su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install ${install_type} ${requested_version} && sdk flush archives && sdk flush temp"
+    run_with_retries 5 10 "Installing ${install_type} ${requested_version} via SDKMAN" \
+        su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install ${install_type} ${requested_version} && sdk flush archives && sdk flush temp"
 }
 
 export DEBIAN_FRONTEND=noninteractive
@@ -323,7 +347,7 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${MAJOR_VERSION_ID}" = "8" ]; then
         export SDKMAN_NATIVE_VERSION="false"
     fi
-    curl -sSL "https://get.sdkman.io?rcupdate=false" | bash
+    run_with_retries 5 10 "Installing SDKMAN" install_sdkman_cli
     # For RHEL 8 systems, also disable native CLI in config file and remove native binaries
     if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${MAJOR_VERSION_ID}" = "8" ]; then
         # Disable native CLI in config to prevent future usage
