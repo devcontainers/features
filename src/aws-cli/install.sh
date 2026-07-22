@@ -94,12 +94,13 @@ install() {
     if [ "${VERSION}" != "latest" ]; then
         local versionStr=-${VERSION}
     fi
-    architecture=$(dpkg --print-architecture)
-    case "${architecture}" in
-        amd64) architectureStr=x86_64 ;;
-        arm64) architectureStr=aarch64 ;;
+    # Detect architecture without relying on dpkg (works on Alpine and non-debian systems)
+    arch=$(uname -m)
+    case "${arch}" in
+        x86_64|amd64) architectureStr=x86_64 ;;
+        aarch64|arm64) architectureStr=aarch64 ;;
         *)
-            echo "AWS CLI does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
+            echo "AWS CLI does not support machine architecture '${arch}'. Please use an x86-64 or ARM64 machine."
             exit 1
     esac
     local scriptUrl=https://awscli.amazonaws.com/awscli-exe-linux-${architectureStr}${versionStr}.zip
