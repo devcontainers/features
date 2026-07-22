@@ -9,9 +9,6 @@
 
 set -e
 
-# Clean up
-rm -rf /var/lib/apt/lists/*
-
 VERSION=${VERSION:-"latest"}
 VERBOSE=${VERBOSE:-"true"}
 
@@ -51,25 +48,136 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-apt_get_update()
-{
-    if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
+
+# Debian / Ubuntu packages
+install_debian_packages() {
+    # Ensure apt is in non-interactive to avoid prompts
+    export DEBIAN_FRONTEND=noninteractive
+
+    local package_list=""
+    package_list="${package_list} curl ca-certificates gpg dirmngr unzip bash-completion less"
+
+    local missing_package_list=""
+    local packages=()
+    read -r -a packages <<< "${package_list}"
+    for package in "${packages[@]}"; do
+        if ! dpkg-query -W -f='${db:Status-Abbrev}\n' "${package}" 2>/dev/null | grep -q '^ii'; then
+            missing_package_list="${missing_package_list} ${package}"
+        fi
+    done
+
+    # Install the list of missing packages
+    if [ -n "${missing_package_list}" ]; then
+        echo "Packages to verify are installed: ${missing_package_list}"
+        rm -rf /var/lib/apt/lists/*
         apt-get update -y
+        apt-get -y install --no-install-recommends ${missing_package_list} 2> >( grep -v 'debconf: delaying package configuration, since apt-utils is not installed' >&2 )
+    fi
+
+    # Clean up
+    apt-get -y clean
+    rm -rf /var/lib/apt/lists/*
+}
+
+# RedHat / RockyLinux / CentOS / Fedora packages
+install_redhat_packages() {
+    local package_list=""
+    local remove_epel="false"
+    local install_cmd=microdnf
+    if type microdnf > /dev/null 2>&1; then
+       install_cmd=microdnf
+    elif type tdnf > /dev/null 2>&1; then
+       install_cmd=tdnf
+    elif type dnf > /dev/null 2>&1; then
+       install_cmd=dnf
+    elif type yum > /dev/null 2>&1; then
+       install_cmd=yum
+    else
+       echo "Unable to find 'tdnf', 'dnf', or 'yum' package manager. Exiting."
+       exit 1
+    fi
+    
+    package_list="${package_list} curl ca-certificates gpg dirmngr unzip bash-completion less"
+    
+    local missing_package_list=""
+    local packages=()
+    read -r -a packages <<< "${package_list}"
+    for package in "${packages[@]}"; do
+        if ! rpm -q "${package}" >/dev/null 2>&1; then
+            missing_package_list="${missing_package_list} ${package}"
+        fi
+    done
+
+    if [ -n "${missing_package_list}" ]; then
+        echo "Packages to verify are installed: ${missing_package_list}"
+        echo "Running ${install_cmd} install..."
+        if [ "${install_cmd}" = "dnf" ]; then
+            ${install_cmd} -y install --allowerasing ${missing_package_list}
+        else
+            ${install_cmd} -y install ${missing_package_list}
+        fi
+    fi
+
+
+}
+
+# Alpine Linux packages
+install_alpine_packages() {
+    apk update
+    local package_list=""
+
+    package_list="${package_list} curl ca-certificates gnupg unzip bash-completion less"
+
+    local missing_package_list=""
+    local packages=()
+    read -r -a packages <<< "${package_list}"
+    for package in "${packages[@]}"; do
+        if ! apk info -e "${package}" >/dev/null 2>&1; then
+            missing_package_list="${missing_package_list} ${package}"
+        fi
+    done
+    if [ -n "${missing_package_list}" ]; then
+        apk add --no-cache ${missing_package_list}
     fi
 }
 
-# Checks if packages are installed and installs them if not
-check_packages() {
-    if ! dpkg -s "$@" > /dev/null 2>&1; then
-        apt_get_update
-        apt-get -y install --no-install-recommends "$@"
+(
+    # Bring in ID, ID_LIKE, VERSION_ID, VERSION_CODENAME
+    . /etc/os-release
+    # Get an adjusted ID independent of distro variants
+    if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
+        ADJUSTED_ID="debian"
+    elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "azurelinux" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+        ADJUSTED_ID="rhel"
+        VERSION_CODENAME="${ID}${VERSION_ID}"
+    elif [ "${ID}" = "alpine" ]; then
+        ADJUSTED_ID="alpine"
+    else
+        echo "Linux distro ${ID} not supported."
+        exit 1
     fi
-}
 
-export DEBIAN_FRONTEND=noninteractive
+    if [ "${ADJUSTED_ID}" = "rhel" ] && [ "${VERSION_CODENAME-}" = "centos7" ]; then
+        # As of 1 July 2024, mirrorlist.centos.org no longer exists.
+        # Update the repo files to reference vault.centos.org.
+        sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+        sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+        sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+    fi
 
-check_packages curl ca-certificates gpg dirmngr unzip bash-completion less
+    # Install packages for appropriate OS
+    case "${ADJUSTED_ID}" in
+        "debian")
+            install_debian_packages
+            ;;
+        "rhel")
+            install_redhat_packages
+            ;;
+        "alpine")
+            install_alpine_packages
+            ;;
+    esac
+)
 
 verify_aws_cli_gpg_signature() {
     local filePath=$1
@@ -93,12 +201,13 @@ install() {
     if [ "${VERSION}" != "latest" ]; then
         local versionStr=-${VERSION}
     fi
-    architecture=$(dpkg --print-architecture)
-    case "${architecture}" in
-        amd64) architectureStr=x86_64 ;;
-        arm64) architectureStr=aarch64 ;;
+    # Detect architecture without relying on dpkg (works on Alpine and non-debian systems)
+    arch=$(uname -m)
+    case "${arch}" in
+        x86_64|amd64) architectureStr=x86_64 ;;
+        aarch64|arm64) architectureStr=aarch64 ;;
         *)
-            echo "AWS CLI does not support machine architecture '$architecture'. Please use an x86-64 or ARM64 machine."
+            echo "AWS CLI does not support machine architecture '${arch}'. Please use an x86-64 or ARM64 machine."
             exit 1
     esac
     local scriptUrl=https://awscli.amazonaws.com/awscli-exe-linux-${architectureStr}${versionStr}.zip
@@ -134,8 +243,5 @@ install() {
 echo "(*) Installing AWS CLI..."
 
 install
-
-# Clean up
-rm -rf /var/lib/apt/lists/*
 
 echo "Done!"
