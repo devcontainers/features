@@ -51,7 +51,7 @@ jobs:
             "mcr.microsoft.com/devcontainers/base:noble"
           ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
@@ -95,7 +95,7 @@ jobs:
             "nix",
         ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: "Install latest devcontainer CLI"
         run: npm install -g @devcontainers/cli

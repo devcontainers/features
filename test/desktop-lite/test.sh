@@ -10,30 +10,14 @@ echoStderr()
     echo "$@" 1>&2
 }
 
-checkOSPackage() {
-    LABEL=$1
-    PACKAGE_NAME=$2
-    echo -e "\n🧪 Testing $LABEL"
-    # Check if the package exists and retrieve its exact version
-    if [ "$(dpkg-query -W -f='${Status}' "$PACKAGE_NAME" 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
-        echo "✅  Package '$PACKAGE_NAME' is installed."
-        exit 0
-    else
-        echo "❌ Package '$PACKAGE_NAME' is not installed."
-        exit 1
-    fi
-}
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${script_dir}/check_asound_package.sh"
 
 check "desktop-init-exists" bash -c "ls /usr/local/share/desktop-init.sh"
 check "log-exists" bash -c "ls /tmp/container-init.log"
 check "fluxbox-exists" bash -c "ls -la ~/.fluxbox"
 
-. /etc/os-release
-if [ "${VERSION_CODENAME}" = "noble" ] || [ "${VERSION_CODENAME}" = "trixie" ]; then
-    checkOSPackage "if libasound2-dev exists !" "libasound2-dev"
-else 
-    checkOSPackage "if libasound2 exists !" "libasound2"
-fi
+checkAsoundPackage
 
 # Report result
 reportResults

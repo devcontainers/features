@@ -1,13 +1,13 @@
 
-# Ruby (via rvm) (ruby)
+# Ruby (via ruby-build) (ruby)
 
-Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.
+Installs Ruby using ruby-build, with optional rbenv or rvm for version management.
 
 ## Example Usage
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/ruby:1": {}
+    "ghcr.io/devcontainers/features/ruby:2": {}
 }
 ```
 
@@ -16,6 +16,7 @@ Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter a Ruby version to install | string | latest |
+| versionManager | Version manager to install alongside Ruby: 'rbenv', 'rvm', or 'none' (ruby-build only) | string | none |
 
 ## Customizations
 
@@ -27,7 +28,7 @@ Installs Ruby, rvm, rbenv, common Ruby utilities, and needed dependencies.
 
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu-based distributions with the `apt` package manager installed.
+This Feature supports Linux images that ship one of the following package managers: `apt`, `dnf`/`yum`, `apk`, `zypper`, or `pacman`. The script detects the available package manager and installs the build dependencies that ruby-build needs.
 
 `bash` is required to execute the `install.sh` script.
 
