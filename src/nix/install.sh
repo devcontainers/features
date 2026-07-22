@@ -113,10 +113,8 @@ fi
 chmod +x,o+r ${FEATURE_DIR} ${FEATURE_DIR}/post-install-steps.sh
 if [ "${MULTIUSER}" = "true" ]; then
     /usr/local/share/nix-entrypoint.sh
-    su ${USERNAME} -c "
-        . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-        ${FEATURE_DIR}/post-install-steps.sh
-    "
+    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+    NIX_FEATURE_INSTALL_PROFILE=/nix/var/nix/profiles/default ${FEATURE_DIR}/post-install-steps.sh
 else
     su ${USERNAME} -c "
         . \$HOME/.nix-profile/etc/profile.d/nix.sh
