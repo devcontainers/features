@@ -61,6 +61,7 @@ apt_get_update()
 
 # Checks if packages are installed and installs them if not
 check_packages() {
+    if ! command -v dpkg &> /dev/null; then return; fi # system doesn't have dpkg. YOLO mode. we still have `set -e`
     if ! dpkg -s "$@" > /dev/null 2>&1; then
         apt_get_update
         apt-get -y install --no-install-recommends "$@"
