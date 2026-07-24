@@ -33,7 +33,7 @@ Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and Rocky Linux distributi
 
 ## Excluding pre-bundled items
 
-Exclude a bundled **VS Code extension** by prefixing its ID with `-`, or disable a bundled **tool** by setting its option to `none` :
+Exclude a bundled **VS Code extension** by prefixing its ID with `-`, or disable a bundled **tool** by setting its option to `none`:
 
 ```json
 {
