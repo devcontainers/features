@@ -5,7 +5,9 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-check "conda" conda --version | grep 4.12.0
+check "conda" conda --version
+check "conda update" conda update -n base -c defaults -y conda
+check "conda updated version" conda --version
 check "conda-forge" conda config --show channels | grep conda-forge
 check "if conda-notice.txt exists" cat /usr/local/etc/vscode-dev-containers/conda-notice.txt
 

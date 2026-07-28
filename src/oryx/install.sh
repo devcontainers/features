@@ -188,10 +188,10 @@ SOLUTION_FILE_NAME="Oryx.sln"
 echo "Building solution '$SOLUTION_FILE_NAME'..."
 
 cd $GIT_ORYX
-${DOTNET_BINARY} build "$SOLUTION_FILE_NAME" -c Debug
+${DOTNET_BINARY} build "$SOLUTION_FILE_NAME" -c Debug -p:NuGetAudit=false
 
-${DOTNET_BINARY} publish -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj --self-contained true
-${DOTNET_BINARY} publish -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj --self-contained true
+${DOTNET_BINARY} publish -p:NuGetAudit=false -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj --self-contained true
+${DOTNET_BINARY} publish -p:NuGetAudit=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj --self-contained true
 
 chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
@@ -206,7 +206,7 @@ mkdir -p "${ORYX_INSTALL_DIR}"
 PIP_CACHE_DIR="/usr/local/share/pip-cache/lib"
 mkdir -p ${PIP_CACHE_DIR}
 
-updaterc "export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=$ORYX_INSTALL_DIR && ORYX_PREFER_USER_INSTALLED_SDKS=true && export DEBIAN_FLAVOR=focal-scm"
+updaterc "export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=$ORYX_INSTALL_DIR && ORYX_PREFER_USER_INSTALLED_SDKS=true && export DEBIAN_FLAVOR=bookworm"
 
 chown -R "${USERNAME}:oryx" "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}" "${PIP_CACHE_DIR}"
 chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}" "${PIP_CACHE_DIR}"

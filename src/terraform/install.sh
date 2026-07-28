@@ -19,8 +19,8 @@ INSTALL_SENTINEL=${INSTALLSENTINEL:-false}
 INSTALL_TFSEC=${INSTALLTFSEC:-false}
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
 CUSTOM_DOWNLOAD_SERVER="${CUSTOMDOWNLOADSERVER:-""}"
-# This is because ubuntu noble and debian trixie don't support the old format of GPG keys and validation 
-NEW_GPG_CODENAMES="trixie noble"
+# This is because ubuntu noble, ubuntu resolute and debian trixie don't support the old format of GPG keys and validation 
+NEW_GPG_CODENAMES="trixie noble resolute"
 
 TERRAFORM_SHA256="${TERRAFORM_SHA256:-"automatic"}"
 TFLINT_SHA256="${TFLINT_SHA256:-"automatic"}"
@@ -52,7 +52,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Detect Ubuntu Noble or Debian Trixie and use new repo setup, else use legacy GPG logic
+# Detect Ubuntu Noble, Ubuntu Resolute or Debian Trixie and use new repo setup, else use legacy GPG logic
 IS_GPG_NEW=0
 . /etc/os-release
 if [[ "${NEW_GPG_CODENAMES}" == *"${VERSION_CODENAME}"* ]]; then
@@ -249,7 +249,7 @@ find_sentinel_version_from_url() {
     if [ "$(echo "${requested_version}" | grep -o "." | wc -l)" != "2" ]; then
         local prefix='sentinel_'
         local regex="${prefix}\d.\d{2}.\d(?:-\w*)?"
-        local version_list="$(wget -q $2 -O - | grep -oP ${regex} | tr -d ${prefix} | sort -rV)"
+        local version_list="$(wget -q $2 -O - | grep -oP ${regex} | sed "s/^${prefix}//" | sort -rV)"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ] || [ "${requested_version}" = "lts" ]; then
             declare -g ${variable_name}="$(echo "${version_list}" | head -n 1)"
         else

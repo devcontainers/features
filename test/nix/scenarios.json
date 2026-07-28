@@ -14,7 +14,7 @@
         "features": {
             "nix": {
                 "multiUser": false,
-                "version": "2.10"
+                "version": "2.18"
             }
         }
     },
@@ -86,7 +86,7 @@
         "remoteUser": "vscode",
         "features": {
             "nix": {
-                "packages": "nodePackages.nodejs,nixpkgs.vim,nixpkgs.yarn",
+                "packages": "nodejs,nixpkgs.vim,nixpkgs.yarn",
                 "useAttributePath": true
             }
         }

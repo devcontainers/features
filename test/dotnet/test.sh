@@ -21,8 +21,17 @@ test -L /usr/bin/dotnet -a "$(readlink -f /usr/bin/dotnet)" = "$DOTNET_ROOT/dotn
 
 expected=$(fetch_latest_version)
 
-check "Latest .NET SDK version installed" \
+check "Latest .NET SDK version $expected installed" \
 is_dotnet_sdk_version_installed "$expected"
+
+check "Bash completion script installed" \
+test -s /usr/share/bash-completion/completions/dotnet
+
+check "Zsh completion script installed" \
+test -s /usr/share/zsh/site-functions/_dotnet
+
+check "Fish completion script installed" \
+test -s /usr/share/fish/vendor_completions.d/dotnet.fish
 
 # Report results
 # If any of the checks above exited with a non-zero exit code, the test will fail.

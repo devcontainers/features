@@ -110,12 +110,8 @@ get_gpg_key_servers() {
 
 # Import the specified key in a variable name passed in as
 receive_gpg_keys() {
-    local keys=${!1}
-    local keyring_args=""
-    if [ ! -z "$2" ]; then
-        mkdir -p "$(dirname \"$2\")"
-        keyring_args="--no-default-keyring --keyring $2"
-    fi
+    local -a keys="(${!1})"
+    mkdir -p "$(dirname "$2")"
 
     # Install curl
     if ! type curl > /dev/null 2>&1; then
@@ -133,13 +129,17 @@ receive_gpg_keys() {
     set +e
     until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ];
     do
-        echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
-        if [ "${gpg_ok}" != "true" ]; then
-            echo "(*) Failed getting key, retrying in 10s..."
-            (( retry_count++ ))
-            sleep 10s
-        fi
+        for key in "${keys[@]}"; do
+            echo "(*) Downloading GPG key '${key}'..."
+            gpg --recv-keys "${key}" \
+            && gpg --export "${key}" | gpg --dearmor --yes -o "$2" \
+            && gpg_ok="true"
+            if [ "${gpg_ok}" != "true" ]; then
+                echo "(*) Failed getting key, retrying in 10s..."
+                (( retry_count++ ))
+                sleep 10s
+            fi
+        done
     done
     set -e
     if [ "${gpg_ok}" = "false" ]; then
@@ -263,10 +263,10 @@ elif [ "${ADJUSTED_ID}" = "alpine" ]; then
     ${INSTALL_CMD} add --no-cache --update curl grep make zlib-dev
 
     # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L62>
-    check_packages asciidoc curl-dev expat-dev g++ gcc openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto
+    check_packages asciidoc curl-dev expat-dev g++ gcc linux-headers openssl-dev pcre2-dev perl-dev perl-error python3-dev tcl tk xmlto
 
 elif [ "${ADJUSTED_ID}" = "rhel" ]; then
-    check_packages gcc libcurl-devel expat-devel gettext-devel openssl-devel perl-devel zlib-devel cmake pcre2-devel tar gzip ca-certificates
+    check_packages gcc make libcurl-devel expat-devel gettext-devel openssl-devel perl-devel zlib-devel cmake pcre2-devel tar gzip ca-certificates
     if ! type curl > /dev/null 2>&1; then
         check_packages curl
     fi
@@ -275,7 +275,7 @@ elif [ "${ADJUSTED_ID}" = "rhel" ]; then
     fi
     if ! type awk > /dev/null 2>&1; then
         check_packages gawk
-    fi        
+    fi
     if [ $ID = "mariner" ]; then
         check_packages glibc-devel kernel-headers binutils
     fi
@@ -318,12 +318,18 @@ cd /tmp/git-${GIT_VERSION}
 git_options=("prefix=/usr/local")
 git_options+=("sysconfdir=/etc")
 git_options+=("USE_LIBPCRE=YesPlease")
+git_options+=("NO_RUST=YesPlease")
 if [ "${ADJUSTED_ID}" = "alpine" ]; then
     # ref. <https://github.com/alpinelinux/aports/blob/32ac93ffb642031b88ba8639fbb3abb324169dea/main/git/APKBUILD#L126>
     git_options+=("NO_REGEX=YesPlease")
     git_options+=("NO_GETTEXT=YesPlease")
 fi
 make -s "${git_options[@]}" all && make -s "${git_options[@]}" install 2>&1
+build_result=$?
 rm -rf /tmp/git-${GIT_VERSION}
 clean_up
+if [ "${build_result}" -ne 0 ]; then
+    echo "(!) Failed to build and install git ${GIT_VERSION}." >&2
+    exit 1
+fi
 echo "Done!"

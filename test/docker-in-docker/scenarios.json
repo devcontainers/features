@@ -1,4 +1,70 @@
 {
+    "docker_iptables_switch_at_install": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": false
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },
+    // DO NOT REMOVE: This scenario is used by the docker-in-docker-daemon-startup-bulk-test workflow
+    "docker_iptables_switch_at_runtime": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },
+    "docker_with_default_iptables": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
+    },
+    "docker_with_legacy_iptables": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },
+    "docker_with_default_iptables_ubuntu": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe --remove --remove-holders --wait 1000 ip_tables"
+    },
+    "docker_with_legacy_iptables_ubuntu": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "docker-in-docker": {
+                "moby": "false"
+            }
+        },
+        "initializeCommand": "sudo modprobe ip_tables"
+    },        
+    "overlayfs_containerd_root": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": true
+            }
+        }
+    },     
     "docker_build_fallback_compose": {
         "image": "ubuntu:noble",
         "features": {
@@ -108,7 +174,7 @@
         }
     },
     "docker_python_bookworm": {
-        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+        "image": "mcr.microsoft.com/devcontainers/base:2.1.8-bookworm",
         "features": {
             "docker-in-docker": {
                 "moby": true,
@@ -137,6 +203,26 @@
             }
         }
     },
+    "docker_compose_latest_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "latest"
+            }
+        }
+    },
+    "docker_compose_latest_no_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "docker-in-docker": {
+                "moby": false,
+                "installDockerBuildx": true,
+                "dockerDashComposeVersion": "latest"
+            }
+        }
+    },
     "docker_build_fallback_buildx": {
         "image": "ubuntu:noble",
         "features": {
@@ -148,6 +234,14 @@
     },
     "install_on_debian_trixie": {
         "image": "debian:trixie",
+        "features": {
+            "docker-in-docker": {
+                "moby": false
+            }
+        }
+    },
+    "docker_build_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
         "features": {
             "docker-in-docker": {
                 "moby": false
@@ -178,7 +272,7 @@
             }
         }
     },
-    // DO NOT REMOVE: This scenario is used by the docker-in-docker-stress-test workflow
+    // DO NOT REMOVE: This scenario is used by the docker-in-docker-daemon-startup-bulk-test workflow
     "docker_with_on_create_command": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {

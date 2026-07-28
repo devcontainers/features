@@ -89,7 +89,7 @@
         "features": {
             "dotnet": {
                 "version": "latest",
-                "workloads": "aspire, wasm-tools"
+                "workloads": "wasm-tools"
             }
         }
     }

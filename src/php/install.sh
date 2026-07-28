@@ -170,6 +170,31 @@ addcomposer() {
     "${PHP_SRC}" -r "unlink('composer-setup.php');"
 }
 
+# Build xdebug from its official source tarball. Used as a fallback when
+# pecl.php.net is broken or has no release advertising compatibility with
+# the current PHP version (common around new PHP releases).
+install_xdebug_from_source() {
+    XDEBUG_VERSION="latest"
+    find_version_from_git_tags XDEBUG_VERSION https://github.com/xdebug/xdebug "tags/"
+
+    local xdebug_src_dir="/tmp/xdebug-src"
+    rm -rf "${xdebug_src_dir}"
+    mkdir -p "${xdebug_src_dir}"
+
+    wget -O /tmp/xdebug.tgz "https://xdebug.org/files/xdebug-${XDEBUG_VERSION}.tgz"
+    tar -xzf /tmp/xdebug.tgz -C "${xdebug_src_dir}" --strip-components=1
+
+    (
+        cd "${xdebug_src_dir}"
+        "${PHP_INSTALL_DIR}/bin/phpize"
+        ./configure --enable-xdebug --with-php-config="${PHP_INSTALL_DIR}/bin/php-config"
+        make -j "$(nproc)"
+        make install
+    )
+
+    rm -rf "${xdebug_src_dir}" /tmp/xdebug.tgz
+}
+
 init_php_install() {
     PHP_INSTALL_DIR="${PHP_DIR}/${PHP_VERSION}"
     if [ -d "${PHP_INSTALL_DIR}" ]; then
@@ -219,8 +244,10 @@ install_php() {
 
     # PHP 7.4+, the pecl/pear installers are officially deprecated and are removed in PHP 8+
     # Thus, requiring an explicit "--with-pear"
+    OLDIFS=$IFS
     IFS="."
     read -a versions <<< "${PHP_VERSION}"
+    IFS=$OLDIFS
     PHP_MAJOR_VERSION=${versions[0]}
     PHP_MINOR_VERSION=${versions[1]}
 
@@ -240,8 +267,13 @@ install_php() {
     cp -v $PHP_SRC_DIR/php.ini-* "$PHP_INI_DIR/";
     cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-    # Install xdebug
-    "${PHP_INSTALL_DIR}/bin/pecl" install xdebug
+    # Install xdebug. Try PECL first (fast path), then fall back to building
+    # from source if PECL's channel cache is broken or no release advertises
+    # compatibility with the current PHP version.
+    "${PHP_INSTALL_DIR}/bin/pecl" channel-update pecl.php.net || true
+    if ! "${PHP_INSTALL_DIR}/bin/pecl" install xdebug; then
+        install_xdebug_from_source
+    fi
     XDEBUG_INI="${CONF_DIR}/xdebug.ini"
 
     echo "zend_extension=${PHP_EXT_DIR}/xdebug.so" > "${XDEBUG_INI}"

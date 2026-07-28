@@ -1,0 +1,18 @@
+{
+  "resolve_prerelease_version": {
+    "image": "ubuntu:noble",
+    "features": {
+      "copilot-cli": {
+        "version": "latest"
+      }
+    }
+  },
+  "install_prerelease": {
+    "image": "ubuntu:noble",
+    "features": {
+      "copilot-cli": {
+        "version": "prerelease"
+      }
+    }
+  }
+}

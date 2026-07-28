@@ -1,8 +1,8 @@
-{   
+{
     "install_ruby_trixie_base": {
         "build": {
             "dockerfile": "Dockerfile"
-        },        
+        },
         "features": {
             "ghcr.io/devcontainers/features/common-utils:2": {
                 "installZsh": "true",
@@ -28,7 +28,7 @@
                 "additionalVersions": "3.2,3.3.2"
             }
         }
-    },       
+    },
     "install_additional_ruby": {
         "image": "ubuntu:noble",
         "features": {
@@ -39,16 +39,26 @@
         }
     },
     "ruby_debian": {
-        "image": "mcr.microsoft.com/devcontainers/base:bullseye",
+        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
         "features": {
             "ruby": {}
         }
     },
-    "ruby_fallback_test": {
-        "image": "mcr.microsoft.com/devcontainers/base:bullseye",
+    "ruby_rbenv": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
             "ruby": {
-                "version": "latest"
+                "version": "3.4.2",
+                "versionManager": "rbenv"
+            }
+        }
+    },
+    "ruby_rvm": {
+        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+        "features": {
+            "ruby": {
+                "version": "3.4.2",
+                "versionManager": "rvm"
             }
         }
     }

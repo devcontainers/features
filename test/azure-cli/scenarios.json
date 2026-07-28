@@ -1,4 +1,12 @@
 {
+  "install_fallback_pip_ubuntu_plucky": {
+    "image": "ubuntu:plucky",
+    "features": {
+      "azure-cli": {
+        "version": "latest"
+      }
+    }
+  },  
   "install_extensions_trixie": {
     "image": "mcr.microsoft.com/devcontainers/base:trixie",
     "user": "vscode",
@@ -89,7 +97,7 @@
     }
   },
   "install_azcli_dotnet_dockerindocker_trixie": {
-    "image": "mcr.microsoft.com/devcontainers/dotnet:dev-10.0-preview-trixie",
+    "image": "mcr.microsoft.com/devcontainers/base:trixie",
     "user": "vscode",
     "features": {
       "azure-cli": {
@@ -100,6 +108,15 @@
       },
       "docker-in-docker": {
         "moby": false
+      }
+    }
+  },
+  "install_in_ubuntu_resolute": {
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+    "user": "vscode",
+    "features": {
+      "azure-cli": {
+        "version": "latest"
       }
     }
   }

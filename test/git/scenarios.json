@@ -1,6 +1,6 @@
 {
     "install_git_from_src": {
-        "image": "ubuntu:noble",
+        "image": "ubuntu:resolute",
         "features": {
             "git": {
                 "version": "latest",
@@ -44,6 +44,33 @@
             }
         }
     },
+    "install_git_from_ppa_noble": {
+        "image": "ubuntu:noble",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "true"
+            }
+        }
+    },
+    "install_git_from_src_resolute": {
+        "image": "ubuntu:resolute",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_ppa_resolute": {
+        "image": "ubuntu:resolute",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "true"
+            }
+        }
+    },
     "install_git_from_src_bullseye": {
         "image": "debian:bullseye",
         "features": {
@@ -53,8 +80,17 @@
             }
         }
     },
-    "install_git_from_src_centos-7": {
-        "image": "centos:centos7",
+    "install_git_from_src_bookworm": {
+        "image": "debian:bookworm",
+        "features": {
+            "git": {
+                "version": "latest",
+                "ppa": "false"
+            }
+        }
+    },
+    "install_git_from_src_trixie": {
+        "image": "debian:trixie",
         "features": {
             "git": {
                 "version": "latest",

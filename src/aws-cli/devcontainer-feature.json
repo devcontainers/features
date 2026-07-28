@@ -1,6 +1,6 @@
 {
     "id": "aws-cli",
-    "version": "1.1.2",
+    "version": "1.1.4",
     "name": "AWS CLI",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/aws-cli",
     "description": "Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
@@ -12,6 +12,11 @@
             ],
             "default": "latest",
             "description": "Select or enter an AWS CLI version."
+        },
+        "verbose": {
+            "type": "boolean",
+            "default": true,
+            "description": "Suppress verbose output."
         }
     },
     "customizations": {

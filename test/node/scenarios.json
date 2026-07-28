@@ -6,7 +6,7 @@
                 "version": "lts"
             }
         }
-    },    
+    },
     "install_node_debian_bookworm": {
         "image": "debian:12",
         "features": {
@@ -14,7 +14,7 @@
                 "version": "lts"
             }
         }
-    },    
+    },
     "nvm_test_fallback": {
         "image": "debian:11",
         "features": {
@@ -22,7 +22,7 @@
                 "version": "lts"
             }
         }
-    },    
+    },
     "install_additional_node": {
         "image": "debian:11",
         "features": {
@@ -98,7 +98,7 @@
         "features": {
             "node": {
                 "version": "22",
-                "pnpmVersion":"8.8.0"
+                "pnpmVersion": "8.8.0"
             }
         }
     },
@@ -205,6 +205,43 @@
         "features": {
             "node": {
                 "version": "lts"
+            }
+        }
+    },
+    "install_specific_npm_version": {
+        "image": "debian:12",
+        "features": {
+            "node": {
+                "version": "lts",
+                "npmVersion": "10.8.0"
+            }
+        }
+    },
+    "install_npm_none": {
+        "image": "mcr.microsoft.com/devcontainers/base",
+        "features": {
+            "node": {
+                "version": "24",
+                "npmVersion": "none"
+            }
+        }
+    },
+    "install_npm_latest": {
+        "image": "debian:12",
+        "features": {
+            "node": {
+                "version": "22",
+                "npmVersion": "latest",
+                "pnpmVersion": "8.8.0"
+            }
+        }
+    },
+    "install_npm_latest_incompatible": {
+        "image": "debian:12",
+        "features": {
+            "node": {
+                "version": "16",
+                "npmVersion": "latest"
             }
         }
     }
