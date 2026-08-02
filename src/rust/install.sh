@@ -30,7 +30,7 @@ if [ "${ID}" = "debian" ] || [ "${ID_LIKE}" = "debian" ]; then
     ADJUSTED_ID="debian"
 elif [ "${ID}" = "alpine" ]; then
     ADJUSTED_ID="alpine"
-elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"mariner"* ]]; then
+elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "azurelinux" || "${ID}" = "mariner" || "${ID_LIKE}" = *"rhel"* || "${ID_LIKE}" = *"fedora"* || "${ID_LIKE}" = *"azurelinux"* || "${ID_LIKE}" = *"mariner"* ]]; then
     ADJUSTED_ID="rhel"
     VERSION_CODENAME="${ID}${VERSION_ID}"
 else
@@ -264,6 +264,7 @@ check_packages() {
                     "python3-minimal") packages[$i]="python3" ;;
                     "libpython3.*") packages[$i]="python3-devel" ;;
                     "gnupg2") packages[$i]="gnupg" ;;
+                    "passwd") packages[$i]="shadow-utils" ;;
                 esac
                 ;;
         esac
@@ -303,7 +304,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Install curl, lldb, python3-minimal,libpython and rust dependencies if missing
 echo "Installing required dependencies..."
-check_packages curl ca-certificates gcc libc6-dev gnupg2 git
+check_packages curl ca-certificates gcc libc6-dev gnupg2 git passwd
 
 # Install optional dependencies (continue if they fail)
 case "$PKG_MANAGER" in
@@ -315,7 +316,7 @@ case "$PKG_MANAGER" in
         ;;
     tdnf)
         check_packages python3 python3-devel || true
-        # LLDB might not be available in Photon/Mariner
+        # LLDB might not be available in Photon/Mariner/Azure Linux
         ;;
 esac
 
