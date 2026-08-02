@@ -14,7 +14,7 @@
                 "installSentinel": true
             }
         }
-    },    
+    },
     "install_in_ubuntu_noble": {
         "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
@@ -25,6 +25,22 @@
     },
     "install_in_ubuntu_noble_sentinel": {
         "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "features": {
+            "terraform": {
+                "installSentinel": true
+            }
+        }
+    },
+    "install_in_ubuntu_resolute": {
+        "image": "mcr.microsoft.com/devcontainers/base:resolute",
+        "features": {
+            "terraform": {
+                "version": "latest"
+            }
+        }
+    },
+    "install_in_ubuntu_resolute_sentinel": {
+        "image": "mcr.microsoft.com/devcontainers/base:resolute",
         "features": {
             "terraform": {
                 "installSentinel": true

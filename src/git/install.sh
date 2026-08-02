@@ -110,12 +110,8 @@ get_gpg_key_servers() {
 
 # Import the specified key in a variable name passed in as
 receive_gpg_keys() {
-    local keys=${!1}
-    local keyring_args=""
-    if [ ! -z "$2" ]; then
-        mkdir -p "$(dirname \"$2\")"
-        keyring_args="--no-default-keyring --keyring $2"
-    fi
+    local -a keys="(${!1})"
+    mkdir -p "$(dirname "$2")"
 
     # Install curl
     if ! type curl > /dev/null 2>&1; then
@@ -133,13 +129,17 @@ receive_gpg_keys() {
     set +e
     until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ];
     do
-        echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
-        if [ "${gpg_ok}" != "true" ]; then
-            echo "(*) Failed getting key, retrying in 10s..."
-            (( retry_count++ ))
-            sleep 10s
-        fi
+        for key in "${keys[@]}"; do
+            echo "(*) Downloading GPG key '${key}'..."
+            gpg --recv-keys "${key}" \
+            && gpg --export "${key}" | gpg --dearmor --yes -o "$2" \
+            && gpg_ok="true"
+            if [ "${gpg_ok}" != "true" ]; then
+                echo "(*) Failed getting key, retrying in 10s..."
+                (( retry_count++ ))
+                sleep 10s
+            fi
+        done
     done
     set -e
     if [ "${gpg_ok}" = "false" ]; then
@@ -275,7 +275,7 @@ elif [ "${ADJUSTED_ID}" = "rhel" ]; then
     fi
     if ! type awk > /dev/null 2>&1; then
         check_packages gawk
-    fi        
+    fi
     if [ $ID = "mariner" ]; then
         check_packages glibc-devel kernel-headers binutils
     fi
