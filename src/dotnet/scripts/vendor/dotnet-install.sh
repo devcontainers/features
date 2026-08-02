@@ -661,7 +661,7 @@ parse_globaljson_file_for_version() {
         return 1
     fi
 
-    sdk_section=$(cat $json_file | tr -d "\r" | awk '/"sdk"/,/}/')
+    sdk_section=$(cat "$json_file" | tr -d "\r" | awk '/"sdk"/,/}/')
     if [ -z "$sdk_section" ]; then
         say_err "Unable to parse the SDK node in \`$json_file\`"
         return 1
@@ -783,7 +783,7 @@ get_specific_product_version() {
 
         if machine_has "curl"
         then
-            if ! specific_product_version=$(curl -s --fail "${download_link}${feed_credential}" 2>&1); then
+            if ! specific_product_version=$(curl -sL --fail "${download_link}${feed_credential}" 2>&1); then
                 continue
             else
                 echo "${specific_product_version//[$'\t\r\n']}"
@@ -1003,12 +1003,12 @@ copy_files_or_dirs_from_list() {
     cat | uniq | while read -r file_path; do
         local path="$(remove_beginning_slash "${file_path#$root_path}")"
         local target="$out_path/$path"
-        if [ "$override" = true ] || (! ([ -d "$target" ] || [ -e "$target" ])); then
+        if [ "$override" = true ] || (! ([ -d "$target" ] || [ -e "$target" ] || [ -L "$target" ])); then
             mkdir -p "$out_path/$(dirname "$path")"
-            if [ -d "$target" ]; then
+            if [ -d "$target" ] || [ -L "$target" ]; then
                 rm -rf "$target"
             fi
-            cp -R $override_switch "$root_path/$path" "$target"
+            cp -RP $override_switch "$root_path/$path" "$target"
         fi
     done
 }
@@ -1053,8 +1053,8 @@ extract_dotnet_package() {
     tar -xzf "$zip_path" -C "$temp_out_path" > /dev/null || failed=true
 
     local folders_with_version_regex='^.*/[0-9]+\.[0-9]+[^/]+/'
-    find "$temp_out_path" -type f | grep -Eo "$folders_with_version_regex" | sort | copy_files_or_dirs_from_list "$temp_out_path" "$out_path" false
-    find "$temp_out_path" -type f | grep -Ev "$folders_with_version_regex" | copy_files_or_dirs_from_list "$temp_out_path" "$out_path" "$override_non_versioned_files"
+    find "$temp_out_path" \( -type f -o -type l \) | grep -Eo "$folders_with_version_regex" | sort | copy_files_or_dirs_from_list "$temp_out_path" "$out_path" false
+    find "$temp_out_path" \( -type f -o -type l \) | grep -Ev "$folders_with_version_regex" | copy_files_or_dirs_from_list "$temp_out_path" "$out_path" "$override_non_versioned_files"
     
     validate_remote_local_file_sizes "$zip_path" "$remote_file_size"
     
@@ -1169,11 +1169,11 @@ download() {
             exit 1
         fi
 
-        if [ "$failed" = false ] || [ $attempts -ge 3 ] || { [ ! -z $http_code ] && [ $http_code = "404" ]; }; then
+        if [ "$failed" = false ] || [ $attempts -ge 3 ] || { [ -n "${http_code-}" ] && [ "${http_code}" = "404" ]; }; then
             break
         fi
 
-        say "Download attempt #$attempts has failed: $http_code $download_error_msg"
+        say "Download attempt #$attempts has failed: ${http_code-} ${download_error_msg-}"
         say "Attempt #$((attempts+1)) will start in $((attempts*10)) seconds."
         sleep $((attempts*10))
     done
@@ -1312,13 +1312,13 @@ get_download_link_from_aka_ms() {
     say_verbose "Received response: $response"
     # Get results of all the redirects.
     http_codes=$( echo "$response" | awk '$1 ~ /^HTTP/ {print $2}' )
-    # They all need to be 301, otherwise some links are broken (except for the last, which is not a redirect but 200 or 404).
-    broken_redirects=$( echo "$http_codes" | sed '$d' | grep -v '301' )
+    # Allow intermediate 301 redirects and tolerate proxy-injected 200s
+    broken_redirects=$( echo "$http_codes" | sed '$d' | grep -vE '^(301|200)$' )
     # The response may end without final code 2xx/4xx/5xx somehow, e.g. network restrictions on www.bing.com causes redirecting to bing.com fails with connection refused.
     # In this case it should not exclude the last.
     last_http_code=$(  echo "$http_codes" | tail -n 1 )
     if ! [[ $last_http_code =~ ^(2|4|5)[0-9][0-9]$ ]]; then
-        broken_redirects=$( echo "$http_codes" | grep -v '301' )
+        broken_redirects=$( echo "$http_codes" | grep -vE '^(301|200)$' )
     fi
 
     # All HTTP codes are 301 (Moved Permanently), the redirect link exists.
@@ -1580,12 +1580,12 @@ install_dotnet() {
         download "$download_link" "$zip_path" 2>&1 || download_failed=true
 
         if [ "$download_failed" = true ]; then
-            case $http_code in
+            case ${http_code-} in
             404)
                 say "The resource at $link_type link '$download_link' is not available."
                 ;;
             *)
-                say "Failed to download $link_type link '$download_link': $http_code $download_error_msg"
+                say "Failed to download $link_type link '$download_link': ${http_code-} ${download_error_msg-}"
                 ;;
             esac
             rm -f "$zip_path" 2>&1 && say_verbose "Temporary archive file $zip_path was removed"
@@ -1796,7 +1796,6 @@ do
             echo "      -Quality"
             echo "          The possible values are: daily, preview, GA."
             echo "          Works only in combination with channel. Not applicable for STS and LTS channels and will be ignored if those channels are used." 
-            echo "          For SDK use channel in A.B.Cxx format. Using quality for SDK together with channel in A.B format is not supported." 
             echo "          Supported since 5.0 release." 
             echo "          Note: The version parameter overrides the channel parameter when any version other than 'latest' is used, and therefore overrides the quality."
             echo "  --internal,-Internal               Download internal builds. Requires providing credentials via --feed-credential parameter."
