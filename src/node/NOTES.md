@@ -25,3 +25,27 @@ Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and Rocky Linux distributi
 **Note**:  RedHat 7 Family (RedHat, CentOS, etc.) must use Node versions less than 18 due to its system libraries and long-term support (LTS) policies.
 
 `bash` is required to execute the `install.sh` script.
+
+## Pre-bundled items
+
+> [!NOTE]
+> Beyond the core install, this feature also sets up a few items by default for convenience — recommended VS Code extensions (such as a linter) and supporting tools. This is intentional behavior shared across features in this repository.
+
+## Excluding pre-bundled items
+
+Exclude a bundled **VS Code extension** by prefixing its ID with `-`, or (when supported by a feature option) disable a bundled **tool** by setting its version option to `none` (for example, `pnpmVersion`: `none`):
+
+```json
+{
+    "features": {
+        "ghcr.io/devcontainers/features/node:2": {
+            "pnpmVersion": "none"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [ "-dbaeumer.vscode-eslint" ]
+        }
+    }
+}
+```
