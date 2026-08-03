@@ -1,0 +1,62 @@
+name: Test app token
+on:
+  push:
+    branches:
+      - app-token-test
+
+permissions: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate a token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DEVCONTAINERS_REPO_AUTOMATION_ID }}
+          private-key: ${{ secrets.DEVCONTAINERS_REPO_AUTOMATION_PRIVATE_KEY }}
+
+      - name: Verify read + contents write
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -e
+          echo "Repos covered by this installation token:"
+          gh api /installation/repositories --jq '.repositories[].full_name'
+          gh api "/repos/$REPO" --jq '"read OK: " + .full_name'
+          REF="app-token-test-$RUN_ID"
+          SHA=$(gh api "/repos/$REPO/git/ref/heads/$DEFAULT_BRANCH" --jq .object.sha)
+          gh api --method POST "/repos/$REPO/git/refs" -f ref="refs/heads/$REF" -f sha="$SHA"
+          gh api --method DELETE "/repos/$REPO/git/refs/heads/$REF"
+          echo "contents:write OK (created + deleted refs/heads/$REF)"
+
+      - name: Verify pull-requests write (create + close PR)
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -e
+          BASE="app-token-prtest-base-$RUN_ID"
+          HEAD="app-token-prtest-head-$RUN_ID"
+          SHA=$(gh api "/repos/$REPO/git/ref/heads/$DEFAULT_BRANCH" --jq .object.sha)
+          gh api --method POST "/repos/$REPO/git/refs" -f ref="refs/heads/$BASE" -f sha="$SHA"
+          gh api --method POST "/repos/$REPO/git/refs" -f ref="refs/heads/$HEAD" -f sha="$SHA"
+          gh api --method PUT "/repos/$REPO/contents/.apptoken-test-$RUN_ID.txt" \
+            -f message="app token PR test marker" \
+            -f branch="$HEAD" \
+            -f content="$(echo -n 'app-token pr creation test' | base64 -w0)"
+          PR=$(gh api --method POST "/repos/$REPO/pulls" \
+            -f title="[TEST] app token PR creation ($RUN_ID)" \
+            -f body="Automated test of pull-requests:write via GitHub App token. Auto-closed." \
+            -f head="$HEAD" -f base="$BASE" -F draft=true --jq .number)
+          echo "pull-requests:write OK -- created PR #$PR"
+          gh api --method PATCH "/repos/$REPO/pulls/$PR" -f state=closed --jq '"closed PR #" + (.number|tostring)'
+          gh api --method DELETE "/repos/$REPO/git/refs/heads/$HEAD"
+          gh api --method DELETE "/repos/$REPO/git/refs/heads/$BASE"
+          echo "cleanup OK -- deleted $HEAD and $BASE"
