@@ -8,12 +8,34 @@
       }
     }
   },
-  "install_extensions": {
+  "auto_auth_on_setup": {
     "image": "ubuntu:noble",
     "features": {
       "github-cli": {
         "version": "latest",
+        "installDirectlyFromGitHubRelease": "false",
+        "authOnSetup": "true"
+      }
+    }
+  },
+  "install_extensions_after_auth": {
+    "image": "ubuntu:noble",
+    "features": {
+      "github-cli": {
+        "version": "latest",
+        "installDirectlyFromGitHubRelease": "false",
+        "authOnSetup": "true",
         "extensions": "dlvhdr/gh-dash,github/gh-copilot"
+      }
+    }
+  },
+  "install_extensions_from_git": {
+    "image": "ubuntu:noble",
+    "features": {
+      "github-cli": {
+        "version": "latest",
+        "extensions": "dlvhdr/gh-dash,github/gh-copilot",
+        "installExtensionsFromGit": "true"
       }
     }
   }
