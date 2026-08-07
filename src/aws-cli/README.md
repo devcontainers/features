@@ -16,6 +16,7 @@ Installs the AWS CLI along with needed dependencies. Useful for base Dockerfiles
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | version | Select or enter an AWS CLI version. | string | latest |
+| verbose | Suppress verbose output. | boolean | true |
 
 ## Customizations
 
