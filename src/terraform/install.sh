@@ -18,6 +18,7 @@ TERRAGRUNT_VERSION="${TERRAGRUNT:-"latest"}"
 INSTALL_SENTINEL=${INSTALLSENTINEL:-false}
 INSTALL_TFSEC=${INSTALLTFSEC:-false}
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
+TERRAFORM_DOCS_VERSION="${TERRAFORMDOCSVERSION:-"latest"}"
 CUSTOM_DOWNLOAD_SERVER="${CUSTOMDOWNLOADSERVER:-""}"
 # This is because ubuntu noble, ubuntu resolute and debian trixie don't support the old format of GPG keys and validation 
 NEW_GPG_CODENAMES="trixie noble resolute"
@@ -641,7 +642,6 @@ install_terraform_docs() {
 }
 
 if [ "${INSTALL_TERRAFORM_DOCS}" = "true" ]; then
-    TERRAFORM_DOCS_VERSION="latest"
     terraform_docs_url='https://github.com/terraform-docs/terraform-docs'
     find_version_from_git_tags TERRAFORM_DOCS_VERSION $terraform_docs_url
     tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
