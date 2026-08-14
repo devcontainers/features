@@ -498,7 +498,15 @@ if [ -n "$POWERSHELL_PROFILE_URL" ]; then
     echo "Downloading PowerShell Profile from: $POWERSHELL_PROFILE_URL"
     # Get profile path from currently installed pwsh
     profilePath=$(pwsh -noni -c '$PROFILE.AllUsersAllHosts')
-    sudo -E curl -sSL -o "$profilePath" "$POWERSHELL_PROFILE_URL"
+    # Download to a temp file first so a non-200 response never overwrites the profile
+    tmpProfile="$(mktemp)"
+    http_status=$(curl -sSL -w '%{http_code}' -o "$tmpProfile" "$POWERSHELL_PROFILE_URL")
+    if [ "$http_status" = "200" ]; then
+        mv "$tmpProfile" "$profilePath"
+    else
+        echo "Failed to download PowerShell profile (HTTP ${http_status}). Skipping profile update." >&2
+        rm -f "$tmpProfile"
+    fi
 fi
 
 # Copy persistent history setup script
