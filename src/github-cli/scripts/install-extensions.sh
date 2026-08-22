@@ -26,18 +26,32 @@ install_extension() {
 
     mkdir -p "${extensions_root}"
     if [ ! -d "${extensions_root}/${repo_name}" ]; then
-        git clone --depth 1 "https://github.com/${extension}.git" "${extensions_root}/${repo_name}"
+        git \
+            -c credential.helper= \
+            -c credential.helper='!gh auth git-credential' \
+            clone --depth 1 "https://github.com/${extension}.git" "${extensions_root}/${repo_name}"
     fi
 }
 
 ensure_gh_extension_list_wrapper() {
+    local gh_config_dir
+
     if [ "$(id -u)" -ne 0 ]; then
         return
     fi
 
-    if gh extension list >/dev/null 2>&1; then
+    gh_config_dir="$(mktemp -d)"
+    if env \
+        -u GH_TOKEN \
+        -u GITHUB_TOKEN \
+        -u GH_ENTERPRISE_TOKEN \
+        -u GITHUB_ENTERPRISE_TOKEN \
+        GH_CONFIG_DIR="${gh_config_dir}" \
+        gh extension list >/dev/null 2>&1; then
+        rm -rf "${gh_config_dir}"
         return
     fi
+    rm -rf "${gh_config_dir}"
 
     cat > /usr/local/bin/gh <<'EOF'
 #!/usr/bin/env bash

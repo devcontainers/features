@@ -271,7 +271,11 @@ if [ -n "${EXTENSIONS}" ]; then
     else
         EXTENSIONS_ESCAPED="$(printf '%q' "${EXTENSIONS}")"
         USERNAME_ESCAPED="$(printf '%q' "${USERNAME}")"
-        su - "${USERNAME}" -c "EXTENSIONS=${EXTENSIONS_ESCAPED} USERNAME=${USERNAME_ESCAPED} INSTALL_EXTENSIONS=true bash '${EXTENSIONS_SCRIPT}'"
+        su \
+            --login \
+            --whitelist-environment=GH_TOKEN,GITHUB_TOKEN \
+            --command "EXTENSIONS=${EXTENSIONS_ESCAPED} USERNAME=${USERNAME_ESCAPED} INSTALL_EXTENSIONS=true bash '${EXTENSIONS_SCRIPT}'" \
+            "${USERNAME}"
         INSTALL_EXTENSIONS=false bash "${EXTENSIONS_SCRIPT}"
     fi
 fi
