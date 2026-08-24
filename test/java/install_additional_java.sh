@@ -6,6 +6,7 @@ set -e
 source dev-container-features-test-lib
 
 check "java version 11 installed as default" grep "11\." <(java --version)
+check "java version 25 installed" grep -E "^25\.[0-9.]+\+[0-9]+-ms$" <(ls /usr/local/sdkman/candidates/java)
 check "java version 17 installed" grep "^17\." <(ls /usr/local/sdkman/candidates/java)
 check "java version 8 installed" grep "^8\." <(ls /usr/local/sdkman/candidates/java)
 

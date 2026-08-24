@@ -16,6 +16,14 @@
             }
         }
     },
+    "install_java_25": {
+        "image": "ubuntu:noble",
+        "features": {
+            "java": {
+                "version": "25"
+            }
+        }
+    },
     "install_lts_version": {
         "image": "ubuntu:noble",
         "features": {
@@ -29,7 +37,7 @@
         "features": {
             "java": {
                 "version": "11",
-                "additionalVersions": "17,8"
+                "additionalVersions": "25,17,8"
             }
         }
     },

@@ -370,7 +370,7 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
 fi
 
-sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-" ".*-[a-z]+$" "true"
+sdk_install java ${JAVA_VERSION} "\\s*" "([.+][a-z0-9]+)*-" ".*-[a-z]+$" "true"
 
 # Additional java versions to be installed but not be set as default.
 if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
@@ -378,7 +378,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     IFS=","
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
-            sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-" ".*-[a-z]+$" "false"
+            sdk_install java ${version} "\\s*" "([.+][a-z0-9]+)*-" ".*-[a-z]+$" "false"
         done
     IFS=$OLDIFS
     su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk default java ${JAVA_VERSION}"
