@@ -79,6 +79,15 @@
             }
         }
     },
+    "install_terraform_docs_version": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "installTerraformDocs": true,
+                "terraformDocsVersion": "0.20.0"
+            }
+        }
+    },
     "terraform_docs_fallback_test": {
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
