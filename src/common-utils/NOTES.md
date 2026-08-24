@@ -1,6 +1,27 @@
+## Gentoo support
+
+`main.sh` previously hard-failed with `Linux distro ${ID} not supported.` on
+any `/etc/os-release` `ID`/`ID_LIKE` outside debian/rhel(-like)/alpine —
+Gentoo wasn't in that list. A `gentoo` branch was added:
+
+- `ADJUSTED_ID="gentoo"` detection alongside the existing debian/rhel/alpine cases.
+- `install_gentoo_packages()`, mirroring the existing `install_debian_packages`/
+  `install_alpine_packages` functions: portage-atom equivalents of the same
+  package list, an `emerge-webrsync` bootstrap if the portage tree is empty,
+  `emerge --noreplace` instead of a dpkg/apk missing-package probe, and
+  `emerge --update --deep --newuse @world` for `upgradePackages`.
+- The global bash rc path picks up Gentoo's `/etc/bash/bashrc` alongside
+  Debian's `/etc/bash.bashrc`, RHEL's `/etc/bashrc`, and Alpine's own
+  `/etc/bash/bashrc` case.
+- Everything else (user/group creation, sudo, zsh/Oh My Zsh! setup, RC
+  snippets, the `code`/`devcontainer-info` shims) is unmodified — it was
+  already distro-generic.
+
+`install.sh` is untouched.
+
 ## OS Support
 
-This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, RockyLinux, and Alpine Linux.
+This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise Linux, Fedora, RockyLinux, Alpine Linux, and Gentoo.
 
 ## Included utilities
 

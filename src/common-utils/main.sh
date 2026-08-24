@@ -365,6 +365,90 @@ install_alpine_packages() {
     fi
 }
 
+# Gentoo packages.
+# Mirrors the Debian/Alpine package lists above, translated to portage atoms;
+# names verified to exist in the tree at patch time (find
+# /var/db/repos/gentoo -maxdepth 2 -iname <name>), not guessed.
+install_gentoo_packages() {
+    local package_list=""
+    package_list="${package_list} \
+    app-shells/bash-completion \
+    net-misc/openssh \
+    app-crypt/gnupg \
+    sys-apps/iproute2 \
+    sys-process/procps \
+    sys-process/lsof \
+    sys-process/htop \
+    sys-apps/net-tools \
+    sys-process/psmisc \
+    net-misc/curl \
+    app-text/tree \
+    net-misc/wget \
+    net-misc/rsync \
+    app-misc/ca-certificates \
+    app-arch/unzip \
+    app-arch/bzip2 \
+    app-arch/xz-utils \
+    app-arch/zip \
+    app-editors/nano \
+    app-editors/vim \
+    sys-apps/less \
+    app-misc/jq \
+    dev-util/dialog \
+    app-admin/sudo \
+    sys-fs/ncdu \
+    sys-apps/man-db \
+    dev-debug/strace \
+    sys-apps/man-pages \
+    sys-apps/bubblewrap \
+    net-misc/socat"
+
+    # Include git if not already installed (may be more recent than distro version)
+    if ! type git > /dev/null 2>&1; then
+        package_list="${package_list} dev-vcs/git"
+    fi
+
+    # Install zsh if needed
+    if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
+        package_list="${package_list} app-shells/zsh"
+    fi
+
+    if [ ! -d /var/db/repos/gentoo ] || [ -z "$(ls -A /var/db/repos/gentoo 2>/dev/null)" ]; then
+        echo "Running emerge-webrsync..."
+        emerge-webrsync
+    fi
+
+    # --noreplace skips atoms already merged, mirroring the missing-package
+    # checks the other branches do explicitly.
+    # shellcheck disable=SC2086
+    emerge --quiet --noreplace ${package_list}
+
+    # Get to latest versions of all packages. Can mean rebuilding core
+    # packages from source (unlike apt/apk's binary upgrades), so this is
+    # deliberately not the default this repo's devcontainer.json requests
+    # (upgradePackages: false).
+    if [ "${UPGRADE_PACKAGES}" = "true" ]; then
+        emerge --quiet --update --deep --newuse @world
+    fi
+
+    # Ensure at least the en_US.UTF-8 UTF-8 locale is available - common need
+    # for both applications and things like the agnoster ZSH theme. Gentoo has
+    # no separate locale package: /etc/locale.gen + locale-gen (from glibc,
+    # already present) is the whole mechanism.
+    if [ "${LOCALE_ALREADY_SET}" != "true" ] && ! grep -o -E '^\s*en_US.UTF-8\s+UTF-8' /etc/locale.gen > /dev/null 2>&1; then
+        echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+        locale-gen
+        LOCALE_ALREADY_SET="true"
+    fi
+
+    # Unlike Debian/Alpine's sudo package, Gentoo's doesn't create this
+    # directory even though /etc/sudoers already @includedir's it.
+    mkdir -p /etc/sudoers.d
+
+    # Clean up
+    rm -rf /var/cache/distfiles/* /var/cache/binpkgs/*
+}
+
 # ******************
 # ** Main section **
 # ******************
@@ -396,6 +480,9 @@ elif [[ "${ID}" = "rhel" || "${ID}" = "fedora" || "${ID}" = "azurelinux" || "${I
     VERSION_CODENAME="${ID}${VERSION_ID}"
 elif [ "${ID}" = "alpine" ]; then
     ADJUSTED_ID="alpine"
+elif [ "${ID}" = "gentoo" ]; then
+    # Gentoo/portage support. See install_gentoo_packages() below.
+    ADJUSTED_ID="gentoo"
 else
     echo "Linux distro ${ID} not supported."
     exit 1
@@ -419,6 +506,9 @@ case "${ADJUSTED_ID}" in
         ;;
     "alpine")
         install_alpine_packages
+        ;;
+    "gentoo")
+        install_gentoo_packages
         ;;
 esac
 
@@ -520,6 +610,10 @@ if [ "${RC_SNIPPET_ALREADY_ADDED}" != "true" ]; then
             global_rc_path="/etc/bash/bashrc"
             # /etc/bash/bashrc does not exist in alpine 3.14 & 3.15
             mkdir -p /etc/bash
+            ;;
+        "gentoo")
+            # Gentoo's bash package already ships /etc/bash/bashrc.
+            global_rc_path="/etc/bash/bashrc"
             ;;
     esac
     cat "${FEATURE_DIR}/scripts/rc_snippet.sh" >> ${global_rc_path}
