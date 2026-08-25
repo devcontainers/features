@@ -8,6 +8,24 @@
             }
         }
     },
+    "install_major_only_ms_distro": {
+        "image": "ubuntu:noble",
+        "features": {
+            "java": {
+                "version": "21",
+                "jdkDistro": "ms"
+            }
+        }
+    },
+    "install_major_only_tem_distro": {
+        "image": "ubuntu:noble",
+        "features": {
+            "java": {
+                "version": "21",
+                "jdkDistro": "tem"
+            }
+        }
+    },
     "install_latest_version": {
         "image": "ubuntu:noble",
         "features": {

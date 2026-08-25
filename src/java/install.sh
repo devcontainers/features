@@ -276,6 +276,10 @@ sdk_install() {
     elif [ "${requested_version}" = "lts" ]; then
             find_version_list "$install_type" version_list "${requested_version}"
             requested_version="$(echo "${version_list}" | head -n 1)"
+            if [ -z "${requested_version}" ]; then
+                echo -e "LTS version not found. Available versions:\n${version_list}" >&2
+                exit 1
+            fi
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
     else 
@@ -283,8 +287,10 @@ sdk_install() {
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
+            escaped_version="${requested_version//./\\.}"
+            escaped_version="${escaped_version//+/\\+}"
             set +e
-            requested_version="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|-|$)")"
+            requested_version="$(echo "${version_list}" | grep -E -m 1 "^${escaped_version}([\\.\\s]|-|$)")"
             set -e
         fi
         if [ -z "${requested_version}" ] || ! echo "${version_list}" | grep "^${requested_version//./\\.}$" > /dev/null 2>&1; then
