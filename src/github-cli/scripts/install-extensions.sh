@@ -82,8 +82,8 @@ if [ "$#" -ge 2 ]; then
                     url="${url#git@github.com:}"
                     echo "$url"
                 elif [ -f "$d/manifest.yml" ]; then
-                    owner="$(sed -n 's/^owner: //p' "$d/manifest.yml")"
-                    name="$(sed -n 's/^name: //p' "$d/manifest.yml")"
+                    owner="$(sed -nE 's/^[[:space:]]*owner:[[:space:]]*"?([^"#]+)"?.*$/\1/p' "$d/manifest.yml" | sed -n '1p')"
+                    name="$(sed -nE 's/^[[:space:]]*name:[[:space:]]*"?([^"#]+)"?.*$/\1/p' "$d/manifest.yml" | sed -n '1p')"
                     if [ -n "$owner" ] && [ -n "$name" ]; then
                         echo "$owner/$name"
                     fi
