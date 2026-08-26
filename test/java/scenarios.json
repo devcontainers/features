@@ -1,4 +1,22 @@
 {
+    "install_additional_java_versions": {
+        "image": "ubuntu:noble",
+        "features": {
+            "java": {
+                "version": "25",
+                "additionalVersions": "21"
+            }
+        }
+    },
+    "install_java_8_ms_distro_debian": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "java": {
+                "version": "8",
+                "jdkDistro": "ms"
+            }
+        }
+    },
     "install_from_non_default_distro": {
         "image": "ubuntu:noble",
         "features": {
