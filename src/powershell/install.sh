@@ -503,6 +503,7 @@ if [ -n "$POWERSHELL_PROFILE_URL" ]; then
     http_status=$(curl -sSL -w '%{http_code}' -o "$tmpProfile" "$POWERSHELL_PROFILE_URL")
     if [ "$http_status" = "200" ]; then
         mv "$tmpProfile" "$profilePath"
+        chmod 0664 "$profilePath"
     else
         echo "Failed to download PowerShell profile (HTTP ${http_status}). Skipping profile update." >&2
         rm -f "$tmpProfile"
