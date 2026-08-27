@@ -1,10 +1,46 @@
 {
+    "install_additional_java_versions": {
+        "image": "ubuntu:noble",
+        "features": {
+            "java": {
+                "version": "25",
+                "additionalVersions": "21"
+            }
+        }
+    },
+    "install_java_8_ms_distro_debian": {
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
+        "features": {
+            "java": {
+                "version": "8",
+                "jdkDistro": "ms"
+            }
+        }
+    },
     "install_from_non_default_distro": {
         "image": "ubuntu:noble",
         "features": {
             "java": {
                 "version": "21",
                 "jdkDistro": "open"
+            }
+        }
+    },
+    "install_major_only_ms_distro": {
+        "image": "ubuntu:noble",
+        "features": {
+            "java": {
+                "version": "21",
+                "jdkDistro": "ms"
+            }
+        }
+    },
+    "install_major_only_tem_distro": {
+        "image": "ubuntu:noble",
+        "features": {
+            "java": {
+                "version": "21",
+                "jdkDistro": "tem"
             }
         }
     },
