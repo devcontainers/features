@@ -1,0 +1,4 @@
+/storage/emulated/0/baccarat_mobile_study
+pip install numpy Pillow opencv-python==4.5.5.62
+cd /storage/emulated/0/card_cv_study
+python capture_orb.pyopencv-pythonpencv-python
