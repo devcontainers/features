@@ -21,6 +21,7 @@ Create child containers *inside* a container, independent from the host's docker
 | dockerDashComposeVersion | Default version of Docker Compose (v1, v2, latest or none) | string | latest |
 | azureDnsAutoDetection | Allow automatically setting the dockerd DNS server when the installation script detects it is running in Azure | boolean | true |
 | dockerDefaultAddressPool | Define default address pools for Docker networks. e.g. base=192.168.0.0/16,size=24 | string | - |
+| dockerHostGatewayIP | Set the IP used to resolve the special 'host-gateway' value in --add-host. e.g. 192.168.0.1 | string | - |
 | installDockerBuildx | Install Docker Buildx | boolean | true |
 | installDockerComposeSwitch | Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter. | boolean | false |
 | disableIp6tables | Disable ip6tables (this option is only applicable for Docker versions 27 and greater) | boolean | false |

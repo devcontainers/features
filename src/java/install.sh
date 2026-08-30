@@ -219,30 +219,32 @@ install_sdkman_cli() {
 }
 
 find_version_list() {
-    prefix="$1"
-    suffix="$2"
-    install_type=$3
-    ifLts="$4"
-    version_list=$5
-    java_ver=$6
-    
-    check_packages jq
-    all_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
-    if [ "${ifLts}" = "true" ]; then 
-        major_version=$(echo "$all_versions" | jq -r '.most_recent_lts')
-    elif [ "${java_ver}" = "latest" ]; then
-        major_version=$(echo "$all_versions" | jq -r '.most_recent_feature_release') 
+    install_type=$1
+    version_list=$2
+    java_ver=$3
+
+    if [ "${java_ver}" = "lts" ] || [ "${java_ver}" = "latest" ]; then
+        check_packages jq
+        major_versions=$(curl -s https://api.adoptium.net/v3/info/available_releases)
+        if [ "${java_ver}" = "lts" ]; then
+            major_version=$(echo "$major_versions" | jq -r '.most_recent_lts')
+        else
+            major_version=$(echo "$major_versions" | jq -r '.most_recent_feature_release')
+        fi
     else
         major_version=$(echo "$java_ver" | cut -d '.' -f 1)
     fi
+
+    platform="$(cat ${SDKMAN_DIR}/var/platform)"
+    all_versions=$(curl -s "https://api.sdkman.io/2/candidates/${install_type}/${platform}/versions/all" | tr ',' '\n' | tr -d '\r')
     
     # Remove the hardcoded fallback as this fails for new jdk latest version released ex: 24
     # Related Issue: https://github.com/devcontainers/features/issues/1308
     if [ "${JDK_DISTRO}" = "ms" ]; then
         # Check if the requested version is available in the 'ms' distribution
         echo "Check if OpenJDK is available for version ${major_version} for ${JDK_DISTRO} Distro"
-        available_versions=$(su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} | grep ${JDK_DISTRO} | grep -oE '[0-9]+(\.[0-9]+(\.[0-9]+)?)?' | sort -u")
-        if echo "${available_versions}" | grep -q "^${major_version}"; then
+        available_versions=$(echo "${all_versions}" | grep -- "-${JDK_DISTRO}" | sort -u)
+        if echo "${available_versions}" | grep -q "^${major_version}\\."; then
             echo "JDK version ${major_version} is available in ${JDK_DISTRO}..."
         else
             echo "JDK version ${major_version} not available in  ${JDK_DISTRO}.... Switching to (tem)."
@@ -251,21 +253,19 @@ find_version_list() {
     fi
     echo "JDK_DISTRO: ${JDK_DISTRO}"
     if [ "${install_type}" != "java" ]; then
-        regex="${prefix}\\K[0-9]+\\.?[0-9]*\\.?[0-9]*${suffix}"
+        regex="^${major_version}\\.[0-9]+(\\.[0-9]+)*$"
     else
-        regex="${prefix}\\K${major_version}\\.?[0-9]*\\.?[0-9]*${suffix}${JDK_DISTRO}\\s*"
+        regex="^${major_version}\\.[0-9]+(\\.[0-9]+)*(\\.r[0-9]+)?(\\+[a-z0-9]+(\\.[a-z0-9]+)*)?-${JDK_DISTRO}$"
     fi
-    declare -g ${version_list}="$(su ${USERNAME} -c ". \${SDKMAN_DIR}/bin/sdkman-init.sh && sdk list ${install_type} 2>&1 | grep -oP \"${regex}\" | tr -d ' ' | sort -rV")"
+    declare -g ${version_list}="$(echo "${all_versions}" | grep -E "${regex}" | sort -rV)"
 }
 
 # Use SDKMAN to install something using a partial version match
 sdk_install() {
     local install_type=$1
     local requested_version=$2
-    local prefix=$3
-    local suffix="${4:-"\\s*"}"
-    local full_version_check=${5:-".*-[a-z]+"}
-    local set_as_default=${6:-"true"}
+    local full_version_check=${3:-".*-[a-z]+"}
+    local set_as_default=${4:-"true"}
     pkgs=("maven" "gradle" "ant" "groovy")
     pkg_vals="${pkgs[@]}"
     if [ "${requested_version}" = "none" ]; then return; fi
@@ -274,24 +274,30 @@ sdk_install() {
     elif [[ "${pkg_vals}" =~ "${install_type}" ]] && [ "${requested_version}" = "latest" ]; then
         requested_version=""
     elif [ "${requested_version}" = "lts" ]; then
-            find_version_list "$prefix" "$suffix" "$install_type" "true" version_list "${requested_version}"
+            find_version_list "$install_type" version_list "${requested_version}"
             requested_version="$(echo "${version_list}" | head -n 1)"
+            if [ -z "${requested_version}" ]; then
+                echo -e "LTS version not found. Available versions:\n${version_list}" >&2
+                exit 1
+            fi
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
     else 
-        find_version_list "$prefix" "$suffix" "$install_type" "false" version_list "${requested_version}"
+        find_version_list "$install_type" version_list "${requested_version}"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
         else
+            escaped_version="${requested_version//./\\.}"
+            escaped_version="${escaped_version//+/\\+}"
             set +e
-            requested_version="$(echo "${version_list}" | grep -E -m 1 "^${requested_version//./\\.}([\\.\\s]|-|$)")"
+            requested_version="$(echo "${version_list}" | grep -E -m 1 "^${escaped_version}([\\.\\s]|-|$)")"
             set -e
         fi
         if [ -z "${requested_version}" ] || ! echo "${version_list}" | grep "^${requested_version//./\\.}$" > /dev/null 2>&1; then
             # Fallback to LTS if "latest" was requested and not found (java only)
             if [ "$2" = "latest" ] && [ "${install_type}" = "java" ]; then
                 echo "Latest version not found in SDKMAN. Falling back to LTS..."
-                find_version_list "$prefix" "$suffix" "$install_type" "true" version_list "lts"
+                find_version_list "$install_type" version_list "lts"
                 requested_version="$(echo "${version_list}" | head -n 1)"
                 if [ -z "${requested_version}" ] || ! echo "${version_list}" | grep "^${requested_version//./\\.}$" > /dev/null 2>&1; then
                     echo -e "Version $2 (and LTS fallback) not found. Available versions:\n${version_list}" >&2
@@ -370,7 +376,7 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
 fi
 
-sdk_install java ${JAVA_VERSION} "\\s*" "(\\.[a-z0-9]+)*-" ".*-[a-z]+$" "true"
+sdk_install java ${JAVA_VERSION} ".*-[a-z]+$" "true"
 
 # Additional java versions to be installed but not be set as default.
 if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
@@ -378,7 +384,7 @@ if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
     IFS=","
         read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
         for version in "${additional_versions[@]}"; do
-            sdk_install java ${version} "\\s*" "(\\.[a-z0-9]+)*-" ".*-[a-z]+$" "false"
+            sdk_install java ${version} ".*-[a-z]+$" "false"
         done
     IFS=$OLDIFS
     su ${USERNAME} -c ". ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk default java ${JAVA_VERSION}"
