@@ -11,7 +11,7 @@ CLI_VERSION=${VERSION:-"latest"}
 INSTALL_DIRECTLY_FROM_GITHUB_RELEASE=${INSTALLDIRECTLYFROMGITHUBRELEASE:-"true"}
 EXTENSIONS=${EXTENSIONS:-""}
 
-GITHUB_CLI_ARCHIVE_GPG_KEY=7f38bbb59d064dbcb3d84d725612b36462313325
+GITHUB_CLI_ARCHIVE_GPG_KEY=7F38BBB59D064DBCB3D84D725612B36462313325
 
 set -e
 
@@ -55,13 +55,11 @@ get_gpg_key_servers() {
     fi
 }
 
-# Import the specified key in a variable name passed in as 
+# Import the specified key in a variable name passed in as
 receive_gpg_keys() {
     local keys=${!1}
-    local keyring_args=""
-    if [ ! -z "$2" ]; then
-        keyring_args="--no-default-keyring --keyring $2"
-    fi
+    local keyring_path=$2
+    mkdir -p "$(dirname "${keyring_path}")"
 
     # Install curl
     if ! type curl > /dev/null 2>&1; then
@@ -80,7 +78,9 @@ receive_gpg_keys() {
     until [ "${gpg_ok}" = "true" ] || [ "${retry_count}" -eq "5" ]; 
     do
         echo "(*) Downloading GPG key..."
-        ( echo "${keys}" | xargs -n 1 gpg -q ${keyring_args} --recv-keys) 2>&1 && gpg_ok="true"
+        ( echo "${keys}" | xargs -n 1 gpg -q --recv-keys) 2>&1 \
+            && gpg --export ${keys} | gpg --dearmor --yes -o "${keyring_path}" \
+            && gpg_ok="true"
         if [ "${gpg_ok}" != "true" ]; then
             echo "(*) Failed getting key, retrying in 10s..."
             (( retry_count++ ))
