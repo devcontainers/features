@@ -14,7 +14,7 @@
                 "installSentinel": true
             }
         }
-    },    
+    },
     "install_in_ubuntu_noble": {
         "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
@@ -76,6 +76,15 @@
         "features": {
             "terraform": {
                 "installTerraformDocs": true
+            }
+        }
+    },
+    "install_terraform_docs_version": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "installTerraformDocs": true,
+                "terraformDocsVersion": "0.20.0"
             }
         }
     },

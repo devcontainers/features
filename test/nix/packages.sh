@@ -29,6 +29,7 @@ check "nix-env" type nix-env
 check "vim_installed" type vim
 check "node_installed" type node
 check "yarn_installed" type yarn
+check "vim_in_default_profile" bash -lc "nix-env -p /nix/var/nix/profiles/default -q | grep -q '^vim'"
 
 # Report result
 # If any of the checks above exited with a non-zero exit code, the test will fail.

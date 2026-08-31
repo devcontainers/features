@@ -92,6 +92,15 @@
             }
         }
     },
+    "dockerHostGatewayIP": {
+        "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
+        "remoteUser": "node",
+        "features": {
+            "docker-in-docker": {
+                "dockerHostGatewayIP": "192.168.0.1"
+            }
+        }
+    },
     "azureDnsAutoDetectionEnabled": {
         "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
         "remoteUser": "node",

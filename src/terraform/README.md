@@ -21,6 +21,7 @@ Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects la
 | installSentinel | Install sentinel, a language and framework for policy built to be embedded in existing software to enable fine-grained, logic-based policy decisions | boolean | false |
 | installTFsec | Install tfsec, a tool to spot potential misconfigurations for your terraform code | boolean | false |
 | installTerraformDocs | Install terraform-docs, a utility to generate documentation from Terraform modules | boolean | false |
+| terraformDocsVersion | terraform-docs version to install (only used when installTerraformDocs is true) (https://github.com/terraform-docs/terraform-docs/releases) | string | latest |
 | httpProxy | Connect to a keyserver using a proxy by configuring this option | string | - |
 | customDownloadServer | Custom server URL for downloading Terraform and Sentinel packages, including protocol (e.g., https://releases.hashicorp.com). If not provided, the default HashiCorp download server (https://releases.hashicorp.com) will be used. | string | - |
 

@@ -1,6 +1,6 @@
 {
   "id": "docker-in-docker",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "name": "Docker (Docker-in-Docker)",
   "documentationURL": "https://github.com/devcontainers/features/tree/main/src/docker-in-docker",
   "description": "Create child containers *inside* a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.",
@@ -46,6 +46,12 @@
       "default": "",
       "proposals": [],
       "description": "Define default address pools for Docker networks. e.g. base=192.168.0.0/16,size=24"
+    },
+    "dockerHostGatewayIP": {
+      "type": "string",
+      "default": "",
+      "proposals": [],
+      "description": "Set the IP used to resolve the special 'host-gateway' value in --add-host. e.g. 192.168.0.1"
     },
     "installDockerBuildx": {
       "type": "boolean",

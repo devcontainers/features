@@ -1,6 +1,6 @@
 {
     "id": "terraform",
-    "version": "1.4.4",
+    "version": "1.5.0",
     "name": "Terraform, tflint, and TFGrunt",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/terraform",
     "description": "Installs the Terraform CLI and optionally TFLint and Terragrunt. Auto-detects latest version and installs needed dependencies.",
@@ -50,6 +50,16 @@
             "default": false,
             "description": "Install terraform-docs, a utility to generate documentation from Terraform modules"
         },
+        "terraformDocsVersion": {
+            "type": "string",
+            "proposals": [
+                "latest",
+                "0.20.0",
+                "0.19.0"
+            ],
+            "default": "latest",
+            "description": "terraform-docs version to install (only used when installTerraformDocs is true) (https://github.com/terraform-docs/terraform-docs/releases)"
+        },
         "httpProxy": {
             "type": "string",
             "default": "",
@@ -77,6 +87,11 @@
                     }
                 ]
             }
+        }
+    },
+    "dependsOn": {
+        "ghcr.io/devcontainers/features/github-cli:1": {
+            "version": "latest"
         }
     },
     "installsAfter": [

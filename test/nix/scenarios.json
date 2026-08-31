@@ -86,7 +86,7 @@
         "remoteUser": "vscode",
         "features": {
             "nix": {
-                "packages": "nodePackages.nodejs,nixpkgs.vim,nixpkgs.yarn",
+                "packages": "nodejs,nixpkgs.vim,nixpkgs.yarn",
                 "useAttributePath": true
             }
         }

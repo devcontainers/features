@@ -9,10 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     environment: documentation # grants access to secrets.PAT, for creating pull requests
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
-      - uses: actions/checkout@v7
+      - name: Generate a token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.DEVCONTAINERS_REPO_AUTOMATION_ID }}
+          private-key: ${{ secrets.DEVCONTAINERS_REPO_AUTOMATION_PRIVATE_KEY }}
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Run fetch-latest-dotnet-install.sh
         run: src/dotnet/scripts/fetch-latest-dotnet-install.sh
@@ -20,7 +30,7 @@ jobs:
       - name: Create a PR for dotnet-install.sh
         id: push_image_info
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -e
           echo "Start."
