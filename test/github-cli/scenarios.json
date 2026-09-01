@@ -13,7 +13,7 @@
     "features": {
       "github-cli": {
         "version": "latest",
-        "extensions": "dlvhdr/gh-dash,github/gh-copilot"
+        "extensions": "dlvhdr/gh-dash,github/gh-copilot,github/gh-aw"
       }
     }
   }

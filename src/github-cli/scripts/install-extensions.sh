@@ -26,10 +26,12 @@ install_extension() {
 
     mkdir -p "${extensions_root}"
     if [ ! -d "${extensions_root}/${repo_name}" ]; then
-        git \
-            -c credential.helper= \
-            -c credential.helper='!gh auth git-credential' \
-            clone --depth 1 "https://github.com/${extension}.git" "${extensions_root}/${repo_name}"
+        if ! gh extension install "${extension}"; then
+            git \
+                -c credential.helper= \
+                -c credential.helper='!gh auth git-credential' \
+                clone --depth 1 "https://github.com/${extension}.git" "${extensions_root}/${repo_name}"
+        fi
     fi
 }
 
@@ -79,6 +81,12 @@ if [ "$#" -ge 2 ]; then
                     url="${url#ssh://git@github.com/}"
                     url="${url#git@github.com:}"
                     echo "$url"
+                elif [ -f "$d/manifest.yml" ]; then
+                    owner="$(sed -nE 's/^[[:space:]]*owner:[[:space:]]*"?([^"#]+)"?.*$/\1/p' "$d/manifest.yml" | sed -n '1p')"
+                    name="$(sed -nE 's/^[[:space:]]*name:[[:space:]]*"?([^"#]+)"?.*$/\1/p' "$d/manifest.yml" | sed -n '1p')"
+                    if [ -n "$owner" ] && [ -n "$name" ]; then
+                        echo "$owner/$name"
+                    fi
                 fi
             done
         fi
