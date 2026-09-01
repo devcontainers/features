@@ -8,6 +8,17 @@
             }
         }
     },
+    "install_maven_specific_version_no_java": {
+        "image": "ubuntu:noble",
+        "features": {
+            "java": {
+                "version": "none",
+                "installMaven": "true",
+                "mavenVersion": "3.8.8",
+                "installGradle": "false"
+            }
+        }
+    },
     "install_java_8_ms_distro_debian": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
