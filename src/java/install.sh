@@ -218,6 +218,42 @@ install_sdkman_cli() {
     bash -o pipefail -c 'curl -fsSL "https://get.sdkman.io?rcupdate=false" | bash'
 }
 
+# Determine the SDKMAN platform identifier (e.g. LinuxX64) used by the SDKMAN API.
+# SDKMAN writes this to ${SDKMAN_DIR}/var/platform during its own bootstrap, but that
+# file may be missing when SDKMAN_DIR already exists without being (re)initialized in
+# this run. Fall back to deriving it from uname, mirroring get.sdkman.io's logic.
+get_sdkman_platform() {
+    if [ -f "${SDKMAN_DIR}/var/platform" ]; then
+        cat "${SDKMAN_DIR}/var/platform"
+        return
+    fi
+
+    local kernel machine
+    kernel="$(uname -s)"
+    machine="$(uname -m)"
+    case "${kernel}" in
+        Linux)
+            case "${machine}" in
+                i386|i686) echo "LinuxX32" ;;
+                x86_64|amd64) echo "LinuxX64" ;;
+                armv6l) echo "LinuxARM32HF" ;;
+                armv7l) echo "LinuxARM32HF" ;;
+                armv8l) echo "LinuxARM64" ;;
+                arm64|aarch64) echo "LinuxARM64" ;;
+                *) echo "LinuxX64" ;;
+            esac
+            ;;
+        Darwin)
+            case "${machine}" in
+                x86_64) echo "DarwinX64" ;;
+                arm64) echo "DarwinARM64" ;;
+                *) echo "DarwinX64" ;;
+            esac
+            ;;
+        *) echo "${kernel}" ;;
+    esac
+}
+
 find_version_list() {
     install_type=$1
     version_list=$2
@@ -235,7 +271,7 @@ find_version_list() {
         major_version=$(echo "$java_ver" | cut -d '.' -f 1)
     fi
 
-    platform="$(cat ${SDKMAN_DIR}/var/platform)"
+    platform="$(get_sdkman_platform)"
     all_versions=$(curl -s "https://api.sdkman.io/2/candidates/${install_type}/${platform}/versions/all" | tr ',' '\n' | tr -d '\r')
     
     # Remove the hardcoded fallback as this fails for new jdk latest version released ex: 24
