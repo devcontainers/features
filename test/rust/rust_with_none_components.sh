@@ -5,16 +5,6 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
-# Helper function to check component is installed
-check_component_installed() {
-    local component=$1
-    if rustup component list | grep -q "${component}.*installed"; then
-        return 0  # Component is installed (success)
-    else
-        return 1  # Component is not installed (failure)
-    fi
-}
-
 # Helper function to check component is NOT installed
 check_component_not_installed() {
     local component=$1
