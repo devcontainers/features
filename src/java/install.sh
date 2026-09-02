@@ -234,12 +234,12 @@ get_sdkman_platform() {
     case "${kernel}" in
         Linux)
             case "${machine}" in
-                i686) echo "LinuxX32" ;;
-                x86_64) echo "LinuxX64" ;;
+                i386|i686) echo "LinuxX32" ;;
+                x86_64|amd64) echo "LinuxX64" ;;
                 armv6l) echo "LinuxARM32HF" ;;
                 armv7l) echo "LinuxARM32HF" ;;
                 armv8l) echo "LinuxARM64" ;;
-                aarch64) echo "LinuxARM64" ;;
+                arm64|aarch64) echo "LinuxARM64" ;;
                 *) echo "LinuxX64" ;;
             esac
             ;;
