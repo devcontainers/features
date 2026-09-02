@@ -10,7 +10,9 @@
 RUST_VERSION="${VERSION:-"latest"}"
 RUSTUP_PROFILE="${PROFILE:-"minimal"}"
 RUSTUP_TARGETS="${TARGETS:-""}"
-IFS=',' read -ra components <<< "${COMPONENTS:-rust-analyzer,rust-src,rustfmt,clippy}"
+# Set to "none" to install no components beyond the selected profile.
+RUSTUP_COMPONENTS="${COMPONENTS:-rust-analyzer,rust-src,rustfmt,clippy}"
+IFS=',' read -ra components <<< "${RUSTUP_COMPONENTS}"
 
 export CARGO_HOME="${CARGO_HOME:-"/usr/local/cargo"}"
 export RUSTUP_HOME="${RUSTUP_HOME:-"/usr/local/rustup"}"
@@ -396,19 +398,38 @@ if [ "${UPDATE_RUST}" = "true" ]; then
     echo "Updating Rust..."
     rustup update 2>&1
 fi
-# Install Rust components
-echo "Installing Rust components..."
+# Install Rust components (skip entirely when explicitly set to "none")
+# Trim each entry, drop empties, and track whether the "none" sentinel was requested.
+resolved_components=()
+components_none="false"
 for component in "${components[@]}"; do
-    # Trim leading and trailing whitespace
     component="${component#"${component%%[![:space:]]*}"}" && component="${component%"${component##*[![:space:]]}"}"
-    if [ -n "${component}" ]; then
+    if [ -z "${component}" ]; then
+        continue
+    fi
+    if [ "${component}" = "none" ]; then
+        components_none="true"
+    fi
+    resolved_components+=("${component}")
+done
+
+if [ "${components_none}" = "true" ] && [ "${#resolved_components[@]}" -gt 1 ]; then
+    echo "Error: 'none' cannot be combined with other components. Set 'components' to 'none' on its own to skip installing components." >&2
+    exit 1
+fi
+
+if [ "${components_none}" = "true" ]; then
+    echo "Skipping Rust components installation as 'components' is set to 'none'."
+else
+    echo "Installing Rust components..."
+    for component in "${resolved_components[@]}"; do
         echo "Installing Rust component: ${component}"
         if ! rustup component add "${component}" 2>&1; then
             echo "Warning: Failed to install component '${component}'. It may not be available for this toolchain." >&2
             exit 1
         fi
-    fi
-done
+    done
+fi
 
 if [ -n "${RUSTUP_TARGETS}" ]; then
     IFS=',' read -ra targets <<< "${RUSTUP_TARGETS}"

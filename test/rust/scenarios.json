@@ -64,6 +64,16 @@
                 "components": ""
             }
         }
+    },
+    "rust_with_none_components": {
+        "image": "ubuntu:noble",
+        "features": {
+            "rust": {
+                "version": "latest",
+                "targets": "aarch64-unknown-linux-gnu",
+                "components": "none"
+            }
+        }
     },    
     "rust_with_centos": {
         "image": "centos:centos7",
