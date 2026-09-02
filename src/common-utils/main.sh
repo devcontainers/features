@@ -13,10 +13,12 @@ INSTALL_ZSH="${INSTALLZSH:-"true"}"
 CONFIGURE_ZSH_AS_DEFAULT_SHELL="${CONFIGUREZSHASDEFAULTSHELL:-"false"}"
 INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
 INSTALL_OH_MY_ZSH_CONFIG="${INSTALLOHMYZSHCONFIG:-"true"}"
+OH_MY_ZSH_THEME="${OHMYZSHTHEME:-"devcontainers"}"
 UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
 USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
+ADD_GROUPS="${ADDGROUPS:-""}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
 INSTALL_SSL="${INSTALLSSL:-"true"}"
 
@@ -470,6 +472,22 @@ else
     fi
 fi
 
+if [ "${USERNAME}" != "root" ] && [ -n "${ADD_GROUPS}" ]; then
+    IFS=',' read -ra EXTRA_GROUPS <<< "${ADD_GROUPS}"
+    for extra_group in "${EXTRA_GROUPS[@]}"; do
+        extra_group="$(echo "${extra_group}" | xargs)"
+        if [ -z "${extra_group}" ]; then
+            continue
+        fi
+
+        if ! getent group "${extra_group}" > /dev/null 2>&1; then
+            groupadd "${extra_group}"
+        fi
+
+        usermod -a -G "${extra_group}" "${USERNAME}"
+    done
+fi
+
 # Add add sudo support for non-root user
 if [ "${USERNAME}" != "root" ] && [ "${EXISTING_NON_ROOT_USER}" != "${USERNAME}" ]; then
     echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME
@@ -593,7 +611,13 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             if ! [ -f "${template_path}" ] || ! grep -qF "$(head -n 1 "${template_path}")" "${user_rc_file}"; then
                 echo -e "$(cat "${template_path}")\nzstyle ':omz:update' mode disabled" > ${user_rc_file}
             fi
-            sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
+            # Validate theme name to prevent injection (allow alphanumeric, hyphens, underscores, and dots)
+            if echo "${OH_MY_ZSH_THEME}" | grep -qE '^[a-zA-Z0-9_.-]+$'; then
+                sed -i -e "s/ZSH_THEME=.*/ZSH_THEME=\"${OH_MY_ZSH_THEME}\"/g" ${user_rc_file}
+            else
+                echo "Warning: Invalid theme name '${OH_MY_ZSH_THEME}'. Using default 'devcontainers' theme."
+                sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
+            fi
         fi
 
         # Copy to non-root user if one is specified
