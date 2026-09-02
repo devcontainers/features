@@ -9,12 +9,16 @@
 
 set -e
 
+# Capture the location of this script once so later directory changes do not affect relative file lookups.
+SOURCE_DIR="$(pwd)"
+
 # Clean up
 rm -rf /var/lib/apt/lists/*
 
 POWERSHELL_VERSION=${VERSION:-"latest"}
 POWERSHELL_MODULES="${MODULES:-""}"
 POWERSHELL_PROFILE_URL="${POWERSHELLPROFILEURL}"
+PRESERVE_HISTORY="${PRESERVEHISTORY}"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 #MICROSOFT_GPG_KEYS_URI=$(curl https://packages.microsoft.com/keys/microsoft.asc -o /usr/share/keyrings/microsoft-archive-keyring.gpg)
@@ -494,7 +498,31 @@ if [ -n "$POWERSHELL_PROFILE_URL" ]; then
     echo "Downloading PowerShell Profile from: $POWERSHELL_PROFILE_URL"
     # Get profile path from currently installed pwsh
     profilePath=$(pwsh -noni -c '$PROFILE.AllUsersAllHosts')
-    sudo -E curl -sSL -o "$profilePath" "$POWERSHELL_PROFILE_URL"
+    # Download to a temp file first so a non-200 response never overwrites the profile
+    tmpProfile="$(mktemp)"
+    http_status=$(curl -sSL -w '%{http_code}' -o "$tmpProfile" "$POWERSHELL_PROFILE_URL")
+    if [ "$http_status" = "200" ]; then
+        mv "$tmpProfile" "$profilePath"
+        chmod 0664 "$profilePath"
+    else
+        echo "Failed to download PowerShell profile (HTTP ${http_status}). Skipping profile update." >&2
+        rm -f "$tmpProfile"
+    fi
+fi
+
+# Copy persistent history setup script
+ONCREATE_SOURCE="${SOURCE_DIR}/oncreate.sh"
+SCRIPTS_DIR="/usr/local/share/powershell/scripts"
+mkdir -p "$SCRIPTS_DIR"
+echo "Checking oncreate.sh"
+if [ ! -f "$ONCREATE_SOURCE" ]; then
+        echo "oncreate.sh not found at expected path: $ONCREATE_SOURCE" >&2
+        exit 1
+fi
+if [ -f "$ONCREATE_SOURCE" ]; then
+  cp "$ONCREATE_SOURCE" "$SCRIPTS_DIR/oncreate.sh"
+  sed -i "s|preserveHistoryFromInstallSh|${PRESERVE_HISTORY}|" "$SCRIPTS_DIR/oncreate.sh"
+  chmod +x "$SCRIPTS_DIR/oncreate.sh"
 fi
 
 # Clean up
