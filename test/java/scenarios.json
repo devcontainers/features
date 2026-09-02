@@ -9,7 +9,7 @@
         }
     },
     "install_maven_specific_version_no_java": {
-        "image": "ubuntu:noble",
+        "image": "mcr.microsoft.com/devcontainers/java:1-8-bullseye",
         "features": {
             "java": {
                 "version": "none",
