@@ -1,0 +1,41 @@
+{
+  "id": "mise",
+  "version": "1.0.0",
+  "name": "Mise (formerly RTX)",
+  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/mise",
+  "description": "Installs Mise, the unified runtime version manager (formerly RTX). Mise works like asdf, rvm, nvm, pyenv, etc - but is a single unified tool for managing all your runtimes.",
+  "options": {
+      "version": {
+          "type": "string",
+          "proposals": [
+              "latest",
+              "none",
+              "v2025.5.0",
+              "v2025.4.12",
+              "v2025.4.11",
+              "v2025.4.10"
+          ],
+          "default": "latest",
+          "description": "Select or enter a Mise version to install"
+      },
+      "installPlugins": {
+          "type": "string",
+          "default": "",
+          "description": "Comma separated list of Mise plugins to install (e.g., 'node,python,ruby')"
+      }
+  },
+  "customizations": {
+      "vscode": {
+          "settings": {
+              "github.copilot.chat.codeGeneration.instructions": [
+                  {
+                      "text": "This dev container includes Mise (formerly RTX), a unified runtime version manager pre-installed and available on the `PATH`. Mise allows you to manage multiple programming language versions (similar to asdf, nvm, pyenv, etc.) with a single tool."
+                  }
+              ]
+          }
+      }
+  },
+  "installsAfter": [
+      "ghcr.io/devcontainers/features/common-utils"
+  ]
+}
