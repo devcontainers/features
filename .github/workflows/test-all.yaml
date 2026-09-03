@@ -11,7 +11,8 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        features: [
+        features:
+          [
             "anaconda",
             "aws-cli",
             "azure-cli",
@@ -40,7 +41,7 @@ jobs:
             "sshd",
             "terraform",
             "nix",
-        ]
+          ]
         baseImage:
           [
             "ubuntu:jammy",
@@ -48,7 +49,7 @@ jobs:
             "debian:12",
             "mcr.microsoft.com/devcontainers/base:ubuntu",
             "mcr.microsoft.com/devcontainers/base:debian",
-            "mcr.microsoft.com/devcontainers/base:noble"
+            "mcr.microsoft.com/devcontainers/base:noble",
           ]
         exclude:
           - features: oryx
@@ -72,12 +73,30 @@ jobs:
       - name: "Generating tests for '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
         run: devcontainer features test  --skip-scenarios -f ${{ matrix.features }} -i ${{ matrix.baseImage }} .
 
+  test-non-debian:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        features:
+          ["common-utils", "git", "go", "java", "node", "python", "sshd"]
+        baseImage: ["fedora:40", "fedora:41"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Install latest devcontainer CLI"
+        run: npm install -g @devcontainers/cli
+
+      - name: "Generating tests for '${{ matrix.features }}' against '${{ matrix.baseImage }}'"
+        run: devcontainer features test  --skip-scenarios -f ${{ matrix.features }} -i ${{ matrix.baseImage }} .
+
   test-scenarios:
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
-        features: [
+        features:
+          [
             "anaconda",
             "aws-cli",
             "azure-cli",
@@ -106,7 +125,7 @@ jobs:
             "sshd",
             "terraform",
             "nix",
-        ]
+          ]
     steps:
       - uses: actions/checkout@v7
 
