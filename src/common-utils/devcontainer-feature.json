@@ -1,6 +1,6 @@
 {
     "id": "common-utils",
-    "version": "2.5.9",
+    "version": "2.6.0",
     "name": "Common Utilities",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/common-utils",
     "description": "Installs a set of common command line utilities, Oh My Zsh!, and sets up a non-root user.",
@@ -59,6 +59,11 @@
             ],
             "default": "automatic",
             "description": "Enter GID for non-root user"
+        },
+        "sudoers": {
+            "type": "boolean",
+            "default": true,
+            "description": "Add non-root user to passwordless sudoers?"
         },
         "nonFreePackages": {
             "type": "boolean",

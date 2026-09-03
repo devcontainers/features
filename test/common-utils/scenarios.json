@@ -264,6 +264,24 @@
             "common-utils": {}
         }
     },
+    "sudoers-true": {
+        "image": "debian:bullseye",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "sudoers": true
+            }
+        }
+    },
+    "sudoers-false": {
+        "image": "debian:bullseye",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "sudoers": false
+            }
+        }
+    },
     "terminal-title-on-xterm": {
         "image": "node",
         "features": {
