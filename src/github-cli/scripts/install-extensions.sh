@@ -20,19 +20,42 @@ install_extension() {
     local extension="$1"
     local extensions_root
     local repo_name
+    local install_status
+    local attempt
+    local max_attempts=3
 
     extensions_root="${XDG_DATA_HOME:-"${HOME}/.local/share"}/gh/extensions"
     repo_name="${extension##*/}"
 
     mkdir -p "${extensions_root}"
-    if [ ! -d "${extensions_root}/${repo_name}" ]; then
-        if ! gh extension install "${extension}"; then
-            git \
-                -c credential.helper= \
-                -c credential.helper='!gh auth git-credential' \
-                clone --depth 1 "https://github.com/${extension}.git" "${extensions_root}/${repo_name}"
-        fi
+    if [ -d "${extensions_root}/${repo_name}" ]; then
+        return
     fi
+
+    attempt=1
+    while [ "${attempt}" -le "${max_attempts}" ]; do
+        if gh extension install "${extension}"; then
+            return
+        fi
+        install_status=$?
+        echo "Warning: 'gh extension install ${extension}' failed (exit code ${install_status}, attempt ${attempt}/${max_attempts})." >&2
+        attempt=$((attempt + 1))
+        if [ "${attempt}" -le "${max_attempts}" ]; then
+            sleep $((attempt * 2))
+        fi
+    done
+
+    git \
+        -c credential.helper= \
+        -c credential.helper='!gh auth git-credential' \
+        clone --depth 1 "https://github.com/${extension}.git" "${extensions_root}/${repo_name}"
+
+    if [ ! -x "${extensions_root}/${repo_name}/gh-${repo_name}" ]; then
+        echo "Error: '${extension}' requires a build step; 'git clone' fallback won't work." >&2
+        rm -rf "${extensions_root}/${repo_name}"
+        exit 1
+    fi
+    echo "Warning: cloned ${extension} instead of installing via 'gh extension install'." >&2
 }
 
 ensure_gh_extension_list_wrapper() {
