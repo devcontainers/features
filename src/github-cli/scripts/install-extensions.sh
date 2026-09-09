@@ -20,13 +20,19 @@ install_extension() {
     local extension="$1"
     local extensions_root
     local repo_name
+    local install_output
+    local install_status
 
     extensions_root="${XDG_DATA_HOME:-"${HOME}/.local/share"}/gh/extensions"
     repo_name="${extension##*/}"
 
     mkdir -p "${extensions_root}"
     if [ ! -d "${extensions_root}/${repo_name}" ]; then
-        if ! gh extension install "${extension}"; then
+        install_status=0
+        install_output="$(gh extension install "${extension}" 2>&1)" || install_status=$?
+        if [ "${install_status}" -ne 0 ]; then
+            echo "${install_output}" >&2
+            echo "Warning: 'gh extension install ${extension}' failed (exit code ${install_status}), falling back to 'git clone'. Extensions that require a build step (e.g. Go) will not be usable this way." >&2
             git \
                 -c credential.helper= \
                 -c credential.helper='!gh auth git-credential' \
