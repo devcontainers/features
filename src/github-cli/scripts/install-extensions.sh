@@ -19,18 +19,32 @@ trim() {
 install_extension() {
     local extension="$1"
     local extensions_root
+    local repo
+    local tag
     local repo_name
+    local install_args=()
+    local clone_args=()
+
+    repo="${extension%%:*}"
+    if [ "${repo}" != "${extension}" ]; then
+        tag="${extension#*:}"
+    fi
 
     extensions_root="${XDG_DATA_HOME:-"${HOME}/.local/share"}/gh/extensions"
-    repo_name="${extension##*/}"
+    repo_name="${repo##*/}"
+
+    if [ -n "${tag}" ]; then
+        install_args=(--pin "${tag}")
+        clone_args=(--branch "${tag}")
+    fi
 
     mkdir -p "${extensions_root}"
     if [ ! -d "${extensions_root}/${repo_name}" ]; then
-        if ! gh extension install "${extension}"; then
+        if ! gh extension install "${repo}" "${install_args[@]}"; then
             git \
                 -c credential.helper= \
                 -c credential.helper='!gh auth git-credential' \
-                clone --depth 1 "https://github.com/${extension}.git" "${extensions_root}/${repo_name}"
+                clone --depth 1 "${clone_args[@]}" "https://github.com/${repo}.git" "${extensions_root}/${repo_name}"
         fi
     fi
 }
