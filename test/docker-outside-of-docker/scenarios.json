@@ -1,4 +1,20 @@
 {
+    "install_on_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false
+            }
+        }
+    },
+    "install_moby_on_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": true
+            }
+        }
+    },
     "docker_build_compose_fallback": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
@@ -126,15 +142,6 @@
         },
         "containerUser": "vscode"
     },
-    "docker_build_no_compose": {
-        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
-        "features": {
-            "docker-in-docker": {
-                "dockerDashComposeVersion": "none"
-            }
-        },
-        "remoteUser": "node"
-    },
     "docker_specific_moby_buildx": {
         "image": "ubuntu:noble",
         "features": {
@@ -178,22 +185,6 @@
         "features": {
             "docker-outside-of-docker": {
                 "moby": false
-            }
-        }
-    },
-    "install_on_ubuntu_resolute": {
-        "image": "ubuntu:resolute",
-        "features": {
-            "docker-outside-of-docker": {
-                "moby": false
-            }
-        }
-    },
-    "install_moby_on_ubuntu_resolute": {
-        "image": "ubuntu:resolute",
-        "features": {
-            "docker-outside-of-docker": {
-                "moby": true
             }
         }
     },
