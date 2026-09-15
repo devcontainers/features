@@ -28,7 +28,24 @@ This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise 
 
 ## Nix store persistence
 
-On 1.3.x, option changes may not be reflected after a rebuild, because `/nix` is mounted from a Docker volume that keeps the store built the first time. Either install packages from `postCreateCommand` with `nix-env` so they land in that volume, or upgrade to 1.4.0 or later, which drops the mount.
+> [!WARNING]
+> On 1.3.x, Due to a nix cache `version`/`packages` changes are silently ignored on rebuild. `/nix` is mounted from a Docker volume that is seeded only on the first build. That mount can't be modified afterwards, so it keeps masking the newer image and no option change ever takes effect.
+
+**1.4.0+** removes the cache to avoid this; follow the workaround below to keep it.
+
+### Optional: cache `/nix` to speed up rebuilds
+
+Only if you use the default Feature (`"nix": {}`) and rebuild often: Add a local cache by pinning `/nix` to your own volume so runtime-installed packages survive recreation instead of being re-downloaded each time. Safe here because no options ever change.
+
+Add this as a top-level property in your `.devcontainer/devcontainer.json`:
+
+```json
+"mounts": [
+    { "source": "my-nix-store", "target": "/nix", "type": "volume" }
+]
+```
+
+Rebuild once to seed it. If you later add options or bump `version`, run `docker volume rm my-nix-store` first so the new image takes effect.
 
 ## Location of Flakes
 
