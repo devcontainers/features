@@ -173,7 +173,7 @@
         "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
         "features": {
             "docker-in-docker": {
-                "version": "20",
+                "version": "23",
                 "moby": "false",
                 "dockerDashComposeVersion": "v2"
             }
