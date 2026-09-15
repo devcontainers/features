@@ -142,6 +142,15 @@
         },
         "containerUser": "vscode"
     },
+    "docker_build_no_compose": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "features": {
+            "docker-in-docker": {
+                "dockerDashComposeVersion": "none"
+            }
+        },
+        "remoteUser": "node"
+    },
     "docker_specific_moby_buildx": {
         "image": "ubuntu:noble",
         "features": {

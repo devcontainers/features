@@ -99,6 +99,65 @@
             }
         }
     },
+    "dockerDefaultAddressPool": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "remoteUser": "node",
+        "features": {
+            "docker-in-docker": {
+                "dockerDefaultAddressPool": "base=192.168.0.0/16,size=24"
+            }
+        }
+    },
+    "dockerHostGatewayIP": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "remoteUser": "node",
+        "features": {
+            "docker-in-docker": {
+                "dockerHostGatewayIP": "192.168.0.1"
+            }
+        }
+    },
+    "azureDnsAutoDetectionEnabled": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "remoteUser": "node",
+        "features": {
+            "docker-in-docker": {
+                "azureDnsAutoDetection": true
+            }
+        }
+    },
+    "azureDnsAutoDetectionDisabled": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "remoteUser": "node",
+        "features": {
+            "docker-in-docker": {
+                "azureDnsAutoDetection": false
+            }
+        }
+    },
+    "docker_build": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "false",
+                "dockerDashComposeVersion": "v2"
+            }
+        },
+        "remoteUser": "node"
+    },
+    "docker_build_with_compose_switch": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "features": {
+            "docker-in-docker": {
+                "version": "latest",
+                "moby": "false",
+                "dockerDashComposeVersion": "v2",
+                "installDockerComposeSwitch": true
+            }
+        },
+        "remoteUser": "node"
+    },    
     "docker_build_2": {
         "image": "ubuntu:noble",
         "features": {
@@ -109,6 +168,26 @@
                 "dockerDashComposeVersion": "v2"
             }
         }
+    },
+    "docker_build_older": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "features": {
+            "docker-in-docker": {
+                "version": "20",
+                "moby": "false",
+                "dockerDashComposeVersion": "v2"
+            }
+        },
+        "remoteUser": "node"
+    },
+    "docker_build_no_compose": {
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "features": {
+            "docker-in-docker": {
+                "dockerDashComposeVersion": "none"
+            }
+        },
+        "remoteUser": "node"
     },
     "docker_buildx": {
         "image": "mcr.microsoft.com/devcontainers/base:bookworm",
