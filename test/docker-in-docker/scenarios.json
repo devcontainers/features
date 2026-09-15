@@ -257,6 +257,14 @@
             }
         }
     },
+    "install_moby_on_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
+        "features": {
+            "docker-in-docker": {
+                "moby": true
+            }
+        }
+    },
     "docker_specific_moby_buildx": {
         "image": "ubuntu:noble",
         "features": {
