@@ -11,8 +11,8 @@ INSTALL_EXTENSIONS=${INSTALL_EXTENSIONS:-"true"}
 
 trim() {
     local value="$1"
-    value="${value#${value%%[![:space:]]*}}"
-    value="${value%${value##*[![:space:]]}}"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
     echo "${value}"
 }
 
