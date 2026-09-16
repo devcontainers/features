@@ -20,7 +20,7 @@ INSTALL_DOCKER_BUILDX="${INSTALLDOCKERBUILDX:-"true"}"
 INSTALL_DOCKER_COMPOSE_SWITCH="${INSTALLDOCKERCOMPOSESWITCH:-"false"}"
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 MICROSOFT_GPG_KEYS_ROLLING_URI="https://packages.microsoft.com/keys/microsoft-rolling.asc"
-DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble"
+DOCKER_MOBY_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal jammy noble resolute"
 DOCKER_LICENSED_ARCHIVE_VERSION_CODENAMES="trixie bookworm buster bullseye bionic focal hirsute impish jammy noble resolute"
 DISABLE_IP6_TABLES="${DISABLEIP6TABLES:-false}"
 IPTABLES_SWITCH_AT_RUNTIME="${IPTABLESSWITCHATRUNTIME:-true}"
@@ -251,8 +251,8 @@ if [ "${ID}" = "azurelinux" ]; then
     VERSION_CODENAME="azurelinux${VERSION_ID}"
 fi
 
-# Prevent attempting to install Moby on Debian trixie/resolute (packages removed)
-if [ "${USE_MOBY}" = "true" ] && [ "${ADJUSTED_ID}" = "debian" ] && ([ "${VERSION_CODENAME}" = "trixie" ] || [ "${VERSION_CODENAME}" = "resolute" ]); then
+# Prevent attempting to install Moby on Debian trixie (packages not available)
+if [ "${USE_MOBY}" = "true" ] && [ "${ADJUSTED_ID}" = "debian" ] && [ "${VERSION_CODENAME}" = "trixie" ]; then
     err "The 'moby' option is not supported on ${ID} '${VERSION_CODENAME}' because 'moby-cli' and related system packages are not available in that distribution."
     err "To continue, either set the feature option '\"moby\": false' or use a different base image."
     exit 1
