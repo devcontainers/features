@@ -21,5 +21,11 @@ check_info "revision"
 check_info "time"
 check_info "url"
 
+# Check if the sudoers file for the non-root user exists
+check "sudoers file exists" test -f /etc/sudoers.d/$(whoami)
+
+# Check if the sudoers entry for the non-root user is correctly configured
+check "sudoers entry for non-root user" sudo grep "$(whoami) ALL=(root) NOPASSWD:ALL" /etc/sudoers.d/$(whoami)
+
 # Report result
 reportResults
