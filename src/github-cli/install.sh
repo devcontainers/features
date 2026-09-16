@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
+#
 #-------------------------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
@@ -13,7 +15,7 @@ EXTENSIONS=${EXTENSIONS:-""}
 
 GITHUB_CLI_ARCHIVE_GPG_KEY=7F38BBB59D064DBCB3D84D725612B36462313325
 
-set -e
+set -euo pipefail
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
