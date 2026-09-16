@@ -10,10 +10,10 @@ check "user is vscode" whoami | grep vscode
 check "version" az  --version
 
 echo -e "\n\n🔄 Testing 'O.S'"
-if cat /etc/os-release | grep -q 'PRETTY_NAME="Debian GNU/Linux 11 (bullseye)"'; then
-    echo -e "\n\n✅ Passed 'O.S is Linux 11 (bullseye)'!"
+if cat /etc/os-release | grep -q 'PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"'; then
+    echo -e "\n\n✅ Passed 'O.S is Linux 12 (bookworm)'!"
 else
-    echo -e "\n\n❌ Failed 'O.S is other than Linux 11 (bullseye)'!"
+    echo -e "\n\n❌ Failed 'O.S is other than Linux 12 (bookworm)'!"
 fi
 
 
