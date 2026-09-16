@@ -1,42 +1,43 @@
 {
-    "id": "github-cli",
-    "version": "1.1.2",
-    "name": "GitHub CLI",
-    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/github-cli",
-    "description": "Installs the GitHub CLI. Auto-detects latest version and installs needed dependencies.",
-    "options": {
-        "version": {
-            "type": "string",
-            "proposals": [
-                "latest",
-                "none"
-            ],
-            "default": "latest",
-            "description": "Select version of the GitHub CLI, if not latest."
-        },
-        "installDirectlyFromGitHubRelease": {
-            "type": "boolean",
-            "default": true
-        },
-        "extensions": {
-            "type": "string",
-            "default": "",
-            "description": "Comma-separated list of GitHub CLI extensions to install (e.g. 'dlvhdr/gh-dash,github/gh-copilot')."
-        }
+  "id": "github-cli",
+  "version": "1.2.0",
+  "name": "GitHub CLI",
+  "documentationURL": "https://github.com/devcontainers/features/tree/main/src/github-cli",
+  "description": "Installs the GitHub CLI. Auto-detects latest version and installs needed dependencies.",
+  "options": {
+    "version": {
+      "type": "string",
+      "proposals": [
+        "latest",
+        "none"
+      ],
+      "default": "latest",
+      "description": "Select version of the GitHub CLI, if not latest."
     },
-    "customizations": {
-        "vscode": {
-            "settings": {
-                "github.copilot.chat.codeGeneration.instructions": [
-                    {
-                        "text": "This dev container includes the GitHub CLI (`gh`), which is pre-installed and available on the `PATH`. IMPORTANT: `gh api -f` does not support object values, use multiple `-f` flags with hierarchical keys and string values instead. When using GitHub actions `actions/upload-artifact` or `actions/download-artifact` use v4 or later."
-                    }
-                ]
-            }
-        }
+    "installDirectlyFromGitHubRelease": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install from the binaries published with each GitHub release rather than a package repository."
     },
-    "installsAfter": [
-        "ghcr.io/devcontainers/features/common-utils",
-        "ghcr.io/devcontainers/features/git"
-    ]
+    "extensions": {
+      "type": "string",
+      "default": "",
+      "description": "Comma-separated list of GitHub CLI extensions to install (e.g. 'dlvhdr/gh-dash,github/gh-copilot')."
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "text": "This dev container includes the GitHub CLI (`gh`), which is pre-installed and available on the `PATH`. IMPORTANT: `gh api -f` does not support object values, use multiple `-f` flags with hierarchical keys and string values instead. When using GitHub actions `actions/upload-artifact` or `actions/download-artifact` use v4 or later."
+          }
+        ]
+      }
+    }
+  },
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/common-utils",
+    "ghcr.io/devcontainers/features/git"
+  ]
 }
