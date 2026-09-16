@@ -34,5 +34,43 @@
         "extensions": "dlvhdr/gh-dash,github/gh-copilot,github/gh-aw"
       }
     }
+  },
+  "install_gh_cli_alpine": {
+    "image": "mcr.microsoft.com/devcontainers/base:alpine",
+    "features": {
+      "github-cli": {}
+    }
+  },
+  "install_gh_cli_alpine_pinned_version": {
+    "image": "mcr.microsoft.com/devcontainers/base:alpine",
+    "features": {
+      "github-cli": {
+        "version": "2.99"
+      }
+    }
+  },
+  "install_gh_cli_alpine_from_apk": {
+    "image": "mcr.microsoft.com/devcontainers/base:alpine",
+    "features": {
+      "github-cli": {
+        "installDirectlyFromGitHubRelease": "false"
+      }
+    }
+  },
+  "install_extensions_alpine": {
+    "image": "mcr.microsoft.com/devcontainers/base:alpine",
+    "features": {
+      "github-cli": {
+        "extensions": "dlvhdr/gh-dash,github/gh-copilot"
+      }
+    }
+  },
+  "install_extensions_alpine_bare": {
+    "image": "alpine:latest",
+    "features": {
+      "github-cli": {
+        "extensions": "dlvhdr/gh-dash"
+      }
+    }
   }
 }
