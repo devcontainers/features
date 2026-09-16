@@ -19,7 +19,7 @@
         "features": {
             "common-utils": {}
         }
-    }, 
+    },
     "bookworm": {
         "image": "debian:bookworm",
         "remoteUser": "devcontainer",
