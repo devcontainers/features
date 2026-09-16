@@ -9,7 +9,7 @@
         }
     },
     "install_maven_specific_version_no_java": {
-        "image": "mcr.microsoft.com/devcontainers/java:1-8-bullseye",
+        "image": "mcr.microsoft.com/devcontainers/java:1-17-bookworm",
         "features": {
             "java": {
                 "version": "none",
