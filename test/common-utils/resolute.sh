@@ -8,7 +8,9 @@ source dev-container-features-test-lib
 # Definition specific tests
 . /etc/os-release
 check "non-root user" test "$(whoami)" = "devcontainer"
-check "distro" test "${VERSION_CODENAME}" = "bionic"
+check "distro" test "${VERSION_CODENAME}" = "resolute"
+check "bubblewrap" bwrap --version
+check "socat" socat -V
 
 # Check if the sudoers file for the non-root user exists
 check "sudoers file exists" test -f /etc/sudoers.d/$(whoami)

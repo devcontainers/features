@@ -16,7 +16,7 @@
         }
     },
     "nvm_test_fallback": {
-        "image": "debian:11",
+        "image": "debian:12",
         "features": {
             "node": {
                 "version": "lts"
@@ -24,7 +24,7 @@
         }
     },
     "install_additional_node": {
-        "image": "debian:11",
+        "image": "debian:12",
         "features": {
             "node": {
                 "version": "lts",

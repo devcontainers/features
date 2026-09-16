@@ -26,15 +26,6 @@
       }
     }
    },
-   "install_anaconda_bullseye": {
-    "image": "mcr.microsoft.com/devcontainers/base:bullseye",
-    "user": "vscode",
-    "features": {
-      "anaconda": {
-        "version": "latest"
-      }
-    }
-  },
   "install_anaconda_noble_without_user": {
     "image": "mcr.microsoft.com/devcontainers/base:noble",
     "features": {
