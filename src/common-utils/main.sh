@@ -17,6 +17,7 @@ UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
 USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
+SUDOERS="${SUDOERS:-"true"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
 INSTALL_SSL="${INSTALLSSL:-"true"}"
 
@@ -471,10 +472,12 @@ else
 fi
 
 # Add add sudo support for non-root user
-if [ "${USERNAME}" != "root" ] && [ "${EXISTING_NON_ROOT_USER}" != "${USERNAME}" ]; then
-    echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME
-    chmod 0440 /etc/sudoers.d/$USERNAME
-    EXISTING_NON_ROOT_USER="${USERNAME}"
+if [ "$SUDOERS" = "true" ]; then
+    if [ "${USERNAME}" != "root" ] && [ "${EXISTING_NON_ROOT_USER}" != "${USERNAME}" ]; then
+        echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME
+        chmod 0440 /etc/sudoers.d/$USERNAME
+        EXISTING_NON_ROOT_USER="${USERNAME}"
+    fi
 fi
 
 # *********************************
