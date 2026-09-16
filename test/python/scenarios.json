@@ -110,7 +110,7 @@
         }
     },
     "install_os_provided_python_deb": {
-        "image": "mcr.microsoft.com/devcontainers/base:1-bullseye",
+        "image": "mcr.microsoft.com/devcontainers/base:1-bookworm",
         "features": {
             "python": "os-provided"
         }
@@ -128,7 +128,7 @@
         }
     },
     "install_jupyterlab_from_python_image": {
-        "image": "mcr.microsoft.com/devcontainers/python:3.10-bullseye",
+        "image": "mcr.microsoft.com/devcontainers/python:3.10-bookworm",
         "remoteUser": "vscode",
         "features": {
             "python": {
@@ -139,13 +139,13 @@
         }
     },
     "install_via_oryx": {
-        "image": "mcr.microsoft.com/oryx/build:full-debian-bullseye",
+        "image": "mcr.microsoft.com/oryx/build:github-actions-debian-bookworm",
         "features": {
             "python": "3.10"
         }
     },
     "install_jupyterlab_debian": {
-        "image": "debian:bullseye-slim",
+        "image": "debian:bookworm-slim",
         "features": {
             "python": {
                 "version": "3.11",
