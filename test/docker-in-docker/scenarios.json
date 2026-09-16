@@ -1,4 +1,20 @@
 {
+    "docker_build_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
+        "features": {
+            "docker-in-docker": {
+                "moby": false
+            }
+        }
+    },
+    "install_moby_on_ubuntu_resolute": {
+        "image": "ubuntu:resolute",
+        "features": {
+            "docker-in-docker": {
+                "moby": true
+            }
+        }
+    },
     "docker_iptables_switch_at_install": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
@@ -84,7 +100,7 @@
         }
     },
     "dockerDefaultAddressPool": {
-        "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
         "remoteUser": "node",
         "features": {
             "docker-in-docker": {
@@ -93,7 +109,7 @@
         }
     },
     "dockerHostGatewayIP": {
-        "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
         "remoteUser": "node",
         "features": {
             "docker-in-docker": {
@@ -102,7 +118,7 @@
         }
     },
     "azureDnsAutoDetectionEnabled": {
-        "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
         "remoteUser": "node",
         "features": {
             "docker-in-docker": {
@@ -111,7 +127,7 @@
         }
     },
     "azureDnsAutoDetectionDisabled": {
-        "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
         "remoteUser": "node",
         "features": {
             "docker-in-docker": {
@@ -120,7 +136,7 @@
         }
     },
     "docker_build": {
-        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
         "features": {
             "docker-in-docker": {
                 "version": "latest",
@@ -131,7 +147,7 @@
         "remoteUser": "node"
     },
     "docker_build_with_compose_switch": {
-        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
         "features": {
             "docker-in-docker": {
                 "version": "latest",
@@ -154,10 +170,10 @@
         }
     },
     "docker_build_older": {
-        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
         "features": {
             "docker-in-docker": {
-                "version": "20",
+                "version": "23",
                 "moby": "false",
                 "dockerDashComposeVersion": "v2"
             }
@@ -165,7 +181,7 @@
         "remoteUser": "node"
     },
     "docker_build_no_compose": {
-        "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
         "features": {
             "docker-in-docker": {
                 "dockerDashComposeVersion": "none"
@@ -243,14 +259,6 @@
     },
     "install_on_debian_trixie": {
         "image": "debian:trixie",
-        "features": {
-            "docker-in-docker": {
-                "moby": false
-            }
-        }
-    },
-    "docker_build_ubuntu_resolute": {
-        "image": "ubuntu:resolute",
         "features": {
             "docker-in-docker": {
                 "moby": false
