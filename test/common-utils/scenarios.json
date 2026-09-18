@@ -12,9 +12,9 @@
         "features": {
             "common-utils": {}
         }
-    },    
-    "bullseye": {
-        "image": "debian:bullseye",
+    },
+    "resolute": {
+        "image": "ubuntu:resolute",
         "remoteUser": "devcontainer",
         "features": {
             "common-utils": {}
@@ -22,6 +22,15 @@
     },
     "bookworm": {
         "image": "debian:bookworm",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {
+                "nonFreePackages": "true"
+            }
+        }
+    },
+    "trixie": {
+        "image": "debian:trixie",
         "remoteUser": "devcontainer",
         "features": {
             "common-utils": {
@@ -114,7 +123,7 @@
         }
     },
     "alternate-values": {
-        "image": "debian:bullseye",
+        "image": "debian:trixie",
         "features": {
             "common-utils": {
                 "username": "alternate",
@@ -136,7 +145,7 @@
         }
     },
     "username-default": {
-        "image": "debian:bullseye",
+        "image": "debian:trixie",
         "features": {
             "common-utils": {}
         }
@@ -175,7 +184,7 @@
         }
     },
     "configure_zsh_no_template_first_step": {
-        "image": "debian:bullseye",
+        "image": "debian:trixie",
         "remoteUser": "devcontainer",
         "features": {
             "common-utils": {
@@ -271,6 +280,24 @@
         "remoteUser": "customUser",
         "features": {
             "common-utils": {}
+        }
+    },
+    "sudoers-true": {
+        "image": "debian:trixie",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "sudoers": true
+            }
+        }
+    },
+    "sudoers-false": {
+        "image": "debian:trixie",
+        "remoteUser": "vscode",
+        "features": {
+            "common-utils": {
+                "sudoers": false
+            }
         }
     },
     "terminal-title-on-xterm": {

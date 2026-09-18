@@ -108,5 +108,15 @@
                 "extraNixConfig": "extra-substituters = https://foo.cachix.org,extra-trusted-public-keys = foo.cachix.org-1:bar="
             }
         }
+    },
+    "extra-config-packages": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "remoteUser": "vscode",
+        "features": {
+            "nix": {
+                "extraNixConfig": "experimental-features = nix-command flakes",
+                "packages": "hello"
+            }
+        }
     }
 }

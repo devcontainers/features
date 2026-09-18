@@ -1,6 +1,6 @@
 {
     "id": "powershell",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "name": "PowerShell",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/powershell",
     "description": "Installs PowerShell along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
@@ -28,6 +28,11 @@
             "type": "string",
             "default": "",
             "description": "Optional (publicly accessible) URL to download PowerShell profile."
+        },
+        "preserveHistory": {
+            "type": "boolean",
+            "default": true,
+            "description": "Optional Enable to preserve the powershell history across container restart/rebuilds"
         }
     },
     "customizations": {
@@ -43,6 +48,16 @@
                     }
                 ]
             }
+    },
+    "mounts": [
+      {
+        "type": "volume",
+        "source": "${devcontainerId}-powershell-history",
+        "target": "/dc/powershell"
+      }
+    ],
+    "onCreateCommand": {
+      "powershell": "/usr/local/share/powershell/scripts/oncreate.sh"
     },
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"

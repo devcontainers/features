@@ -11,7 +11,7 @@ check "pwsh version is LTS (not preview)" bash -c "pwsh --version | grep -v 'pre
 # Extension-specific tests
 check "az.resources" pwsh -Command "(Get-Module -ListAvailable -Name Az.Resources).Version.ToString()"
 check "az.storage" pwsh -Command "(Get-Module -ListAvailable -Name Az.Storage).Version.ToString()"
-check "profile" pwsh -Command "(Get-Variable $env:ProfileLoaded).Value"
+check "profile" pwsh -Command 'if (-not $env:ProfileLoaded) {Write-Host "Profile not loaded, envvar '\''ProfileLoaded'\'' does not exist"; exit 1 } else {Write-Host "Profile Loaded: $($env:ProfileLoaded)"; exit 0 }'
 
 # Report result
 reportResults

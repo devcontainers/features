@@ -9,6 +9,8 @@ check "gh-version" gh --version
 
 check "gh-extension-installed" gh extension list | grep -q 'dlvhdr/gh-dash'
 check "gh-extension-installed-2" gh extension list | grep -q 'github/gh-copilot'
+check "gh-extension-installed-3" gh extension list | grep -q 'github/gh-aw'
+check "gh-aw-runs" gh aw version
 
 # Report result
 reportResults
