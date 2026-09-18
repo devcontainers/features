@@ -21,7 +21,7 @@
         "extensions": {
             "type": "string",
             "default": "",
-            "description": "Comma-separated list of GitHub CLI extensions to install (e.g. 'dlvhdr/gh-dash,github/gh-copilot')."
+            "description": "Comma-separated list of GitHub CLI extensions to install (e.g. 'dlvhdr/gh-dash,github/gh-aw')."
         }
     },
     "customizations": {

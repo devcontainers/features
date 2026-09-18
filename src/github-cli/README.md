@@ -16,7 +16,7 @@ Installs the GitHub CLI. Auto-detects latest version and installs needed depende
 | -------------------------------- | --------------------------------------------------------------------------------------------------- | ------- | ------------- |
 | version                          | Select version of the GitHub CLI, if not latest.                                                    | string  | latest        |
 | installDirectlyFromGitHubRelease | -                                                                                                   | boolean | true          |
-| extensions                       | Comma-separated list of GitHub CLI extensions to install (e.g. 'dlvhdr/gh-dash,github/gh-copilot'). | string  |               |
+| extensions                       | Comma-separated list of GitHub CLI extensions to install (e.g. 'dlvhdr/gh-dash,github/gh-aw'). | string  |               |
 
 ## OS Support
 
