@@ -34,10 +34,11 @@ install_extension() {
 
     attempt=1
     while [ "${attempt}" -le "${max_attempts}" ]; do
-        if gh extension install "${extension}"; then
+        install_status=0
+        gh extension install "${extension}" || install_status=$?
+        if [ "${install_status}" -eq 0 ]; then
             return
         fi
-        install_status=$?
         echo "Warning: 'gh extension install ${extension}' failed (exit code ${install_status}, attempt ${attempt}/${max_attempts})." >&2
         attempt=$((attempt + 1))
         if [ "${attempt}" -le "${max_attempts}" ]; then
