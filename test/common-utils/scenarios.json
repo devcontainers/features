@@ -136,7 +136,7 @@
         }
     },
     "add-groups": {
-        "image": "debian:trixie",
+        "image": "debian:bookworm",
         "features": {
             "common-utils": {
                 "username": "alternate",
