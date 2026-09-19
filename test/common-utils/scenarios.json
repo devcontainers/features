@@ -136,7 +136,7 @@
         }
     },
     "add-groups": {
-        "image": "debian:bullseye",
+        "image": "debian:trixie",
         "features": {
             "common-utils": {
                 "username": "alternate",
