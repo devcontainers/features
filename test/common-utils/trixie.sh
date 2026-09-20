@@ -39,7 +39,7 @@ checkCommon
 # Definition specific tests
 . /etc/os-release
 check "non-root user" test "$(whoami)" = "devcontainer"
-check "distro" test "${VERSION_CODENAME}" = "bookworm"
+check "distro" test "${VERSION_CODENAME}" = "trixie"
 
 # Check if the sudoers file for the non-root user exists
 check "sudoers file exists" test -f /etc/sudoers.d/$(whoami)
