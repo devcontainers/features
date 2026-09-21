@@ -20,6 +20,7 @@ fi
 
 # Import common utils
 . ./utils.sh
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
 
 detect_user USERNAME
 

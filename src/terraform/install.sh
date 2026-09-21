@@ -349,6 +349,8 @@ install_cosign() {
     echo "Installation of cosign succeeded with ${COSIGN_VERSION}."
 }
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 # Install 'cosign' for validating signatures
 # https://docs.sigstore.dev/cosign/overview/
 ensure_cosign() {

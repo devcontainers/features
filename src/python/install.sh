@@ -442,6 +442,8 @@ check_packages() {
     esac
 }
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 add_symlink() {
     if [[ ! -d "${CURRENT_PATH}" ]]; then
         ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"

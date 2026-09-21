@@ -179,6 +179,8 @@ get_github_api_repo_url() {
     echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases"
 }
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 install_compose_switch_fallback() {
     compose_switch_url=$1
     repo_url=$(get_github_api_repo_url "${compose_switch_url}")

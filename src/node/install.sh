@@ -289,6 +289,8 @@ if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 # Adjust node version if required
 if [ "${NODE_VERSION}" = "none" ]; then
     export NODE_VERSION=

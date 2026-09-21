@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2034
+# feature|label|repository|prefix|optional patch|suffix regex|request|fallback tag|expected
+VERSION_RESOLUTION_CASES=(
+    "docker-in-docker|compose|https://github.com/docker/compose|tags/v|false||latest|v5.5.1|5.5.1"
+    "docker-in-docker|compose switch|https://github.com/docker/compose-switch|tags/v|false||latest|v1.0.5|1.0.5"
+    "docker-in-docker|buildx|https://github.com/docker/buildx|refs/tags/v|false||latest|v0.37.1|0.37.1"
+    "docker-outside-of-docker|compose|https://github.com/docker/compose|tags/v|false||latest|v5.5.1|5.5.1"
+    "docker-outside-of-docker|compose switch|https://github.com/docker/compose-switch|tags/v|false||latest|v1.0.5|1.0.5"
+    "github-cli|gh|https://github.com/cli/cli|tags/v|false||latest|v2.101.0|2.101.0"
+    "git-lfs|git lfs|https://github.com/git-lfs/git-lfs|tags/v|false||latest|v3.8.0|3.8.0"
+    "go|go|https://go.googlesource.com/go|tags/go|true||latest|1.27.1|1.27.1"
+    "kubectl-helm-minikube|kubectl|https://github.com/kubernetes/kubernetes|tags/v|false||latest|v1.37.0|1.37.0"
+    "kubectl-helm-minikube|helm|https://github.com/helm/helm|tags/v|false||latest|v4.3.0|4.3.0"
+    "kubectl-helm-minikube|minikube|https://github.com/kubernetes/minikube|tags/v|false||latest|v1.39.0|1.39.0"
+    "nix|nix|https://github.com/NixOS/nix|tags/|false||latest|2.35.2|2.35.2"
+    "node|nvm|https://github.com/nvm-sh/nvm|tags/v|false||latest|v0.40.8|0.40.8"
+    "php|php|https://github.com/php/php-src|tags/php-|false||latest|php-8.5.10|8.5.10"
+    "php|xdebug|https://github.com/xdebug/xdebug|tags/|false||latest|3.5.3|3.5.3"
+    "powershell|stable|https://github.com/PowerShell/PowerShell|tags/v|false||latest|v7.6.6|7.6.6"
+    "powershell|preview|https://github.com/PowerShell/PowerShell|tags/v|false|-preview\\.[0-9]+|preview|v7.7.0-preview.4|7.7.0-preview.4"
+    "powershell|release candidate|https://github.com/PowerShell/PowerShell|tags/v|false|-rc\\.[0-9]+|prerelease|v7.7.0-rc.1|7.7.0-rc.1"
+    "python|cpython|https://github.com/python/cpython|tags/v|false||latest|v3.14.7|3.14.7"
+    "python|openssl|https://github.com/openssl/openssl|openssl-|false||latest|openssl-4.0.2|4.0.2"
+    "python|cosign|https://github.com/sigstore/cosign|tags/v|false||latest|v3.1.3|3.1.3"
+    "rust|rust|https://github.com/rust-lang/rust|tags/|false||latest|1.98.1|1.98.1"
+    "copilot-cli|prerelease|https://github.com/github/copilot-cli|tags/v|false|(-[0-9]+)|prerelease|v1.0.87-0|1.0.87-0"
+    "terraform|terraform|https://github.com/hashicorp/terraform|tags/v|false||latest|v1.16.3|1.16.3"
+    "terraform|tflint|https://github.com/terraform-linters/tflint|tags/v|false||latest|v0.64.0|0.64.0"
+    "terraform|terragrunt|https://github.com/gruntwork-io/terragrunt|tags/v|false||latest|v1.1.5|1.1.5"
+    "terraform|tfsec|https://github.com/aquasecurity/tfsec|tags/v|false||latest|v1.28.14|1.28.14"
+    "terraform|terraform-docs|https://github.com/terraform-docs/terraform-docs|tags/v|false||latest|v0.24.0|0.24.0"
+)

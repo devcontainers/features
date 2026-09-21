@@ -351,6 +351,8 @@ case ${download_architecture} in
     ;;
 esac
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 # Install Rust
 umask 0002
 if ! grep -e "^rustlang:" /etc/group > /dev/null 2>&1; then

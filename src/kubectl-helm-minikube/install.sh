@@ -146,6 +146,8 @@ check_packages() {
 }
 
 # Ensure apt is in non-interactive to avoid prompts
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 export DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies

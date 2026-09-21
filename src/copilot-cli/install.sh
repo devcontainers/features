@@ -8,6 +8,7 @@
 # Maintainer: The VS Code and Codespaces Teams
 
 CLI_VERSION=${VERSION:-"latest"}
+REQUESTED_CLI_VERSION="${CLI_VERSION}"
 
 set -e
 
@@ -31,13 +32,7 @@ check_packages() {
     fi
 }
 
-resolve_prerelease_version() {
-    local repo_versions="${1:?resolve_prerelease_version requires the copilot-cli repo tags as input}"
-    printf '%s\n' "${repo_versions}" \
-      | awk '{print $2}' | sed 's|refs/tags/||' \
-      | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$' \
-      | sort -V | tail -n1
-}
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
 
 download_from_github() {
     local release_url=$1
@@ -71,9 +66,8 @@ install_using_github() {
     if [ "${CLI_VERSION}" = "latest" ]; then
         download_from_github "https://github.com/github/copilot-cli/releases/latest/download/${cli_filename}"
     elif [ "${CLI_VERSION}" = "prerelease" ]; then
-
-        prerelease_version="$(resolve_prerelease_version "$(git ls-remote --tags https://github.com/github/copilot-cli)")"
-        download_from_github "https://github.com/github/copilot-cli/releases/download/${prerelease_version}/${cli_filename}"
+        find_version_from_git_tags CLI_VERSION "https://github.com/github/copilot-cli" "tags/v" "." "false" "(-[0-9]+)"
+        download_from_github "https://github.com/github/copilot-cli/releases/download/v${CLI_VERSION}/${cli_filename}"
         
     else
         # Install specific version
@@ -91,7 +85,7 @@ echo "Downloading GitHub Copilot CLI..."
 install_using_github
 
 # Create a flag file if using "latest" or "prerelease" so the postStartCommand knows to auto-update
-if [ "${CLI_VERSION}" = "latest" ] || [ "${CLI_VERSION}" = "prerelease" ]; then
+if [ "${REQUESTED_CLI_VERSION}" = "latest" ] || [ "${REQUESTED_CLI_VERSION}" = "prerelease" ]; then
     mkdir -p /etc/devcontainer-copilot-cli
     touch /etc/devcontainer-copilot-cli/auto-update
 fi

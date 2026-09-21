@@ -219,6 +219,8 @@ install_using_github() {
     rm -rf /tmp/git-lfs /tmp/tmp-gnupg
 }
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 export DEBIAN_FRONTEND=noninteractive
 
 # Install git, curl, gpg, dirmngr and debian-archive-keyring if missing

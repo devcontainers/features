@@ -191,6 +191,14 @@ elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
     USERNAME=root
 fi
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
+get_go_release_versions() {
+    curl -fsSL "https://go.dev/dl/?mode=json&include=all" \
+        | grep -oE '"version"[[:space:]]*:[[:space:]]*"go[0-9]+\.[0-9]+(\.[0-9]+)?"' \
+        | sed -E 's/^.*"go([0-9.]+)"$/\1/'
+}
+
 export DEBIAN_FRONTEND=noninteractive
 
 check_packages ca-certificates gnupg2 tar gcc make pkg-config
@@ -220,7 +228,7 @@ if ! [ -f /usr/bin/find ]; then
 fi
 
 # Get closest match for version number specified
-find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true"
+find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true" "" "the official Go release index" get_go_release_versions "1.27.1"
 
 architecture="$(uname -m)"
 case $architecture in
@@ -263,7 +271,7 @@ if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version 2>/dev/null)" != *
             ((minor=minor-1))
             TARGET_GO_VERSION="${major}.${minor}"
             # Look for latest version from previous minor release
-            find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true"
+            find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true" "" "the official Go release index" get_go_release_versions "1.27.1"
         else 
             ((breakfix=breakfix-1))
             if [ "${breakfix}" = "0" ]; then

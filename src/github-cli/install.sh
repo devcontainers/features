@@ -211,6 +211,8 @@ install_deb_using_github() {
     rm -rf /tmp/ghcli
 }
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 export DEBIAN_FRONTEND=noninteractive
 
 # Install curl, apt-transport-https, curl, gpg, or dirmngr, git if missing

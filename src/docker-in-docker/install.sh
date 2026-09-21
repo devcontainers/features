@@ -209,6 +209,8 @@ get_github_api_repo_url() {
     echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases"
 }
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 ###########################################
 # Start docker-in-docker installation
 ###########################################

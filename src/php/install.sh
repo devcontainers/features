@@ -161,6 +161,8 @@ find_prev_version_from_git_tags() {
     set -e
 }
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 # Install PHP Composer
 addcomposer() {
     "${PHP_SRC}" -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
