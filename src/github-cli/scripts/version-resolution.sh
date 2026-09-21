@@ -14,17 +14,13 @@ find_version_from_git_tags() {
     local fallback_function=${8:-""}
     local known_good_version=${9:-""}
 
-    if [ -z "${fallback_function}" ] && echo "${repository}" | grep -qE '^https://github.com/[^/]+/[^/]+/?$'; then
-        fallback_name="GitHub REST API"
-        fallback_function="_github_rest_version_candidates"
-    fi
-    if [ -z "${known_good_version}" ]; then
-        known_good_version="$(_known_good_version_for_repository "${repository}")"
-    fi
-
     if [ "${requested_version}" = "none" ]; then
         return
     fi
+
+    local tag_prefix=${prefix#refs/}
+    tag_prefix=${tag_prefix#tags/}
+    local normalized_request=${requested_version#"${tag_prefix}"}
 
     local escaped_separator=${separator//./\.}
     local patch_regex="${escaped_separator}[0-9]+"
@@ -35,8 +31,9 @@ find_version_from_git_tags() {
 
     # Fully qualified versions are user assertions. Do not require the network
     # to prove that a requested release exists.
-    if echo "${requested_version}" | grep -Eq "^${version_regex}$"; then
-        echo "${variable_name}=${requested_version}"
+    if echo "${normalized_request}" | grep -Eq "^${version_regex}$"; then
+        declare -g "${variable_name}=${normalized_request}"
+        echo "${variable_name}=${normalized_request}"
         return
     fi
 
@@ -48,6 +45,10 @@ find_version_from_git_tags() {
 
     if [ -z "${version_list}" ]; then
         echo "(!) Unable to resolve '${requested_version}' from git tags at ${repository}." >&2
+        if [ -z "${fallback_function}" ] && echo "${repository}" | grep -qE '^https://github.com/[^/]+/[^/]+/?$'; then
+            fallback_name="GitHub REST API"
+            fallback_function="_github_rest_version_candidates"
+        fi
         if [ -n "${fallback_function}" ]; then
             echo "(*) Trying ${fallback_name:-alternate version source}." >&2
             local fallback_output=""
@@ -61,8 +62,11 @@ find_version_from_git_tags() {
     fi
 
     local resolved_version=""
-    resolved_version="$(_select_requested_version "${requested_version}" "${version_list}")"
-    if [ -z "${resolved_version}" ] && [ -n "${known_good_version}" ] && _version_matches_request "${requested_version}" "${known_good_version}"; then
+    resolved_version="$(_select_requested_version "${normalized_request}" "${version_list}")"
+    if [ -z "${resolved_version}" ] && [ -z "${known_good_version}" ]; then
+        known_good_version="$(_known_good_version_for_repository "${repository}")"
+    fi
+    if [ -z "${resolved_version}" ] && [ -n "${known_good_version}" ] && _version_matches_request "${normalized_request}" "${known_good_version}"; then
         resolved_version="${known_good_version}"
         echo "(!) Dynamic version resolution failed; using known-good version ${known_good_version}." >&2
     fi

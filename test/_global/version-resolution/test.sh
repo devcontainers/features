@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2317,SC2329
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -14,7 +15,6 @@ git() {
     return 1
 }
 
-# shellcheck disable=SC2329
 fallback_versions() {
     printf '%s\n' "1.4.2" "1.3.9"
 }
@@ -39,6 +39,18 @@ VERSION="3.2"
 find_version_from_git_tags VERSION https://github.com/example/tool >/tmp/version-resolution-output.log 2>&1
 if [ "${VERSION}" != "3.2.1" ] || grep -q "Trying" /tmp/version-resolution-output.log; then
     echo "Primary git tag resolution did not select the requested version line." >&2
+    exit 1
+fi
+
+rm -f /tmp/version-resolution-network-call
+git() {
+    touch /tmp/version-resolution-network-call
+    return 1
+}
+VERSION="v1.33.0"
+find_version_from_git_tags VERSION https://github.com/kubernetes/kubernetes >/tmp/version-resolution-output.log 2>&1
+if [ "${VERSION}" != "1.33.0" ] || [ -e /tmp/version-resolution-network-call ]; then
+    echo "Prefixed exact versions must normalize without remote resolution." >&2
     exit 1
 fi
 
