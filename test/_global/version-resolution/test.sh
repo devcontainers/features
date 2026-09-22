@@ -148,7 +148,20 @@ done
 pass "fallback matrix covers all ${#required_features[@]} required features"
 
 for test_case in "${VERSION_RESOLUTION_CASES[@]}"; do
-    IFS='|' read -r feature label repository prefix last_part_optional suffix_regex request fallback_tag expected <<< "${test_case}"
+    IFS='|' read -r feature label known_good_variable repository prefix last_part_optional suffix_regex request <<< "${test_case}"
+    installer="${ROOT_DIR}/src/${feature}/install.sh"
+    expected="$(sed -n "s/^${known_good_variable}=\"\(.*\)\"$/\1/p" "${installer}")"
+    if [ -z "${expected}" ]; then
+        fail "${feature}/${label}: ${known_good_variable} is declared at the top level"
+    fi
+    if ! grep 'find_version_from_git_tags' "${installer}" | grep -Fq "\${${known_good_variable}}"; then
+        fail "${feature}/${label}: resolver uses ${known_good_variable}"
+    fi
+    pass "${feature}/${label}: installer wires ${known_good_variable}"
+
+    tag_prefix=${prefix#refs/}
+    tag_prefix=${tag_prefix#tags/}
+    fallback_tag="${tag_prefix}${expected}"
     VERSION="${expected}"
     rm -f /tmp/version-resolution-network-call
     git() {
@@ -168,7 +181,7 @@ for test_case in "${VERSION_RESOLUTION_CASES[@]}"; do
     VERSION="${request}"
     if [ "${feature}" = "go" ]; then
         go_fallback_versions() {
-            printf '%s\n' "${FAKE_FALLBACK_TAG}"
+            printf '%s\n' "${expected}"
         }
         find_version_from_git_tags VERSION "${repository}" "${prefix}" . "${last_part_optional}" "${suffix_regex}" "${expected}" "the official Go release index" go_fallback_versions >/tmp/version-resolution-output.log 2>&1
     else
