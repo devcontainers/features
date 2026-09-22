@@ -14,6 +14,8 @@ rm -rf /var/lib/apt/lists/*
 PHP_VERSION="${VERSION:-"latest"}"
 INSTALL_COMPOSER="${INSTALLCOMPOSER:-"true"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
+PHP_LAST_KNOWN_VERSION="8.5.10"
+XDEBUG_LAST_KNOWN_VERSION="3.5.3"
 
 export PHP_DIR="${PHP_DIR:-"/usr/local/php"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
@@ -177,7 +179,7 @@ addcomposer() {
 # the current PHP version (common around new PHP releases).
 install_xdebug_from_source() {
     XDEBUG_VERSION="latest"
-    find_version_from_git_tags XDEBUG_VERSION https://github.com/xdebug/xdebug "tags/"
+    find_version_from_git_tags XDEBUG_VERSION https://github.com/xdebug/xdebug "tags/" "." "false" "" "${XDEBUG_LAST_KNOWN_VERSION}"
 
     local xdebug_src_dir="/tmp/xdebug-src"
     rm -rf "${xdebug_src_dir}"
@@ -307,7 +309,7 @@ if [ "${PHP_VERSION}" != "none" ]; then
 
     # storing value of PHP_VERSION before it changes
     ORIGINAL_PHP_VERSION=$PHP_VERSION
-    find_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-"
+    find_version_from_git_tags PHP_VERSION https://github.com/php/php-src "tags/php-" "." "false" "" "${PHP_LAST_KNOWN_VERSION}"
     install_php "${PHP_VERSION}"
 
     PHP_SRC="${PHP_INSTALL_DIR}/bin/php"

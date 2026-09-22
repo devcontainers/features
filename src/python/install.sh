@@ -14,6 +14,9 @@ OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
 ENABLE_SHARED_FROM_SOURCE="${ENABLESHARED:-"false"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
+PYTHON_LAST_KNOWN_VERSION="3.14.7"
+OPENSSL3_LAST_KNOWN_VERSION="4.0.2"
+COSIGN_LAST_KNOWN_VERSION="3.1.3"
 
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 
@@ -463,7 +466,7 @@ install_openssl3() {
         cd /tmp/openssl3
         openssl3_version="3.0"
         # Find version using soft match
-        find_version_from_git_tags openssl3_version "https://github.com/openssl/openssl" "openssl-"
+        find_version_from_git_tags openssl3_version "https://github.com/openssl/openssl" "openssl-" "." "false" "" "${OPENSSL3_LAST_KNOWN_VERSION}"
         local tgz_filename="openssl-${openssl3_version}.tar.gz"
         local tgz_url="https://github.com/openssl/openssl/releases/download/openssl-${openssl3_version}/${tgz_filename}"
         echo "Downloading ${tgz_filename}..."
@@ -521,7 +524,7 @@ install_cosign() {
     local cosign_url='https://github.com/sigstore/cosign'
     local architecture=$(get_architecture)
 
-    find_version_from_git_tags COSIGN_VERSION "${cosign_url}"
+    find_version_from_git_tags COSIGN_VERSION "${cosign_url}" "tags/v" "." "false" "" "${COSIGN_LAST_KNOWN_VERSION}"
 
     # Remove 'v' prefix if present for download URL
     local version_for_url="${COSIGN_VERSION#v}"
@@ -634,7 +637,7 @@ install_from_source() {
     fi
 
     # Find version using soft match
-    find_version_from_git_tags VERSION "https://github.com/python/cpython"
+    find_version_from_git_tags VERSION "https://github.com/python/cpython" "tags/v" "." "false" "" "${PYTHON_LAST_KNOWN_VERSION}"
 
     # Some platforms/os versions need modern versions of openssl installed
     # via common package repositories, for now rhel-7 family, use case statement to

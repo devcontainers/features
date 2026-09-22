@@ -10,6 +10,7 @@
 CLI_VERSION=${VERSION:-"latest"}
 INSTALL_DIRECTLY_FROM_GITHUB_RELEASE=${INSTALLDIRECTLYFROMGITHUBRELEASE:-"true"}
 EXTENSIONS=${EXTENSIONS:-""}
+GITHUB_CLI_LAST_KNOWN_VERSION="2.101.0"
 
 GITHUB_CLI_ARCHIVE_GPG_KEY=7F38BBB59D064DBCB3D84D725612B36462313325
 
@@ -191,7 +192,7 @@ install_deb_using_github() {
     check_packages wget
     arch=$(dpkg --print-architecture)
 
-    find_version_from_git_tags CLI_VERSION https://github.com/cli/cli
+    find_version_from_git_tags CLI_VERSION https://github.com/cli/cli "tags/v" "." "false" "" "${GITHUB_CLI_LAST_KNOWN_VERSION}"
     cli_filename="gh_${CLI_VERSION}_linux_${arch}.deb"
 
     mkdir -p /tmp/ghcli
@@ -223,7 +224,7 @@ fi
 
 # Soft version matching
 if [ "${CLI_VERSION}" != "latest" ] && [ "${CLI_VERSION}" != "lts" ] && [ "${CLI_VERSION}" != "stable" ]; then
-    find_version_from_git_tags CLI_VERSION "https://github.com/cli/cli"
+    find_version_from_git_tags CLI_VERSION "https://github.com/cli/cli" "tags/v" "." "false" "" "${GITHUB_CLI_LAST_KNOWN_VERSION}"
     version_suffix="=${CLI_VERSION}"
 else
     version_suffix=""

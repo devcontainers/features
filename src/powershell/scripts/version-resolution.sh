@@ -10,9 +10,9 @@ find_version_from_git_tags() {
     local separator=${4:-"."}
     local last_part_optional=${5:-"false"}
     local version_suffix_regex=${6:-""}
-    local fallback_name=${7:-""}
-    local fallback_function=${8:-""}
-    local known_good_version=${9:-""}
+    local known_good_version=${7:-""}
+    local fallback_name=${8:-""}
+    local fallback_function=${9:-""}
 
     if [ "${requested_version}" = "none" ]; then
         return
@@ -63,9 +63,6 @@ find_version_from_git_tags() {
 
     local resolved_version=""
     resolved_version="$(_select_requested_version "${normalized_request}" "${version_list}")"
-    if [ -z "${resolved_version}" ] && [ -z "${known_good_version}" ]; then
-        known_good_version="$(_known_good_version_for_repository "${repository}")"
-    fi
     if [ -z "${resolved_version}" ] && [ -n "${known_good_version}" ] && _version_matches_request "${normalized_request}" "${known_good_version}"; then
         resolved_version="${known_good_version}"
         echo "(!) Dynamic version resolution failed; using known-good version ${known_good_version}." >&2
@@ -92,34 +89,6 @@ _github_rest_version_candidates() {
         | grep -oE '"name"[[:space:]]*:[[:space:]]*"[^"]+"' \
         | sed -E 's/^.*"([^"]+)"$/\1/' \
         | sed "s|^${tag_prefix}||"
-}
-
-_known_good_version_for_repository() {
-    case ${1%/} in
-        https://github.com/docker/compose) echo "5.5.1" ;;
-        https://github.com/docker/compose-switch) echo "1.0.5" ;;
-        https://github.com/docker/buildx) echo "0.37.1" ;;
-        https://github.com/cli/cli) echo "2.101.0" ;;
-        https://github.com/git-lfs/git-lfs) echo "3.8.0" ;;
-        https://github.com/helm/helm) echo "4.3.0" ;;
-        https://github.com/kubernetes/kubernetes) echo "1.37.0" ;;
-        https://github.com/kubernetes/minikube) echo "1.39.0" ;;
-        https://github.com/NixOS/nix) echo "2.35.2" ;;
-        https://github.com/nvm-sh/nvm) echo "0.40.8" ;;
-        https://github.com/php/php-src) echo "8.5.10" ;;
-        https://github.com/xdebug/xdebug) echo "3.5.3" ;;
-        https://github.com/PowerShell/PowerShell) echo "7.6.6" ;;
-        https://github.com/python/cpython) echo "3.14.7" ;;
-        https://github.com/openssl/openssl) echo "4.0.2" ;;
-        https://github.com/sigstore/cosign) echo "3.1.3" ;;
-        https://github.com/rust-lang/rust) echo "1.98.1" ;;
-        https://github.com/hashicorp/terraform) echo "1.16.3" ;;
-        https://github.com/terraform-linters/tflint) echo "0.64.0" ;;
-        https://github.com/gruntwork-io/terragrunt) echo "1.1.5" ;;
-        https://github.com/aquasecurity/tfsec) echo "1.28.14" ;;
-        https://github.com/terraform-docs/terraform-docs) echo "0.24.0" ;;
-        https://github.com/github/copilot-cli) echo "1.0.87-0" ;;
-    esac
 }
 
 _extract_version_candidates() {

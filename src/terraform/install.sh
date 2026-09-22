@@ -15,6 +15,12 @@ rm -rf /var/lib/apt/lists/*
 TERRAFORM_VERSION="${VERSION:-"latest"}"
 TFLINT_VERSION="${TFLINT:-"latest"}"
 TERRAGRUNT_VERSION="${TERRAGRUNT:-"latest"}"
+TERRAFORM_LAST_KNOWN_VERSION="1.16.3"
+TFLINT_LAST_KNOWN_VERSION="0.64.0"
+TERRAGRUNT_LAST_KNOWN_VERSION="1.1.5"
+TFSEC_LAST_KNOWN_VERSION="1.28.14"
+TERRAFORM_DOCS_LAST_KNOWN_VERSION="0.24.0"
+COSIGN_LAST_KNOWN_VERSION="3.1.3"
 INSTALL_SENTINEL=${INSTALLSENTINEL:-false}
 INSTALL_TFSEC=${INSTALLTFSEC:-false}
 INSTALL_TERRAFORM_DOCS=${INSTALLTERRAFORMDOCS:-false}
@@ -360,7 +366,7 @@ ensure_cosign() {
         echo "Installing cosign..."
         COSIGN_VERSION="latest"
         cosign_url='https://github.com/sigstore/cosign'
-        find_version_from_git_tags COSIGN_VERSION "${cosign_url}"
+        find_version_from_git_tags COSIGN_VERSION "${cosign_url}" "tags/v" "." "false" "" "${COSIGN_LAST_KNOWN_VERSION}"
         install_cosign "${COSIGN_VERSION}" "${cosign_url}"
     fi
     if ! type cosign > /dev/null 2>&1; then
@@ -383,9 +389,9 @@ terraform_url='https://github.com/hashicorp/terraform'
 tflint_url='https://github.com/terraform-linters/tflint'
 terragrunt_url='https://github.com/gruntwork-io/terragrunt'
 # Verify requested version is available, convert latest
-find_version_from_git_tags TERRAFORM_VERSION "$terraform_url"
-find_version_from_git_tags TFLINT_VERSION "$tflint_url"
-find_version_from_git_tags TERRAGRUNT_VERSION "$terragrunt_url"
+find_version_from_git_tags TERRAFORM_VERSION "$terraform_url" "tags/v" "." "false" "" "${TERRAFORM_LAST_KNOWN_VERSION}"
+find_version_from_git_tags TFLINT_VERSION "$tflint_url" "tags/v" "." "false" "" "${TFLINT_LAST_KNOWN_VERSION}"
+find_version_from_git_tags TERRAGRUNT_VERSION "$terragrunt_url" "tags/v" "." "false" "" "${TERRAGRUNT_LAST_KNOWN_VERSION}"
 
 install_terraform() {
     local TERRAFORM_VERSION=$1
@@ -615,7 +621,7 @@ install_tfsec() {
 if [ "${INSTALL_TFSEC}" = "true" ]; then
     TFSEC_VERSION="latest"
     tfsec_url='https://github.com/aquasecurity/tfsec'
-    find_version_from_git_tags TFSEC_VERSION $tfsec_url
+    find_version_from_git_tags TFSEC_VERSION "$tfsec_url" "tags/v" "." "false" "" "${TFSEC_LAST_KNOWN_VERSION}"
     tfsec_filename="tfsec_${TFSEC_VERSION}_linux_${architecture}.tar.gz"
     echo "(*) Downloading TFSec... ${tfsec_filename}"
     install_tfsec "$TFSEC_VERSION"
@@ -645,7 +651,7 @@ install_terraform_docs() {
 
 if [ "${INSTALL_TERRAFORM_DOCS}" = "true" ]; then
     terraform_docs_url='https://github.com/terraform-docs/terraform-docs'
-    find_version_from_git_tags TERRAFORM_DOCS_VERSION $terraform_docs_url
+    find_version_from_git_tags TERRAFORM_DOCS_VERSION "$terraform_docs_url" "tags/v" "." "false" "" "${TERRAFORM_DOCS_LAST_KNOWN_VERSION}"
     tfdocs_filename="terraform-docs-v${TERRAFORM_DOCS_VERSION}-linux-${architecture}.tar.gz"
     echo "(*) Downloading Terraform docs... ${tfdocs_filename}"
     install_terraform_docs "$TERRAFORM_DOCS_VERSION"

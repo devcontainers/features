@@ -9,6 +9,7 @@
 
 CLI_VERSION=${VERSION:-"latest"}
 REQUESTED_CLI_VERSION="${CLI_VERSION}"
+COPILOT_CLI_LAST_KNOWN_VERSION="1.0.87-0"
 
 set -e
 
@@ -66,7 +67,7 @@ install_using_github() {
     if [ "${CLI_VERSION}" = "latest" ]; then
         download_from_github "https://github.com/github/copilot-cli/releases/latest/download/${cli_filename}"
     elif [ "${CLI_VERSION}" = "prerelease" ]; then
-        find_version_from_git_tags CLI_VERSION "https://github.com/github/copilot-cli" "tags/v" "." "false" "(-[0-9]+)"
+        find_version_from_git_tags CLI_VERSION "https://github.com/github/copilot-cli" "tags/v" "." "false" "(-[0-9]+)" "${COPILOT_CLI_LAST_KNOWN_VERSION}"
         download_from_github "https://github.com/github/copilot-cli/releases/download/v${CLI_VERSION}/${cli_filename}"
         
     else

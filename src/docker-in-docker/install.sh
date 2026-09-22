@@ -12,6 +12,9 @@ DOCKER_VERSION="${VERSION:-"latest"}" # The Docker/Moby Engine + CLI should matc
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
 DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" #v1, v2, latest or none
+DOCKER_COMPOSE_LAST_KNOWN_VERSION="5.5.1"
+DOCKER_COMPOSE_SWITCH_LAST_KNOWN_VERSION="1.0.5"
+DOCKER_BUILDX_LAST_KNOWN_VERSION="0.37.1"
 AZURE_DNS_AUTO_DETECTION="${AZUREDNSAUTODETECTION:-"true"}"
 DOCKER_DEFAULT_ADDRESS_POOL="${DOCKERDEFAULTADDRESSPOOL:-""}"
 DOCKER_HOST_GATEWAY_IP="${DOCKERHOSTGATEWAYIP:-""}"
@@ -772,7 +775,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
     else
         compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
         docker_compose_url="https://github.com/docker/compose"
-        find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
+        find_version_from_git_tags compose_version "$docker_compose_url" "tags/v" "." "false" "" "${DOCKER_COMPOSE_LAST_KNOWN_VERSION}"
         echo "(*) Installing docker-compose ${compose_version}..."
         curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
                  echo -e "\n(!) Failed to fetch the latest artifacts for docker-compose v${compose_version}..." 
@@ -810,7 +813,7 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
         compose_switch_url="https://github.com/docker/compose-switch"
         # Try to get latest version, fallback to known stable version if GitHub API fails
         set +e
-        find_version_from_git_tags compose_switch_version "$compose_switch_url"
+        find_version_from_git_tags compose_switch_version "$compose_switch_url" "tags/v" "." "false" "" "${DOCKER_COMPOSE_SWITCH_LAST_KNOWN_VERSION}"
         if [ $? -ne 0 ] || [ -z "${compose_switch_version}" ] || [ "${compose_switch_version}" = "latest" ]; then
             echo "(*) GitHub API rate limited or failed, using fallback method"
             fallback_compose-switch "$compose_switch_url"
@@ -864,7 +867,7 @@ fallback_buildx() {
 if [ "${INSTALL_DOCKER_BUILDX}" = "true" ]; then
     buildx_version="latest"
     docker_buildx_url="https://github.com/docker/buildx"
-    find_version_from_git_tags buildx_version "$docker_buildx_url" "refs/tags/v"
+    find_version_from_git_tags buildx_version "$docker_buildx_url" "refs/tags/v" "." "false" "" "${DOCKER_BUILDX_LAST_KNOWN_VERSION}"
     echo "(*) Installing buildx ${buildx_version}..."
 
       # Map architecture for buildx downloads

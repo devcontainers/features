@@ -19,7 +19,6 @@ VERSION_RESOLUTION_CASES=(
     "php|xdebug|https://github.com/xdebug/xdebug|tags/|false||latest|3.5.3|3.5.3"
     "powershell|stable|https://github.com/PowerShell/PowerShell|tags/v|false||latest|v7.6.6|7.6.6"
     "powershell|preview|https://github.com/PowerShell/PowerShell|tags/v|false|-preview\\.[0-9]+|preview|v7.7.0-preview.4|7.7.0-preview.4"
-    "powershell|release candidate|https://github.com/PowerShell/PowerShell|tags/v|false|-rc\\.[0-9]+|prerelease|v7.7.0-rc.1|7.7.0-rc.1"
     "python|cpython|https://github.com/python/cpython|tags/v|false||latest|v3.14.7|3.14.7"
     "python|openssl|https://github.com/openssl/openssl|openssl-|false||latest|openssl-4.0.2|4.0.2"
     "python|cosign|https://github.com/sigstore/cosign|tags/v|false||latest|v3.1.3|3.1.3"

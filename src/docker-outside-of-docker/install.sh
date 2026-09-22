@@ -11,6 +11,8 @@ DOCKER_VERSION="${VERSION:-"latest"}"
 USE_MOBY="${MOBY:-"true"}"
 MOBY_BUILDX_VERSION="${MOBYBUILDXVERSION:-"latest"}"
 DOCKER_DASH_COMPOSE_VERSION="${DOCKERDASHCOMPOSEVERSION:-"latest"}" # v1 or v2 or none or latest
+DOCKER_COMPOSE_LAST_KNOWN_VERSION="5.5.1"
+DOCKER_COMPOSE_SWITCH_LAST_KNOWN_VERSION="1.0.5"
 
 ENABLE_NONROOT_DOCKER="${ENABLE_NONROOT_DOCKER:-"true"}"
 SOCKET_PATH="${SOCKETPATH:-"/var/run/docker-host.sock"}" # From feature option
@@ -385,7 +387,7 @@ if [ "${DOCKER_DASH_COMPOSE_VERSION}" != "none" ]; then
     else
         compose_version=${DOCKER_DASH_COMPOSE_VERSION#v}
         docker_compose_url="https://github.com/docker/compose"
-        find_version_from_git_tags compose_version "$docker_compose_url" "tags/v"
+        find_version_from_git_tags compose_version "$docker_compose_url" "tags/v" "." "false" "" "${DOCKER_COMPOSE_LAST_KNOWN_VERSION}"
         echo "(*) Installing docker-compose ${compose_version}..."
         curl -fsSL "https://github.com/docker/compose/releases/download/v${compose_version}/docker-compose-linux-${target_compose_arch}" -o ${docker_compose_path} || {
             install_compose_fallback "$docker_compose_url" "$compose_version" "$target_compose_arch" "$docker_compose_path"
@@ -410,7 +412,7 @@ if [ "${INSTALL_DOCKER_COMPOSE_SWITCH}" = "true" ] && ! type compose-switch > /d
         target_compose_path="$(dirname "${current_compose_path}")/docker-compose-v1"
         compose_switch_version="latest"
         compose_switch_url="https://github.com/docker/compose-switch"
-        find_version_from_git_tags compose_switch_version "${compose_switch_url}"
+        find_version_from_git_tags compose_switch_version "${compose_switch_url}" "tags/v" "." "false" "" "${DOCKER_COMPOSE_SWITCH_LAST_KNOWN_VERSION}"
         curl -fsSL "https://github.com/docker/compose-switch/releases/download/v${compose_switch_version}/docker-compose-linux-${architecture}" -o /usr/local/bin/compose-switch || install_compose_switch_fallback "${compose_switch_url}"
         chmod +x /usr/local/bin/compose-switch
         # TODO: Verify checksum once available: https://github.com/docker/compose-switch/issues/11

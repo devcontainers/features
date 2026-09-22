@@ -19,6 +19,10 @@ KUBECTL_VERSION="${VERSION:-"latest"}"
 HELM_VERSION="${HELM:-"latest"}"
 MINIKUBE_VERSION="${MINIKUBE:-"latest"}" # latest is also valid
 
+KUBECTL_LAST_KNOWN_VERSION="1.37.0"
+HELM_LAST_KNOWN_VERSION="4.3.0"
+MINIKUBE_LAST_KNOWN_VERSION="1.39.0"
+
 KUBECTL_SHA256="${KUBECTL_SHA256:-"automatic"}"
 HELM_SHA256="${HELM_SHA256:-"automatic"}"
 MINIKUBE_SHA256="${MINIKUBE_SHA256:-"automatic"}"
@@ -179,7 +183,7 @@ if [ ${KUBECTL_VERSION} != "none" ]; then
             KUBECTL_VERSION="${KUBECTL_FALLBACK_VERSION}"
         fi
     else
-        find_version_from_git_tags KUBECTL_VERSION https://github.com/kubernetes/kubernetes
+        find_version_from_git_tags KUBECTL_VERSION https://github.com/kubernetes/kubernetes "tags/v" "." "false" "" "${KUBECTL_LAST_KNOWN_VERSION}"
     fi
     if [ "${KUBECTL_VERSION::1}" != 'v' ]; then
         KUBECTL_VERSION="v${KUBECTL_VERSION}"
@@ -280,7 +284,7 @@ if [ ${HELM_VERSION} != "none" ]; then
     # Install Helm, verify signature and checksum
     echo "Downloading Helm..."
     helm_url="https://github.com/helm/helm"
-    find_version_from_git_tags HELM_VERSION "${helm_url}"
+    find_version_from_git_tags HELM_VERSION "${helm_url}" "tags/v" "." "false" "" "${HELM_LAST_KNOWN_VERSION}"
     if [ "${HELM_VERSION::1}" != 'v' ]; then
         HELM_VERSION="v${HELM_VERSION}"
     fi
@@ -343,7 +347,7 @@ if [ "${MINIKUBE_VERSION}" != "none" ]; then
     if [ "${MINIKUBE_VERSION}" = "latest" ] || [ "${MINIKUBE_VERSION}" = "lts" ] || [ "${MINIKUBE_VERSION}" = "current" ] || [ "${MINIKUBE_VERSION}" = "stable" ]; then
         MINIKUBE_VERSION="latest"
     else
-        find_version_from_git_tags MINIKUBE_VERSION https://github.com/kubernetes/minikube
+        find_version_from_git_tags MINIKUBE_VERSION https://github.com/kubernetes/minikube "tags/v" "." "false" "" "${MINIKUBE_LAST_KNOWN_VERSION}"
         if [ "${MINIKUBE_VERSION::1}" != "v" ]; then
             MINIKUBE_VERSION="v${MINIKUBE_VERSION}"
         fi

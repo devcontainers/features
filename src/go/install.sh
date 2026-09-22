@@ -9,6 +9,7 @@
 
 TARGET_GO_VERSION="${VERSION:-"latest"}"
 GOLANGCILINT_VERSION="${GOLANGCILINTVERSION:-"latest"}"
+GO_LAST_KNOWN_VERSION="1.27.1"
 
 TARGET_GOROOT="${TARGET_GOROOT:-"/usr/local/go"}"
 TARGET_GOPATH="${TARGET_GOPATH:-"/go"}"
@@ -228,7 +229,7 @@ if ! [ -f /usr/bin/find ]; then
 fi
 
 # Get closest match for version number specified
-find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true" "" "the official Go release index" get_go_release_versions "1.27.1"
+find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true" "" "${GO_LAST_KNOWN_VERSION}" "the official Go release index" get_go_release_versions
 
 architecture="$(uname -m)"
 case $architecture in
@@ -271,7 +272,7 @@ if [[ "${TARGET_GO_VERSION}" != "none" ]] && [[ "$(go version 2>/dev/null)" != *
             ((minor=minor-1))
             TARGET_GO_VERSION="${major}.${minor}"
             # Look for latest version from previous minor release
-            find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true" "" "the official Go release index" get_go_release_versions "1.27.1"
+            find_version_from_git_tags TARGET_GO_VERSION "https://go.googlesource.com/go" "tags/go" "." "true" "" "${GO_LAST_KNOWN_VERSION}" "the official Go release index" get_go_release_versions
         else 
             ((breakfix=breakfix-1))
             if [ "${breakfix}" = "0" ]; then
