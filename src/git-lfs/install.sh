@@ -10,6 +10,7 @@
 GIT_LFS_VERSION=${VERSION:-"latest"}
 AUTO_PULL=${AUTOPULL:="true"}
 INSTALL_WITH_GITHUB=${INSTALLDIRECTLYFROMGITHUBRELEASE:="false"}
+GIT_LFS_LAST_KNOWN_VERSION="3.8.0"
 
 GIT_LFS_ARCHIVE_GPG_KEY_URI="https://packagecloud.io/github/git-lfs/gpgkey"
 GIT_LFS_ARCHIVE_ARCHITECTURES="amd64 arm64"
@@ -150,7 +151,7 @@ check_packages() {
 install_using_apt() {
     # Soft version matching
     if [ "${GIT_LFS_VERSION}" != "latest" ] && [ "${GIT_LFS_VERSION}" != "lts" ] && [ "${GIT_LFS_VERSION}" != "stable" ]; then
-        find_version_from_git_tags GIT_LFS_VERSION "https://github.com/git-lfs/git-lfs"
+        find_version_from_git_tags GIT_LFS_VERSION "https://github.com/git-lfs/git-lfs" "tags/v" "." "false" "" "${GIT_LFS_LAST_KNOWN_VERSION}"
         version_suffix="=${GIT_LFS_VERSION}"
     else
         version_suffix=""
@@ -184,7 +185,7 @@ install_using_github() {
     echo "(*) No apt package for ${VERSION_CODENAME} ${architecture}. Installing manually."
     mkdir -p /tmp/git-lfs
     cd /tmp/git-lfs
-    find_version_from_git_tags GIT_LFS_VERSION "https://github.com/git-lfs/git-lfs"
+    find_version_from_git_tags GIT_LFS_VERSION "https://github.com/git-lfs/git-lfs" "tags/v" "." "false" "" "${GIT_LFS_LAST_KNOWN_VERSION}"
     install_from_release
 
     if grep -q "Not Found" "${git_lfs_filename}"; then
@@ -218,6 +219,8 @@ install_using_github() {
     fi
     rm -rf /tmp/git-lfs /tmp/tmp-gnupg
 }
+
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
 
 export DEBIAN_FRONTEND=noninteractive
 

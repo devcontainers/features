@@ -19,6 +19,8 @@ POWERSHELL_VERSION=${VERSION:-"latest"}
 POWERSHELL_MODULES="${MODULES:-""}"
 POWERSHELL_PROFILE_URL="${POWERSHELLPROFILEURL}"
 PRESERVE_HISTORY="${PRESERVEHISTORY}"
+POWERSHELL_STABLE_LAST_KNOWN_VERSION="7.6.6"
+POWERSHELL_PREVIEW_LAST_KNOWN_VERSION="7.7.0-preview.4"
 
 MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
 #MICROSOFT_GPG_KEYS_URI=$(curl https://packages.microsoft.com/keys/microsoft.asc -o /usr/share/keyrings/microsoft-archive-keyring.gpg)
@@ -353,6 +355,8 @@ get_github_api_repo_url() {
     echo "${url/https:\/\/github.com/https:\/\/api.github.com\/repos}/releases/latest"
 }
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 
 install_prev_pwsh() {
     pwsh_url=$1
@@ -393,9 +397,9 @@ install_using_github() {
     # Check if we need to find a preview version or stable version
     if [[ "${POWERSHELL_VERSION}" == *"preview"* ]] || [ "${POWERSHELL_VERSION}" = "preview" ] || [[ "${POWERSHELL_VERSION}" == *"-rc."* ]]; then
         echo "Finding preview version..."
-        find_preview_version_from_git_tags POWERSHELL_VERSION "${pwsh_url}"
+        find_version_from_git_tags POWERSHELL_VERSION "${pwsh_url}" "tags/v" "." "false" "(-preview\.[0-9]+|-rc\.[0-9]+)" "${POWERSHELL_PREVIEW_LAST_KNOWN_VERSION}" "GitHub REST API" _github_rest_version_candidates
     else
-        find_version_from_git_tags POWERSHELL_VERSION "${pwsh_url}"
+        find_version_from_git_tags POWERSHELL_VERSION "${pwsh_url}" "tags/v" "." "false" "" "${POWERSHELL_STABLE_LAST_KNOWN_VERSION}"
     fi
 
     install_pwsh "${POWERSHELL_VERSION}"
