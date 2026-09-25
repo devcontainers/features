@@ -91,7 +91,7 @@ pkg_manager_update() {
                     set +e
                         stderr_messages=$(${PKG_MGR_CMD} -q check-update 2>&1)
                         rc=$?
-                        # centos 7 sometimes returns a status of 100 when it apears to work.
+                        # centos 7 sometimes returns a status of 100 when it appears to work.
                         if [ $rc != 0 ] && [ $rc != 100 ]; then
                             echo "(Error) ${PKG_MGR_CMD} check-update produced the following error message(s):"
                             echo "${stderr_messages}"
@@ -273,7 +273,7 @@ find_version_list() {
 
     platform="$(get_sdkman_platform)"
     all_versions=$(curl -s "https://api.sdkman.io/2/candidates/${install_type}/${platform}/versions/all" | tr ',' '\n' | tr -d '\r')
-    
+
     # Remove the hardcoded fallback as this fails for new jdk latest version released ex: 24
     # Related Issue: https://github.com/devcontainers/features/issues/1308
     if [ "${JDK_DISTRO}" = "ms" ]; then
@@ -318,7 +318,7 @@ sdk_install() {
             fi
     elif echo "${requested_version}" | grep -oE "${full_version_check}" > /dev/null 2>&1; then
         echo "${requested_version}"
-    else 
+    else
         find_version_list "$install_type" version_list "${requested_version}"
         if [ "${requested_version}" = "latest" ] || [ "${requested_version}" = "current" ]; then
             requested_version="$(echo "${version_list}" | head -n 1)"
