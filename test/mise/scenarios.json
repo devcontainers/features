@@ -1,0 +1,36 @@
+{
+  "install_specific_version": {
+    "image": "ubuntu:focal",
+    "features": {
+      "mise": {
+        "version": "v2024.5.17"
+      }
+    }
+  },
+  "install_with_plugins": {
+    "image": "ubuntu:focal",
+    "features": {
+      "mise": {
+        "installPlugins": "yarn,redis"
+      }
+    }
+  },
+  "rhel": {
+    "image": "almalinux:8",
+    "features": {
+      "mise": {}
+    }
+  },
+  "debian": {
+    "image": "debian:bullseye",
+    "features": {
+      "mise": {}
+    }
+  },
+  "fedora": {
+    "image": "fedora:latest",
+    "features": {
+      "mise": {}
+    }
+  }
+}
