@@ -181,13 +181,24 @@
         "remoteUser": "node"
     },
     "docker_build_no_compose": {
-        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
             "docker-in-docker": {
+                "moby": false,
                 "dockerDashComposeVersion": "none"
             }
         },
-        "remoteUser": "node"
+        "remoteUser": "vscode"
+    },
+    "docker_build_no_compose_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "dockerDashComposeVersion": "none"
+            }
+        },
+        "remoteUser": "vscode"
     },
     "docker_buildx": {
         "image": "mcr.microsoft.com/devcontainers/base:bookworm",
