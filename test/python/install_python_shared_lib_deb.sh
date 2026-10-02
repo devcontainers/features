@@ -21,6 +21,7 @@ check "pycodestyle" pycodestyle --version
 check "pydocstyle" pydocstyle --version
 check "pylint" pylint --version
 check "pytest" pytest --version
+check "uv" uv --version
 
 # Check paths in settings
 check "current symlink is correct" bash -c "which python | grep /usr/local/python/current/bin/python"
@@ -35,6 +36,7 @@ check "which pycodestyle" bash -c "which pycodestyle | grep /usr/local/py-utils/
 check "which pydocstyle" bash -c "which pydocstyle | grep /usr/local/py-utils/bin/pydocstyle"
 check "which pylint" bash -c "which pylint | grep /usr/local/py-utils/bin/pylint"
 check "which pytest" bash -c "which pytest | grep /usr/local/py-utils/bin/pytest"
+check "which uv" bash -c "which uv | grep /usr/local/py-utils/bin/uv"
 
 # Check compiled with "--enable-shared" -- python truth is opposite of the shells
 #   therefore we negate the check to get a '0' exit code when the python

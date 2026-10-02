@@ -177,7 +177,7 @@
         "features": {
             "python": {
                 "version": "3.12",
-                "toolsToInstall": "ruff,mypy,bandit,pipenv,virtualenv,pytest"
+                "toolsToInstall": "ruff,mypy,bandit,pipenv,virtualenv,pytest,uv"
             }
         }
     },
@@ -186,7 +186,7 @@
         "features": {
             "python": {
                 "version": "3.12",
-                "toolsToInstall": "ruff,mypy,bandit,pipenv,virtualenv,pytest"
+                "toolsToInstall": "ruff,mypy,bandit,pipenv,virtualenv,pytest,uv"
             }
         }
     },
