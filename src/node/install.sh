@@ -198,15 +198,26 @@ find_version_from_git_tags() {
     echo "${variable_name}=${!variable_name}"
 }
 
+configure_yarn_apt_repository() (
+    set -e
+    local temporary_dir
+    temporary_dir=$(mktemp -d)
+    trap 'rm -rf "${temporary_dir}"' EXIT
+    curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg -o "${temporary_dir}/pubkey.gpg"
+    gpg --dearmor --yes -o "${temporary_dir}/yarn-archive-keyring.gpg" "${temporary_dir}/pubkey.gpg"
+    chmod 644 "${temporary_dir}/yarn-archive-keyring.gpg"
+    mkdir -p /etc/apt/keyrings
+    mv "${temporary_dir}/yarn-archive-keyring.gpg" /etc/apt/keyrings/yarn-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
+)
+
 install_yarn() {
     if [ "${ADJUSTED_ID}" = "debian" ] && [ "${INSTALL_YARN_USING_APT}" = "true" ]; then
         # for backward compatiblity with existing devcontainer features, install yarn
         # via apt-get on Debian systems
         if ! type yarn >/dev/null 2>&1; then
             # Import key safely (new method rather than deprecated apt-key approach) and install
-            mkdir -p /etc/apt/keyrings
-            curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor --yes -o /etc/apt/keyrings/yarn-archive-keyring.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
+            configure_yarn_apt_repository
             apt-get update
             apt-get -y install --no-install-recommends yarn
         else
@@ -271,6 +282,10 @@ if ( [ -n "${VERSION_CODENAME}" ] && [[ "bionic" = *"${VERSION_CODENAME}"* ]] ) 
 fi
 
 # Install dependencies
+if [ "${ADJUSTED_ID}" = "debian" ] && [ -f /etc/apt/sources.list.d/yarn.list ] && grep -q 'https://dl.yarnpkg.com/debian/' /etc/apt/sources.list.d/yarn.list; then
+    configure_yarn_apt_repository
+fi
+
 case ${ADJUSTED_ID} in
     debian)
         check_packages apt-transport-https curl ca-certificates tar gnupg2 dirmngr
