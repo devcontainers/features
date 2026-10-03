@@ -1,6 +1,6 @@
 {
     "id": "go",
-    "version": "1.3.4",
+    "version": "1.4.0",
     "name": "Go",
     "documentationURL": "https://github.com/devcontainers/features/tree/main/src/go",
     "description": "Installs Go and common Go utilities. Auto-detects latest version and installs needed dependencies.",
@@ -20,7 +20,12 @@
             "type": "string",
             "default": "latest",
             "description": "Version of golangci-lint to install"
-        }
+        },
+		"installGoTools": {
+			"type": "boolean",
+			"default": true,
+			"description": "Install common Go tools (gopls, staticcheck, golint, revive, dlv, gomodifytags, goplay, gotests, impl, golangci-lint). Set to false to skip - useful when your postCreateCommand or CI already installs the tools it needs, or when you just want `go build`/`go install` support without the extra download/compile time."
+		}
     },
     "init": true,
     "customizations": {
