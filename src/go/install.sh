@@ -9,11 +9,11 @@
 
 TARGET_GO_VERSION="${VERSION:-"latest"}"
 GOLANGCILINT_VERSION="${GOLANGCILINTVERSION:-"latest"}"
+INSTALL_GO_TOOLS="${INSTALLGOTOOLS:-"true"}"
 
 TARGET_GOROOT="${TARGET_GOROOT:-"/usr/local/go"}"
 TARGET_GOPATH="${TARGET_GOPATH:-"/go"}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
-INSTALL_GO_TOOLS="${INSTALL_GO_TOOLS:-"true"}"
 
 # https://www.google.com/linuxrepositories/
 GO_GPG_KEY_URI="https://dl.google.com/linux/linux_signing_key.pub"
