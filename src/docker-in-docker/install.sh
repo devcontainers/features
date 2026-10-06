@@ -982,6 +982,17 @@ DOCKER_HOST_GATEWAY_IP=${DOCKER_HOST_GATEWAY_IP}
 DOCKER_DEFAULT_IP6_TABLES=${DOCKER_DEFAULT_IP6_TABLES}
 EOF
 
+tee -a /usr/local/share/docker-init.sh > /dev/null \
+<< 'EOF'
+sudo_if() {
+    if [ "$(id -u)" -ne 0 ]; then
+        sudo "$@"
+    else
+        "$@"
+    fi
+}
+EOF
+
 # On Debian-based images, re-assert the iptables alternative at container start
 # (only when the user opted into runtime switching via iptablesSwitchAtRuntime=true).
 if [ "${IPTABLES_SWITCH_AT_RUNTIME}" = "true" ] && [ "${ADJUSTED_ID}" = "debian" ]; then
@@ -995,12 +1006,12 @@ if type iptables-legacy > /dev/null 2>&1 \
    && { grep -qE '^(ip_tables)\b' /proc/modules \
         || [ -d /sys/module/ip_tables ]; } \
    && update-alternatives --list iptables 2>/dev/null | grep -q '/usr/sbin/iptables-legacy'; then
-    update-alternatives --set iptables  /usr/sbin/iptables-legacy || true
-    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
+    sudo_if update-alternatives --set iptables  /usr/sbin/iptables-legacy || true
+    sudo_if update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
 elif type iptables-nft > /dev/null 2>&1 \
      && update-alternatives --list iptables 2>/dev/null | grep -q '/usr/sbin/iptables-nft'; then
-    update-alternatives --set iptables  /usr/sbin/iptables-nft  || true
-    update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
+    sudo_if update-alternatives --set iptables  /usr/sbin/iptables-nft  || true
+    sudo_if update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
 fi
 EOF
 fi
@@ -1129,16 +1140,6 @@ dockerd_start="AZURE_DNS_AUTO_DETECTION=${AZURE_DNS_AUTO_DETECTION} DOCKER_DEFAU
     ( dockerd $DOCKERD_CONTAINERD_ARG $CUSTOMDNS $DEFAULT_ADDRESS_POOL $HOST_GATEWAY_IP $DOCKER_DEFAULT_IP6_TABLES > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
 )"
-
-sudo_if() {
-    COMMAND="$*"
-
-    if [ "$(id -u)" -ne 0 ]; then
-        sudo $COMMAND
-    else
-        $COMMAND
-    fi
-}
 
 retry_docker_start_count=0
 docker_ok="false"
