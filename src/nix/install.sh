@@ -12,6 +12,7 @@ USEATTRIBUTEPATH="${USEATTRIBUTEPATH:-"false"}"
 FLAKEURI="${FLAKEURI:-""}"
 EXTRANIXCONFIG="${EXTRANIXCONFIG:-""}"
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
+NIX_LAST_KNOWN_VERSION="2.35.2"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -20,6 +21,7 @@ fi
 
 # Import common utils
 . ./utils.sh
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
 
 detect_user USERNAME
 
@@ -38,7 +40,7 @@ check_command git git git git
 check_command xargs findutils findutils findutils
 
 # Determine version
-find_version_from_git_tags VERSION https://github.com/NixOS/nix "tags/"
+find_version_from_git_tags VERSION https://github.com/NixOS/nix "tags/" "." "false" "" "${NIX_LAST_KNOWN_VERSION}"
 
 # Download and verify install per https://nixos.org/download.html#nix-verify-installation
 tmpdir="$(mktemp -d)"
