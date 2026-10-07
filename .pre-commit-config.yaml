@@ -1,0 +1,70 @@
+repos:
+  # Syncs pre-commit dependencies with the latest versions.
+  - repo: https://github.com/mxr/sync-pre-commit-deps
+    rev: "v0.0.1"
+    hooks:
+      - id: sync-pre-commit-deps
+  # Pre-commit hooks for general file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v5.0.0"
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      # - id: check-executables-have-shebangs
+      # - id: check-json
+      # - id: check-shebang-scripts-are-executable
+      # - id: check-symlinks
+      # - id: check-vcs-permalinks
+      # - id: check-yaml
+      # - id: destroyed-symlinks
+      # - id: detect-private-key
+      # - id: double-quote-string-fixer
+      # - id: end-of-file-fixer
+      # - id: fix-byte-order-marker
+      # - id: mixed-line-ending
+      # - id: pretty-format-json
+      #   args: [--autofix, --no-sort-keys]
+      # - id: trailing-whitespace
+  # ShellCheck hook for linting shell scripts
+  # - repo: https://github.com/shellcheck-py/shellcheck-py
+  #   rev: "v0.10.0.1"
+  #   hooks:
+  #     - id: shellcheck
+  #       name: shellcheck
+  #       description: This hook runs shellcheck for linting shell scripts
+  # Bashate hook for linting shell scripts
+  # - repo: https://github.com/openstack/bashate
+  #   rev: "2.1.1"
+  #   hooks:
+  #     - id: bashate
+  #       name: bashate
+  #       description: This hook runs bashate for linting shell scripts
+  #       entry: bashate
+  #       language: python
+  #       types: [shell]
+  # Actionlint for linting GitHub Actions YAML files
+  # - repo: https://github.com/rhysd/actionlint
+  #   rev: "v1.7.3"
+  #   hooks:
+  #     - id: actionlint
+  # Yamlfmt for formatting YAML files
+  # - repo: https://github.com/google/yamlfmt
+  #   rev: "v0.13.0"
+  #   hooks:
+  #     - id: yamlfmt
+  # Codespell for detecting common misspellings in code
+  # - repo: https://github.com/codespell-project/codespell
+  #   rev: "v2.3.0"
+  #   hooks:
+  #     - id: codespell
+  # Gitleaks for detecting secrets in Git repositories
+  # - repo: https://github.com/gitleaks/gitleaks
+  #   rev: "v8.19.3"
+  #   hooks:
+  #     - id: gitleaks
+  # Talisman for pre-commit Git hooks to detect sensitive files
+  # - repo: https://github.com/thoughtworks/talisman
+  #   rev: "v1.32.0"
+  #   hooks:
+  #     - id: talisman-commit
+  #       entry: cmd --githook pre-commit
