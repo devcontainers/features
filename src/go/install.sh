@@ -334,14 +334,15 @@ if [ "${INSTALL_GO_TOOLS}" = "true" ]; then
     fi
 
     # Remove Go tools temp directory
+    cd "${TARGET_GOROOT}"
     rm -rf "${GOPATH}"
 fi
 
 
 chown -R "${USERNAME}:golang" "${TARGET_GOROOT}" "${TARGET_GOPATH}"
 chmod -R g+r+w "${TARGET_GOROOT}" "${TARGET_GOPATH}"
-find "${TARGET_GOROOT}" -type d -print0 | xargs -n 1 -0 chmod g+s
-find "${TARGET_GOPATH}" -type d -print0 | xargs -n 1 -0 chmod g+s
+find "${TARGET_GOROOT}" -type d -print0 | xargs -r -n 1 -0 chmod g+s
+find "${TARGET_GOPATH}" -type d -print0 | xargs -r -n 1 -0 chmod g+s
 
 # Clean up
 clean_up
