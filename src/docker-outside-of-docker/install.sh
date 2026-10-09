@@ -462,8 +462,6 @@ if [ "${ENABLE_NONROOT_DOCKER}" = "false" ] || [ "${USERNAME}" = "root" ]; then
     exit 0
 fi
 
-DOCKER_GID="$(grep -oP '^docker:x:\K[^:]+' /etc/group)"
-
 # If enabling non-root access and specified user is found, setup socat and add script
 chown -h "${USERNAME}":root "${TARGET_SOCKET}"
 check_packages socat
@@ -504,8 +502,11 @@ log "Ensuring ${USERNAME} has access to ${SOURCE_SOCKET} via ${TARGET_SOCKET}"
 # fall back on using socat to forward the docker socket to another unix socket so
 # that we can set permissions on it without affecting the host.
 if [ "${ENABLE_NONROOT_DOCKER}" = "true" ] && [ "${SOURCE_SOCKET}" != "${TARGET_SOCKET}" ] && [ "${USERNAME}" != "root" ] && [ "${USERNAME}" != "0" ]; then
+    DOCKER_GID="\$(getent group docker | cut -d: -f3)"
     SOCKET_GID=\$(stat -c '%g' ${SOURCE_SOCKET})
-    if [ "\${SOCKET_GID}" != "0" ] && [ "\${SOCKET_GID}" != "${DOCKER_GID}" ] && ! grep -E ".+:x:\${SOCKET_GID}" /etc/group; then
+    if [ "\${SOCKET_GID}" = "\${DOCKER_GID}" ]; then
+        log "Docker group matches socket GID \${SOCKET_GID}, nothing to do"
+    if [ "\${SOCKET_GID}" != "0" ] && ! getent group "\${SOCKET_GID}" > /dev/null; then
         sudoIf groupmod --gid "\${SOCKET_GID}" docker
     else
         # Enable proxy if not already running
