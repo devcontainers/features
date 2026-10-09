@@ -11,6 +11,10 @@ check "non-root user" test "$(whoami)" = "devcontainer"
 check "distro" test "${PLATFORM_ID}" = "platform:el9"
 check "curl" curl --version
 check "jq" jq  --version
+check "bubblewrap" bwrap --version
+check "slirp4netns" slirp4netns --version
+check "util-linux" unshare --version
+check "iptables" iptables --version
 
 # Report result
 reportResults

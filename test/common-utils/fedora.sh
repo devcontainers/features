@@ -11,6 +11,9 @@ check "non-root user" test "$(whoami)" = "devcontainer"
 check "distro" test "${ID}" = "fedora"
 check "jq" jq  --version
 check "bubblewrap" bwrap --version
+check "slirp4netns" slirp4netns --version
+check "util-linux" unshare --version
+check "iptables" iptables --version
 check "socat" socat -V
 
 # Check if the sudoers file for the non-root user exists
