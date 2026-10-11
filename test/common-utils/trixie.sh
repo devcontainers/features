@@ -40,6 +40,10 @@ checkCommon
 . /etc/os-release
 check "non-root user" test "$(whoami)" = "devcontainer"
 check "distro" test "${VERSION_CODENAME}" = "trixie"
+check "bubblewrap" bwrap --version
+check "slirp4netns" slirp4netns --version
+check "util-linux" unshare --version
+check "iptables" iptables --version
 
 # Check if the sudoers file for the non-root user exists
 check "sudoers file exists" test -f /etc/sudoers.d/$(whoami)
