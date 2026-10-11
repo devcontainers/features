@@ -78,6 +78,9 @@ install_debian_packages() {
     manpages-dev \
     init-system-helpers \
     bubblewrap \
+    slirp4netns \
+    util-linux \
+    iptables \
     socat"
 
     if [ "${INSTALL_SSL}" = "true" ]; then
@@ -219,12 +222,9 @@ install_redhat_packages() {
         which \
         man-db \
         strace \
+        util-linux \
+        iptables \
         socat"
-
-    # Install bubblewrap if available (not present in UBI repositories)
-    if ${install_cmd} -q list bubblewrap >/dev/null 2>&1; then
-        package_list="${package_list} bubblewrap"
-    fi
 
     # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
     # Install 'curl' for every OS except this rockylinux:9
@@ -252,6 +252,26 @@ install_redhat_packages() {
         ${install_cmd} -y install epel-release
         remove_epel="true"
     fi
+
+    # Sandboxing packages are not available in all RPM repositories.
+    local sandbox_package sandbox_package_info sandbox_package_available
+    for sandbox_package in bubblewrap slirp4netns; do
+        sandbox_package_available="false"
+        if [ "${install_cmd}" = "microdnf" ]; then
+            sandbox_package_info="$(${install_cmd} repoquery "${sandbox_package}")"
+            if grep -q "^${sandbox_package}-" <<< "${sandbox_package_info}"; then
+                sandbox_package_available="true"
+            fi
+        elif ${install_cmd} -q list "${sandbox_package}" >/dev/null 2>&1; then
+            sandbox_package_available="true"
+        fi
+
+        if [ "${sandbox_package_available}" = "true" ]; then
+            package_list="${package_list} ${sandbox_package}"
+        else
+            echo "Skipping ${sandbox_package}: not available in the configured repositories."
+        fi
+    done
 
     # Install zsh if needed
     if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
@@ -330,6 +350,9 @@ install_alpine_packages() {
         shadow \
         strace \
         bubblewrap \
+        slirp4netns \
+        util-linux \
+        iptables \
         socat"
 
     # # Include libssl1.1 if available (not available for 3.19 and newer)
