@@ -506,7 +506,7 @@ if [ "${ENABLE_NONROOT_DOCKER}" = "true" ] && [ "${SOURCE_SOCKET}" != "${TARGET_
     SOCKET_GID=\$(stat -c '%g' ${SOURCE_SOCKET})
     if [ "\${SOCKET_GID}" = "\${DOCKER_GID}" ]; then
         log "Docker group matches socket GID \${SOCKET_GID}, nothing to do"
-    if [ "\${SOCKET_GID}" != "0" ] && ! getent group "\${SOCKET_GID}" > /dev/null; then
+    elif [ "\${SOCKET_GID}" != "0" ] && ! getent group "\${SOCKET_GID}" > /dev/null; then
         sudoIf groupmod --gid "\${SOCKET_GID}" docker
     else
         # Enable proxy if not already running
