@@ -7,7 +7,12 @@ This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise 
 In addition to the common CLI tools (curl, wget, git, jq, nano, vim, etc.), this Feature installs:
 
 - **bubblewrap** (`bwrap`) — a lightweight sandboxing tool used as a dependency by some desktop and container tooling.
+- **slirp4netns** - user-mode networking for unprivileged network namespaces.
+- **util-linux** - system utilities, including `unshare`, for working with Linux namespaces.
+- **iptables** - tools for configuring packet filtering and NAT rules used by sandbox networking.
 - **socat** — a multipurpose relay for bidirectional data transfer between two independent data channels (e.g., sockets, files, pipes).
+
+On RPM-based distributions, bubblewrap and slirp4netns are installed only when available in the configured repositories.
 
 ## Using with dev container images
 

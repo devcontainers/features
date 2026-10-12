@@ -11,6 +11,9 @@ check "curl" curl  --version
 check "git" git  --version
 check "zsh" zsh --version
 check "bubblewrap" bwrap --version
+check "slirp4netns" slirp4netns --version
+check "util-linux" unshare --version
+check "iptables" iptables --version
 check "socat" socat -V
 check "ps" ps --version
 check "Oh My Zsh! theme" test -e $HOME/.oh-my-zsh/custom/themes/devcontainers.zsh-theme
