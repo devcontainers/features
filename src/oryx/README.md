@@ -7,7 +7,7 @@ Installs the oryx CLI
 
 ```json
 "features": {
-    "ghcr.io/devcontainers/features/oryx:2": {}
+    "ghcr.io/devcontainers/features/oryx:3": {}
 }
 ```
 
