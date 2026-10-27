@@ -184,14 +184,15 @@ if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
     dotnet new globaljson --sdk-version ${PINNED_SDK_VERSION}
 fi
 
-SOLUTION_FILE_NAME="Oryx.sln"
-echo "Building solution '$SOLUTION_FILE_NAME'..."
+echo "Publishing Oryx applications..."
 
 cd $GIT_ORYX
-${DOTNET_BINARY} build "$SOLUTION_FILE_NAME" -c Debug -p:NuGetAudit=false
 
 ${DOTNET_BINARY} publish -p:NuGetAudit=false -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj --self-contained true
 ${DOTNET_BINARY} publish -p:NuGetAudit=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj --self-contained true
+
+find "${BUILD_SCRIPT_GENERATOR}" -maxdepth 1 -type f \
+    \( -name '*.pdb' -o -name 'Microsoft.Oryx.*.xml' -o -name 'GenerateBuildScript.xml' \) -delete
 
 chmod a+x ${BUILD_SCRIPT_GENERATOR}/GenerateBuildScript
 
@@ -208,6 +209,25 @@ mkdir -p ${PIP_CACHE_DIR}
 
 updaterc "export ORYX_SDK_STORAGE_BASE_URL=https://oryx-cdn.microsoft.io && export ENABLE_DYNAMIC_INSTALL=true && DYNAMIC_INSTALL_ROOT_DIR=$ORYX_INSTALL_DIR && ORYX_PREFER_USER_INSTALLED_SDKS=true && export DEBIAN_FLAVOR=bookworm"
 
+cp -a --parents \
+    build/__goVersions.sh \
+    build/__hugoConstants.sh \
+    build/__nodeVersions.sh \
+    build/__pythonVersions.sh \
+    build/createSymlinksForDotnet.sh \
+    images/__common.sh \
+    images/__sdkStorageConstants.sh \
+    images/constants.yml \
+    images/installPlatform.sh \
+    images/receiveGpgKeys.sh \
+    images/retry.sh \
+    images/build/installHugo.sh \
+    /opt/tmp
+if [[ -d "${GIT_ORYX}/images/build/php/prereqs" ]]; then
+    cp -a --parents images/build/php/prereqs /opt/tmp
+fi
+find /opt/tmp/build /opt/tmp/images -type f -name '*.sh' -exec chmod a+x {} +
+
 chown -R "${USERNAME}:oryx" "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}" "${PIP_CACHE_DIR}"
 chmod -R g+r+w "${ORYX_INSTALL_DIR}" "${BUILD_SCRIPT_GENERATOR}" "${ORYX}" "${PIP_CACHE_DIR}"
 find "${ORYX_INSTALL_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
@@ -215,12 +235,13 @@ find "${BUILD_SCRIPT_GENERATOR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${ORYX}" -type d -print0 | xargs -n 1 -0 chmod g+s
 find "${PIP_CACHE_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
-# /opt/tmp/build and /opt/tmp/images is required by Oryx for dynamically installing platforms
-cp -rf $GIT_ORYX/build /opt/tmp
-cp -rf $GIT_ORYX/images /opt/tmp
+echo "Oryx disk usage before cleanup (including temporary source)..."
+du -xhd1 "${BUILD_SCRIPT_GENERATOR}" "${ORYX}" /opt/tmp
+du -xhd2 /opt/tmp/build /opt/tmp/images
 
 # Clean up
-rm -rf $GIT_ORYX
+cd /
+rm -rf "${GIT_ORYX}"
 
 # Remove NuGet installed by the build/buildSln.sh
 rm -rf /root/.nuget
@@ -232,7 +253,6 @@ if [[ "${DOTNET_INSTALLATION_PACKAGE}" != "" ]]; then
 fi
 
 if [[ "${PINNED_SDK_VERSION}" != "" ]]; then
-    rm -f ${GIT_ORYX}/global.json
     rm -rf /usr/share/dotnet/sdk/$PINNED_SDK_VERSION
     NEW_RUNTIME_VERSIONS=$(dotnet --list-runtimes | awk '{print $2}' | sort | uniq)
     if [ -n "${RUNTIME_VERSIONS:-}" ]; then
@@ -248,5 +268,8 @@ fi
 
 # Clean up
 rm -rf /var/lib/apt/lists/*
+
+echo "Oryx retained disk usage after cleanup..."
+du -xhd1 "${BUILD_SCRIPT_GENERATOR}" "${ORYX}" /opt/tmp
 
 echo "Done!"
