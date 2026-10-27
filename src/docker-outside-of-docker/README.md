@@ -3,7 +3,7 @@
 
 # Docker (docker-outside-of-docker) (docker-outside-of-docker)
 
-Re-use the host docker socket, adding the Docker CLI to a container. Feature invokes a script to enable using a forwarded Docker socket within a container to run Docker commands.
+Reuse the host docker socket, adding the Docker CLI to a container. Feature invokes a script to enable using a forwarded Docker socket within a container to run Docker commands.
 
 ## Example Usage
 
