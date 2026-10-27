@@ -5,6 +5,14 @@
             "aws-cli": {}
         }
     },
+    "session_manager_plugin": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+        "features": {
+            "aws-cli": {
+                "installSessionManagerPlugin": true
+            }
+        }
+    },
     "zsh_completion": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
         "features": {
