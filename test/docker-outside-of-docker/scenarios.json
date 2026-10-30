@@ -61,6 +61,16 @@
         },
         "containerUser": "vscode"
     },
+    "socket_proxy_always": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": false,
+                "alwaysUseSocketProxy": true
+            }
+        },
+        "containerUser": "vscode"
+    },
     "docker_build": {
         "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
         "features": {
