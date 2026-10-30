@@ -461,6 +461,10 @@ install_tflint() {
     curl -sSL -o /tmp/tf-downloads/${TFLINT_FILENAME} https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/${TFLINT_FILENAME}
 }
 
+download_tflint_checksums() {
+    curl -fsSL -o /tmp/tf-downloads/tflint_checksums.txt "https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt"
+}
+
 verify_tflint_attestations() {
     local checksums=$1
     local checksums_sha256=$(sha256sum "$checksums" | cut -d " " -f 1)
@@ -491,7 +495,11 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
             echo "${TFLINT_SHA256} *${TFLINT_FILENAME}" > tflint_checksums.txt
             sha256sum --ignore-missing -c tflint_checksums.txt
         else
-            curl -sSL -o tflint_checksums.txt https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt
+            if ! download_tflint_checksums; then
+                echo "(!) Failed to fetch checksums for tflint v${TFLINT_VERSION}, trying the latest release."
+                install_previous_version TFLINT_VERSION "$tflint_url" "install_tflint"
+                download_tflint_checksums
+            fi
 
             # Attempt GitHub Attestation verification (0.51.1+)
             set +e
