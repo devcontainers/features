@@ -6,6 +6,14 @@ set -e
 source dev-container-features-test-lib
 
 check "Oryx version" oryx --version
+check "oryx-binary-matches-architecture" bash -c '
+	machine=$(od -An -t u2 -j 18 -N 2 /usr/local/buildscriptgen/GenerateBuildScript | tr -d " ")
+	case "$(uname -m)" in
+		x86_64) test "${machine}" = "62" ;;
+		aarch64) test "${machine}" = "183" ;;
+		*) exit 1 ;;
+	esac
+'
 check "ORYX_SDK_STORAGE_BASE_URL" echo $ORYX_SDK_STORAGE_BASE_URL
 check "ENABLE_DYNAMIC_INSTALL" echo $ENABLE_DYNAMIC_INSTALL
 
