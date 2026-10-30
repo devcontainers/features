@@ -120,6 +120,14 @@
             }
         }
     },
+    "tflint_checksum_test": {
+        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "features": {
+            "terraform": {
+                "tflint": "0.60.0"
+            }
+        }
+    },
     "older_tflint": {
         "image": "mcr.microsoft.com/devcontainers/base:jammy",
         "features": {
