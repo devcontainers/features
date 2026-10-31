@@ -89,5 +89,13 @@
                 "version": "1.19"
             }
         }
+    },
+    "install_go_1_23_over_1_22": {
+        "image": "mcr.microsoft.com/devcontainers/go:1.22",
+        "features": {
+            "go": {
+                "version": "1.23"
+            }
+        }
     }
 }
