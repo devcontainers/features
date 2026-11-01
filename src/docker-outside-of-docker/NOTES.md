@@ -77,5 +77,3 @@ Set `alwaysUseSocketProxy` to `true` to avoid this. The Feature then always forw
     }
 }
 ```
-
-> **Note:** The proxy can drop delayed output ([#483](https://github.com/devcontainers/features/issues/483)). The Docker CLI closes its write side right after sending a request, and `socat` then gives the daemon only 0.5 seconds to send anything more before it closes the connection. Output that arrives later is lost. This affects `docker run` and `docker exec` with or without `--interactive`, for example `docker run --rm ubuntu sh -c 'sleep 5; date'` prints nothing. The same applies when the Feature falls back to the proxy on its own, so consider it before enabling the option.

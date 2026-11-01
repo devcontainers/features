@@ -16,9 +16,13 @@ echo "container command pid: ${INIT_PID}, its groups: ${INIT_GROUPS}"
 
 check "container-command-found" bash -c "[ -n '${INIT_PID}' ]"
 check "docker-socket-is-proxy" bash -c "[ -S /var/run/docker.sock ] && [ ! -L /var/run/docker.sock ]"
-check "socat-proxy-running" bash -c "pgrep -af 'socat UNIX-LISTEN:/var/run/docker.sock.*UNIX-CONNECT:/var/run/docker-host.sock'"
+check "socat-proxy-running" bash -c "pgrep -af 'socat .*UNIX-LISTEN:/var/run/docker.sock.*UNIX-CONNECT:/var/run/docker-host.sock'"
 check "log-contents-for-proxy" bash -c "grep 'Enabling socket proxy' /tmp/vscr-docker-from-docker.log"
 check "docker-ps" bash -c "docker ps >/dev/null"
+# Output that arrives well after the client stops sending must still reach the client (#483)
+IMAGE="$(docker inspect "$(hostname)" --format '{{.Config.Image}}')"
+check "delayed-output-through-proxy" bash -c "[ \"\$(docker run --rm --entrypoint sh '${IMAGE}' -c 'sleep 2; echo late')\" = late ]"
+check "delayed-output-with-stdin-through-proxy" bash -c "[ \"\$(echo 'sleep 2; echo late' | docker run -i --rm --entrypoint sh '${IMAGE}')\" = late ]"
 check "docker-ps-with-container-command-groups" bash -c "sudo setpriv --reuid '$(id -u)' --regid '$(id -g)' --groups '${INIT_GROUPS}' env HOME=/tmp '${DOCKER_BIN}' ps >/dev/null"
 
 # Deterministic check of the proxy selection. Whether the host socket's GID would pick `groupmod` depends
