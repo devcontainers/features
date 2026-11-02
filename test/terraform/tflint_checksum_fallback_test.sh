@@ -4,43 +4,31 @@ set -e
 
 source dev-container-features-test-lib
 
-TFLINT_VERSION="0.60.0"
-TFLINT_FILENAME="tflint_linux_amd64.zip"
-tflint_url="https://github.com/terraform-linters/tflint"
-checksum_attempts=0
-previous_version_requests=0
-downloaded_versions=()
+source "$(dirname "${BASH_SOURCE[0]}")/tflint_checksum_fallback_helper.sh"
 
-run_checksum_fallback() {
-    while ! download_tflint_checksums; do
-        current_tflint_version="${TFLINT_VERSION}"
-        find_prev_version_from_git_tags TFLINT_VERSION "$tflint_url"
-        if [ "${TFLINT_VERSION}" = "${current_tflint_version}" ]; then
-            return 1
-        fi
-        install_tflint "$TFLINT_VERSION"
-    done
-}
+installer="${TFLINT_TEST_INSTALLER:-/usr/local/share/terraform/install.sh}"
+test_root=$(mktemp -d)
+trap 'rm -rf "${test_root}"' EXIT
+prepare_tflint_fixtures
 
-download_tflint_checksums() {
-    checksum_attempts=$((checksum_attempts + 1))
-    [ "${checksum_attempts}" -gt 1 ]
-}
-
-find_prev_version_from_git_tags() {
-    previous_version_requests=$((previous_version_requests + 1))
-    TFLINT_VERSION="0.59.1"
-}
-
-install_tflint() {
-    downloaded_versions+=("$1")
-}
-
-run_checksum_fallback
-
-check "checksum download retried once" bash -c "[ \"${checksum_attempts}\" -eq 2 ]"
-check "previous tflint version requested once" bash -c "[ \"${previous_version_requests}\" -eq 1 ]"
-check "previous tflint archive downloaded" bash -c "[ \"${downloaded_versions[0]}\" = \"0.59.1\" ]"
-check "fallback resolved to previous tflint version" bash -c "[ \"${TFLINT_VERSION}\" = \"0.59.1\" ]"
+check "available checksums install the requested release" check_tflint_installation success 0.60.0
+check "missing checksums install the previous release" check_tflint_installation missing 0.59.1
+check "empty checksums trigger fallback" check_tflint_installation empty 0.59.1
+check "checksums without the archive entry trigger fallback" check_tflint_installation absent-entry 0.59.1
+check "empty archive triggers fallback" check_tflint_installation empty-archive 0.59.1
+check "Not Found archive triggers fallback" check_tflint_installation missing-archive 0.59.1
+check "multiple unavailable releases install matching archive and checksums" check_tflint_installation multiple 0.58.1
+check "each fallback downloads the replacement archive before its checksums" \
+    diff -u <(printf '%s\n' \
+        "0.60.0/${TFLINT_FILENAME}" 0.60.0/checksums.txt \
+        "0.59.1/${TFLINT_FILENAME}" 0.59.1/checksums.txt \
+        "0.58.1/${TFLINT_FILENAME}" 0.58.1/checksums.txt) "${test_root}/multiple/requests"
+check "checksum mismatch prevents installation" check_tflint_rejected corrupt
+check "checksum mismatch is reported" grep -F 'FAILED' "${test_root}/corrupt.log"
+check "unchanged previous version fails without installing" check_tflint_rejected stalled
+check "unchanged previous version stops after one attempt" \
+    test "$(wc -l < "${test_root}/stalled/fallbacks")" -eq 1
+check "exhausted fallback reports a useful error" \
+    grep -F 'Unable to find a tflint release with downloadable checksums.' "${test_root}/stalled.log"
 
 reportResults

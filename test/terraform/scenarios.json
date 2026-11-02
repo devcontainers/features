@@ -129,7 +129,9 @@
         }
     },
     "tflint_checksum_fallback_test": {
-        "image": "mcr.microsoft.com/devcontainers/base:jammy",
+        "build": {
+            "dockerfile": "Dockerfile"
+        },
         "features": {
             "terraform": {
                 "tflint": "0.60.0"
