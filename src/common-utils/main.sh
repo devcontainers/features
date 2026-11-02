@@ -13,10 +13,12 @@ INSTALL_ZSH="${INSTALLZSH:-"true"}"
 CONFIGURE_ZSH_AS_DEFAULT_SHELL="${CONFIGUREZSHASDEFAULTSHELL:-"false"}"
 INSTALL_OH_MY_ZSH="${INSTALLOHMYZSH:-"true"}"
 INSTALL_OH_MY_ZSH_CONFIG="${INSTALLOHMYZSHCONFIG:-"true"}"
+OH_MY_ZSH_THEME="${OHMYZSHTHEME:-"devcontainers"}"
 UPGRADE_PACKAGES="${UPGRADEPACKAGES:-"true"}"
 USERNAME="${USERNAME:-"automatic"}"
 USER_UID="${USERUID:-"automatic"}"
 USER_GID="${USERGID:-"automatic"}"
+ADD_GROUPS="${ADDGROUPS:-""}"
 SUDOERS="${SUDOERS:-"true"}"
 ADD_NON_FREE_PACKAGES="${NONFREEPACKAGES:-"false"}"
 INSTALL_SSL="${INSTALLSSL:-"true"}"
@@ -76,6 +78,9 @@ install_debian_packages() {
     manpages-dev \
     init-system-helpers \
     bubblewrap \
+    slirp4netns \
+    util-linux \
+    iptables \
     socat"
 
     if [ "${INSTALL_SSL}" = "true" ]; then
@@ -217,12 +222,9 @@ install_redhat_packages() {
         which \
         man-db \
         strace \
+        util-linux \
+        iptables \
         socat"
-
-    # Install bubblewrap if available (not present in UBI repositories)
-    if ${install_cmd} -q list bubblewrap >/dev/null 2>&1; then
-        package_list="${package_list} bubblewrap"
-    fi
 
     # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
     # Install 'curl' for every OS except this rockylinux:9
@@ -250,6 +252,26 @@ install_redhat_packages() {
         ${install_cmd} -y install epel-release
         remove_epel="true"
     fi
+
+    # Sandboxing packages are not available in all RPM repositories.
+    local sandbox_package sandbox_package_info sandbox_package_available
+    for sandbox_package in bubblewrap slirp4netns; do
+        sandbox_package_available="false"
+        if [ "${install_cmd}" = "microdnf" ]; then
+            sandbox_package_info="$(${install_cmd} repoquery "${sandbox_package}")"
+            if grep -q "^${sandbox_package}-" <<< "${sandbox_package_info}"; then
+                sandbox_package_available="true"
+            fi
+        elif ${install_cmd} -q list "${sandbox_package}" >/dev/null 2>&1; then
+            sandbox_package_available="true"
+        fi
+
+        if [ "${sandbox_package_available}" = "true" ]; then
+            package_list="${package_list} ${sandbox_package}"
+        else
+            echo "Skipping ${sandbox_package}: not available in the configured repositories."
+        fi
+    done
 
     # Install zsh if needed
     if [ "${INSTALL_ZSH}" = "true" ] && ! type zsh > /dev/null 2>&1; then
@@ -328,6 +350,9 @@ install_alpine_packages() {
         shadow \
         strace \
         bubblewrap \
+        slirp4netns \
+        util-linux \
+        iptables \
         socat"
 
     # # Include libssl1.1 if available (not available for 3.19 and newer)
@@ -471,6 +496,22 @@ else
     fi
 fi
 
+if [ "${USERNAME}" != "root" ] && [ -n "${ADD_GROUPS}" ]; then
+    IFS=',' read -ra EXTRA_GROUPS <<< "${ADD_GROUPS}"
+    for extra_group in "${EXTRA_GROUPS[@]}"; do
+        extra_group="$(echo "${extra_group}" | xargs)"
+        if [ -z "${extra_group}" ]; then
+            continue
+        fi
+
+        if ! getent group "${extra_group}" > /dev/null 2>&1; then
+            groupadd "${extra_group}"
+        fi
+
+        usermod -a -G "${extra_group}" "${USERNAME}"
+    done
+fi
+
 # Add add sudo support for non-root user
 if [ "$SUDOERS" = "true" ]; then
     if [ "${USERNAME}" != "root" ] && [ "${EXISTING_NON_ROOT_USER}" != "${USERNAME}" ]; then
@@ -596,7 +637,13 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             if ! [ -f "${template_path}" ] || ! grep -qF "$(head -n 1 "${template_path}")" "${user_rc_file}"; then
                 echo -e "$(cat "${template_path}")\nzstyle ':omz:update' mode disabled" > ${user_rc_file}
             fi
-            sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
+            # Validate theme name to prevent injection (allow alphanumeric, hyphens, underscores, and dots)
+            if echo "${OH_MY_ZSH_THEME}" | grep -qE '^[a-zA-Z0-9_.-]+$'; then
+                sed -i -e "s/ZSH_THEME=.*/ZSH_THEME=\"${OH_MY_ZSH_THEME}\"/g" ${user_rc_file}
+            else
+                echo "Warning: Invalid theme name '${OH_MY_ZSH_THEME}'. Using default 'devcontainers' theme."
+                sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="devcontainers"/g' ${user_rc_file}
+            fi
         fi
 
         # Copy to non-root user if one is specified

@@ -36,6 +36,24 @@
         },
         "initializeCommand": "sudo modprobe ip_tables"
     },
+    "docker_iptables_switch_at_runtime_non_root": {
+        "build": {
+            "dockerfile": "Dockerfile"
+        },
+        "containerUser": "codespace",
+        "remoteUser": "codespace",
+        "features": {
+            "common-utils": {
+                "username": "codespace",
+                "userUid": "1000",
+                "userGid": "1000"
+            },
+            "docker-in-docker": {
+                "moby": "false",
+                "iptablesSwitchAtRuntime": true
+            }
+        }
+    },
     "docker_with_default_iptables": {
         "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
@@ -181,13 +199,24 @@
         "remoteUser": "node"
     },
     "docker_build_no_compose": {
-        "image": "mcr.microsoft.com/devcontainers/javascript-node:3-22",
+        "image": "mcr.microsoft.com/devcontainers/base:debian",
         "features": {
             "docker-in-docker": {
+                "moby": false,
                 "dockerDashComposeVersion": "none"
             }
         },
-        "remoteUser": "node"
+        "remoteUser": "vscode"
+    },
+    "docker_build_no_compose_moby": {
+        "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+        "features": {
+            "docker-in-docker": {
+                "moby": true,
+                "dockerDashComposeVersion": "none"
+            }
+        },
+        "remoteUser": "vscode"
     },
     "docker_buildx": {
         "image": "mcr.microsoft.com/devcontainers/base:bookworm",

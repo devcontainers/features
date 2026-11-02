@@ -14,6 +14,7 @@ rm -rf /var/lib/apt/lists/*
 
 VERSION=${VERSION:-"latest"}
 VERBOSE=${VERBOSE:-"true"}
+INSTALLSESSIONMANAGERPLUGIN=${INSTALLSESSIONMANAGERPLUGIN:-"false"}
 
 AWSCLI_GPG_KEY=FB5DB77FD5C118B80511ADA8A6310ACC4672475C
 AWSCLI_GPG_KEY_MATERIAL="-----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -131,9 +132,65 @@ install() {
     rm -rf ./aws
 }
 
+# Installs the Session Manager plugin using the package type matching the container OS.
+# See https://docs.aws.amazon.com/systems-manager/latest/userguide/install-plugin-debian-and-ubuntu.html
+install_session_manager_plugin() {
+    local os_id="" os_like=""
+    if [ -r /etc/os-release ]; then
+        os_id="$(. /etc/os-release && echo "${ID}")"
+        os_like="$(. /etc/os-release && echo "${ID_LIKE}")"
+    fi
+
+    local machine
+    machine="$(uname -m)"
+    local arch_str
+    case "${machine}" in
+        x86_64|amd64) arch_str=64bit ;;
+        aarch64|arm64) arch_str=arm64 ;;
+        *)
+            echo "Session Manager plugin does not support machine architecture '${machine}'."
+            exit 1
+            ;;
+    esac
+
+    local base_url=https://s3.amazonaws.com/session-manager-downloads/plugin/latest
+    local pkg_url pkg_file
+    case "${os_id} ${os_like}" in
+        *debian*|*ubuntu*)
+            pkg_url="${base_url}/ubuntu_${arch_str}/session-manager-plugin.deb"
+            pkg_file=session-manager-plugin.deb
+            curl -fsSL "${pkg_url}" -o "${pkg_file}"
+            dpkg -i "${pkg_file}"
+            ;;
+        *rhel*|*fedora*|*centos*|*amzn*|*rocky*|*almalinux*)
+            pkg_url="${base_url}/linux_${arch_str}/session-manager-plugin.rpm"
+            pkg_file=session-manager-plugin.rpm
+            curl -fsSL "${pkg_url}" -o "${pkg_file}"
+            if command -v dnf > /dev/null 2>&1; then
+                dnf install -y "${pkg_file}"
+            elif command -v yum > /dev/null 2>&1; then
+                yum install -y "${pkg_file}"
+            else
+                rpm -i "${pkg_file}"
+            fi
+            ;;
+        *)
+            echo "Unsupported OS '${os_id}' for Session Manager plugin installation."
+            exit 1
+            ;;
+    esac
+
+    rm -f "${pkg_file}"
+}
+
 echo "(*) Installing AWS CLI..."
 
 install
+
+if [ "${INSTALLSESSIONMANAGERPLUGIN}" = "true" ]; then
+    echo "(*) Installing Session Manager plugin..."
+    install_session_manager_plugin
+fi
 
 # Clean up
 rm -rf /var/lib/apt/lists/*

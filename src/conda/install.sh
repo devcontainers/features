@@ -5,7 +5,7 @@
 #-------------------------------------------------------------------------------------------------------------
 
 VERSION=${VERSION:-"latest"}
-ADD_CONDA_FORGE=$ADDCONDAFORGE
+ADD_CONDA_FORGE=${ADDCONDAFORGE:-"false"}
 
 USERNAME="${USERNAME:-"${_REMOTE_USER:-"automatic"}"}"
 UPDATE_RC="true"
@@ -70,13 +70,8 @@ sudo_if() {
     if [ "$(id -u)" -eq 0 ] && [ "$USERNAME" != "root" ]; then
         su - "$USERNAME" -c "$COMMAND"
     else
-        $COMMAND
+        "$@"
     fi
-}
-
-install_user_package() {
-    PACKAGE="$1"
-    sudo_if "${CONDA_DIR}/bin/python3" -m pip install --user --upgrade "$PACKAGE"
 }
 
 accept_anaconda_tos_if_needed() {
@@ -95,8 +90,21 @@ accept_anaconda_tos_if_needed() {
 
 clean_conda_cache() {
     "${CONDA_DIR}/bin/conda" clean --all --yes
+
+    # pip upgrades can leave older, extracted Conda packages behind.
+    for pkg_path in "${CONDA_DIR}"/pkgs/pip-[0-9]*; do
+        [ -e "${pkg_path}" ] || continue
+        pkg_name="$(basename "${pkg_path}")"
+        pkg_version="${pkg_name#pip-}"
+        pkg_version="${pkg_version%%-*}"
+        greater_version="$(printf '%s\n%s\n' "${pkg_version}" "26.1" | sort -V | tail -1)"
+        if [ "${pkg_version}" != "${greater_version}" ]; then
+            rm -rf "${pkg_path}"
+        fi
+    done
+
     find "${CONDA_DIR}" -type f -name '*.pyc' -delete
-    find "${CONDA_DIR}" -type d -name '__pycache__' -exec rm -rf {} +
+    find "${CONDA_DIR}" -type d -name '__pycache__' -prune -exec rm -rf {} +
     rm -rf "${CONDA_DIR}/pkgs/cache" /root/.cache/pip
     if [ "${USERNAME}" != "root" ]; then
         rm -rf "/home/${USERNAME}/.cache/pip"
@@ -155,11 +163,26 @@ if ! conda --version &> /dev/null ; then
 
     chown -R "${USERNAME}:conda" "${CONDA_DIR}"
     chmod -R g+r+w "${CONDA_DIR}"
-    
-    find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 
-    clean_conda_cache
+    find "${CONDA_DIR}" -type d -print0 | xargs -n 1 -0 chmod g+s
 fi
+
+# Apply Universal's security patches before committing the Conda installation layer.
+# https://github.com/advisories/GHSA-537c-gmf6-5ccf
+# https://nvd.nist.gov/vuln/detail/CVE-2025-6176
+sudo_if "${CONDA_DIR}/bin/conda" install -y -c defaults \
+    cryptography=50.0.0 \
+    pyopenssl=26.4.0 \
+    openssl=3.5.8 \
+    brotli=1.2.0
+
+# Upgrade pip after Conda so the solver cannot downgrade the patched pip version.
+# https://github.com/advisories/GHSA-jp4c-xjxw-mgf9
+# https://github.com/advisories/GHSA-mf9w-mj56-hr94
+sudo_if "${CONDA_DIR}/bin/python3" -m pip install --upgrade --no-cache-dir pip
+sudo_if "${CONDA_DIR}/bin/python3" -m pip install --upgrade --no-cache-dir python-dotenv==1.2.2
+
+clean_conda_cache
 
 # Display a notice on conda when not running in GitHub Codespaces
 mkdir -p /usr/local/etc/vscode-dev-containers

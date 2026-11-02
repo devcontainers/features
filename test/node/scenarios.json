@@ -1,4 +1,13 @@
 {
+    "refresh_inherited_yarn_keyring": {
+        "image": "mcr.microsoft.com/devcontainers/python:1.2.8-3.13-bookworm",
+        "features": {
+            "node": {
+                "version": "lts",
+                "installYarnUsingApt": true
+            }
+        }
+    },
     "install_node_debian_trixie": {
         "image": "debian:13",
         "features": {

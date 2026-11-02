@@ -1,4 +1,32 @@
 {
+    "install_conda_patched_packages_with_codespace": {
+        "build": {
+            "dockerfile": "Dockerfile"
+        },
+        "containerUser": "codespace",
+        "remoteUser": "codespace",
+        "features": {
+            "common-utils": {
+                "username": "codespace",
+                "userUid": "1000",
+                "userGid": "1000"
+            },
+            "conda": {}
+        }
+    },
+    "install_conda_patched_packages": {
+        "image": "mcr.microsoft.com/devcontainers/base:noble",
+        "remoteUser": "vscode",
+        "features": {
+            "conda": {}
+        }
+    },
+    "install_conda_patched_packages_with_root": {
+        "image": "ubuntu:noble",
+        "features": {
+            "conda": {}
+        }
+    },
     "install_conda": {
         "image": "mcr.microsoft.com/devcontainers/base:noble",
         "features": {
