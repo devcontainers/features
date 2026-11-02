@@ -469,6 +469,19 @@ download_tflint_checksums() {
     grep -Fq "${TFLINT_FILENAME}" /tmp/tf-downloads/tflint_checksums.txt
 }
 
+install_tflint_with_checksum_fallback() {
+    while ! download_tflint_checksums; do
+        current_tflint_version="${TFLINT_VERSION}"
+        echo "(!) Failed to fetch checksums for tflint v${current_tflint_version}, trying the previous release."
+        find_prev_version_from_git_tags TFLINT_VERSION "$tflint_url"
+        if [ "${TFLINT_VERSION}" = "${current_tflint_version}" ]; then
+            echo "(!) Unable to find a tflint release with downloadable checksums."
+            exit 1
+        fi
+        install_tflint "$TFLINT_VERSION"
+    done
+}
+
 verify_tflint_attestations() {
     local checksums=$1
     local checksums_sha256=$(sha256sum "$checksums" | cut -d " " -f 1)
@@ -499,16 +512,7 @@ if [ "${TFLINT_VERSION}" != "none" ]; then
             echo "${TFLINT_SHA256} *${TFLINT_FILENAME}" > tflint_checksums.txt
             sha256sum --ignore-missing -c tflint_checksums.txt
         else
-            while ! download_tflint_checksums; do
-                current_tflint_version="${TFLINT_VERSION}"
-                echo "(!) Failed to fetch checksums for tflint v${current_tflint_version}, trying the previous release."
-                find_prev_version_from_git_tags TFLINT_VERSION "$tflint_url"
-                if [ "${TFLINT_VERSION}" = "${current_tflint_version}" ]; then
-                    echo "(!) Unable to find a tflint release with downloadable checksums."
-                    exit 1
-                fi
-                install_tflint "$TFLINT_VERSION"
-            done
+            install_tflint_with_checksum_fallback
 
             # Attempt GitHub Attestation verification (0.51.1+)
             set +e
