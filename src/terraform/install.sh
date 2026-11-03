@@ -462,11 +462,11 @@ install_tflint() {
 }
 
 download_tflint_checksums() {
-    curl -fsSL -o /tmp/tf-downloads/tflint_checksums.txt "https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt"
+    curl -fsSL -o /tmp/tf-downloads/tflint_checksums.txt "https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/checksums.txt" || return 1
     if [ ! -s "/tmp/tf-downloads/${TFLINT_FILENAME}" ] || grep -q "Not Found" "/tmp/tf-downloads/${TFLINT_FILENAME}"; then
         return 1
     fi
-    grep -Fq "${TFLINT_FILENAME}" /tmp/tf-downloads/tflint_checksums.txt
+    awk -v filename="${TFLINT_FILENAME}" '$2 == filename || $2 == "*" filename { found = 1 } END { exit !found }' /tmp/tf-downloads/tflint_checksums.txt
 }
 
 install_tflint_with_checksum_fallback() {
