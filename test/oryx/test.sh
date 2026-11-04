@@ -5,14 +5,28 @@ set -e
 # Optional: Import test library
 source dev-container-features-test-lib
 
+# Checks if packages are installed and installs them if not
+check_packages() {
+    if ! dpkg -s "$@" > /dev/null 2>&1; then
+        local sudo_cmd=""
+        if [ "$(id -u)" -ne 0 ]; then
+            sudo_cmd="sudo"
+        fi
+        ${sudo_cmd} apt-get update -y
+        ${sudo_cmd} apt-get -y install --no-install-recommends "$@"
+    fi
+}
+
+check_packages file
+
 check "Oryx version" oryx --version
 check "oryx-binary-matches-architecture" bash -c '
-	machine=$(od -An -t u2 -j 18 -N 2 /usr/local/buildscriptgen/GenerateBuildScript | tr -d " ")
 	case "$(uname -m)" in
-		x86_64) test "${machine}" = "62" ;;
-		aarch64) test "${machine}" = "183" ;;
+		x86_64) expected="x86-64" ;;
+		aarch64) expected="ARM aarch64" ;;
 		*) exit 1 ;;
 	esac
+	file -L "$(command -v oryx)" | grep -q "${expected}"
 '
 check "ORYX_SDK_STORAGE_BASE_URL" echo $ORYX_SDK_STORAGE_BASE_URL
 check "ENABLE_DYNAMIC_INSTALL" echo $ENABLE_DYNAMIC_INSTALL
