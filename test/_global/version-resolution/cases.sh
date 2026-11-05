@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2034
+# feature|label|known-good variable|repository|prefix|optional patch|suffix regex|request
+VERSION_RESOLUTION_CASES=(
+    "docker-in-docker|compose|DOCKER_COMPOSE_LAST_KNOWN_VERSION|https://github.com/docker/compose|tags/v|false||latest"
+    "docker-in-docker|compose switch|DOCKER_COMPOSE_SWITCH_LAST_KNOWN_VERSION|https://github.com/docker/compose-switch|tags/v|false||latest"
+    "docker-in-docker|buildx|DOCKER_BUILDX_LAST_KNOWN_VERSION|https://github.com/docker/buildx|refs/tags/v|false||latest"
+    "docker-outside-of-docker|compose|DOCKER_COMPOSE_LAST_KNOWN_VERSION|https://github.com/docker/compose|tags/v|false||latest"
+    "docker-outside-of-docker|compose switch|DOCKER_COMPOSE_SWITCH_LAST_KNOWN_VERSION|https://github.com/docker/compose-switch|tags/v|false||latest"
+    "github-cli|gh|GITHUB_CLI_LAST_KNOWN_VERSION|https://github.com/cli/cli|tags/v|false||latest"
+    "git-lfs|git lfs|GIT_LFS_LAST_KNOWN_VERSION|https://github.com/git-lfs/git-lfs|tags/v|false||latest"
+    "go|go|GO_LAST_KNOWN_VERSION|https://go.googlesource.com/go|tags/go|true||latest"
+    "kubectl-helm-minikube|kubectl|KUBECTL_LAST_KNOWN_VERSION|https://github.com/kubernetes/kubernetes|tags/v|false||latest"
+    "kubectl-helm-minikube|helm|HELM_LAST_KNOWN_VERSION|https://github.com/helm/helm|tags/v|false||latest"
+    "kubectl-helm-minikube|minikube|MINIKUBE_LAST_KNOWN_VERSION|https://github.com/kubernetes/minikube|tags/v|false||latest"
+    "nix|nix|NIX_LAST_KNOWN_VERSION|https://github.com/NixOS/nix|tags/|false||latest"
+    "node|nvm|NVM_LAST_KNOWN_VERSION|https://github.com/nvm-sh/nvm|tags/v|false||latest"
+    "php|php|PHP_LAST_KNOWN_VERSION|https://github.com/php/php-src|tags/php-|false||latest"
+    "php|xdebug|XDEBUG_LAST_KNOWN_VERSION|https://github.com/xdebug/xdebug|tags/|false||latest"
+    "powershell|stable|POWERSHELL_STABLE_LAST_KNOWN_VERSION|https://github.com/PowerShell/PowerShell|tags/v|false||latest"
+    "powershell|preview|POWERSHELL_PREVIEW_LAST_KNOWN_VERSION|https://github.com/PowerShell/PowerShell|tags/v|false|-preview\\.[0-9]+|preview"
+    "python|cpython|PYTHON_LAST_KNOWN_VERSION|https://github.com/python/cpython|tags/v|false||latest"
+    "python|openssl|OPENSSL3_LAST_KNOWN_VERSION|https://github.com/openssl/openssl|openssl-|false||latest"
+    "python|cosign|COSIGN_LAST_KNOWN_VERSION|https://github.com/sigstore/cosign|tags/v|false||latest"
+    "rust|rust|RUST_LAST_KNOWN_VERSION|https://github.com/rust-lang/rust|tags/|false||latest"
+    "copilot-cli|prerelease|COPILOT_CLI_LAST_KNOWN_VERSION|https://github.com/github/copilot-cli|tags/v|false|(-[0-9]+)|prerelease"
+    "terraform|terraform|TERRAFORM_LAST_KNOWN_VERSION|https://github.com/hashicorp/terraform|tags/v|false||latest"
+    "terraform|tflint|TFLINT_LAST_KNOWN_VERSION|https://github.com/terraform-linters/tflint|tags/v|false||latest"
+    "terraform|terragrunt|TERRAGRUNT_LAST_KNOWN_VERSION|https://github.com/gruntwork-io/terragrunt|tags/v|false||latest"
+    "terraform|tfsec|TFSEC_LAST_KNOWN_VERSION|https://github.com/aquasecurity/tfsec|tags/v|false||latest"
+    "terraform|terraform-docs|TERRAFORM_DOCS_LAST_KNOWN_VERSION|https://github.com/terraform-docs/terraform-docs|tags/v|false||latest"
+)
