@@ -658,6 +658,7 @@ install_from_source() {
                 mkdir -p "${SSL_INSTALL_PATH}/ssl"
                 ln -sf /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem "${SSL_INSTALL_PATH}/ssl/cert.pem"
                 ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
+                export LDFLAGS="${LDFLAGS:-} -Wl,-rpath,${SSL_INSTALL_PATH}/lib"
             fi
             ;;
     esac
