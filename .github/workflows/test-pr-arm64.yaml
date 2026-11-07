@@ -9,7 +9,9 @@ on:
       - "src/powershell/**"
       - "test/powershell/**"
       - "src/docker-in-docker/**"
-      - "test/docker-in-docker/**"      
+      - "test/docker-in-docker/**"
+      - "src/oryx/**"
+      - "test/oryx/**"
 
 jobs:
   detect-changes:
@@ -26,6 +28,7 @@ jobs:
           filters: |
             powershell: ./**/powershell/**
             docker-in-docker: ./**/docker-in-docker/**
+            oryx: ./**/oryx/**
 
   test:
     needs: [detect-changes]
@@ -49,7 +52,11 @@ jobs:
           - features: docker-in-docker
             baseImage: mcr.microsoft.com/devcontainers/base:debian
           - features: docker-in-docker
-            baseImage: mcr.microsoft.com/devcontainers/base:ubuntu       
+            baseImage: mcr.microsoft.com/devcontainers/base:ubuntu
+          - features: oryx
+            baseImage: ubuntu:jammy
+          - features: oryx
+            baseImage: mcr.microsoft.com/devcontainers/base:ubuntu
     steps:
       - uses: actions/checkout@v7
 
