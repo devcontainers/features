@@ -26,6 +26,12 @@ Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and Rocky Linux distributi
 
 `bash` is required to execute the `install.sh` script.
 
+The feature installs the `libatomic.so.1` runtime library required by Node.js binaries, including when `nodeGypDependencies` is disabled.
+
+## Yarn installation
+
+Unless `installYarnUsingApt` is enabled on Debian/Ubuntu, the feature uses Corepack when available and falls back to installing Yarn Classic through npm otherwise. Node.js 25 and newer do not bundle Corepack, so commands that require Corepack need it installed separately.
+
 ## Pre-bundled items
 
 > [!NOTE]
