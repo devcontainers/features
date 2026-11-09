@@ -1,4 +1,20 @@
 {
+    "ubuntu_yarn_from_corepack": {
+        "image": "ubuntu:24.04",
+        "features": {
+            "node": {
+                "version": "24"
+            }
+        }
+    },
+    "debian_yarn_from_corepack": {
+        "image": "debian:13",
+        "features": {
+            "node": {
+                "version": "24"
+            }
+        }
+    },
     "refresh_inherited_yarn_keyring": {
         "image": "mcr.microsoft.com/devcontainers/python:1.2.8-3.13-bookworm",
         "features": {
@@ -12,7 +28,8 @@
         "image": "debian:13",
         "features": {
             "node": {
-                "version": "lts"
+                "version": "lts",
+                "nodeGypDependencies": false
             }
         }
     },
@@ -205,7 +222,8 @@
         "image": "fedora",
         "features": {
             "node": {
-                "version": "lts"
+                "version": "lts",
+                "nodeGypDependencies": false
             }
         }
     },
