@@ -20,7 +20,7 @@ VERSION_RESOLUTION_CASES=(
     "powershell|stable|POWERSHELL_STABLE_LAST_KNOWN_VERSION|https://github.com/PowerShell/PowerShell|tags/v|false||latest"
     "powershell|preview|POWERSHELL_PREVIEW_LAST_KNOWN_VERSION|https://github.com/PowerShell/PowerShell|tags/v|false|-preview\\.[0-9]+|preview"
     "python|cpython|PYTHON_LAST_KNOWN_VERSION|https://github.com/python/cpython|tags/v|false||latest"
-    "python|openssl|OPENSSL3_LAST_KNOWN_VERSION|https://github.com/openssl/openssl|openssl-|false||latest"
+    "python|openssl|OPENSSL3_LAST_KNOWN_VERSION|https://github.com/openssl/openssl|openssl-|false||3.0"
     "python|cosign|COSIGN_LAST_KNOWN_VERSION|https://github.com/sigstore/cosign|tags/v|false||latest"
     "rust|rust|RUST_LAST_KNOWN_VERSION|https://github.com/rust-lang/rust|tags/|false||latest"
     "copilot-cli|prerelease|COPILOT_CLI_LAST_KNOWN_VERSION|https://github.com/github/copilot-cli|tags/v|false|(-[0-9]+)?|prerelease"
