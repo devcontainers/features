@@ -69,6 +69,136 @@ if [ "${VERSION}" != "1.33.0" ] || [ -e /tmp/version-resolution-network-call ]; 
 fi
 pass "prefixed exact versions normalize without remote resolution"
 
+for request in 1x2x3 1.2x3 1x2.3; do
+    VERSION="${request}"
+    if find_version_from_git_tags VERSION https://github.com/example/tool >/tmp/version-resolution-output.log 2>&1; then
+        fail "malformed exact version ${request} is rejected"
+    fi
+    pass "malformed exact version ${request} is rejected"
+done
+
+git() {
+    printf '%s\n' 'abc refs/tags/v9x9x9' 'def refs/tags/v1.2.3'
+}
+VERSION="latest"
+find_version_from_git_tags VERSION https://github.com/example/tool >/tmp/version-resolution-output.log 2>&1
+if [ "${VERSION}" != "1.2.3" ]; then
+    fail "git candidates require literal version separators"
+fi
+pass "git candidates require literal version separators"
+
+git() {
+    return 1
+}
+curl() {
+    printf '%s\n' '[{"name":"v9x9x9"},{"name":"v1.2.3"}]'
+}
+VERSION="latest"
+find_version_from_git_tags VERSION https://github.com/example/tool >/tmp/version-resolution-output.log 2>&1
+if [ "${VERSION}" != "1.2.3" ]; then
+    fail "REST candidates require literal version separators"
+fi
+pass "REST candidates require literal version separators"
+curl() {
+    printf '[{"name":"%s"}]\n' "${FAKE_FALLBACK_TAG:-v2.3.4}"
+}
+
+git() {
+    printf '%s\n' \
+        'abc refs/tags/go1.20' \
+        'def refs/tags/go1.23.12' \
+        'ghi refs/tags/go1.24.0' \
+        'jkl refs/tags/go1.24.9' \
+        'mno refs/tags/go1.25.0'
+}
+for test_case in '1.24|1.24.9' 'go1.24|1.24.9' '1.23|1.23.12' '1.20|1.20'; do
+    IFS='|' read -r request expected <<< "${test_case}"
+    VERSION="${request}"
+    find_version_from_git_tags VERSION https://go.googlesource.com/go tags/go . true >/tmp/version-resolution-output.log 2>&1
+    if [ "${VERSION}" != "${expected}" ]; then
+        fail "Go request ${request} resolves to ${expected}"
+    fi
+    pass "Go request ${request} resolves to ${expected}"
+done
+
+rm -f /tmp/version-resolution-network-call
+git() {
+    touch /tmp/version-resolution-network-call
+    return 1
+}
+VERSION="go1.24.9"
+find_version_from_git_tags VERSION https://go.googlesource.com/go tags/go . true >/tmp/version-resolution-output.log 2>&1
+if [ "${VERSION}" != "1.24.9" ] || [ -e /tmp/version-resolution-network-call ]; then
+    fail "exact Go versions avoid remote resolution with optional patches enabled"
+fi
+pass "exact Go versions avoid remote resolution with optional patches enabled"
+
+go_partial_versions() {
+    printf '%s\n' "1.24.0" "1.24.9" "1.25.0"
+}
+VERSION="1.24"
+find_version_from_git_tags VERSION https://go.googlesource.com/go tags/go . true '' '' 'the official Go release index' go_partial_versions >/tmp/version-resolution-output.log 2>&1
+if [ "${VERSION}" != "1.24.9" ]; then
+    fail "partial Go versions resolve through the alternate source"
+fi
+pass "partial Go versions resolve through the alternate source"
+
+for scenario in stable mixed numeric-suffix rest pinned; do
+    if ! (
+        # Load the installer function without running package installation or downloads.
+        # shellcheck disable=SC1090
+        source <(sed -n '/^install_using_github() {/,/^}/p' "${ROOT_DIR}/src/copilot-cli/install.sh")
+        COPILOT_CLI_LAST_KNOWN_VERSION="$(sed -n 's/^COPILOT_CLI_LAST_KNOWN_VERSION="\(.*\)"$/\1/p' "${ROOT_DIR}/src/copilot-cli/install.sh")"
+        CLI_VERSION="prerelease"
+        curl_installed=false
+        downloaded_url=""
+        git_tags=""
+        rest_tag=""
+        expected="1.0.100"
+        case "${scenario}" in
+            stable) git_tags='abc refs/tags/v1.0.100' ;;
+            mixed) git_tags=$'abc refs/tags/v1.0.99-0\ndef refs/tags/v1.0.100' ;;
+            numeric-suffix)
+                git_tags=$'abc refs/tags/v1.0.45\ndef refs/tags/v1.0.45-2\nghi refs/tags/v1.0.45-10'
+                expected="1.0.45-10"
+                ;;
+            rest) rest_tag="v1.0.100" ;;
+            pinned) expected="${COPILOT_CLI_LAST_KNOWN_VERSION}" ;;
+        esac
+        check_packages() {
+            if [[ " $* " == *" curl "* ]]; then
+                curl_installed=true
+            fi
+        }
+        dpkg() {
+            printf '%s\n' amd64
+        }
+        git() {
+            [ -n "${git_tags}" ] || return 1
+            printf '%s\n' "${git_tags}"
+        }
+        curl() {
+            if [ "${curl_installed}" != "true" ]; then
+                echo "curl was not installed before REST resolution" >&2
+                return 127
+            fi
+            [ -n "${rest_tag}" ] || return 1
+            printf '[{"name":"%s"}]\n' "${rest_tag}"
+        }
+        download_from_github() {
+            downloaded_url=$1
+        }
+        install_using_github || exit 1
+        if [ "${curl_installed}" != "true" ] || [ "${CLI_VERSION}" != "${expected}" ] || [ "${downloaded_url}" != "https://github.com/github/copilot-cli/releases/download/v${expected}/copilot-linux-x64.tar.gz" ]; then
+            echo "Unexpected Copilot download: ${downloaded_url}; curl installed: ${curl_installed}" >&2
+            exit 1
+        fi
+    ) >/tmp/version-resolution-output.log 2>&1; then
+        fail "Copilot installer resolves ${scenario} releases with curl available"
+    fi
+    pass "Copilot installer resolves ${scenario} releases with curl available"
+done
+
 git() {
     network_calls=$((network_calls + 1))
     return 1

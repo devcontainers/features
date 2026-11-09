@@ -22,16 +22,17 @@ find_version_from_git_tags() {
     tag_prefix=${tag_prefix#tags/}
     local normalized_request=${requested_version#"${tag_prefix}"}
 
-    local escaped_separator=${separator//./\.}
+    local escaped_separator=${separator//./\\.}
     local patch_regex="${escaped_separator}[0-9]+"
+    local exact_version_regex="[0-9]+${escaped_separator}[0-9]+${patch_regex}${version_suffix_regex//./\.}"
     if [ "${last_part_optional}" = "true" ]; then
         patch_regex="(${patch_regex})?"
     fi
     local version_regex="[0-9]+${escaped_separator}[0-9]+${patch_regex}${version_suffix_regex//./\.}"
 
-    # Fully qualified versions are user assertions. Do not require the network
-    # to prove that a requested release exists.
-    if echo "${normalized_request}" | grep -Eq "^${version_regex}$"; then
+    # Only three-component versions are exact assertions; optional-patch tags
+    # remain candidates when resolving partial requests such as Go's major.minor.
+    if echo "${normalized_request}" | grep -Eq "^${exact_version_regex}$"; then
         declare -g "${variable_name}=${normalized_request}"
         echo "${variable_name}=${normalized_request}"
         return

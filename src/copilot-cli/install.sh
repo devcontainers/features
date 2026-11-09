@@ -50,7 +50,7 @@ download_from_github() {
 }
 
 install_using_github() {
-    check_packages wget tar ca-certificates git
+    check_packages wget curl tar ca-certificates git
     echo "Finished setting up dependencies"
     arch=$(dpkg --print-architecture)
     if [ "${arch}" = "amd64" ]; then
@@ -67,7 +67,7 @@ install_using_github() {
     if [ "${CLI_VERSION}" = "latest" ]; then
         download_from_github "https://github.com/github/copilot-cli/releases/latest/download/${cli_filename}"
     elif [ "${CLI_VERSION}" = "prerelease" ]; then
-        find_version_from_git_tags CLI_VERSION "https://github.com/github/copilot-cli" "tags/v" "." "false" "(-[0-9]+)" "${COPILOT_CLI_LAST_KNOWN_VERSION}"
+        find_version_from_git_tags CLI_VERSION "https://github.com/github/copilot-cli" "tags/v" "." "false" "(-[0-9]+)?" "${COPILOT_CLI_LAST_KNOWN_VERSION}"
         download_from_github "https://github.com/github/copilot-cli/releases/download/v${CLI_VERSION}/${cli_filename}"
         
     else
@@ -90,4 +90,3 @@ if [ "${REQUESTED_CLI_VERSION}" = "latest" ] || [ "${REQUESTED_CLI_VERSION}" = "
     mkdir -p /etc/devcontainer-copilot-cli
     touch /etc/devcontainer-copilot-cli/auto-update
 fi
-

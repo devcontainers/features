@@ -23,7 +23,7 @@ VERSION_RESOLUTION_CASES=(
     "python|openssl|OPENSSL3_LAST_KNOWN_VERSION|https://github.com/openssl/openssl|openssl-|false||latest"
     "python|cosign|COSIGN_LAST_KNOWN_VERSION|https://github.com/sigstore/cosign|tags/v|false||latest"
     "rust|rust|RUST_LAST_KNOWN_VERSION|https://github.com/rust-lang/rust|tags/|false||latest"
-    "copilot-cli|prerelease|COPILOT_CLI_LAST_KNOWN_VERSION|https://github.com/github/copilot-cli|tags/v|false|(-[0-9]+)|prerelease"
+    "copilot-cli|prerelease|COPILOT_CLI_LAST_KNOWN_VERSION|https://github.com/github/copilot-cli|tags/v|false|(-[0-9]+)?|prerelease"
     "terraform|terraform|TERRAFORM_LAST_KNOWN_VERSION|https://github.com/hashicorp/terraform|tags/v|false||latest"
     "terraform|tflint|TFLINT_LAST_KNOWN_VERSION|https://github.com/terraform-linters/tflint|tags/v|false||latest"
     "terraform|terragrunt|TERRAGRUNT_LAST_KNOWN_VERSION|https://github.com/gruntwork-io/terragrunt|tags/v|false||latest"
