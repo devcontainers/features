@@ -718,9 +718,6 @@ install_from_source() {
     make -j 8
     make install
 
-    if [ "${ID}" = "fedora" ]; then
-        "${INSTALL_PATH}/bin/python3" -c 'import ssl; print(ssl.OPENSSL_VERSION)'
-    fi
 
     cd /tmp
     rm -rf /tmp/python-src ${GNUPGHOME} /tmp/vscdc-settings.env
