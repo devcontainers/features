@@ -289,10 +289,15 @@ fi
 
 case ${ADJUSTED_ID} in
     debian)
-        check_packages apt-transport-https curl ca-certificates tar gnupg2 dirmngr
+        check_packages apt-transport-https curl ca-certificates tar gnupg2 dirmngr libatomic1
         ;;
     rhel)
         check_packages ca-certificates tar gnupg2 which findutils util-linux tar
+        if [ "${ID}" = "mariner" ]; then
+            check_packages libgcc-atomic
+        else
+            check_packages libatomic
+        fi
         # minimal RHEL installs may not include curl, or includes curl-minimal instead.
         # Install curl if the "curl" command is not present.
         if ! type curl > /dev/null 2>&1; then

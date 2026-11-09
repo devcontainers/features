@@ -116,6 +116,16 @@ install_dotnet_using_apt() {
 . /etc/os-release
 architecture="$(dpkg --print-architecture)"
 
+# Publish Oryx for the architecture it will run on
+case "${architecture}" in
+    amd64) DOTNET_RUNTIME_ID="linux-x64" ;;
+    arm64) DOTNET_RUNTIME_ID="linux-arm64" ;;
+    *)
+        echo "(!) Architecture ${architecture} unsupported"
+        exit 1
+        ;;
+esac
+
 # Currently, oryx is not supported with "jammy"
 if [[ "jammy" = *"${VERSION_CODENAME}"* ]]; then
     echo "(!) Unsupported distribution version '${VERSION_CODENAME}'."
@@ -188,8 +198,8 @@ echo "Publishing Oryx applications..."
 
 cd $GIT_ORYX
 
-${DOTNET_BINARY} publish -p:NuGetAudit=false -property:ValidateExecutableReferencesMatchSelfContained=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj --self-contained true
-${DOTNET_BINARY} publish -p:NuGetAudit=false -r linux-x64 -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj --self-contained true
+${DOTNET_BINARY} publish -p:NuGetAudit=false -property:ValidateExecutableReferencesMatchSelfContained=false -r ${DOTNET_RUNTIME_ID} -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildScriptGeneratorCli/BuildScriptGeneratorCli.csproj --self-contained true
+${DOTNET_BINARY} publish -p:NuGetAudit=false -r ${DOTNET_RUNTIME_ID} -o ${BUILD_SCRIPT_GENERATOR} -c Release $GIT_ORYX/src/BuildServer/BuildServer.csproj --self-contained true
 
 find "${BUILD_SCRIPT_GENERATOR}" -maxdepth 1 -type f \
     \( -name '*.pdb' -o -name 'Microsoft.Oryx.*.xml' -o -name 'GenerateBuildScript.xml' \) -delete
