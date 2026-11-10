@@ -41,11 +41,6 @@ This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise 
 
 `bash` is required to execute the `install.sh` script.
 
-## Source Verification
-
-Python 3.14 and later use Sigstore-based source verification with Cosign. Verification follows a compatibility-oriented fail-open policy, with verification exceptions reported through installer warnings.
-
-
 ---
 
 _Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/devcontainers/features/blob/main/src/python/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
