@@ -24,6 +24,7 @@ Re-use the host docker socket, adding the Docker CLI to a container. Feature inv
 | installDockerBuildx | Install Docker Buildx | boolean | true |
 | installDockerComposeSwitch | Install Compose Switch (provided docker compose is available) which is a replacement to the Compose V1 docker-compose (python) executable. It translates the command line into Compose V2 docker compose then runs the latter. | boolean | true |
 | socketPath | Path where the Docker socket is mounted inside the container. For rootless Docker, override the mount in devcontainer.json to map your host socket to this path. | string | /var/run/docker-host.sock |
+| alwaysUseSocketProxy | Always proxy the host Docker socket (using socat) instead of changing the GID of the container's docker group to match it. Processes that start before that change, such as the container's own command, keep their old group list and cannot use the socket without the proxy. | boolean | false |
 
 ## Customizations
 

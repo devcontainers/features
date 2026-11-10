@@ -63,3 +63,19 @@ Debian Trixie (13) does not include moby-cli and related system packages, so the
 Ubuntu 26.04 LTS (Resolute) now has moby-cli packages available, so the feature supports installation with either `"moby": true` or `"moby": false`.
 
 `bash` is required to execute the `install.sh` script.
+
+## Socket access for non-root users
+
+By default, if the host Docker socket's group ID is not used by any group in the container, the Feature changes the GID of the container's `docker` group to match it when the container starts. Processes that were already running at that point (for example the container's own command when `overrideCommand` is `false`) keep their old supplementary groups and get `permission denied` on the socket. Processes started afterwards, such as terminals and `docker exec`, are not affected.
+
+Set `alwaysUseSocketProxy` to `true` to avoid this. The Feature then always forwards the host socket to `/var/run/docker.sock` with `socat`, and that socket is owned by the non-root user, so no group membership is needed. The Feature already falls back to this proxy when the socket is owned by `root` or its GID is already taken inside the container. The option has no effect when the remote user is `root`, because `root` can use the socket directly.
+
+```json
+"features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+        "alwaysUseSocketProxy": true
+    }
+}
+```
+
+> **Note:** The proxy can drop delayed output ([#483](https://github.com/devcontainers/features/issues/483)). The Docker CLI closes its write side right after sending a request, and `socat` then gives the daemon only 0.5 seconds to send anything more before it closes the connection. Output that arrives later is lost. This affects `docker run` and `docker exec` with or without `--interactive`, for example `docker run --rm ubuntu sh -c 'sleep 5; date'` prints nothing. The same applies when the Feature falls back to the proxy on its own, so consider it before enabling the option.
