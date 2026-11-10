@@ -507,103 +507,171 @@ get_architecture() {
         aarch64 | armv8*) architecture="arm64" ;;
         aarch32 | armv7* | armvhf*) architecture="armhf" ;;
         i?86) architecture="386" ;;
-        *) echo "(!) Architecture $(uname -m) unsupported"; exit 1 ;;
+        ppc64le) architecture="ppc64le" ;;
+        s390x) architecture="s390x" ;;
+        riscv64) architecture="riscv64" ;;
+        *) echo "(!) Architecture $(uname -m) unsupported" >&2; return 1 ;;
     esac
     echo ${architecture}
 }
 
-# Install cosign with multi-distro support
-install_cosign() {
-
-    COSIGN_VERSION="latest"
-    local cosign_url='https://github.com/sigstore/cosign'
-    local architecture=$(get_architecture)
-
-    find_version_from_git_tags COSIGN_VERSION "${cosign_url}"
-
-    # Remove 'v' prefix if present for download URL
-    local version_for_url="${COSIGN_VERSION#v}"
-
-    local cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
-    local cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
-    
-    echo "Downloading cosign from: ${cosign_url}"
-    
-    if curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
-        echo "(*) Successfully downloaded cosign v${COSIGN_VERSION}"
-    else
-        echo -e "\n(!) Failed to fetch cosign v${COSIGN_VERSION}..."
-        # Try previous version
-        find_prev_version_from_git_tags COSIGN_VERSION "https://github.com/sigstore/cosign"
-        echo -e "\nAttempting to install previous cosign ${COSIGN_VERSION} version as fallback mechanism"
-        
-        version_for_url="${COSIGN_VERSION#v}"
-        cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
-        cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
-        
-        if ! curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
-            echo "(!) Failed to download cosign v${COSIGN_VERSION} as fallback"
-            return 1
+# Fetch Python.org's signer table and return the identity and issuer for a series.
+get_sigstore_signer_policy() {
+    local series="$1"
+    local policy_file="$2"
+    local policy_attempt=1
+    while [ "${policy_attempt}" -le 3 ]; do
+        if curl -fsSL --connect-timeout 20 --max-time 60 -o "${policy_file}" "https://www.python.org/downloads/metadata/sigstore/"; then
+            break
         fi
-    fi
-    
-    # Install the package
-    if [ -f "$cosign_filename" ]; then
-        dpkg -i "$cosign_filename"
-        rm "$cosign_filename"
-        echo "Installation of cosign succeeded with ${COSIGN_VERSION}."
-    else
-        echo "(!) Failed to install cosign package"
+        echo "(!) Signer policy download attempt ${policy_attempt}/3 failed" >&2
+        rm -f "${policy_file}"
+        policy_attempt=$((policy_attempt + 1))
+        if [ "${policy_attempt}" -le 3 ]; then
+            sleep 2
+        fi
+    done
+    if [ "${policy_attempt}" -gt 3 ]; then
+        echo "(!) Failed to download Python.org's Sigstore signer policy" >&2
         return 1
     fi
 
+    local policy
+    if ! policy="$(awk -v wanted_series="${series}" '
+function trim(value) {
+    sub(/^[[:space:]]+/, "", value)
+    sub(/[[:space:]]+$/, "", value)
+    return value
+}
+function process_row(value, cells, count, field_number) {
+    sub(/^.*<tr[^>]*>/, "", value)
+    sub(/<\/tr>.*/, "", value)
+    gsub(/<\/t[dh][^>]*>/, "\034", value)
+    gsub(/<[^>]*>/, "", value)
+    gsub(/&nbsp;|&#160;/, " ", value)
+    value = trim(value)
+    sub(/\034$/, "", value)
+    count = split(value, cells, "\034")
+    for (field_number = 1; field_number <= count; field_number++) {
+        cells[field_number] = trim(cells[field_number])
+    }
+    if (count == 4 && cells[1] == "Release" && cells[2] == "PEP" && cells[3] == "Release manager" && cells[4] == "OIDC Issuer") {
+        in_policy_table = 1
+    } else if (in_policy_table && count == 4 && cells[1] == wanted_series) {
+        match_count++
+        expected_identity = cells[3]
+        expected_issuer = cells[4]
+    }
+}
+/<table([[:space:]>])/ { in_table = 1; in_policy_table = 0 }
+{
+    if (in_table) {
+        if (row == "" && /<tr([[:space:]>])/) {
+            row = $0
+        } else if (row != "") {
+            row = row " " $0
+        }
+        if (row != "" && /<\/tr>/) {
+            process_row(row)
+            row = ""
+        }
+    }
+    if (/<\/table>/) {
+        in_table = 0
+        in_policy_table = 0
+    }
+}
+END {
+    if (match_count != 1 || expected_identity !~ /^[^[:space:]<>@]+@[^[:space:]<>@]+$/ || expected_issuer !~ /^https:\/\/[^[:space:]<>]+$/) {
+        exit 1
+    }
+    printf "%s\t%s\n", expected_identity, expected_issuer
+}
+' "${policy_file}")"; then
+        echo "(!) Could not parse Python.org's Sigstore signer policy for Python ${series}" >&2
+        rm -f "${policy_file}"
+        return 1
+    fi
+    rm -f "${policy_file}"
+    printf '%s\n' "${policy}"
 }
 
-# COSIGN signature verification for python versions >= 3.14
+# COSIGN signature verification for Python versions >= 3.14
 cosign_verification() {
     local VERSION="$1"
+    local series="${VERSION%.*}"
+    local identity issuer signer_policy
 
-    # Ensure cosign is installed
-    if ! type cosign > /dev/null 2>&1; then
-        echo "(*) cosign not found, installing..."
-        if ! install_cosign; then
-            echo "(!) Failed to install cosign"
-            return 1
+    local architecture cosign_architecture checksum
+    architecture="$(get_architecture)" || return 1
+    case "${architecture}" in
+        amd64) cosign_architecture="amd64"; checksum="424e2c97d0b45fd7a6b608a87f090f35633f4c23ece5f092d48bba11aaf4bbfa" ;;
+        arm64) cosign_architecture="arm64"; checksum="ade83b7aac62e131cacfe96d958948b2150cc9efec46a570a2649b8e27dedad2" ;;
+        armhf) cosign_architecture="arm"; checksum="09e77a313910cf5c4774508d85d017d9c60983f41bf657f83ecbd3892f7952cb" ;;
+        ppc64le) cosign_architecture="ppc64le"; checksum="0887fca23319ea017cc827e6a845ba83722a36bf9e932f35c747ca83c14cec49" ;;
+        s390x) cosign_architecture="s390x"; checksum="777978d576af893a3daf1fcf3b0e9178cebcbc083a669f6125b6c97b8e1fe433" ;;
+        riscv64) cosign_architecture="riscv64"; checksum="24f3865df0fd9b055827b888d56e13583112ac7d4c87b45967af1f0febf35455" ;;
+        *) echo "(!) No cosign binary available for architecture ${architecture}"; return 1 ;;
+    esac
+
+    # Pin Cosign so its binary checksum remains a reviewed trust input.
+    local cosign_version="3.1.4"
+    local cosign_dir bundle_file
+    cosign_dir="$(mktemp -d)" || return 1
+    bundle_file="${cosign_dir}/python.sigstore"
+
+    # Resolve the signer policy before downloading Cosign or its verification bundle.
+    if ! signer_policy="$(get_sigstore_signer_policy "${series}" "${cosign_dir}/policy.html")"; then
+        echo "(!) Could not resolve a Sigstore signer policy for Python ${series}"
+        rm -rf "${cosign_dir}"
+        return 1
+    fi
+    IFS=$'\t' read -r identity issuer <<< "${signer_policy}"
+
+    if ! curl -fsSL -o "${cosign_dir}/cosign" "https://github.com/sigstore/cosign/releases/download/v${cosign_version}/cosign-linux-${cosign_architecture}"; then
+        echo "(!) Failed to download cosign v${cosign_version}"
+        rm -rf "${cosign_dir}"
+        return 1
+    fi
+    if ! echo "${checksum}  ${cosign_dir}/cosign" | sha256sum -c -; then
+        echo "(!) cosign binary checksum verification failed"
+        rm -rf "${cosign_dir}"
+        return 1
+    fi
+    if ! chmod 0755 "${cosign_dir}/cosign"; then
+        echo "(!) Failed to make cosign executable"
+        rm -rf "${cosign_dir}"
+        return 1
+    fi
+    local bundle_attempt=1
+    while [ "${bundle_attempt}" -le 3 ]; do
+        if curl -fsSL --connect-timeout 20 --max-time 60 -o "${bundle_file}" "${cpython_tgz_url}.sigstore"; then
+            break
         fi
-    else
-         echo "(*) cosign is already available on the system"
-    fi
-    
-    echo "(*) Attempting COSIGN verification for Python ${VERSION}..."
-    
-    # Check if COSIGN signature files exist (these don't exist yet for Python releases)
-    local cosign_sig_url="${cpython_tgz_url}.sig"
-    local cosign_cert_url="${cpython_tgz_url}.pem"
-    
-    # Download COSIGN signature and certificate files with proper error handling
-    echo "(*) Checking for cosign signature files..."
-    if ! curl -sSL -f --fail-with-body -o "/tmp/python-src/${cpython_tgz_filename}.sig" "${cosign_sig_url}" 2>/dev/null; then
-        echo "(!) COSIGN signature file not available for Python ${VERSION}"
-        echo "    Signature URL: ${cosign_sig_url}"
+        echo "(!) Sigstore bundle download attempt ${bundle_attempt}/3 failed"
+        rm -f "${bundle_file}"
+        bundle_attempt=$((bundle_attempt + 1))
+        if [ "${bundle_attempt}" -le 3 ]; then
+            sleep 2
+        fi
+    done
+    if [ "${bundle_attempt}" -gt 3 ]; then
+        echo "(!) Failed to download the Sigstore bundle for Python ${VERSION}"
+        rm -rf "${cosign_dir}"
         return 1
     fi
-    
-    if ! curl -sSL -f --fail-with-body -o "/tmp/python-src/${cpython_tgz_filename}.pem" "${cosign_cert_url}" 2>/dev/null; then
-        echo "(!) COSIGN certificate file not available for Python ${VERSION}"
-        echo "    Certificate URL: ${cosign_cert_url}"
-        return 1
-    fi
-    
-    # Perform COSIGN verification
-    if cosign verify-blob \
-        --certificate "/tmp/python-src/${cpython_tgz_filename}.pem" \
-        --signature "/tmp/python-src/${cpython_tgz_filename}.sig" \
-        --certificate-identity-regexp=".*" \
-        --certificate-oidc-issuer-regexp=".*" \
+
+    echo "(*) Verifying Python ${VERSION} with Sigstore signer ${identity}..."
+    if "${cosign_dir}/cosign" verify-blob \
+        --bundle "${bundle_file}" \
+        --certificate-identity "${identity}" \
+        --certificate-oidc-issuer "${issuer}" \
         "/tmp/python-src/${cpython_tgz_filename}"; then
+        rm -rf "${cosign_dir}"
         echo "(*) COSIGN signature verification successful"
         return 0
     else
+        rm -rf "${cosign_dir}"
         echo "(!) COSIGN signature verification failed"
         return 1
     fi
@@ -665,10 +733,8 @@ install_from_source() {
         if cosign_verification "$VERSION"; then
             echo "(*) COSIGN verification successful."
         else
-            echo "(*) COSIGN verification failed or not available for Python ${VERSION}"
-            echo "(*) WARNING: Installing Python ${VERSION} without signature verification"
-            echo "(*) This is expected for newly released versions where cosign signatures are not yet available"
-            echo "(*) Python 3.14+ discontinued PGP signatures in favor of cosign, but cosign signatures may take time to be published"
+            echo "(!) WARNING: Sigstore verification failed or could not be completed for Python ${VERSION}."
+            echo "(!) Continuing without verifying the source archive's authenticity or integrity."
         fi
     else
         echo "(*) Python < 3.14 detected. Using GPG signature verification..."
@@ -864,6 +930,7 @@ case ${ADJUSTED_ID} in
             ca-certificates \
             curl \
             dirmngr \
+            gawk \
             gcc \
             gnupg2 \
             libbz2-dev \
@@ -888,6 +955,7 @@ case ${ADJUSTED_ID} in
             bzip2-devel \
             ca-certificates \
             findutils \
+            gawk \
             gcc \
             gnupg2 \
             libffi-devel \
