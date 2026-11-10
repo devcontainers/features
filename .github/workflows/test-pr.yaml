@@ -41,6 +41,16 @@ jobs:
             terraform: ./**/terraform/**
             nix: ./**/nix/**
 
+  python-sigstore:
+    needs: [detect-changes]
+    if: contains(fromJSON(needs.detect-changes.outputs.features), 'python')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: "Test Python Sigstore verification"
+        run: bash test/python/sigstore_verification_test.sh
+
   test:
     needs: [detect-changes]
     runs-on: ubuntu-latest

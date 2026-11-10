@@ -628,7 +628,7 @@ cosign_verification() {
     fi
     IFS=$'\t' read -r identity issuer <<< "${signer_policy}"
 
-    if ! curl -fsSL -o "${cosign_dir}/cosign" "https://github.com/sigstore/cosign/releases/download/v${cosign_version}/cosign-linux-${cosign_architecture}"; then
+    if ! curl -fsSL --connect-timeout 20 --max-time 300 --retry 2 --retry-delay 2 -o "${cosign_dir}/cosign" "https://github.com/sigstore/cosign/releases/download/v${cosign_version}/cosign-linux-${cosign_architecture}"; then
         echo "(!) Failed to download cosign v${cosign_version}"
         rm -rf "${cosign_dir}"
         return 1
