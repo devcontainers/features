@@ -10,6 +10,7 @@
 RUST_VERSION="${VERSION:-"latest"}"
 RUSTUP_PROFILE="${PROFILE:-"minimal"}"
 RUSTUP_TARGETS="${TARGETS:-""}"
+RUST_LAST_KNOWN_VERSION="1.98.1"
 # Set to "none" to install no components beyond the selected profile.
 RUSTUP_COMPONENTS="${COMPONENTS:-rust-analyzer,rust-src,rustfmt,clippy}"
 IFS=',' read -ra components <<< "${RUSTUP_COMPONENTS}"
@@ -351,6 +352,8 @@ case ${download_architecture} in
     ;;
 esac
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 # Install Rust
 umask 0002
 if ! grep -e "^rustlang:" /etc/group > /dev/null 2>&1; then
@@ -375,7 +378,7 @@ else
         if [ $is_nightly = 0 ]; then
             check_nightly_version_formatting RUST_VERSION
         else
-            find_version_from_git_tags RUST_VERSION "https://github.com/rust-lang/rust" "tags/"
+            find_version_from_git_tags RUST_VERSION "https://github.com/rust-lang/rust" "tags/" "." "false" "" "${RUST_LAST_KNOWN_VERSION}"
         fi
         default_toolchain_arg="--default-toolchain ${RUST_VERSION}"
     fi
