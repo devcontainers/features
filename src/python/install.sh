@@ -468,7 +468,7 @@ install_openssl3() {
         curl -sSL -o "/tmp/openssl3/${tgz_filename}" "${tgz_url}"
         tar xzf ${tgz_filename}
         cd openssl-${openssl3_version}
-        ./config --libdir=lib
+        ./config --libdir=lib "$@"
         make -j $(nproc)
         make install_dev
     )
@@ -714,6 +714,20 @@ install_from_source() {
             install_openssl3
             ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
             ;;
+        fedora*)
+            local system_openssl_major
+            system_openssl_major=$(rpm -q --qf '%{VERSION}' openssl-devel | cut -d. -f1)
+            if (( system_openssl_major >= 4 )); then
+                SSL_INSTALL_PATH="${PYTHON_INSTALL_PATH}/openssl3"
+                check_packages perl-core
+                if [ ! -f "${SSL_INSTALL_PATH}/include/openssl/ssl.h" ]; then
+                    install_openssl3 "--prefix=${SSL_INSTALL_PATH}" "--openssldir=${SSL_INSTALL_PATH}/ssl"
+                fi
+                mkdir -p "${SSL_INSTALL_PATH}/ssl"
+                ln -sf /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem "${SSL_INSTALL_PATH}/ssl/cert.pem"
+                ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
+            fi
+            ;;
     esac
 
     install_cpython "${VERSION}"
@@ -769,6 +783,7 @@ install_from_source() {
     ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
     make -j 8
     make install
+
 
     cd /tmp
     rm -rf /tmp/python-src ${GNUPGHOME} /tmp/vscdc-settings.env
@@ -1011,9 +1026,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     # Additional python versions to be installed but not be set as default.
     if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         OLD_INSTALL_PATH="${INSTALL_PATH}"
-        OLDIFS=$IFS
-        IFS=","
-            read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+            IFS="," read -r -a additional_versions <<< "$ADDITIONAL_VERSIONS"
             major_version=$(get_major_version ${VERSION})
             if type apt-get > /dev/null 2>&1; then
                 # Debian/Ubuntu: Use update-alternatives
@@ -1037,7 +1050,6 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
                 fi
             done
         INSTALL_PATH="${OLD_INSTALL_PATH}"
-        IFS=$OLDIFS
     fi
 
     if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ]; then
@@ -1191,3 +1203,4 @@ fi
 clean_up
 
 echo "Done!"
+
