@@ -867,10 +867,9 @@ install_from_source() {
         if cosign_verification "$VERSION"; then
             echo "(*) COSIGN verification successful."
         else
-            echo "(*) COSIGN verification failed or not available for Python ${VERSION}"
-            echo "(*) WARNING: Installing Python ${VERSION} without signature verification"
-            echo "(*) This is expected for newly released versions where cosign signatures are not yet available"
-            echo "(*) Python 3.14+ discontinued PGP signatures in favor of cosign, but cosign signatures may take time to be published"
+            echo "(!) WARNING: Sigstore verification failed or could not be completed for Python ${VERSION}." >&2
+            echo "(!) WARNING: Python ${VERSION} source authenticity and integrity have NOT been verified." >&2
+            echo "(!) Continuing installation under the existing fail-open policy." >&2
         fi
     else
         echo "(*) Python < 3.14 detected. Using GPG signature verification..."

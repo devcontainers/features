@@ -12,4 +12,4 @@ This Feature should work on recent versions of Debian/Ubuntu, RedHat Enterprise 
 
 ## Source Verification
 
-The feature verifies the authenticity and integrity of downloaded Python source archives. Python 3.14 and later use Sigstore (via Cosign), instead of the GPG used in the. For 3.14 onwards verification follows a fail-open policy: unsuccessful or unavailable verification is reported as a warning and does not block installation.
+The feature verifies the authenticity and integrity of downloaded Python source archives. Python 3.14 and later use Sigstore (via Cosign) instead of GPG. For Python 3.14 and later, verification follows a fail-open policy: unsuccessful or unavailable verification is reported as a warning and does not block installation.
