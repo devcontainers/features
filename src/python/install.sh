@@ -16,7 +16,7 @@ PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
 PYTHON_LAST_KNOWN_VERSION="3.14.7"
 OPENSSL3_LAST_KNOWN_VERSION="3.0.22"
-COSIGN_LAST_KNOWN_VERSION="3.1.3"
+COSIGN_PINNED_VERSION="3.1.4"
 
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 
@@ -40,17 +40,20 @@ KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
 
 set -e
 
+# Keep Cosign binaries and downloaded Sigstore bundles available across Python installs.
 COSIGN_CACHE_DIR=""
+COSIGN_LATEST_VERSION=""
+COSIGN_LATEST_READY="false"
+COSIGN_PINNED_BINARY=""
+COSIGN_LATEST_BINARY=""
+COSIGN_ACTIVE_BINARY=""
 
 cleanup_cosign_cache() {
     if [ -n "${COSIGN_CACHE_DIR}" ] && [ -d "${COSIGN_CACHE_DIR}" ]; then
-        if ! rm -rf -- "${COSIGN_CACHE_DIR}"; then
-            echo "(!) WARNING: Failed to remove temporary Cosign cache directory: ${COSIGN_CACHE_DIR}" >&2
-        fi
+        rm -rf -- "${COSIGN_CACHE_DIR}" || echo "(!) WARNING: Failed to remove temporary Cosign cache." >&2
     fi
     return 0
 }
-
 trap cleanup_cosign_cache EXIT
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -525,10 +528,7 @@ get_architecture() {
         aarch64 | armv8*) architecture="arm64" ;;
         aarch32 | armv7* | armvhf*) architecture="armhf" ;;
         i?86) architecture="386" ;;
-        ppc64le) architecture="ppc64le" ;;
-        s390x) architecture="s390x" ;;
-        riscv64) architecture="riscv64" ;;
-        *) echo "(!) Architecture $(uname -m) unsupported" >&2; return 1 ;;
+        *) echo "(!) Architecture $(uname -m) unsupported"; exit 1 ;;
     esac
     echo ${architecture}
 }
@@ -538,50 +538,22 @@ get_sigstore_signer_policy() {
     local series="$1"
     local policy_file="$2"
     local policy_attempt=1
-    while [ "${policy_attempt}" -le 3 ]; do
-        if curl -fsSL --connect-timeout 20 --max-time 60 -o "${policy_file}" "https://www.python.org/downloads/metadata/sigstore/"; then
-            break
-# Install cosign with multi-distro support
-install_cosign() {
 
-    COSIGN_VERSION="latest"
-    local cosign_url='https://github.com/sigstore/cosign'
-    local architecture=$(get_architecture)
+    if [ ! -s "${policy_file}" ]; then
+        while [ "${policy_attempt}" -le 3 ]; do
+            if curl -fsSL --connect-timeout 20 --max-time 60 -o "${policy_file}" "https://www.python.org/downloads/metadata/sigstore/"; then
+                break
+            fi
+            echo "(!) Signer policy download attempt ${policy_attempt}/3 failed" >&2
+            rm -f "${policy_file}"
+            policy_attempt=$((policy_attempt + 1))
+            if [ "${policy_attempt}" -le 3 ]; then
+                sleep 2
+            fi
+        done
+    fi
 
-    find_version_from_git_tags COSIGN_VERSION "${cosign_url}" "tags/v" "." "false" "" "${COSIGN_LAST_KNOWN_VERSION}"
-
-    # Remove 'v' prefix if present for download URL
-    local version_for_url="${COSIGN_VERSION#v}"
-
-    local cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
-    local cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
-    
-    echo "Downloading cosign from: ${cosign_url}"
-    
-    if curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
-        echo "(*) Successfully downloaded cosign v${COSIGN_VERSION}"
-    else
-        echo -e "\n(!) Failed to fetch cosign v${COSIGN_VERSION}..."
-        # Try previous version
-        find_prev_version_from_git_tags COSIGN_VERSION "https://github.com/sigstore/cosign"
-        echo -e "\nAttempting to install previous cosign ${COSIGN_VERSION} version as fallback mechanism"
-        
-        version_for_url="${COSIGN_VERSION#v}"
-        cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
-        cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
-        
-        if ! curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
-            echo "(!) Failed to download cosign v${COSIGN_VERSION} as fallback"
-            return 1
-        fi
-        echo "(!) Signer policy download attempt ${policy_attempt}/3 failed" >&2
-        rm -f "${policy_file}"
-        policy_attempt=$((policy_attempt + 1))
-        if [ "${policy_attempt}" -le 3 ]; then
-            sleep 2
-        fi
-    done
-    if [ "${policy_attempt}" -gt 3 ]; then
+    if [ ! -s "${policy_file}" ]; then
         echo "(!) Failed to download Python.org's Sigstore signer policy" >&2
         return 1
     fi
@@ -639,11 +611,108 @@ END {
 }
 ' "${policy_file}")"; then
         echo "(!) Could not parse Python.org's Sigstore signer policy for Python ${series}" >&2
-        rm -f "${policy_file}"
         return 1
     fi
-    rm -f "${policy_file}"
     printf '%s\n' "${policy}"
+}
+
+# Prepare a trusted pinned Cosign binary and, when available, a verified latest v3 binary.
+prepare_cosign_binaries() {
+    local cosign_architecture="$1"
+    local checksum="$2"
+    local cosign_repo="https://github.com/sigstore/cosign"
+    local asset_name="cosign-linux-${cosign_architecture}"
+    local pinned_tmp latest_tmp latest_bundle version_result
+
+    if [ -z "${COSIGN_CACHE_DIR}" ]; then
+        COSIGN_CACHE_DIR="$(mktemp -d)" || {
+            echo "(!) Failed to create temporary Cosign cache directory." >&2
+            return 1
+        }
+        chmod 700 "${COSIGN_CACHE_DIR}"
+    fi
+
+    COSIGN_PINNED_BINARY="${COSIGN_CACHE_DIR}/cosign-${COSIGN_PINNED_VERSION}-${cosign_architecture}"
+
+    # Bootstrap trust: the pinned binary is verified against a checksum reviewed in this feature.
+    if [ ! -x "${COSIGN_PINNED_BINARY}" ]; then
+        pinned_tmp="${COSIGN_PINNED_BINARY}.download"
+        if ! curl -fsSL --connect-timeout 20 --max-time 300 --retry 2 --retry-delay 2 \
+            -o "${pinned_tmp}" "https://github.com/sigstore/cosign/releases/download/v${COSIGN_PINNED_VERSION}/${asset_name}"; then
+            echo "(!) Failed to download pinned Cosign v${COSIGN_PINNED_VERSION}." >&2
+            rm -f "${pinned_tmp}"
+            return 1
+        fi
+        if ! echo "${checksum}  ${pinned_tmp}" | sha256sum -c -; then
+            echo "(!) Pinned Cosign v${COSIGN_PINNED_VERSION} checksum verification failed." >&2
+            rm -f "${pinned_tmp}"
+            return 1
+        fi
+        if ! chmod 0755 "${pinned_tmp}" || ! mv "${pinned_tmp}" "${COSIGN_PINNED_BINARY}"; then
+            echo "(!) Failed to prepare pinned Cosign v${COSIGN_PINNED_VERSION}." >&2
+            rm -f "${pinned_tmp}"
+            return 1
+        fi
+    fi
+
+    if [ "${COSIGN_LATEST_READY}" != "true" ]; then
+        # Keep automatic updates on the v3 line so this feature's verify-blob CLI remains compatible.
+        # Run the existing resolver in a subshell so a lookup failure does not terminate the installer.
+        if version_result="$( ( COSIGN_VERSION="3"; find_version_from_git_tags COSIGN_VERSION "${cosign_repo}" "tags/v" "." "false" "" "${COSIGN_PINNED_VERSION}" ) 2>/dev/null )"; then
+            COSIGN_LATEST_VERSION="${version_result#COSIGN_VERSION=}"
+        else
+            COSIGN_LATEST_VERSION="${COSIGN_PINNED_VERSION}"
+            echo "(!) Could not resolve the latest Cosign v3 release; using pinned v${COSIGN_PINNED_VERSION}." >&2
+        fi
+        if [[ ! "${COSIGN_LATEST_VERSION}" =~ ^3\.[0-9]+\.[0-9]+$ ]]; then
+            COSIGN_LATEST_VERSION="${COSIGN_PINNED_VERSION}"
+            echo "(!) Cosign version lookup returned an invalid v3 tag; using pinned v${COSIGN_PINNED_VERSION}." >&2
+        fi
+        COSIGN_LATEST_READY="true"
+
+        if [ "${COSIGN_LATEST_VERSION}" = "${COSIGN_PINNED_VERSION}" ]; then
+            # The pinned binary is already the latest; do not download it twice.
+            COSIGN_LATEST_BINARY="${COSIGN_PINNED_BINARY}"
+        else
+            COSIGN_LATEST_BINARY="${COSIGN_CACHE_DIR}/cosign-${COSIGN_LATEST_VERSION}-${cosign_architecture}"
+            latest_tmp="${COSIGN_LATEST_BINARY}.download"
+            latest_bundle="${COSIGN_CACHE_DIR}/${asset_name}.sigstore.json"
+
+            if [ ! -x "${COSIGN_LATEST_BINARY}" ]; then
+                if curl -fsSL --connect-timeout 20 --max-time 300 --retry 2 --retry-delay 2 \
+                    -o "${latest_tmp}" "https://github.com/sigstore/cosign/releases/download/v${COSIGN_LATEST_VERSION}/${asset_name}" \
+                    && curl -fsSL --connect-timeout 20 --max-time 60 --retry 2 --retry-delay 2 \
+                    -o "${latest_bundle}" "https://github.com/sigstore/cosign/releases/download/v${COSIGN_LATEST_VERSION}/${asset_name}.sigstore.json"; then
+                    if ! chmod 0755 "${latest_tmp}"; then
+                        echo "(!) Failed to prepare downloaded Cosign v${COSIGN_LATEST_VERSION}; retaining pinned Cosign." >&2
+                        rm -f "${latest_tmp}" "${latest_bundle}"
+                        COSIGN_LATEST_BINARY="${COSIGN_PINNED_BINARY}"
+                    else
+                        echo "(*) Verifying downloaded Cosign v${COSIGN_LATEST_VERSION} with pinned Cosign v${COSIGN_PINNED_VERSION}..."
+                        if "${COSIGN_PINNED_BINARY}" verify-blob "${latest_tmp}" \
+                            --bundle "${latest_bundle}" \
+                            --certificate-identity "keyless@projectsigstore.iam.gserviceaccount.com" \
+                            --certificate-oidc-issuer "https://accounts.google.com" \
+                            && mv "${latest_tmp}" "${COSIGN_LATEST_BINARY}"; then
+                            echo "(*) Cosign v${COSIGN_LATEST_VERSION} signature verification successful."
+                        else
+                            echo "(!) Latest Cosign signature verification failed; retaining pinned Cosign." >&2
+                            rm -f "${latest_tmp}" "${COSIGN_LATEST_BINARY}"
+                            COSIGN_LATEST_BINARY="${COSIGN_PINNED_BINARY}"
+                        fi
+                    fi
+                else
+                    echo "(!) Failed to download latest Cosign v${COSIGN_LATEST_VERSION} or its Sigstore bundle; retaining pinned Cosign." >&2
+                    rm -f "${latest_tmp}" "${latest_bundle}"
+                    COSIGN_LATEST_BINARY="${COSIGN_PINNED_BINARY}"
+                fi
+            fi
+            rm -f "${latest_bundle}"
+        fi
+    fi
+
+    COSIGN_ACTIVE_BINARY="${COSIGN_LATEST_BINARY:-${COSIGN_PINNED_BINARY}}"
+    return 0
 }
 
 # COSIGN signature verification for Python versions >= 3.14
@@ -651,62 +720,40 @@ cosign_verification() {
     local VERSION="$1"
     local series="${VERSION%.*}"
     local identity issuer signer_policy
-
     local architecture cosign_architecture checksum
+    local bundle_file bundle_attempt=1
+
     architecture="$(get_architecture)" || return 1
     case "${architecture}" in
         amd64) cosign_architecture="amd64"; checksum="424e2c97d0b45fd7a6b608a87f090f35633f4c23ece5f092d48bba11aaf4bbfa" ;;
         arm64) cosign_architecture="arm64"; checksum="ade83b7aac62e131cacfe96d958948b2150cc9efec46a570a2649b8e27dedad2" ;;
         armhf) cosign_architecture="arm"; checksum="09e77a313910cf5c4774508d85d017d9c60983f41bf657f83ecbd3892f7952cb" ;;
-        ppc64le) cosign_architecture="ppc64le"; checksum="0887fca23319ea017cc827e6a845ba83722a36bf9e932f35c747ca83c14cec49" ;;
-        s390x) cosign_architecture="s390x"; checksum="777978d576af893a3daf1fcf3b0e9178cebcbc083a669f6125b6c97b8e1fe433" ;;
-        riscv64) cosign_architecture="riscv64"; checksum="24f3865df0fd9b055827b888d56e13583112ac7d4c87b45967af1f0febf35455" ;;
-        *) echo "(!) No cosign binary available for architecture ${architecture}"; return 1 ;;
+        *) echo "(!) No checksum-verified pinned Cosign binary available for architecture ${architecture}." >&2; return 1 ;;
     esac
 
-    # Pin Cosign so its binary checksum remains a reviewed trust input.
-    local cosign_version="3.1.4"
-    local cosign_dir bundle_file cosign_binary
-    if [ -z "${COSIGN_CACHE_DIR:-}" ]; then
-        if ! COSIGN_CACHE_DIR="$(mktemp -d)"; then
-            echo "(!) Failed to create temporary Cosign cache directory." >&2
-            return 1
-        fi
+    if [ -z "${COSIGN_CACHE_DIR}" ]; then
+        COSIGN_CACHE_DIR="$(mktemp -d)" || return 1
+        chmod 700 "${COSIGN_CACHE_DIR}"
     fi
-    cosign_dir="${COSIGN_CACHE_DIR}"
-    bundle_file="${cosign_dir}/python.sigstore"
-    cosign_binary="${cosign_dir}/cosign-${cosign_architecture}"
-    
-    # Resolve the signer policy before downloading Cosign or its verification bundle.
-    if ! signer_policy="$(get_sigstore_signer_policy "${series}" "${cosign_dir}/policy.html")"; then
-        echo "(!) Could not resolve a Sigstore signer policy for Python ${series}"
+
+    # Reuse Python.org's signer table from the same cache across additional Python versions.
+    if ! signer_policy="$(get_sigstore_signer_policy "${series}" "${COSIGN_CACHE_DIR}/python-sigstore-policy.html")"; then
+        echo "(!) Could not resolve a Sigstore signer policy for Python ${series}." >&2
         return 1
     fi
     IFS=$'\t' read -r identity issuer <<< "${signer_policy}"
 
-    if [ ! -x "${cosign_binary}" ]; then
-        if ! curl -fsSL --connect-timeout 20 --max-time 300 --retry 2 --retry-delay 2 -o "${cosign_binary}" "https://github.com/sigstore/cosign/releases/download/v${cosign_version}/cosign-linux-${cosign_architecture}"; then
-            echo "(!) Failed to download cosign v${cosign_version}"
-            rm -f "${cosign_binary}"
-            return 1
-        fi
-        if ! echo "${checksum}  ${cosign_binary}" | sha256sum -c -; then
-            echo "(!) cosign binary checksum verification failed"
-            rm -f "${cosign_binary}"
-            return 1
-        fi
-        if ! chmod 0755 "${cosign_binary}"; then
-            echo "(!) Failed to make cosign executable"
-            rm -f "${cosign_binary}"
-            return 1
-        fi
+    if ! prepare_cosign_binaries "${cosign_architecture}" "${checksum}"; then
+        return 1
     fi
-    local bundle_attempt=1
+
+    bundle_file="${COSIGN_CACHE_DIR}/python-${VERSION}.sigstore"
     while [ "${bundle_attempt}" -le 3 ]; do
-        if curl -fsSL --connect-timeout 20 --max-time 60 -o "${bundle_file}" "${cpython_tgz_url}.sigstore"; then
+        if curl -fsSL --connect-timeout 20 --max-time 60 --retry 1 --retry-delay 2 \
+            -o "${bundle_file}" "${cpython_tgz_url}.sigstore"; then
             break
         fi
-        echo "(!) Sigstore bundle download attempt ${bundle_attempt}/3 failed"
+        echo "(!) Sigstore bundle download attempt ${bundle_attempt}/3 failed" >&2
         rm -f "${bundle_file}"
         bundle_attempt=$((bundle_attempt + 1))
         if [ "${bundle_attempt}" -le 3 ]; then
@@ -714,25 +761,39 @@ cosign_verification() {
         fi
     done
     if [ "${bundle_attempt}" -gt 3 ]; then
-        echo "(!) Failed to download the Sigstore bundle for Python ${VERSION}"
+        echo "(!) Failed to download the Sigstore bundle for Python ${VERSION}." >&2
         rm -f "${bundle_file}"
         return 1
     fi
 
     echo "(*) Verifying Python ${VERSION} with Sigstore signer ${identity}..."
-    if "${cosign_binary}" verify-blob \
+    if "${COSIGN_ACTIVE_BINARY}" verify-blob \
         --bundle "${bundle_file}" \
         --certificate-identity "${identity}" \
         --certificate-oidc-issuer "${issuer}" \
         "/tmp/python-src/${cpython_tgz_filename}"; then
         rm -f "${bundle_file}"
-        echo "(*) COSIGN signature verification successful"
+        echo "(*) Python ${VERSION} Sigstore verification successful."
         return 0
-    else
-        rm -f "${bundle_file}"
-        echo "(!) COSIGN signature verification failed"
-        return 1
     fi
+
+    # A verified latest Cosign release can still have a regression; retry with the pinned verifier.
+    if [ "${COSIGN_ACTIVE_BINARY}" != "${COSIGN_PINNED_BINARY}" ]; then
+        echo "(!) Latest Cosign failed to verify Python ${VERSION}; retrying with pinned Cosign v${COSIGN_PINNED_VERSION}." >&2
+        if "${COSIGN_PINNED_BINARY}" verify-blob \
+            --bundle "${bundle_file}" \
+            --certificate-identity "${identity}" \
+            --certificate-oidc-issuer "${issuer}" \
+            "/tmp/python-src/${cpython_tgz_filename}"; then
+            rm -f "${bundle_file}"
+            echo "(*) Python ${VERSION} Sigstore verification successful with pinned Cosign."
+            return 0
+        fi
+    fi
+
+    rm -f "${bundle_file}"
+    echo "(!) Sigstore verification failed with both available Cosign verifiers." >&2
+    return 1
 }
 
 # GPG verification for python versions < 3.14
@@ -805,8 +866,10 @@ install_from_source() {
         if cosign_verification "$VERSION"; then
             echo "(*) COSIGN verification successful."
         else
-            echo "(!) WARNING: Sigstore verification failed or could not be completed for Python ${VERSION}."
-            echo "(!) Continuing without verifying the source archive's authenticity or integrity."
+            echo "(*) COSIGN verification failed or not available for Python ${VERSION}"
+            echo "(*) WARNING: Installing Python ${VERSION} without signature verification"
+            echo "(*) This is expected for newly released versions where cosign signatures are not yet available"
+            echo "(*) Python 3.14+ discontinued PGP signatures in favor of cosign, but cosign signatures may take time to be published"
         fi
     else
         echo "(*) Python < 3.14 detected. Using GPG signature verification..."
@@ -1003,7 +1066,6 @@ case ${ADJUSTED_ID} in
             ca-certificates \
             curl \
             dirmngr \
-            gawk \
             gcc \
             gnupg2 \
             libbz2-dev \
@@ -1028,7 +1090,6 @@ case ${ADJUSTED_ID} in
             bzip2-devel \
             ca-certificates \
             findutils \
-            gawk \
             gcc \
             gnupg2 \
             libffi-devel \

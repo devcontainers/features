@@ -2,6 +2,7 @@
 set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+install_script="${INSTALL_SH:-${repository_root}/src/python/install.sh}"
 work_dir="$(mktemp -d)"
 trap 'rm -rf "${work_dir}"' EXIT
 mkdir "${work_dir}/tmp"
@@ -13,16 +14,37 @@ mock_download_failure=""
 mock_checksum_failure="false"
 download_log="${work_dir}/downloads"
 checksum_log="${work_dir}/checksum"
+COSIGN_PINNED_VERSION="3.1.4"
 COSIGN_CACHE_DIR=""
+COSIGN_LATEST_VERSION=""
+COSIGN_LATEST_READY="false"
+COSIGN_PINNED_BINARY=""
+COSIGN_LATEST_BINARY=""
+COSIGN_ACTIVE_BINARY=""
 
-cat > "${work_dir}/cosign" <<'EOF'
+cat > "${work_dir}/cosign" <<'COSIGN'
 #!/usr/bin/env bash
 printf '%s\n' "$@" > "${MOCK_LOG}"
 [[ "${MOCK_REJECT}" != "true" ]]
-EOF
+COSIGN
+chmod 0755 "${work_dir}/cosign"
 
 uname() {
     printf '%s\n' "${mock_architecture}"
+}
+
+sleep() { :; }
+
+# Keep this test focused on the pinned-verifier path. The installer still
+# calls the shared version resolver, so return the pinned version here.
+find_version_from_git_tags() {
+    local variable_name="$1"
+    local requested_version="${!variable_name}"
+    local fallback_version="${7:-3.1.4}"
+    if [[ "${requested_version}" == "3" ]]; then
+        printf -v "${variable_name}" '%s' "${fallback_version}"
+    fi
+    printf '%s=%s\n' "${variable_name}" "${!variable_name}"
 }
 
 curl() {
@@ -37,7 +59,7 @@ curl() {
         fi
     done
     printf '%s\n' "${url}" >> "${download_log}"
-    if [[ -n "${mock_download_failure}" && "${url}" == *"${mock_download_failure}" ]]; then
+    if [[ -n "${mock_download_failure}" && "${url}" == *"${mock_download_failure}"* ]]; then
         return 22
     fi
     if [[ "${url}" == */downloads/metadata/sigstore/ ]]; then
@@ -63,12 +85,24 @@ sha256sum() {
     [[ "${mock_checksum_failure}" != "true" ]]
 }
 
-source <(sed -n '/^get_architecture() {$/,/^# GPG verification for python versions </ { /^# GPG verification for python versions /!p; }' "${repository_root}/src/python/install.sh")
+source <(sed -n '/^get_architecture() {$/,/^# GPG verification for python versions </ { /^# GPG verification for python versions /!p; }' "${install_script}")
+
 cpython_tgz_filename="Python-3.14.10.tgz"
 cpython_tgz_url="https://www.python.org/ftp/python/3.14.10/${cpython_tgz_filename}"
 policy_url="https://www.python.org/downloads/metadata/sigstore/"
 
+# The updated installer intentionally keeps this cache between Python
+# installations. Clear it between independent test cases, not each call.
 assert_clean() {
+    if [[ -n "${COSIGN_CACHE_DIR}" && -d "${COSIGN_CACHE_DIR}" ]]; then
+        rm -rf -- "${COSIGN_CACHE_DIR}"
+    fi
+    COSIGN_CACHE_DIR=""
+    COSIGN_LATEST_VERSION=""
+    COSIGN_LATEST_READY="false"
+    COSIGN_PINNED_BINARY=""
+    COSIGN_LATEST_BINARY=""
+    COSIGN_ACTIVE_BINARY=""
     [[ -z "$(find "${TMPDIR}" -mindepth 1 -print -quit)" ]]
 }
 
@@ -83,7 +117,6 @@ grep -Fx -- 'hugo@python.org' "${MOCK_LOG}"
 grep -Fx -- '--certificate-oidc-issuer' "${MOCK_LOG}"
 grep -Fx -- 'https://github.com/login/oauth' "${MOCK_LOG}"
 grep -Fx -- "/tmp/python-src/${cpython_tgz_filename}" "${MOCK_LOG}"
-assert_clean
 
 cosign_verification 3.15.0
 grep -Fx -- 'hugo@python.org' "${MOCK_LOG}"
@@ -109,8 +142,10 @@ assert_clean
 
 mock_download_failure="/downloads/metadata/sigstore/"
 if cosign_verification 3.14.10; then exit 1; fi
+assert_clean
 mock_download_failure=".sigstore"
 if cosign_verification 3.14.10; then exit 1; fi
+assert_clean
 mock_download_failure="cosign-linux-arm"
 if cosign_verification 3.14.10; then exit 1; fi
 mock_download_failure=""
@@ -120,6 +155,8 @@ assert_clean
 if cosign_verification 3.99.0; then exit 1; fi
 grep -Fx -- "${policy_url}" "${download_log}"
 if grep -E 'cosign-linux-|\.sigstore$' "${download_log}"; then exit 1; fi
+assert_clean
+
 : > "${download_log}"
 mock_architecture="unsupported"
 if cosign_verification 3.14.10; then exit 1; fi
