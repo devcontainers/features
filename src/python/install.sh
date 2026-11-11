@@ -37,6 +37,19 @@ KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
 
 set -e
 
+COSIGN_CACHE_DIR=""
+
+cleanup_cosign_cache() {
+    if [ -n "${COSIGN_CACHE_DIR}" ] && [ -d "${COSIGN_CACHE_DIR}" ]; then
+        if ! rm -rf -- "${COSIGN_CACHE_DIR}"; then
+            echo "(!) WARNING: Failed to remove temporary Cosign cache directory: ${COSIGN_CACHE_DIR}" >&2
+        fi
+    fi
+    return 0
+}
+
+trap cleanup_cosign_cache EXIT
+
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
@@ -616,32 +629,40 @@ cosign_verification() {
 
     # Pin Cosign so its binary checksum remains a reviewed trust input.
     local cosign_version="3.1.4"
-    local cosign_dir bundle_file
-    cosign_dir="$(mktemp -d)" || return 1
+    local cosign_dir bundle_file cosign_binary
+    if [ -z "${COSIGN_CACHE_DIR:-}" ]; then
+        if ! COSIGN_CACHE_DIR="$(mktemp -d)"; then
+            echo "(!) Failed to create temporary Cosign cache directory." >&2
+            return 1
+        fi
+    fi
+    cosign_dir="${COSIGN_CACHE_DIR}"
     bundle_file="${cosign_dir}/python.sigstore"
-
+    cosign_binary="${cosign_dir}/cosign-${cosign_architecture}"
+    
     # Resolve the signer policy before downloading Cosign or its verification bundle.
     if ! signer_policy="$(get_sigstore_signer_policy "${series}" "${cosign_dir}/policy.html")"; then
         echo "(!) Could not resolve a Sigstore signer policy for Python ${series}"
-        rm -rf "${cosign_dir}"
         return 1
     fi
     IFS=$'\t' read -r identity issuer <<< "${signer_policy}"
 
-    if ! curl -fsSL --connect-timeout 20 --max-time 300 --retry 2 --retry-delay 2 -o "${cosign_dir}/cosign" "https://github.com/sigstore/cosign/releases/download/v${cosign_version}/cosign-linux-${cosign_architecture}"; then
-        echo "(!) Failed to download cosign v${cosign_version}"
-        rm -rf "${cosign_dir}"
-        return 1
-    fi
-    if ! echo "${checksum}  ${cosign_dir}/cosign" | sha256sum -c -; then
-        echo "(!) cosign binary checksum verification failed"
-        rm -rf "${cosign_dir}"
-        return 1
-    fi
-    if ! chmod 0755 "${cosign_dir}/cosign"; then
-        echo "(!) Failed to make cosign executable"
-        rm -rf "${cosign_dir}"
-        return 1
+    if [ ! -x "${cosign_binary}" ]; then
+        if ! curl -fsSL --connect-timeout 20 --max-time 300 --retry 2 --retry-delay 2 -o "${cosign_binary}" "https://github.com/sigstore/cosign/releases/download/v${cosign_version}/cosign-linux-${cosign_architecture}"; then
+            echo "(!) Failed to download cosign v${cosign_version}"
+            rm -f "${cosign_binary}"
+            return 1
+        fi
+        if ! echo "${checksum}  ${cosign_binary}" | sha256sum -c -; then
+            echo "(!) cosign binary checksum verification failed"
+            rm -f "${cosign_binary}"
+            return 1
+        fi
+        if ! chmod 0755 "${cosign_binary}"; then
+            echo "(!) Failed to make cosign executable"
+            rm -f "${cosign_binary}"
+            return 1
+        fi
     fi
     local bundle_attempt=1
     while [ "${bundle_attempt}" -le 3 ]; do
@@ -657,21 +678,21 @@ cosign_verification() {
     done
     if [ "${bundle_attempt}" -gt 3 ]; then
         echo "(!) Failed to download the Sigstore bundle for Python ${VERSION}"
-        rm -rf "${cosign_dir}"
+        rm -f "${bundle_file}"
         return 1
     fi
 
     echo "(*) Verifying Python ${VERSION} with Sigstore signer ${identity}..."
-    if "${cosign_dir}/cosign" verify-blob \
+    if "${cosign_binary}" verify-blob \
         --bundle "${bundle_file}" \
         --certificate-identity "${identity}" \
         --certificate-oidc-issuer "${issuer}" \
         "/tmp/python-src/${cpython_tgz_filename}"; then
-        rm -rf "${cosign_dir}"
+        rm -f "${bundle_file}"
         echo "(*) COSIGN signature verification successful"
         return 0
     else
-        rm -rf "${cosign_dir}"
+        rm -f "${bundle_file}"
         echo "(!) COSIGN signature verification failed"
         return 1
     fi

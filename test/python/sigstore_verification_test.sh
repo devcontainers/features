@@ -13,6 +13,7 @@ mock_download_failure=""
 mock_checksum_failure="false"
 download_log="${work_dir}/downloads"
 checksum_log="${work_dir}/checksum"
+COSIGN_CACHE_DIR=""
 
 cat > "${work_dir}/cosign" <<'EOF'
 #!/usr/bin/env bash
