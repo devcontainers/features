@@ -659,7 +659,7 @@ prepare_cosign_binaries() {
     if [ "${COSIGN_LATEST_READY}" != "true" ]; then
         # Keep automatic updates on the v3 line so this feature's verify-blob CLI remains compatible.
         # Run the existing resolver in a subshell so a lookup failure does not terminate the installer.
-        if version_result="$( ( COSIGN_VERSION="3"; find_version_from_git_tags COSIGN_VERSION "${cosign_repo}" "tags/v" "." "false" "" "${COSIGN_PINNED_VERSION}" ) 2>/dev/null )"; then
+        if version_result="$( ( COSIGN_VERSION="3"; find_version_from_git_tags COSIGN_VERSION "${cosign_repo}" "tags/v" "." "false" "" "${COSIGN_LAST_KNOWN_VERSION}" ) 2>/dev/null )"; then
             COSIGN_LATEST_VERSION="${version_result#COSIGN_VERSION=}"
         else
             COSIGN_LATEST_VERSION="${COSIGN_PINNED_VERSION}"
