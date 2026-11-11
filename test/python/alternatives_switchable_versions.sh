@@ -7,9 +7,9 @@ source dev-container-features-test-lib
 
 check "python version 3.11 installed as default" bash -c "python --version | grep 3.11"
 check "python3 version 3.11 installed as default" bash -c "python3 --version | grep 3.11"
-check "python version 3.10.5 installed"  bash -c "ls -l /usr/local/python | grep 3.10.5"
-check "python version 3.8 installed"  bash -c "ls -l /usr/local/python | grep 3.8"
-check "python version 3.9.13 installed"  bash -c  "ls -l /usr/local/python | grep 3.9.13"
+check "python version 3.12 installed"  bash -c "ls -l /usr/local/python | grep 3.12"
+check "python version 3.13 installed"  bash -c "ls -l /usr/local/python | grep 3.13"
+check "python version 3.14 installed"  bash -c  "ls -l /usr/local/python | grep 3.14"
 
 # Check paths in settings
 check "current symlink is correct" bash -c "which python | grep /usr/local/python/current/bin/python"
