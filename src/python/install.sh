@@ -14,6 +14,9 @@ OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
 ENABLE_SHARED_FROM_SOURCE="${ENABLESHARED:-"false"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
+PYTHON_LAST_KNOWN_VERSION="3.14.7"
+OPENSSL3_LAST_KNOWN_VERSION="3.0.22"
+COSIGN_LAST_KNOWN_VERSION="3.1.3"
 
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 
@@ -455,6 +458,8 @@ check_packages() {
     esac
 }
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 add_symlink() {
     if [[ ! -d "${CURRENT_PATH}" ]]; then
         ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"
@@ -474,7 +479,7 @@ install_openssl3() {
         cd /tmp/openssl3
         openssl3_version="3.0"
         # Find version using soft match
-        find_version_from_git_tags openssl3_version "https://github.com/openssl/openssl" "openssl-"
+        find_version_from_git_tags openssl3_version "https://github.com/openssl/openssl" "openssl-" "." "false" "" "${OPENSSL3_LAST_KNOWN_VERSION}"
         local tgz_filename="openssl-${openssl3_version}.tar.gz"
         local tgz_url="https://github.com/openssl/openssl/releases/download/openssl-${openssl3_version}/${tgz_filename}"
         echo "Downloading ${tgz_filename}..."
@@ -536,6 +541,38 @@ get_sigstore_signer_policy() {
     while [ "${policy_attempt}" -le 3 ]; do
         if curl -fsSL --connect-timeout 20 --max-time 60 -o "${policy_file}" "https://www.python.org/downloads/metadata/sigstore/"; then
             break
+# Install cosign with multi-distro support
+install_cosign() {
+
+    COSIGN_VERSION="latest"
+    local cosign_url='https://github.com/sigstore/cosign'
+    local architecture=$(get_architecture)
+
+    find_version_from_git_tags COSIGN_VERSION "${cosign_url}" "tags/v" "." "false" "" "${COSIGN_LAST_KNOWN_VERSION}"
+
+    # Remove 'v' prefix if present for download URL
+    local version_for_url="${COSIGN_VERSION#v}"
+
+    local cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
+    local cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
+    
+    echo "Downloading cosign from: ${cosign_url}"
+    
+    if curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
+        echo "(*) Successfully downloaded cosign v${COSIGN_VERSION}"
+    else
+        echo -e "\n(!) Failed to fetch cosign v${COSIGN_VERSION}..."
+        # Try previous version
+        find_prev_version_from_git_tags COSIGN_VERSION "https://github.com/sigstore/cosign"
+        echo -e "\nAttempting to install previous cosign ${COSIGN_VERSION} version as fallback mechanism"
+        
+        version_for_url="${COSIGN_VERSION#v}"
+        cosign_filename="/tmp/cosign_${version_for_url}_${architecture}.deb"
+        cosign_url="https://github.com/sigstore/cosign/releases/download/v${version_for_url}/cosign_${version_for_url}_${architecture}.deb"
+        
+        if ! curl -L -f --fail-with-body "${cosign_url}" -o "$cosign_filename" 2>/dev/null; then
+            echo "(!) Failed to download cosign v${COSIGN_VERSION} as fallback"
+            return 1
         fi
         echo "(!) Signer policy download attempt ${policy_attempt}/3 failed" >&2
         rm -f "${policy_file}"
@@ -721,7 +758,7 @@ install_from_source() {
     fi
 
     # Find version using soft match
-    find_version_from_git_tags VERSION "https://github.com/python/cpython"
+    find_version_from_git_tags VERSION "https://github.com/python/cpython" "tags/v" "." "false" "" "${PYTHON_LAST_KNOWN_VERSION}"
 
     # Some platforms/os versions need modern versions of openssl installed
     # via common package repositories, for now rhel-7 family, use case statement to
