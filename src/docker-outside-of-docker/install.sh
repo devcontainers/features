@@ -508,7 +508,7 @@ log "Ensuring ${USERNAME} has access to ${SOURCE_SOCKET} via ${TARGET_SOCKET}"
 if [ "${ENABLE_NONROOT_DOCKER}" = "true" ] && [ "${SOURCE_SOCKET}" != "${TARGET_SOCKET}" ] && [ "${USERNAME}" != "root" ] && [ "${USERNAME}" != "0" ]; then
     DOCKER_GID="\$(getent group docker | cut -d: -f3)"
     SOCKET_GID=\$(stat -c '%g' ${SOURCE_SOCKET})
-    if [ "\${SOCKET_GID}" = "\${DOCKER_GID}" ] && [ -L "${TARGET_SOCKET}" ]; then
+    if [ "\${SOCKET_GID}" = "\${DOCKER_GID}" ] && [ -L "${TARGET_SOCKET}" ] && [ "${TARGET_SOCKET}" -ef "${SOURCE_SOCKET}" ]; then
         log "Docker group matches socket GID \${SOCKET_GID}, nothing to do"
     elif [ "\${SOCKET_GID}" != "0" ] && ! getent group "\${SOCKET_GID}" > /dev/null; then
         sudoIf groupmod --gid "\${SOCKET_GID}" docker
