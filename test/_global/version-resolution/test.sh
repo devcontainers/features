@@ -143,6 +143,63 @@ if [ "${VERSION}" != "1.24.9" ]; then
 fi
 pass "partial Go versions resolve through the alternate source"
 
+for scenario in standalone-latest standalone-partial standalone-invalid bundled-rest bundled-pinned; do
+    if ! (
+        temporary_dir="$(mktemp -d)"
+        trap 'rm -rf "${temporary_dir}"' EXIT
+        NVM_VERSION="latest"
+        expected="0.40.9"
+        git() {
+            printf '%s\n' 'abc refs/tags/v0.39.7' 'def refs/tags/v0.40.9'
+        }
+        curl() {
+            echo "Unexpected REST request from standalone installer" >&2
+            return 1
+        }
+        case "${scenario}" in
+            standalone-partial)
+                NVM_VERSION="0.39"
+                expected="0.39.7"
+                ;;
+            standalone-invalid)
+                NVM_VERSION="99"
+                ;;
+            bundled-*)
+                mkdir -p "${temporary_dir}/scripts"
+                cp "${ROOT_DIR}/src/node/scripts/version-resolution.sh" "${temporary_dir}/scripts/"
+                git() { return 1; }
+                if [ "${scenario}" = "bundled-rest" ]; then
+                    curl() { printf '%s\n' '[{"name":"v0.40.9"}]'; }
+                else
+                    curl() { return 1; }
+                    expected="$(sed -n 's/^NVM_LAST_KNOWN_VERSION="\(.*\)"$/\1/p' "${ROOT_DIR}/src/node/install.sh")"
+                fi
+                ;;
+        esac
+        export NVM_VERSION
+        export -f git curl
+        {
+            printf '%s\n' 'set -e'
+            sed -n '/^NVM_LAST_KNOWN_VERSION=/p' "${ROOT_DIR}/src/node/install.sh"
+            sed -n '/^find_version_from_git_tags() {/,/^}/p' "${ROOT_DIR}/src/node/install.sh"
+            sed -n '/^if ! type git >/,/^# Adjust node version/p' "${ROOT_DIR}/src/node/install.sh"
+            sed -n '/^find_version_from_git_tags NVM_VERSION /p' "${ROOT_DIR}/src/node/install.sh"
+        } > "${temporary_dir}/install.sh"
+        if bash "${temporary_dir}/install.sh" > "${temporary_dir}/output.log" 2>&1; then
+            if [ "${scenario}" = "standalone-invalid" ] || ! grep -qx "NVM_VERSION=${expected}" "${temporary_dir}/output.log"; then
+                cat "${temporary_dir}/output.log" >&2
+                exit 1
+            fi
+        elif [ "${scenario}" != "standalone-invalid" ] || ! grep -q "Invalid NVM_VERSION value: 99" "${temporary_dir}/output.log"; then
+            cat "${temporary_dir}/output.log" >&2
+            exit 1
+        fi
+    ) >/tmp/version-resolution-output.log 2>&1; then
+        fail "Node installer version resolution: ${scenario}"
+    fi
+    pass "Node installer version resolution: ${scenario}"
+done
+
 for scenario in stable mixed numeric-suffix rest pinned; do
     if ! (
         # Load the installer function without running package installation or downloads.
