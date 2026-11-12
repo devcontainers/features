@@ -242,7 +242,14 @@
             }
         },
         "containerUser": "vscode"
+    },
+    "docker_init_gid": {
+        "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+        "features": {
+            "docker-outside-of-docker": {
+                "moby": true
+            }
+        },
+        "containerUser": "vscode"
     }
 }
-
-  
