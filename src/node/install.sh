@@ -310,7 +310,10 @@ if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
 
-. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+# Standalone copies of this installer may not include the shared resolver.
+if [ -f "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh" ]; then
+    . "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+fi
 
 # Adjust node version if required
 if [ "${NODE_VERSION}" = "none" ]; then
