@@ -11,6 +11,7 @@ export NODE_VERSION="${VERSION:-"lts"}"
 export NPM_VERSION="${NPMVERSION:-"lts"}"
 export PNPM_VERSION="${PNPMVERSION:-"latest"}"
 export NVM_VERSION="${NVMVERSION:-"latest"}"
+NVM_LAST_KNOWN_VERSION="0.40.8"
 export NVM_DIR="${NVMINSTALLPATH:-"/usr/local/share/nvm"}"
 INSTALL_TOOLS_FOR_NODE_GYP="${NODEGYPDEPENDENCIES:-true}"
 export INSTALL_YARN_USING_APT="${INSTALLYARNUSINGAPT:-false}"  # only concerns Debian-based systems
@@ -288,10 +289,15 @@ fi
 
 case ${ADJUSTED_ID} in
     debian)
-        check_packages apt-transport-https curl ca-certificates tar gnupg2 dirmngr
+        check_packages apt-transport-https curl ca-certificates tar gnupg2 dirmngr libatomic1
         ;;
     rhel)
         check_packages ca-certificates tar gnupg2 which findutils util-linux tar
+        if [ "${ID}" = "mariner" ]; then
+            check_packages libgcc-atomic
+        else
+            check_packages libatomic
+        fi
         # minimal RHEL installs may not include curl, or includes curl-minimal instead.
         # Install curl if the "curl" command is not present.
         if ! type curl > /dev/null 2>&1; then
@@ -304,6 +310,8 @@ if ! type git > /dev/null 2>&1; then
     check_packages git
 fi
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 # Adjust node version if required
 if [ "${NODE_VERSION}" = "none" ]; then
     export NODE_VERSION=
@@ -313,7 +321,7 @@ elif [ "${NODE_VERSION}" = "latest" ]; then
     export NODE_VERSION="node"
 fi
 
-find_version_from_git_tags NVM_VERSION "https://github.com/nvm-sh/nvm"
+find_version_from_git_tags NVM_VERSION "https://github.com/nvm-sh/nvm" "tags/v" "." "false" "" "${NVM_LAST_KNOWN_VERSION}"
 
 # Install snipppet that we will run as the user
 nvm_install_snippet="$(cat << EOF
