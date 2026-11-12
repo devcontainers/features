@@ -14,6 +14,9 @@ OPTIMIZE_BUILD_FROM_SOURCE="${OPTIMIZE:-"false"}"
 ENABLE_SHARED_FROM_SOURCE="${ENABLESHARED:-"false"}"
 PYTHON_INSTALL_PATH="${INSTALLPATH:-"/usr/local/python"}"
 OVERRIDE_DEFAULT_VERSION="${OVERRIDEDEFAULTVERSION:-"true"}"
+PYTHON_LAST_KNOWN_VERSION="3.14.7"
+OPENSSL3_LAST_KNOWN_VERSION="3.0.22"
+COSIGN_LAST_KNOWN_VERSION="3.1.3"
 
 export PIPX_HOME=${PIPX_HOME:-"/usr/local/py-utils"}
 
@@ -442,6 +445,8 @@ check_packages() {
     esac
 }
 
+. "$(dirname "${BASH_SOURCE[0]}")/scripts/version-resolution.sh"
+
 add_symlink() {
     if [[ ! -d "${CURRENT_PATH}" ]]; then
         ln -s -r "${INSTALL_PATH}" "${CURRENT_PATH}"
@@ -461,14 +466,14 @@ install_openssl3() {
         cd /tmp/openssl3
         openssl3_version="3.0"
         # Find version using soft match
-        find_version_from_git_tags openssl3_version "https://github.com/openssl/openssl" "openssl-"
+        find_version_from_git_tags openssl3_version "https://github.com/openssl/openssl" "openssl-" "." "false" "" "${OPENSSL3_LAST_KNOWN_VERSION}"
         local tgz_filename="openssl-${openssl3_version}.tar.gz"
         local tgz_url="https://github.com/openssl/openssl/releases/download/openssl-${openssl3_version}/${tgz_filename}"
         echo "Downloading ${tgz_filename}..."
         curl -sSL -o "/tmp/openssl3/${tgz_filename}" "${tgz_url}"
         tar xzf ${tgz_filename}
         cd openssl-${openssl3_version}
-        ./config --libdir=lib
+        ./config --libdir=lib "$@"
         make -j $(nproc)
         make install_dev
     )
@@ -519,7 +524,7 @@ install_cosign() {
     local cosign_url='https://github.com/sigstore/cosign'
     local architecture=$(get_architecture)
 
-    find_version_from_git_tags COSIGN_VERSION "${cosign_url}"
+    find_version_from_git_tags COSIGN_VERSION "${cosign_url}" "tags/v" "." "false" "" "${COSIGN_LAST_KNOWN_VERSION}"
 
     # Remove 'v' prefix if present for download URL
     local version_for_url="${COSIGN_VERSION#v}"
@@ -632,7 +637,7 @@ install_from_source() {
     fi
 
     # Find version using soft match
-    find_version_from_git_tags VERSION "https://github.com/python/cpython"
+    find_version_from_git_tags VERSION "https://github.com/python/cpython" "tags/v" "." "false" "" "${PYTHON_LAST_KNOWN_VERSION}"
 
     # Some platforms/os versions need modern versions of openssl installed
     # via common package repositories, for now rhel-7 family, use case statement to
@@ -645,6 +650,20 @@ install_from_source() {
             install_time_piece
             install_openssl3
             ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
+            ;;
+        fedora*)
+            local system_openssl_major
+            system_openssl_major=$(rpm -q --qf '%{VERSION}' openssl-devel | cut -d. -f1)
+            if (( system_openssl_major >= 4 )); then
+                SSL_INSTALL_PATH="${PYTHON_INSTALL_PATH}/openssl3"
+                check_packages perl-core
+                if [ ! -f "${SSL_INSTALL_PATH}/include/openssl/ssl.h" ]; then
+                    install_openssl3 "--prefix=${SSL_INSTALL_PATH}" "--openssldir=${SSL_INSTALL_PATH}/ssl"
+                fi
+                mkdir -p "${SSL_INSTALL_PATH}/ssl"
+                ln -sf /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem "${SSL_INSTALL_PATH}/ssl/cert.pem"
+                ADDL_CONFIG_ARGS="--with-openssl=${SSL_INSTALL_PATH} --with-openssl-rpath=${SSL_INSTALL_PATH}/lib"
+            fi
             ;;
     esac
 
@@ -703,6 +722,7 @@ install_from_source() {
     ./configure --prefix="${INSTALL_PATH}" --with-ensurepip=install ${config_args}
     make -j 8
     make install
+
 
     cd /tmp
     rm -rf /tmp/python-src ${GNUPGHOME} /tmp/vscdc-settings.env
@@ -943,9 +963,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
     # Additional python versions to be installed but not be set as default.
     if [ ! -z "${ADDITIONAL_VERSIONS}" ]; then
         OLD_INSTALL_PATH="${INSTALL_PATH}"
-        OLDIFS=$IFS
-        IFS=","
-            read -a additional_versions <<< "$ADDITIONAL_VERSIONS"
+            IFS="," read -r -a additional_versions <<< "$ADDITIONAL_VERSIONS"
             major_version=$(get_major_version ${VERSION})
             if type apt-get > /dev/null 2>&1; then
                 # Debian/Ubuntu: Use update-alternatives
@@ -969,7 +987,6 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
                 fi
             done
         INSTALL_PATH="${OLD_INSTALL_PATH}"
-        IFS=$OLDIFS
     fi
 
     if [ ${PYTHON_VERSION} != "os-provided" ] && [ ${PYTHON_VERSION} != "system" ]; then
@@ -1123,3 +1140,4 @@ fi
 clean_up
 
 echo "Done!"
+

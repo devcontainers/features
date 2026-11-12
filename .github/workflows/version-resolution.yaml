@@ -1,0 +1,41 @@
+name: "CI - Version Resolution Fallbacks"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/version-resolution.yaml"
+      - "scripts/version-resolution.sh"
+      - "scripts/sync-version-resolution.sh"
+      - "src/**/install.sh"
+      - "src/**/scripts/version-resolution.sh"
+      - "test/_global/version-resolution/**"
+  pull_request:
+    paths:
+      - ".github/workflows/version-resolution.yaml"
+      - "scripts/version-resolution.sh"
+      - "scripts/sync-version-resolution.sh"
+      - "src/**/install.sh"
+      - "src/**/scripts/version-resolution.sh"
+      - "test/_global/version-resolution/**"
+
+jobs:
+  version-resolution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check synchronized resolver copies
+        run: bash scripts/sync-version-resolution.sh --check
+
+      - name: Test fallback resolution
+        run: bash test/_global/version-resolution/test.sh
+
+      - name: Lint resolver scripts
+        run: |
+          shellcheck -e SC2072 \
+            scripts/version-resolution.sh \
+            scripts/sync-version-resolution.sh \
+            test/_global/version-resolution/test.sh \
+            test/_global/version-resolution/cases.sh

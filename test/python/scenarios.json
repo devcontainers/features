@@ -272,7 +272,7 @@
             "python": {
                 "version": "3.11",
                 "installTools": true,
-                "additionalVersions": "3.8,3.9.13,3.10.5"
+                "additionalVersions": "3.12,3.13,3.14"
             }
         }
     }
