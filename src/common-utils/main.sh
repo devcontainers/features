@@ -223,7 +223,6 @@ install_redhat_packages() {
         man-db \
         strace \
         util-linux \
-        iptables \
         socat"
 
     # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
@@ -253,9 +252,9 @@ install_redhat_packages() {
         remove_epel="true"
     fi
 
-    # Sandboxing packages are not available in all RPM repositories.
+    # Optional packages are not available in all RPM repositories.
     local sandbox_package sandbox_package_info sandbox_package_available
-    for sandbox_package in bubblewrap slirp4netns; do
+    for sandbox_package in bubblewrap slirp4netns iptables; do
         sandbox_package_available="false"
         if [ "${install_cmd}" = "microdnf" ]; then
             sandbox_package_info="$(${install_cmd} repoquery "${sandbox_package}")"

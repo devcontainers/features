@@ -339,5 +339,12 @@
         "features": {
             "common-utils": {}
         }
+    },
+    "ubi-10-minimal": {
+        "image": "registry.access.redhat.com/ubi10/ubi-minimal:10.0",
+        "remoteUser": "devcontainer",
+        "features": {
+            "common-utils": {}
+        }
     }
 }
