@@ -257,8 +257,7 @@ install_redhat_packages() {
     for sandbox_package in bubblewrap slirp4netns iptables; do
         sandbox_package_available="false"
         if [ "${install_cmd}" = "microdnf" ]; then
-            sandbox_package_info="$(${install_cmd} repoquery "${sandbox_package}")"
-            if grep -q "^${sandbox_package}-" <<< "${sandbox_package_info}"; then
+            if rpm -q "${sandbox_package}" >/dev/null 2>&1 || ${install_cmd} install --assumeno "${sandbox_package}" >/dev/null 2>&1; then
                 sandbox_package_available="true"
             fi
         elif ${install_cmd} -q list "${sandbox_package}" >/dev/null 2>&1; then
