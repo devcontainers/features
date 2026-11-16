@@ -225,6 +225,11 @@ install_redhat_packages() {
         util-linux \
         socat"
 
+    # UBI 10 minimal does not provide iptables.
+    if [[ "${ID}" != "rhel" || "${VERSION_ID}" != 10* ]]; then
+        package_list="${package_list} iptables"
+    fi
+
     # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
     # Install 'curl' for every OS except this rockylinux:9
     if [[ "${ID}" = "rocky" ]] && [[ "${VERSION}" != *"9."* ]]; then
@@ -252,12 +257,13 @@ install_redhat_packages() {
         remove_epel="true"
     fi
 
-    # Optional packages are not available in all RPM repositories.
-    local sandbox_package sandbox_package_available
-    for sandbox_package in bubblewrap slirp4netns iptables; do
+    # Sandboxing packages are not available in all RPM repositories.
+    local sandbox_package sandbox_package_info sandbox_package_available
+    for sandbox_package in bubblewrap slirp4netns; do
         sandbox_package_available="false"
         if [ "${install_cmd}" = "microdnf" ]; then
-            if rpm -q "${sandbox_package}" >/dev/null 2>&1 || ${install_cmd} -y install "${sandbox_package}"; then
+            sandbox_package_info="$(${install_cmd} repoquery "${sandbox_package}")"
+            if grep -q "^${sandbox_package}-" <<< "${sandbox_package_info}"; then
                 sandbox_package_available="true"
             fi
         elif ${install_cmd} -q list "${sandbox_package}" >/dev/null 2>&1; then
