@@ -39,6 +39,13 @@ PYTHON_SOURCE_GPG_KEYS="64E628F8D684696D B26995E310250568 2D347EA6AA65421D FB992
 
 KEYSERVER_PROXY="${HTTPPROXY:-"${HTTP_PROXY:-""}"}"
 
+# Retry settings for Sigstore-related downloads (signer policy, bundles, Cosign binaries).
+SIGSTORE_DOWNLOAD_MAX_ATTEMPTS=3
+SIGSTORE_DOWNLOAD_RETRY_INITIAL_DELAY=2   # seconds; doubles after each failed attempt
+SIGSTORE_DOWNLOAD_CONNECT_TIMEOUT=20      # seconds
+SIGSTORE_DOWNLOAD_MAX_TIME=60             # seconds per attempt
+COSIGN_DOWNLOAD_MAX_TIME=300              # seconds per attempt for Cosign binaries
+
 set -e
 
 # Keep Cosign binaries and downloaded Sigstore bundles available across Python installs.
@@ -534,24 +541,40 @@ get_architecture() {
     echo ${architecture}
 }
 
+# Download a URL to a file, retrying with exponential backoff between attempts.
+# Usage: download_with_retry <url> <destination> <description> [max_time_seconds]
+download_with_retry() {
+    local url="$1"
+    local destination="$2"
+    local description="${3:-File}"
+    local max_time="${4:-${SIGSTORE_DOWNLOAD_MAX_TIME}}"
+    local attempt=1
+    local delay="${SIGSTORE_DOWNLOAD_RETRY_INITIAL_DELAY}"
+
+    while [ "${attempt}" -le "${SIGSTORE_DOWNLOAD_MAX_ATTEMPTS}" ]; do
+        if curl -fsSL --connect-timeout "${SIGSTORE_DOWNLOAD_CONNECT_TIMEOUT}" --max-time "${max_time}" \
+            -o "${destination}" "${url}"; then
+            return 0
+        fi
+        rm -f "${destination}"
+        echo "(!) ${description} download attempt ${attempt}/${SIGSTORE_DOWNLOAD_MAX_ATTEMPTS} failed" >&2
+        if [ "${attempt}" -lt "${SIGSTORE_DOWNLOAD_MAX_ATTEMPTS}" ]; then
+            echo "(*) Retrying in ${delay}s..." >&2
+            sleep "${delay}"
+            delay=$((delay * 2))
+        fi
+        attempt=$((attempt + 1))
+    done
+    return 1
+}
+
 # Fetch Python.org's signer table and return the identity and issuer for a series.
 get_sigstore_signer_policy() {
     local series="$1"
     local policy_file="$2"
-    local policy_attempt=1
 
     if [ ! -s "${policy_file}" ]; then
-        while [ "${policy_attempt}" -le 3 ]; do
-            if curl -fsSL --connect-timeout 20 --max-time 60 -o "${policy_file}" "https://www.python.org/downloads/metadata/sigstore/"; then
-                break
-            fi
-            echo "(!) Signer policy download attempt ${policy_attempt}/3 failed" >&2
-            rm -f "${policy_file}"
-            policy_attempt=$((policy_attempt + 1))
-            if [ "${policy_attempt}" -le 3 ]; then
-                sleep 2
-            fi
-        done
+        download_with_retry "https://www.python.org/downloads/metadata/sigstore/" "${policy_file}" "Signer policy" || true
     fi
 
     if [ ! -s "${policy_file}" ]; then
@@ -638,8 +661,8 @@ prepare_cosign_binaries() {
     # Bootstrap trust: the pinned binary is verified against a checksum reviewed in this feature.
     if [ ! -x "${COSIGN_PINNED_BINARY}" ]; then
         pinned_tmp="${COSIGN_PINNED_BINARY}.download"
-        if ! curl -fsSL --connect-timeout 20 --max-time 300 --retry 2 --retry-delay 2 \
-            -o "${pinned_tmp}" "https://github.com/sigstore/cosign/releases/download/v${COSIGN_PINNED_VERSION}/${asset_name}"; then
+        if ! download_with_retry "https://github.com/sigstore/cosign/releases/download/v${COSIGN_PINNED_VERSION}/${asset_name}" \
+            "${pinned_tmp}" "Pinned Cosign v${COSIGN_PINNED_VERSION}" "${COSIGN_DOWNLOAD_MAX_TIME}"; then
             echo "(!) Failed to download pinned Cosign v${COSIGN_PINNED_VERSION}." >&2
             rm -f "${pinned_tmp}"
             return 1
@@ -680,10 +703,10 @@ prepare_cosign_binaries() {
             latest_bundle="${COSIGN_CACHE_DIR}/${asset_name}.sigstore.json"
 
             if [ ! -x "${COSIGN_LATEST_BINARY}" ]; then
-                if curl -fsSL --connect-timeout 20 --max-time 300 --retry 2 --retry-delay 2 \
-                    -o "${latest_tmp}" "https://github.com/sigstore/cosign/releases/download/v${COSIGN_LATEST_VERSION}/${asset_name}" \
-                    && curl -fsSL --connect-timeout 20 --max-time 60 --retry 2 --retry-delay 2 \
-                    -o "${latest_bundle}" "https://github.com/sigstore/cosign/releases/download/v${COSIGN_LATEST_VERSION}/${asset_name}.sigstore.json"; then
+                if download_with_retry "https://github.com/sigstore/cosign/releases/download/v${COSIGN_LATEST_VERSION}/${asset_name}" \
+                    "${latest_tmp}" "Cosign v${COSIGN_LATEST_VERSION}" "${COSIGN_DOWNLOAD_MAX_TIME}" \
+                    && download_with_retry "https://github.com/sigstore/cosign/releases/download/v${COSIGN_LATEST_VERSION}/${asset_name}.sigstore.json" \
+                    "${latest_bundle}" "Cosign v${COSIGN_LATEST_VERSION} Sigstore bundle"; then
                     if ! chmod 0755 "${latest_tmp}"; then
                         echo "(!) Failed to prepare downloaded Cosign v${COSIGN_LATEST_VERSION}; retaining pinned Cosign." >&2
                         rm -f "${latest_tmp}" "${latest_bundle}"
@@ -722,7 +745,7 @@ cosign_verification() {
     local series="${VERSION%.*}"
     local identity issuer signer_policy
     local architecture cosign_architecture checksum
-    local bundle_file bundle_attempt=1
+    local bundle_file
 
     architecture="$(get_architecture)" || return 1
     case "${architecture}" in
@@ -749,19 +772,7 @@ cosign_verification() {
     fi
 
     bundle_file="${COSIGN_CACHE_DIR}/python-${VERSION}.sigstore"
-    while [ "${bundle_attempt}" -le 3 ]; do
-        if curl -fsSL --connect-timeout 20 --max-time 60 --retry 1 --retry-delay 2 \
-            -o "${bundle_file}" "${cpython_tgz_url}.sigstore"; then
-            break
-        fi
-        echo "(!) Sigstore bundle download attempt ${bundle_attempt}/3 failed" >&2
-        rm -f "${bundle_file}"
-        bundle_attempt=$((bundle_attempt + 1))
-        if [ "${bundle_attempt}" -le 3 ]; then
-            sleep 2
-        fi
-    done
-    if [ "${bundle_attempt}" -gt 3 ]; then
+    if ! download_with_retry "${cpython_tgz_url}.sigstore" "${bundle_file}" "Sigstore bundle"; then
         echo "(!) Failed to download the Sigstore bundle for Python ${VERSION}." >&2
         rm -f "${bundle_file}"
         return 1
@@ -1322,4 +1333,3 @@ fi
 clean_up
 
 echo "Done!"
-
