@@ -223,8 +223,12 @@ install_redhat_packages() {
         man-db \
         strace \
         util-linux \
-        iptables \
         socat"
+
+    # UBI 10 minimal does not provide iptables.
+    if [[ "${ID}" != "rhel" || "${VERSION_ID}" != 10* ]]; then
+        package_list="${package_list} iptables"
+    fi
 
     # rockylinux:9 installs 'curl-minimal' which clashes with 'curl'
     # Install 'curl' for every OS except this rockylinux:9
