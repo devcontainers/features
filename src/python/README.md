@@ -31,7 +31,6 @@ Installs the provided version of Python, as well as PIPX, and other common Pytho
 
 - `ms-python.python`
 - `ms-python.vscode-pylance`
-- `ms-python.autopep8`
 
 
 
