@@ -44,11 +44,11 @@ ensure_gh_extension_list_wrapper() {
 
     gh_config_dir="$(mktemp -d)"
     if env \
-        -u GH_TOKEN \
         -u GITHUB_TOKEN \
         -u GH_ENTERPRISE_TOKEN \
         -u GITHUB_ENTERPRISE_TOKEN \
         GH_CONFIG_DIR="${gh_config_dir}" \
+        GH_TOKEN="gh-extension-list-check" \
         gh extension list >/dev/null 2>&1; then
         rm -rf "${gh_config_dir}"
         return
