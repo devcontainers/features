@@ -225,8 +225,8 @@ install_redhat_packages() {
         util-linux \
         socat"
 
-    # UBI 10 minimal does not provide iptables.
-    if [[ "${ID}" != "rhel" || "${VERSION_ID}" != 10* ]]; then
+    # UBI 10 minimal does not provide iptables; skip RHEL 10 and newer.
+    if [[ "${ID}" != "rhel" || "${VERSION_ID%%.*}" -lt 10 ]]; then
         package_list="${package_list} iptables"
     fi
 
