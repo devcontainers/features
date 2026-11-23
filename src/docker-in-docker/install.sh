@@ -1008,7 +1008,7 @@ if [ "${IPTABLES_SWITCH_AT_RUNTIME}" = "true" ] && [ "${ADJUSTED_ID}" = "debian"
 # and would defeat hosts/scenarios where the module is intentionally absent 
 # such as the newer kernels which leaves out ip_tables legacy.)
 if type iptables-legacy > /dev/null 2>&1 \
-   && { grep -qE '^(ip_tables)\b' /proc/modules \
+   && { grep -qE '^(ip_tables)\b' /proc/modules 2>/dev/null \
         || [ -d /sys/module/ip_tables ]; } \
    && update-alternatives --list iptables 2>/dev/null | grep -q '/usr/sbin/iptables-legacy'; then
     sudo_if update-alternatives --set iptables  /usr/sbin/iptables-legacy || true

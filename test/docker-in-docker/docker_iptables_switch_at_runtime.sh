@@ -11,6 +11,7 @@ check "init-script-exists" bash -c "test -f /usr/local/share/docker-init.sh"
 check "runtime-iptables-block-present" bash -c "grep -q 'update-alternatives --set iptables' /usr/local/share/docker-init.sh"
 check "runtime-iptables-block-has-legacy-branch" bash -c "grep -q '/usr/sbin/iptables-legacy' /usr/local/share/docker-init.sh"
 check "runtime-iptables-block-has-nft-branch" bash -c "grep -q '/usr/sbin/iptables-nft' /usr/local/share/docker-init.sh"
+check "runtime-iptables-proc-modules-check-is-quiet" bash -c "grep -q '/proc/modules 2>/dev/null' /usr/local/share/docker-init.sh"
 
 # The runtime block runs as part of docker-init.sh (the feature's entrypoint),
 # so by the time these tests execute the alternative must already be set.
