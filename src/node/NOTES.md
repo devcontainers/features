@@ -28,6 +28,8 @@ Debian/Ubuntu, RedHat Enterprise Linux, Fedora, Alma, and Rocky Linux distributi
 
 The feature installs the `libatomic.so.1` runtime library required by Node.js binaries, including when `nodeGypDependencies` is disabled.
 
+When `install.sh` is copied without `scripts/version-resolution.sh`, it uses its built-in git-tag version resolver. GitHub API and known-good version fallbacks require the helper script.
+
 ## Yarn installation
 
 Unless `installYarnUsingApt` is enabled on Debian/Ubuntu, the feature uses Corepack when available and falls back to installing Yarn Classic through npm otherwise. Node.js 25 and newer do not bundle Corepack, so commands that require Corepack need it installed separately.
